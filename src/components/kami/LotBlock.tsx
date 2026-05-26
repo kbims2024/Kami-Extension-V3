@@ -30,7 +30,7 @@ export function LotBlock({ blockName, lots, onReserve }: LotBlockProps) {
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg flex items-center text-foreground">
             <Building2 className="h-5 w-5 mr-2 text-brand-blue" />
-            Bloc {blockName}
+            Îlot {blockName}
           </CardTitle>
           <span className="text-sm text-muted-foreground">
             {availableCount}/{totalCount} disponibles

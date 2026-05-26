@@ -32,7 +32,7 @@ export function EnhancedMapScreen({ lots, handleOpenReservation, setCurrentScree
 
   const filteredLots = activeFilter === 'all' ? lots : lots.filter((l) => l.status === activeFilter);
 
-  // Group lots by block using the block field from database
+  // Group lots by îlot using the block field from database
   const groupedLots: Record<string, Lot[]> = {};
   filteredLots.forEach((lot) => {
     const block = lot.block || lot.name.charAt(0); // Fallback to first char if block is not set

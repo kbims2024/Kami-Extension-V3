@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { AlertCircle, Calendar, TrendingUp, Users } from 'lucide-react';
 
-interface FlashInfo {
+interface FlashInfoItem {
   id: string;
   icon: React.ReactNode;
   text: string;
@@ -11,13 +10,11 @@ interface FlashInfo {
 }
 
 export function FlashInfoBand() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  const flashInfos: FlashInfo[] = [
+  const flashInfos: FlashInfoItem[] = [
     {
       id: '1',
       icon: <AlertCircle className="h-4 w-4" />,
-      text: '🎉 Promotion spéciale : -10% sur tous les lots du Bloc A jusqu\'au 31 décembre !',
+      text: '🎉 Promotion spéciale : -10% sur tous les lots de l\'Îlot A jusqu\'au 31 décembre !',
       urgent: true,
     },
     {
@@ -46,124 +43,56 @@ export function FlashInfoBand() {
     },
   ];
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % flashInfos.length);
-    }, 5000); // Change every 5 seconds
-
-    return () => clearInterval(interval);
-  }, [flashInfos.length]);
-
-  const nextInfo = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % flashInfos.length);
-  };
-
-  const prevInfo = () => {
-    setCurrentIndex(
-      (prevIndex) => (prevIndex - 1 + flashInfos.length) % flashInfos.length
-    );
-  };
-
-  const currentInfo = flashInfos[currentIndex];
+  // Duplicate the items to create a seamless loop
+  const scrollContent = [...flashInfos, ...flashInfos, ...flashInfos];
 
   return (
     <div className="w-full bg-gradient-to-r from-brand-blue to-blue-700 dark:from-blue-900 dark:to-blue-950 text-white overflow-hidden">
-      <div className="container mx-auto px-4 py-2">
-        <div className="flex items-center justify-between gap-4">
-          {/* Previous Button */}
-          <button
-            onClick={prevInfo}
-            className="hidden sm:flex items-center justify-center w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 transition-colors flex-shrink-0"
-            aria-label="Info précédente"
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-          </button>
-
-          {/* Flash Info Content */}
-          <div className="flex-1 overflow-hidden">
-            <div className="flex items-center justify-center gap-3 animate-fade-in">
-              {currentInfo.urgent && (
-                <span className="inline-flex items-center bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse flex-shrink-0">
-                  URGENT
-                </span>
-              )}
-              <div className="flex items-center gap-2 overflow-hidden">
-                <span className="text-brand-yellow flex-shrink-0">
-                  {currentInfo.icon}
-                </span>
-                <span className="text-sm sm:text-base font-medium truncate">
-                  {currentInfo.text}
-                </span>
+      <div className="relative">
+        {/* Scrolling Container */}
+        <div className="overflow-hidden py-3">
+          <div className="flex items-center gap-12 animate-scroll hover:pause">
+            {scrollContent.map((info, index) => (
+              <div
+                key={`${info.id}-${index}`}
+                className="flex items-center gap-2 flex-shrink-0 whitespace-nowrap"
+              >
+                {info.urgent && (
+                  <span className="inline-flex items-center bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                    URGENT
+                  </span>
+                )}
+                <span className="text-brand-yellow">{info.icon}</span>
+                <span className="text-sm font-medium">{info.text}</span>
+                <span className="text-brand-blue/50 mx-4">•</span>
               </div>
-            </div>
-          </div>
-
-          {/* Dots Indicator */}
-          <div className="hidden md:flex items-center gap-1.5 flex-shrink-0">
-            {flashInfos.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentIndex(index)}
-                className={`w-2 h-2 rounded-full transition-all ${
-                  index === currentIndex
-                    ? 'bg-brand-yellow w-6'
-                    : 'bg-white/40 hover:bg-white/60'
-                }`}
-                aria-label={`Aller à l'info ${index + 1}`}
-              />
             ))}
           </div>
-
-          {/* Next Button */}
-          <button
-            onClick={nextInfo}
-            className="hidden sm:flex items-center justify-center w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 transition-colors flex-shrink-0"
-            aria-label="Info suivante"
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
-          </button>
         </div>
       </div>
 
-      {/* Mobile Dots */}
-      <div className="flex md:hidden items-center justify-center gap-1.5 mt-2 pb-1">
-        {flashInfos.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => setCurrentIndex(index)}
-            className={`w-2 h-2 rounded-full transition-all ${
-              index === currentIndex
-                ? 'bg-brand-yellow w-4'
-                : 'bg-white/40 hover:bg-white/60'
-            }`}
-            aria-label={`Aller à l'info ${index + 1}`}
-          />
-        ))}
-      </div>
+      <style jsx global>{`
+        @keyframes scroll {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-33.33%);
+          }
+        }
+
+        .animate-scroll {
+          animation: scroll 30s linear infinite;
+        }
+
+        .animate-scroll:hover {
+          animation-play-state: paused;
+        }
+
+        .pause {
+          animation-play-state: paused;
+        }
+      `}</style>
     </div>
   );
 }

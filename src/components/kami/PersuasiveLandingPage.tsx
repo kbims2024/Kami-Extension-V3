@@ -65,13 +65,8 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
 
   return (
     <div className="flex-1 flex flex-col bg-background overflow-x-hidden">
-      {/* Flash Info Band */}
-      <div className="fixed top-0 left-0 right-0 z-50">
-        <FlashInfoBand />
-      </div>
-      
       {/* Header */}
-      <header className="fixed top-[60px] left-0 right-0 z-40 bg-background/90 dark:bg-background/90 backdrop-blur-md border-b border-border transition-all duration-300">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 dark:bg-background/90 backdrop-blur-md border-b border-border transition-all duration-300">
         <div className="container mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
@@ -111,8 +106,13 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
         </div>
       </header>
 
+      {/* Flash Info Band - Under header */}
+      <div className="fixed top-[73px] left-0 right-0 z-40">
+        <FlashInfoBand />
+      </div>
+
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-blue via-blue-700 to-brand-blue text-white pt-32 overflow-hidden">
+      <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-blue via-blue-700 to-brand-blue text-white pt-[110px] overflow-hidden">
         {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-20 left-10 w-72 h-72 bg-yellow-400/10 rounded-full blur-3xl animate-pulse" />

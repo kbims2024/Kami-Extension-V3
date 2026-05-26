@@ -15,7 +15,7 @@ async function main() {
 
   // Créer des lots de test variés
   const lots = [
-    // Bloc A - Lots standards
+    // Îlot A - Lots standards
     { name: 'A-01', block: 'A', surface: '250m²', priceRes: 100000, priceNon: 150000, status: 'AVAILABLE' },
     { name: 'A-02', block: 'A', surface: '300m²', priceRes: 100000, priceNon: 150000, status: 'AVAILABLE' },
     { name: 'A-03', block: 'A', surface: '280m²', priceRes: 100000, priceNon: 150000, status: 'AVAILABLE' },
@@ -25,7 +25,7 @@ async function main() {
     { name: 'A-07', block: 'A', surface: '280m²', priceRes: 100000, priceNon: 150000, status: 'AVAILABLE' },
     { name: 'A-08', block: 'A', surface: '400m²', priceRes: 150000, priceNon: 200000, status: 'AVAILABLE' },
 
-    // Bloc B - Lots plus grands
+    // Îlot B - Lots plus grands
     { name: 'B-01', block: 'B', surface: '400m²', priceRes: 150000, priceNon: 200000, status: 'AVAILABLE' },
     { name: 'B-02', block: 'B', surface: '450m²', priceRes: 170000, priceNon: 220000, status: 'AVAILABLE' },
     { name: 'B-03', block: 'B', surface: '500m²', priceRes: 200000, priceNon: 250000, status: 'PAID' },
@@ -33,13 +33,13 @@ async function main() {
     { name: 'B-05', block: 'B', surface: '380m²', priceRes: 140000, priceNon: 190000, status: 'AVAILABLE' },
     { name: 'B-06', block: 'B', surface: '480m²', priceRes: 190000, priceNon: 240000, status: 'AVAILABLE' },
 
-    // Bloc C - Lots premium
+    // Îlot C - Lots premium
     { name: 'C-01', block: 'C', surface: '600m²', priceRes: 300000, priceNon: 400000, status: 'AVAILABLE' },
     { name: 'C-02', block: 'C', surface: '550m²', priceRes: 270000, priceNon: 370000, status: 'AVAILABLE' },
     { name: 'C-03', block: 'C', surface: '650m²', priceRes: 350000, priceNon: 450000, status: 'RESERVED' },
     { name: 'C-04', block: 'C', surface: '500m²', priceRes: 250000, priceNon: 350000, status: 'AVAILABLE' },
 
-    // Bloc D - Lots économiques
+    // Îlot D - Lots économiques
     { name: 'D-01', block: 'D', surface: '200m²', priceRes: 80000, priceNon: 120000, status: 'AVAILABLE' },
     { name: 'D-02', block: 'D', surface: '220m²', priceRes: 90000, priceNon: 130000, status: 'AVAILABLE' },
     { name: 'D-03', block: 'D', surface: '180m²', priceRes: 70000, priceNon: 110000, status: 'PAID' },
@@ -47,7 +47,7 @@ async function main() {
     { name: 'D-05', block: 'D', surface: '230m²', priceRes: 95000, priceNon: 145000, status: 'AVAILABLE' },
     { name: 'D-06', block: 'D', surface: '200m²', priceRes: 80000, priceNon: 120000, status: 'AVAILABLE' },
 
-    // Bloc E - Lots mixtes
+    // Îlot E - Lots mixtes
     { name: 'E-01', block: 'E', surface: '350m²', priceRes: 130000, priceNon: 180000, status: 'AVAILABLE' },
     { name: 'E-02', block: 'E', surface: '300m²', priceRes: 110000, priceNon: 160000, status: 'AVAILABLE' },
     { name: 'E-03', block: 'E', surface: '400m²', priceRes: 150000, priceNon: 200000, status: 'AVAILABLE' },
