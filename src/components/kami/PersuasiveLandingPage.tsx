@@ -2,8 +2,11 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { ThemeToggle } from '@/components/theme-toggle';
+import { FlashInfoBand } from '@/components/flash-info-band';
 import { Menu, Map, CheckCircle, Home, Zap, Droplet, ShieldCheck, Users, TrendingUp, Clock, Award, Wrench, Building2, ArrowRight, ChevronRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useTheme } from 'next-themes';
 
 interface PersuasiveLandingPageProps {
   onReserveClick: () => void;
@@ -13,6 +16,7 @@ interface PersuasiveLandingPageProps {
 }
 
 export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, setCurrentScreen }: PersuasiveLandingPageProps) {
+  const { theme } = useTheme();
   const availableCount = lots.filter((l) => l.status === 'AVAILABLE').length;
   const totalCount = lots.length;
   const sellRate = totalCount > 0 ? Math.round(((totalCount - availableCount) / totalCount) * 100) : 0;
@@ -60,25 +64,31 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
   ];
 
   return (
-    <div className="flex-1 flex flex-col bg-white overflow-x-hidden">
+    <div className="flex-1 flex flex-col bg-background overflow-x-hidden">
+      {/* Flash Info Band */}
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <FlashInfoBand />
+      </div>
+      
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-blue-100 transition-all duration-300">
+      <header className="fixed top-[60px] left-0 right-0 z-40 bg-background/90 dark:bg-background/90 backdrop-blur-md border-b border-border transition-all duration-300">
         <div className="container mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+              <div className="w-10 h-10 bg-gradient-to-br from-brand-blue to-blue-700 rounded-xl flex items-center justify-center shadow-lg shadow-brand-blue/30">
                 <Building2 className="text-white h-5 w-5" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-gray-900 leading-tight">KAMI-EXTENSION</h1>
-                <p className="text-xs text-gray-500">Devenez propriétaire</p>
+                <h1 className="text-lg font-bold text-foreground leading-tight">KAMI-EXTENSION</h1>
+                <p className="text-xs text-muted-foreground">Devenez propriétaire</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
+              <ThemeToggle />
               <Button
                 variant="ghost"
                 onClick={() => setIsMenuOpen(true)}
-                className="hover:bg-blue-50 text-gray-700 hidden md:flex"
+                className="hover:bg-blue-50 dark:hover:bg-blue-950 text-foreground hidden md:flex"
               >
                 Menu
               </Button>
@@ -86,13 +96,13 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsMenuOpen(true)}
-                className="hover:bg-blue-50 md:hidden"
+                className="hover:bg-blue-50 dark:hover:bg-blue-950 md:hidden"
               >
-                <Menu className="h-6 w-6 text-gray-700" />
+                <Menu className="h-6 w-6" />
               </Button>
               <Button
                 onClick={onReserveClick}
-                className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold px-6 py-2 rounded-xl shadow-lg shadow-yellow-400/30 hidden md:flex transition-all hover:scale-105"
+                className="bg-brand-yellow hover:bg-brand-yellow-hover text-gray-900 font-semibold px-6 py-2 rounded-xl shadow-lg hidden md:flex transition-all hover:scale-105"
               >
                 Réserver
               </Button>
@@ -102,7 +112,7 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
       </header>
 
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 text-white pt-20 overflow-hidden">
+      <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-blue via-blue-700 to-brand-blue text-white pt-32 overflow-hidden">
         {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-20 left-10 w-72 h-72 bg-yellow-400/10 rounded-full blur-3xl animate-pulse" />
@@ -172,19 +182,19 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
         {/* Wave Bottom */}
         <div className="absolute bottom-0 left-0 right-0">
           <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
-            <path d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" fill="white"/>
+            <path d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" className="fill-background dark:fill-background"/>
           </svg>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-background">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
               Comment ça marche ?
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Un processus simple et transparent pour devenir propriétaire
             </p>
           </div>
@@ -192,15 +202,15 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
               <div key={index} className="group animate-fade-in-up" style={{ animationDelay: `${index * 150}ms` }}>
-                <Card className="border-0 bg-white shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 rounded-2xl overflow-hidden">
-                  <div className="bg-gradient-to-br from-blue-600 to-blue-800 p-6">
-                    <span className="text-5xl font-bold text-yellow-400 opacity-50">{feature.number}</span>
+                <Card className="border-0 bg-card shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 rounded-2xl overflow-hidden">
+                  <div className="bg-gradient-to-br from-brand-blue to-blue-700 p-6">
+                    <span className="text-5xl font-bold text-brand-yellow opacity-50">{feature.number}</span>
                   </div>
                   <CardContent className="p-6">
-                    <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
+                    <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-brand-blue transition-colors">
                       {feature.title}
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-muted-foreground">
                       {feature.desc}
                     </p>
                   </CardContent>
@@ -212,13 +222,13 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
       </section>
 
       {/* Advantages Section */}
-      <section className="py-20 bg-gradient-to-br from-blue-50 to-white">
+      <section className="py-20 bg-gradient-to-br from-blue-50/50 to-background dark:from-blue-950/30 dark:to-background">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
               Tout est inclus
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Votre terrain est livré avec tous les services essentiels
             </p>
           </div>
@@ -229,14 +239,14 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
               return (
                 <Card
                   key={index}
-                  className="border-0 bg-white shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 rounded-2xl group"
+                  className="border-0 bg-card shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 rounded-2xl group"
                 >
                   <CardContent className="p-8 text-center">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-blue-500/30">
-                      <Icon className="h-8 w-8 text-yellow-400" />
+                    <div className="w-16 h-16 bg-gradient-to-br from-brand-blue to-blue-700 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-brand-blue/30">
+                      <Icon className="h-8 w-8 text-brand-yellow" />
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">{advantage.title}</h3>
-                    <p className="text-gray-600">{advantage.desc}</p>
+                    <h3 className="text-xl font-bold text-foreground mb-2">{advantage.title}</h3>
+                    <p className="text-muted-foreground">{advantage.desc}</p>
                   </CardContent>
                 </Card>
               );
@@ -247,7 +257,7 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
 
 
       {/* Why Choose Us */}
-      <section className="py-20 bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 text-white relative overflow-hidden">
+      <section className="py-20 bg-gradient-to-br from-brand-blue via-blue-700 to-brand-blue text-white relative overflow-hidden">
         <div className="absolute inset-0">
           <div className="absolute top-20 right-20 w-72 h-72 bg-yellow-400/10 rounded-full blur-3xl animate-pulse" />
           <div className="absolute bottom-20 left-20 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl animate-pulse delay-1000" />
@@ -287,7 +297,7 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
       </section>
 
       {/* Final CTA */}
-      <section className="py-20 bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900 relative overflow-hidden">
+      <section className="py-20 bg-gradient-to-br from-brand-yellow to-yellow-500 text-gray-900 relative overflow-hidden">
         <div className="absolute inset-0">
           <div className="absolute top-10 left-10 w-64 h-64 bg-white/20 rounded-full blur-3xl" />
           <div className="absolute bottom-10 right-10 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
@@ -298,7 +308,7 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
               Prêt à devenir propriétaire ?
             </h2>
-            <p className="text-xl mb-8 text-gray-800">
+            <p className="text-xl mb-8 text-gray-800 dark:text-gray-900">
               Ne manquez pas cette opportunité unique. Rejoignez les futurs résidents de KAMI-EXTENSION.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">

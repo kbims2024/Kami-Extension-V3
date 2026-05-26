@@ -41,6 +41,10 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --color-brand-blue: var(--brand-blue);
+  --color-brand-blue-hover: var(--brand-blue-hover);
+  --color-brand-yellow: var(--brand-yellow);
+  --color-brand-yellow-hover: var(--brand-yellow-hover);
 }
 
 :root {
@@ -76,6 +80,11 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  /* Brand Colors - Pure Blue and Yellow */
+  --brand-blue: #2563EB;
+  --brand-blue-hover: #1D4ED8;
+  --brand-yellow: #FACC15;
+  --brand-yellow-hover: #EAB308;
 }
 
 .dark {
@@ -110,6 +119,11 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  /* Brand Colors - Pure Blue and Yellow (slightly adjusted for dark mode) */
+  --brand-blue: #3B82F6;
+  --brand-blue-hover: #60A5FA;
+  --brand-yellow: #FDE047;
+  --brand-yellow-hover: #FACC15;
 }
 
 @layer base {

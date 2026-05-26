@@ -25,14 +25,14 @@ export function LotBlock({ blockName, lots, onReserve }: LotBlockProps) {
   const totalCount = lots.length;
 
   return (
-    <Card className="mb-6">
+    <Card className="mb-6 bg-card border-border">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg flex items-center">
-            <Building2 className="h-5 w-5 mr-2 text-[#8B5E3C]" />
+          <CardTitle className="text-lg flex items-center text-foreground">
+            <Building2 className="h-5 w-5 mr-2 text-brand-blue" />
             Bloc {blockName}
           </CardTitle>
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-muted-foreground">
             {availableCount}/{totalCount} disponibles
           </span>
         </div>

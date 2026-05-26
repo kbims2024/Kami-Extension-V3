@@ -32,16 +32,16 @@ export function LotFilters({
           onClick={() => onFilterChange(filter.id)}
           className={`flex-shrink-0 ${
             activeFilter === filter.id
-              ? 'bg-[#10B981] hover:bg-[#059669] text-white'
-              : 'bg-white text-gray-700 hover:bg-gray-50'
+              ? 'bg-brand-blue hover:bg-blue-700 text-white'
+              : 'bg-card text-foreground hover:bg-accent'
           }`}
         >
           {filter.label}
           <Badge
             className={`ml-2 ${
               activeFilter === filter.id
-                ? 'bg-white text-[#10B981]'
-                : 'bg-gray-100 text-gray-600'
+                ? 'bg-white/20 text-white'
+                : 'bg-accent text-muted-foreground'
             }`}
           >
             {filter.count}

@@ -29,10 +29,14 @@ model User {
 model Lot {
   id          String      @id @default(cuid())
   name        String
+  block       String      // Îlot / Bloc (ex: A, B, C)
   surface     String
   priceRes    Int
   priceNon    Int
   status      String      @default("AVAILABLE") // AVAILABLE, RESERVED, PAID
+  description String?
+  positionX   Float?      // Position X sur la carte
+  positionY   Float?      // Position Y sur la carte
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   reservations Reservation[]
