@@ -342,6 +342,8 @@ export default function KamiExtensionPage() {
         <PersuasiveLandingPage
           lots={lots}
           onReserveClick={() => setCurrentScreen('register')}
+          setIsMenuOpen={setIsMenuOpen}
+          setCurrentScreen={setCurrentScreen}
         />
       )}
 
@@ -350,6 +352,7 @@ export default function KamiExtensionPage() {
         <TwoStepRegistration
           onComplete={handleRegistrationComplete}
           onBack={() => setCurrentScreen('home')}
+          setIsMenuOpen={setIsMenuOpen}
         />
       )}
 
@@ -358,6 +361,7 @@ export default function KamiExtensionPage() {
         <TwoStepRegistration
           onComplete={handleRegistrationComplete}
           onBack={() => setCurrentScreen('home')}
+          setIsMenuOpen={setIsMenuOpen}
         />
       )}
 

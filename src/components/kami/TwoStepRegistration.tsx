@@ -3,14 +3,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, ArrowRight, CheckCircle, Home, Users, Building2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, Home, Users, Building2, Menu } from 'lucide-react';
 
 interface TwoStepRegistrationProps {
   onComplete: (userData: { name: string; phone: string; isResident: boolean }) => void;
   onBack: () => void;
+  setIsMenuOpen?: (open: boolean) => void;
 }
 
-export function TwoStepRegistration({ onComplete, onBack }: TwoStepRegistrationProps) {
+export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoStepRegistrationProps) {
   const [step, setStep] = useState(1);
   const [isResident, setIsResident] = useState<boolean | null>(null);
   const [formData, setFormData] = useState({
@@ -62,7 +63,17 @@ export function TwoStepRegistration({ onComplete, onBack }: TwoStepRegistrationP
   return (
     <div className="flex-1 flex flex-col bg-gray-50 min-h-screen">
       {/* Header */}
-      <div className="bg-[#8B5E3C] text-white p-6">
+      <div className="bg-[#8B5E3C] text-white p-6 relative">
+        {setIsMenuOpen && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-4 right-4 text-white hover:bg-white/20 z-10"
+            onClick={() => setIsMenuOpen(true)}
+          >
+            <Menu className="h-6 w-6" />
+          </Button>
+        )}
         <Button
           variant="ghost"
           size="icon"
