@@ -16,6 +16,8 @@ import { toast } from 'sonner';
 import { Building2, Map, Home, Wallet, Users, User, Shield, ArrowLeft, Menu, LogOut, LogIn, CheckCircle, XCircle, AlertCircle, ChartLine, CreditCard, UserPlus, PlusCircle, Wrench, Zap, Droplet, ShieldCheck, FileText, Copy, ClipboardCheck } from 'lucide-react';
 import { EnhancedHomeScreen } from '@/components/kami/EnhancedHomeScreen';
 import { EnhancedMapScreen } from '@/components/kami/EnhancedMapScreen';
+import { PersuasiveLandingPage } from '@/components/kami/PersuasiveLandingPage';
+import { TwoStepRegistration } from '@/components/kami/TwoStepRegistration';
 
 export default function KamiExtensionPage() {
   const [mounted, setMounted] = useState(false);
@@ -198,6 +200,39 @@ export default function KamiExtensionPage() {
     toast.success('Lien copié !');
   };
 
+  const handleRegistrationComplete = async (userData: { name: string; phone: string; isResident: boolean }) => {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: userData.name,
+          phone: userData.phone,
+          isResident: userData.isResident,
+        }),
+      });
+
+      if (response.ok) {
+        const user = await response.json();
+        setCurrentUser(user);
+        toast.success(`Bienvenue ${user.name} ! Votre compte est créé.`);
+        setCurrentScreen('map');
+      } else {
+        toast.error('Erreur lors de la création du compte');
+      }
+    } catch (error) {
+      // Fallback to local state for demo
+      setCurrentUser({
+        name: userData.name,
+        phone: userData.phone,
+        isResident: userData.isResident,
+        referralCode: `${userData.name.substring(0, 3).toUpperCase()}${Math.floor(Math.random() * 900 + 100)}`,
+      });
+      toast.success(`Bienvenue ${userData.name} ! Votre compte est créé.`);
+      setCurrentScreen('map');
+    }
+  };
+
   if (!mounted) return null;
 
   return (
@@ -302,19 +337,32 @@ export default function KamiExtensionPage() {
       </Sheet>
 
       {/* Screens */}
-      {currentScreen === 'login' && (
-        <LoginScreen
-          loginName={loginName}
-          setLoginName={setLoginName}
-          loginPhone={loginPhone}
-          setLoginPhone={setLoginPhone}
-          loginIsResident={loginIsResident}
-          setLoginIsResident={setLoginIsResident}
-          handleLogin={handleLogin}
+      {/* Si l'utilisateur n'est pas connecté, afficher la page d'accueil persuasive */}
+      {!currentUser && currentScreen === 'home' && (
+        <PersuasiveLandingPage
+          lots={lots}
+          onReserveClick={() => setCurrentScreen('register')}
         />
       )}
 
-      {currentScreen === 'home' && (
+      {/* Écran d'inscription en 2 étapes */}
+      {!currentUser && currentScreen === 'register' && (
+        <TwoStepRegistration
+          onComplete={handleRegistrationComplete}
+          onBack={() => setCurrentScreen('home')}
+        />
+      )}
+
+      {/* Écran de connexion (ancien, pour compatibilité) */}
+      {!currentUser && currentScreen === 'login' && (
+        <TwoStepRegistration
+          onComplete={handleRegistrationComplete}
+          onBack={() => setCurrentScreen('home')}
+        />
+      )}
+
+      {/* Si l'utilisateur est connecté, afficher l'interface complète */}
+      {currentUser && currentScreen === 'home' && (
         <EnhancedHomeScreen
           lots={lots}
           setCurrentScreen={setCurrentScreen}
