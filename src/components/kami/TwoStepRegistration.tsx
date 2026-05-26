@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, ArrowRight, CheckCircle, Home, Users, Building2, Menu } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, Home, Users, Building2, Menu, ShieldCheck, Clock, Star } from 'lucide-react';
 
 interface TwoStepRegistrationProps {
   onComplete: (userData: { name: string; phone: string; isResident: boolean }) => void;
@@ -17,21 +17,20 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    confirmPassword: ''
   });
 
   const residentBenefits = [
-    "Prix préférentiel : 100 000 FCFA",
-    "Paiement en plusieurs tranches possible",
-    "Accès prioritaire aux nouveaux blocs",
-    "Support personnalisé dédié"
+    { icon: Home, text: "Prix : 100 000 FCFA" },
+    { icon: Clock, text: "Paiement en tranches" },
+    { icon: Star, text: "Support prioritaire" },
+    { icon: ShieldCheck, text: "Accès exclusif" },
   ];
 
   const nonResidentBenefits = [
-    "Terrain constructible viabilisé",
-    "Prix attractif : 150 000 FCFA",
-    "Paiement flexible disponible",
-    "Documentation complète incluse"
+    { icon: Home, text: "Prix : 150 000 FCFA" },
+    { icon: Clock, text: "Paiement flexible" },
+    { icon: Star, text: "Support dédié" },
+    { icon: ShieldCheck, text: "Terrain viabilisé" },
   ];
 
   const handleStep1Submit = () => {
@@ -63,136 +62,156 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
   return (
     <div className="flex-1 flex flex-col bg-gray-50 min-h-screen">
       {/* Header */}
-      <div className="bg-[#8B5E3C] text-white p-6 relative">
+      <header className="flex justify-between items-center px-6 py-4 bg-white border-b border-gray-100 sticky top-0 z-20">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={step === 1 ? onBack : () => setStep(1)}
+            className="hover:bg-gray-100"
+          >
+            <ArrowLeft className="h-5 w-5 text-gray-700" />
+          </Button>
+          <div>
+            <h1 className="text-lg font-bold text-gray-900 leading-tight">Créer un compte</h1>
+            <p className="text-xs text-gray-500">
+              {step === 1 ? 'Étape 1 sur 2' : 'Étape 2 sur 2'}
+            </p>
+          </div>
+        </div>
         {setIsMenuOpen && (
           <Button
             variant="ghost"
             size="icon"
-            className="absolute top-4 right-4 text-white hover:bg-white/20 z-10"
             onClick={() => setIsMenuOpen(true)}
+            className="hover:bg-gray-100"
           >
-            <Menu className="h-6 w-6" />
+            <Menu className="h-6 w-6 text-gray-700" />
           </Button>
         )}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute top-4 left-4 text-white hover:bg-white/20"
-          onClick={step === 1 ? onBack : () => setStep(1)}
-        >
-          <ArrowLeft className="h-6 w-6" />
-        </Button>
-        <div className="max-w-md mx-auto text-center pt-8">
-          <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Building2 className="h-10 w-10 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold mb-2">Créer votre compte</h1>
-          <p className="text-sm opacity-90">
-            {step === 1 ? 'Choisissez votre statut' : 'Complétez vos informations'}
-          </p>
-        </div>
+      </header>
 
-        {/* Progress Steps */}
-        <div className="flex justify-center mt-6 gap-2">
-          <div className={`h-1 w-12 rounded-full ${step >= 1 ? 'bg-white' : 'bg-white/30'}`} />
-          <div className={`h-1 w-12 rounded-full ${step >= 2 ? 'bg-white' : 'bg-white/30'}`} />
+      {/* Progress Bar */}
+      <div className="bg-white px-6 py-3 border-b border-gray-100">
+        <div className="flex gap-2 max-w-md">
+          <div className={`flex-1 h-1.5 rounded-full ${step >= 1 ? 'bg-emerald-500' : 'bg-gray-200'}`} />
+          <div className={`flex-1 h-1.5 rounded-full ${step >= 2 ? 'bg-emerald-500' : 'bg-gray-200'}`} />
         </div>
       </div>
 
       {/* Content */}
       <div className="flex-1 p-6 overflow-y-auto">
-        <div className="max-w-md mx-auto">
+        <div className="max-w-lg mx-auto">
           {step === 1 ? (
-            <div className="space-y-4">
-              <p className="text-center text-gray-600 mb-6">
-                Sélectionnez votre statut pour bénéficier d'un tarif adapté
-              </p>
+            <div className="space-y-6">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  Quel est votre statut ?
+                </h2>
+                <p className="text-gray-600">
+                  Sélectionnez votre situation pour bénéficier du tarif adapté
+                </p>
+              </div>
 
-              {/* Resident Option */}
+              {/* Resident Card */}
               <Card
                 className={`border-2 cursor-pointer transition-all hover:shadow-lg ${
                   isResident === true
-                    ? 'border-[#10B981] bg-emerald-50 shadow-lg'
-                    : 'border-gray-200 bg-white'
+                    ? 'border-emerald-500 bg-emerald-50/50 shadow-md'
+                    : 'border-gray-200 bg-white hover:border-emerald-300'
                 }`}
                 onClick={() => setIsResident(true)}
               >
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                        isResident === true ? 'bg-[#10B981]' : 'bg-gray-100'
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                        isResident === true ? 'bg-emerald-500' : 'bg-gray-100'
                       }`}>
                         <Home className={`h-6 w-6 ${isResident === true ? 'text-white' : 'text-gray-600'}`} />
                       </div>
                       <div>
-                        <CardTitle className="text-xl">Résident de KAMI</CardTitle>
-                        <CardDescription>Pour les habitants du village</CardDescription>
+                        <h3 className="text-lg font-bold text-gray-900">Résident KAMI</h3>
+                        <p className="text-sm text-gray-500">Habitant du village</p>
                       </div>
                     </div>
-                    {isResident === true && <CheckCircle className="h-6 w-6 text-[#10B981]" />}
+                    {isResident === true && (
+                      <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center">
+                        <CheckCircle className="h-4 w-4 text-white" />
+                      </div>
+                    )}
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center mb-4">
-                    <span className="text-4xl font-extrabold text-[#10B981]">100 000</span>
-                    <span className="text-gray-600 text-xl"> FCFA</span>
+
+                  <div className="mb-4">
+                    <span className="text-3xl font-bold text-emerald-600">100 000</span>
+                    <span className="text-lg text-gray-600 ml-1">FCFA</span>
                   </div>
-                  <ul className="space-y-2">
-                    {residentBenefits.map((benefit, i) => (
-                      <li key={i} className="flex items-start text-sm">
-                        <CheckCircle className="h-4 w-4 text-[#10B981] mr-2 flex-shrink-0 mt-0.5" />
-                        <span className="text-gray-700">{benefit}</span>
-                      </li>
-                    ))}
-                  </ul>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    {residentBenefits.map((benefit, i) => {
+                      const Icon = benefit.icon;
+                      return (
+                        <div key={i} className="flex items-center gap-2 text-sm text-gray-700">
+                          <Icon className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+                          <span>{benefit.text}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </CardContent>
               </Card>
 
-              {/* Non-Resident Option */}
+              {/* Non-Resident Card */}
               <Card
                 className={`border-2 cursor-pointer transition-all hover:shadow-lg ${
                   isResident === false
-                    ? 'border-[#8B5E3C] bg-orange-50 shadow-lg'
-                    : 'border-gray-200 bg-white'
+                    ? 'border-orange-500 bg-orange-50/50 shadow-md'
+                    : 'border-gray-200 bg-white hover:border-orange-300'
                 }`}
                 onClick={() => setIsResident(false)}
               >
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                        isResident === false ? 'bg-[#8B5E3C]' : 'bg-gray-100'
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                        isResident === false ? 'bg-orange-500' : 'bg-gray-100'
                       }`}>
                         <Users className={`h-6 w-6 ${isResident === false ? 'text-white' : 'text-gray-600'}`} />
                       </div>
                       <div>
-                        <CardTitle className="text-xl">Non-Résident</CardTitle>
-                        <CardDescription>Pour les extérieurs au village</CardDescription>
+                        <h3 className="text-lg font-bold text-gray-900">Non-Résident</h3>
+                        <p className="text-sm text-gray-500">Extérieur au village</p>
                       </div>
                     </div>
-                    {isResident === false && <CheckCircle className="h-6 w-6 text-[#8B5E3C]" />}
+                    {isResident === false && (
+                      <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
+                        <CheckCircle className="h-4 w-4 text-white" />
+                      </div>
+                    )}
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center mb-4">
-                    <span className="text-4xl font-extrabold text-[#8B5E3C]">150 000</span>
-                    <span className="text-gray-600 text-xl"> FCFA</span>
+
+                  <div className="mb-4">
+                    <span className="text-3xl font-bold text-orange-600">150 000</span>
+                    <span className="text-lg text-gray-600 ml-1">FCFA</span>
                   </div>
-                  <ul className="space-y-2">
-                    {nonResidentBenefits.map((benefit, i) => (
-                      <li key={i} className="flex items-start text-sm">
-                        <CheckCircle className="h-4 w-4 text-[#8B5E3C] mr-2 flex-shrink-0 mt-0.5" />
-                        <span className="text-gray-700">{benefit}</span>
-                      </li>
-                    ))}
-                  </ul>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    {nonResidentBenefits.map((benefit, i) => {
+                      const Icon = benefit.icon;
+                      return (
+                        <div key={i} className="flex items-center gap-2 text-sm text-gray-700">
+                          <Icon className="h-4 w-4 text-orange-500 flex-shrink-0" />
+                          <span>{benefit.text}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </CardContent>
               </Card>
 
               <Button
                 onClick={handleStep1Submit}
-                className="w-full bg-[#10B981] hover:bg-[#059669] text-white font-bold py-4 rounded-xl text-lg"
+                className="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold py-4 rounded-xl text-base shadow-lg transition-all"
                 disabled={isResident === null}
               >
                 Continuer
@@ -201,26 +220,39 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
             </div>
           ) : (
             <div className="space-y-6">
-              {/* Summary Card */}
-              <Card className="border-2 border-gray-200">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  Vos informations
+                </h2>
+                <p className="text-gray-600">
+                  Complétez votre profil pour finaliser l'inscription
+                </p>
+              </div>
+
+              {/* Selected Status Card */}
+              <Card className="bg-gray-50 border-gray-200">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       {isResident ? (
-                        <Home className="h-6 w-6 text-[#10B981]" />
+                        <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                          <Home className="h-5 w-5 text-emerald-600" />
+                        </div>
                       ) : (
-                        <Users className="h-6 w-6 text-[#8B5E3C]" />
+                        <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                          <Users className="h-5 w-5 text-orange-600" />
+                        </div>
                       )}
                       <div>
-                        <p className="text-sm text-gray-500">Votre statut</p>
-                        <p className="font-bold text-gray-800">
-                          {isResident ? 'Résident de KAMI' : 'Non-Résident'}
+                        <p className="text-xs text-gray-500">Votre statut</p>
+                        <p className="font-bold text-gray-900">
+                          {isResident ? 'Résident KAMI' : 'Non-Résident'}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-gray-500">Prix du lot</p>
-                      <p className="font-extrabold text-gray-800">
+                      <p className="text-xs text-gray-500">Prix du lot</p>
+                      <p className="font-bold text-gray-900">
                         {isResident ? '100 000' : '150 000'} FCFA
                       </p>
                     </div>
@@ -229,56 +261,68 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
               </Card>
 
               {/* Form */}
-              <Card>
-                <CardContent className="pt-6 space-y-4">
+              <Card className="border-gray-200">
+                <CardContent className="p-6 space-y-5">
                   <div>
-                    <Label htmlFor="name" className="text-base font-bold">Nom complet</Label>
-                    <p className="text-xs text-gray-500 mb-2">Comme il apparaît sur votre pièce d'identité</p>
+                    <Label htmlFor="name" className="text-sm font-semibold text-gray-900 mb-2 block">
+                      Nom complet
+                    </Label>
                     <Input
                       id="name"
                       type="text"
                       placeholder="Ex: Jean Koné"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="h-12 text-lg"
+                      className="h-11 text-base border-gray-300 focus:border-emerald-500"
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="phone" className="text-base font-bold">Numéro de téléphone</Label>
-                    <p className="text-xs text-gray-500 mb-2">Pour vous contacter et confirmer votre réservation</p>
+                    <Label htmlFor="phone" className="text-sm font-semibold text-gray-900 mb-2 block">
+                      Numéro de téléphone
+                    </Label>
                     <Input
                       id="phone"
                       type="tel"
                       placeholder="Ex: 07 58 42 10"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="h-12 text-lg"
+                      className="h-11 text-base border-gray-300 focus:border-emerald-500"
                     />
                   </div>
 
-                  <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl">
-                    <p className="text-sm text-gray-700">
-                      ✓ Paiement flexible à partir de <strong>10 000 FCFA</strong>
-                    </p>
-                    <p className="text-sm text-gray-700 mt-1">
-                      ✓ Vous pourrez réserver votre lot immédiatement après l'inscription
-                    </p>
+                  {/* Info Box */}
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="h-5 w-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                      <div className="text-sm">
+                        <p className="font-medium text-gray-900 mb-1">Ce qui vous attend :</p>
+                        <ul className="space-y-1 text-gray-700">
+                          <li>• Paiement flexible à partir de <strong>10 000 FCFA</strong></li>
+                          <li>• Accès immédiat au plan des lots</li>
+                          <li>• Support client disponible</li>
+                        </ul>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
               <Button
                 onClick={handleStep2Submit}
-                className="w-full bg-[#10B981] hover:bg-[#059669] text-white font-bold py-4 rounded-xl text-lg"
+                className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-4 rounded-xl text-base shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/40 transition-all"
               >
-                Créer mon compte et réserver
+                Créer mon compte
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
 
-              <p className="text-xs text-center text-gray-500">
-                En continuant, vous acceptez nos conditions d'utilisation et notre politique de confidentialité
-              </p>
+              <Button
+                onClick={() => setStep(1)}
+                variant="ghost"
+                className="w-full text-gray-600 hover:text-gray-900 font-medium"
+              >
+                Retour
+              </Button>
             </div>
           )}
         </div>

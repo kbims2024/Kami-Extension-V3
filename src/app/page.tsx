@@ -18,6 +18,7 @@ import { EnhancedHomeScreen } from '@/components/kami/EnhancedHomeScreen';
 import { EnhancedMapScreen } from '@/components/kami/EnhancedMapScreen';
 import { PersuasiveLandingPage } from '@/components/kami/PersuasiveLandingPage';
 import { TwoStepRegistration } from '@/components/kami/TwoStepRegistration';
+import { ModernSideMenu } from '@/components/kami/ModernSideMenu';
 
 export default function KamiExtensionPage() {
   const [mounted, setMounted] = useState(false);
@@ -240,101 +241,17 @@ export default function KamiExtensionPage() {
       {/* Toast Container */}
       <div id="toast-container" />
 
-      {/* Side Menu */}
-      <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-        <SheetContent side="left" className="w-80 p-0">
-          <div className="bg-[#8B5E3C] p-6 text-white">
-            <h2 className="text-xl font-bold">KAMI-EXTENSION</h2>
-            <p className="text-sm opacity-80 mt-1">
-              {currentUser ? `Connecté: ${currentUser.name}` : 'Non connecté'}
-            </p>
-          </div>
-          <div className="flex-1 py-4 space-y-1">
-            <Button
-              variant="ghost"
-              className="w-full justify-start px-6"
-              onClick={() => { setCurrentScreen('home'); setIsMenuOpen(false); }}
-            >
-              <Home className="mr-3 h-5 w-5 text-[#8B5E3C]" />
-              Accueil
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full justify-start px-6"
-              onClick={() => { setCurrentScreen('map'); setIsMenuOpen(false); }}
-            >
-              <Map className="mr-3 h-5 w-5 text-[#8B5E3C]" />
-              Plan & Lots disponibles
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full justify-start px-6"
-              onClick={() => { setCurrentScreen('rules'); setIsMenuOpen(false); }}
-            >
-              <FileText className="mr-3 h-5 w-5 text-[#8B5E3C]" />
-              Règlement intérieur
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full justify-start px-6"
-              onClick={() => { setCurrentScreen('dashboard'); setIsMenuOpen(false); }}
-            >
-              <Wallet className="mr-3 h-5 w-5 text-[#8B5E3C]" />
-              Mes Réservations
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full justify-start px-6"
-              onClick={() => { setCurrentScreen('affiliation'); setIsMenuOpen(false); }}
-            >
-              <Users className="mr-3 h-5 w-5 text-[#8B5E3C]" />
-              Parrainage (Gains)
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full justify-start px-6"
-              onClick={() => { setCurrentScreen('profile'); setIsMenuOpen(false); }}
-            >
-              <User className="mr-3 h-5 w-5 text-[#8B5E3C]" />
-              Mon Profil
-            </Button>
-            <Separator className="my-3" />
-            <Button
-              variant="ghost"
-              className="w-full justify-start px-6 text-red-600 hover:text-red-700 hover:bg-red-50"
-              onClick={() => { setCurrentScreen('admin'); setIsMenuOpen(false); }}
-            >
-              <Shield className="mr-3 h-5 w-5" />
-              Administration
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full justify-start px-6"
-              onClick={() => {
-                if (currentUser) {
-                  logout();
-                  toast.success('Déconnexion réussie');
-                } else {
-                  setCurrentScreen('login');
-                }
-                setIsMenuOpen(false);
-              }}
-            >
-              {currentUser ? (
-                <>
-                  <LogOut className="mr-3 h-5 w-5" />
-                  Déconnexion
-                </>
-              ) : (
-                <>
-                  <LogIn className="mr-3 h-5 w-5" />
-                  Connexion
-                </>
-              )}
-            </Button>
-          </div>
-        </SheetContent>
-      </Sheet>
+      {/* Modern Side Menu */}
+      <ModernSideMenu
+        isOpen={isMenuOpen}
+        onClose={() => setIsMenuOpen(false)}
+        currentUser={currentUser}
+        onNavigate={setCurrentScreen}
+        onLogout={() => {
+          logout();
+          toast.success('Déconnexion réussie');
+        }}
+      />
 
       {/* Screens */}
       {/* Si l'utilisateur n'est pas connecté, afficher la page d'accueil persuasive */}
