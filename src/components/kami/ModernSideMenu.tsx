@@ -25,7 +25,7 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
       {/* Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 transition-opacity"
+          className="fixed inset-0 bg-black/50 z-40 transition-opacity animate-fade-in"
           onClick={onClose}
         />
       )}
@@ -37,7 +37,7 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
         }`}
       >
         {/* Header */}
-        <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-6 text-white relative">
+        <div className="bg-gradient-to-br from-blue-600 to-blue-800 p-6 text-white relative">
           <Button
             variant="ghost"
             size="icon"
@@ -47,26 +47,26 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
             <X className="h-5 w-5" />
           </Button>
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-sm">
-              <Building2 className="h-6 w-6" />
+            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+              <Building2 className="h-6 w-6 text-yellow-400" />
             </div>
             <div>
               <h2 className="text-lg font-bold">KAMI-EXTENSION</h2>
-              <p className="text-xs text-gray-300">Plateforme de réservation</p>
+              <p className="text-xs text-blue-200">Plateforme de réservation</p>
             </div>
           </div>
 
           {currentUser ? (
-            <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm">
-              <p className="text-xs text-gray-300 mb-1">Connecté en tant que</p>
+            <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm border border-white/20">
+              <p className="text-xs text-blue-200 mb-1">Connecté en tant que</p>
               <p className="font-semibold">{currentUser.name}</p>
-              <p className="text-xs text-emerald-400 mt-1">
+              <p className="text-xs text-yellow-400 mt-1">
                 {currentUser.isResident ? 'Résident KAMI' : 'Non-Résident'}
               </p>
             </div>
           ) : (
-            <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm">
-              <p className="text-sm text-gray-300">
+            <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm border border-white/20">
+              <p className="text-sm text-blue-100">
                 Connectez-vous pour réserver votre terrain
               </p>
             </div>
@@ -82,13 +82,13 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
                 <Button
                   key={item.screen}
                   variant="ghost"
-                  className="w-full justify-start px-4 py-3 h-auto text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-xl transition-all"
+                  className="w-full justify-start px-4 py-3 h-auto text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-xl transition-all group"
                   onClick={() => {
                     onNavigate(item.screen);
                     onClose();
                   }}
                 >
-                  <Icon className="mr-3 h-5 w-5" />
+                  <Icon className="mr-3 h-5 w-5 group-hover:text-blue-600 transition-colors" />
                   <span className="font-medium">{item.label}</span>
                 </Button>
               );
@@ -100,19 +100,19 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
           <div className="px-3 space-y-1">
             <Button
               variant="ghost"
-              className="w-full justify-start px-4 py-3 h-auto text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all"
+              className="w-full justify-start px-4 py-3 h-auto text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all group"
               onClick={() => {
                 onNavigate('admin');
                 onClose();
               }}
             >
-              <Shield className="mr-3 h-5 w-5" />
+              <Shield className="mr-3 h-5 w-5 group-hover:text-red-600 transition-colors" />
               <span className="font-medium">Administration</span>
             </Button>
 
             <Button
               variant="ghost"
-              className="w-full justify-start px-4 py-3 h-auto text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-xl transition-all"
+              className="w-full justify-start px-4 py-3 h-auto text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-xl transition-all group"
               onClick={() => {
                 if (currentUser) {
                   onLogout();
@@ -124,12 +124,12 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
             >
               {currentUser ? (
                 <>
-                  <LogOut className="mr-3 h-5 w-5" />
+                  <LogOut className="mr-3 h-5 w-5 group-hover:text-blue-600 transition-colors" />
                   <span className="font-medium">Déconnexion</span>
                 </>
               ) : (
                 <>
-                  <LogIn className="mr-3 h-5 w-5" />
+                  <LogIn className="mr-3 h-5 w-5 group-hover:text-blue-600 transition-colors" />
                   <span className="font-medium">Connexion</span>
                 </>
               )}
@@ -138,7 +138,7 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-100">
+        <div className="p-4 border-t border-gray-100 bg-gray-50">
           <p className="text-xs text-center text-gray-500">
             © 2024 KAMI-EXTENSION
           </p>

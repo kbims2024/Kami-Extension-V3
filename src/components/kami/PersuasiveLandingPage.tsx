@@ -1,6 +1,9 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Menu, Map, CheckCircle, Home, Zap, Droplet, ShieldCheck, Users, TrendingUp, Clock, Award, Star, Wrench, Building2, ArrowRight } from 'lucide-react';
+import { Menu, Map, CheckCircle, Home, Zap, Droplet, ShieldCheck, Users, TrendingUp, Clock, Award, Star, Wrench, Building2, ArrowRight, Play, ChevronRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 interface PersuasiveLandingPageProps {
   onReserveClick: () => void;
@@ -13,81 +16,138 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
   const availableCount = lots.filter((l) => l.status === 'AVAILABLE').length;
   const totalCount = lots.length;
   const sellRate = totalCount > 0 ? Math.round(((totalCount - availableCount) / totalCount) * 100) : 0;
+  const [animatedNumbers, setAnimatedNumbers] = useState({ available: 0, sellRate: 0 });
+
+  // Animation des nombres
+  useEffect(() => {
+    const duration = 2000;
+    const steps = 60;
+    const stepDuration = duration / steps;
+    let currentStep = 0;
+
+    const interval = setInterval(() => {
+      currentStep++;
+      const progress = currentStep / steps;
+      const easeOut = 1 - Math.pow(1 - progress, 3);
+
+      setAnimatedNumbers({
+        available: Math.floor(availableCount * easeOut),
+        sellRate: Math.floor(sellRate * easeOut),
+      });
+
+      if (currentStep >= steps) {
+        clearInterval(interval);
+      }
+    }, stepDuration);
+
+    return () => clearInterval(interval);
+  }, [availableCount, sellRate]);
 
   const advantages = [
-    { icon: Home, title: "Terrain Constructible", value: "100%" },
-    { icon: Zap, title: "Électricité", value: "Oui" },
-    { icon: Droplet, title: "Eau Potable", value: "Oui" },
-    { icon: ShieldCheck, title: "Sécurité", value: "24/7" },
+    { icon: Home, title: "Terrain Constructible", desc: "Terrain viabilisé prêt à bâtir" },
+    { icon: Zap, title: "Électricité", desc: "Réseau moderne installé" },
+    { icon: Droplet, title: "Eau Potable", desc: "Adduction garantie" },
+    { icon: ShieldCheck, title: "Sécurité", desc: "Quartier surveillé 24h/24" },
+    { icon: Wrench, title: "Routes Pavées", desc: "Voies goudronnées" },
+    { icon: Users, title: "Communauté", desc: "Voisinage unie" },
+  ];
+
+  const features = [
+    { number: "01", title: "Inscription Gratuite", desc: "Créez votre compte en quelques secondes sans frais" },
+    { number: "02", title: "Choisissez Votre Lot", desc: "Sélectionnez parmi les terrains disponibles" },
+    { number: "03", title: "Paiement Flexible", desc: "Payez selon vos possibilités, dès 10 000 FCFA" },
+    { number: "04", title: "Devenez Propriétaire", desc: "Obtenez votre titre foncier et construisez" },
   ];
 
   return (
-    <div className="flex-1 flex flex-col bg-white">
+    <div className="flex-1 flex flex-col bg-white overflow-x-hidden">
       {/* Header */}
-      <header className="flex justify-between items-center px-6 py-4 bg-white sticky top-0 z-20 border-b border-gray-100">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-[#8B5E3C] to-[#A67C52] rounded-xl flex items-center justify-center shadow-sm">
-            <Building2 className="text-white h-5 w-5" />
-          </div>
-          <div>
-            <h1 className="text-lg font-bold text-gray-900 leading-tight">KAMI-EXTENSION</h1>
-            <p className="text-xs text-gray-500">Devenez propriétaire</p>
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-blue-100 transition-all duration-300">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+                <Building2 className="text-white h-5 w-5" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-gray-900 leading-tight">KAMI-EXTENSION</h1>
+                <p className="text-xs text-gray-500">Devenez propriétaire</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                onClick={() => setIsMenuOpen(true)}
+                className="hover:bg-blue-50 text-gray-700 hidden md:flex"
+              >
+                Menu
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsMenuOpen(true)}
+                className="hover:bg-blue-50 md:hidden"
+              >
+                <Menu className="h-6 w-6 text-gray-700" />
+              </Button>
+              <Button
+                onClick={onReserveClick}
+                className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold px-6 py-2 rounded-xl shadow-lg shadow-yellow-400/30 hidden md:flex transition-all hover:scale-105"
+              >
+                Réserver
+              </Button>
+            </div>
           </div>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setIsMenuOpen(true)}
-          className="hover:bg-gray-100"
-        >
-          <Menu className="h-6 w-6 text-gray-700" />
-        </Button>
       </header>
 
-      {/* Hero Section - Modern Design */}
-      <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxjaXJjbGUgY3g9IjIwIiBjeT0iMjAiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L2c+PC9zdmc+')] opacity-50" />
+      {/* Hero Section */}
+      <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 text-white pt-20 overflow-hidden">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-yellow-400/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl animate-pulse delay-1000" />
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-3xl" />
+        </div>
 
-        <div className="relative z-10 container mx-auto px-6 py-16 md:py-24">
-          <div className="max-w-3xl mx-auto">
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="max-w-4xl mx-auto text-center">
             {/* Badge */}
-            <div className="inline-flex items-center bg-white/10 backdrop-blur-sm border border-white/20 px-4 py-2 rounded-full mb-6">
-              <div className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse" />
-              <span className="text-sm font-medium">
-                {availableCount} lots disponibles
+            <div className="inline-flex items-center bg-yellow-400/10 border border-yellow-400/30 px-4 py-2 rounded-full mb-8 animate-fade-in-down">
+              <div className="w-2 h-2 bg-yellow-400 rounded-full mr-2 animate-pulse" />
+              <span className="text-sm font-medium text-yellow-300">
+                Opportunité unique à KAMI
               </span>
             </div>
 
             {/* Main Heading */}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-              Construisez votre
-              <span className="text-emerald-400 block">avenir à KAMI</span>
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight animate-fade-in-up">
+              Construisez Votre
+              <span className="text-yellow-400 block">Avenir à KAMI</span>
             </h1>
 
             {/* Subtitle */}
-            <p className="text-lg md:text-xl text-gray-300 mb-8 leading-relaxed max-w-2xl">
-              Le nouveau quartier moderne et discipliné. Réservez votre terrain dès maintenant à partir de
-              <span className="text-white font-semibold"> 100 000 FCFA</span>.
+            <p className="text-xl md:text-2xl text-blue-100 mb-8 leading-relaxed max-w-2xl mx-auto animate-fade-in-up delay-200">
+              Le nouveau quartier moderne, propre et discipliné. Réservez votre terrain et concrétisez votre projet de vie.
             </p>
 
             {/* Stats */}
-            <div className="flex gap-8 mb-8">
-              <div>
-                <p className="text-3xl font-bold text-white">{availableCount}</p>
-                <p className="text-sm text-gray-400">Lots disponibles</p>
+            <div className="flex flex-col sm:flex-row gap-8 justify-center mb-12 animate-fade-in-up delay-300">
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-8 py-6 border border-white/20">
+                <p className="text-4xl font-bold text-yellow-400">{animatedNumbers.available}</p>
+                <p className="text-sm text-blue-200 mt-1">Lots disponibles</p>
               </div>
-              <div className="w-px bg-gray-700" />
-              <div>
-                <p className="text-3xl font-bold text-white">{sellRate}%</p>
-                <p className="text-sm text-gray-400">Déjà réservés</p>
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-8 py-6 border border-white/20">
+                <p className="text-4xl font-bold text-yellow-400">{animatedNumbers.sellRate}%</p>
+                <p className="text-sm text-blue-200 mt-1">Déjà réservés</p>
               </div>
             </div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-400">
               <Button
                 onClick={onReserveClick}
-                className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-4 px-8 rounded-xl text-base shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/40 transition-all"
+                className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-4 px-10 rounded-xl text-lg shadow-2xl shadow-yellow-400/40 transition-all hover:scale-105 hover:shadow-yellow-400/50"
               >
                 Réserver mon terrain
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -95,140 +155,88 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
               <Button
                 onClick={() => setCurrentScreen('map')}
                 variant="outline"
-                className="bg-white/10 hover:bg-white/20 text-white border-white/30 font-semibold py-4 px-8 rounded-xl text-base backdrop-blur-sm transition-all"
+                className="bg-white/10 hover:bg-white/20 text-white border-2 border-white/30 font-semibold py-4 px-10 rounded-xl text-lg backdrop-blur-sm transition-all hover:scale-105"
               >
                 <Map className="mr-2 h-5 w-5" />
                 Voir le plan
               </Button>
             </div>
+
+            {/* Scroll Indicator */}
+            <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce">
+              <ChevronRight className="h-6 w-6 text-blue-300 rotate-90" />
+            </div>
           </div>
         </div>
 
-        {/* Bottom Gradient */}
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent" />
+        {/* Wave Bottom */}
+        <div className="absolute bottom-0 left-0 right-0">
+          <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
+            <path d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" fill="white"/>
+          </svg>
+        </div>
       </section>
 
-      {/* Pricing Cards */}
-      <section className="py-16 bg-white">
+      {/* Features Section */}
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-3">
-              Choisissez votre offre
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              Comment ça marche ?
             </h2>
-            <p className="text-gray-600">
-              Des tarifs adaptés à votre situation
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Un processus simple et transparent pour devenir propriétaire
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            {/* Resident Card */}
-            <Card className="border-2 border-emerald-500 bg-white shadow-lg hover:shadow-xl transition-all">
-              <CardContent className="p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900">Résident KAMI</h3>
-                    <p className="text-sm text-gray-500">Prix préférentiel</p>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {features.map((feature, index) => (
+              <div key={index} className="group animate-fade-in-up" style={{ animationDelay: `${index * 150}ms` }}>
+                <Card className="border-0 bg-white shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 rounded-2xl overflow-hidden">
+                  <div className="bg-gradient-to-br from-blue-600 to-blue-800 p-6">
+                    <span className="text-5xl font-bold text-yellow-400 opacity-50">{feature.number}</span>
                   </div>
-                  <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
-                    <Home className="h-6 w-6 text-emerald-600" />
-                  </div>
-                </div>
-
-                <div className="mb-6">
-                  <span className="text-4xl font-bold text-emerald-600">100 000</span>
-                  <span className="text-xl text-gray-600 ml-1">FCFA</span>
-                </div>
-
-                <ul className="space-y-3 mb-8">
-                  {[
-                    "Prix réservé aux résidents",
-                    "Paiement en tranches",
-                    "Support personnalisé",
-                    "Accès prioritaire"
-                  ].map((item, i) => (
-                    <li key={i} className="flex items-center text-sm text-gray-700">
-                      <CheckCircle className="h-4 w-4 text-emerald-500 mr-3 flex-shrink-0" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-
-                <Button
-                  onClick={onReserveClick}
-                  className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 rounded-xl"
-                >
-                  Choisir cette offre
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Non-Resident Card */}
-            <Card className="border-2 border-gray-200 bg-white shadow-lg hover:shadow-xl transition-all">
-              <CardContent className="p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900">Non-Résident</h3>
-                    <p className="text-sm text-gray-500">Tarif standard</p>
-                  </div>
-                  <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                    <Users className="h-6 w-6 text-orange-600" />
-                  </div>
-                </div>
-
-                <div className="mb-6">
-                  <span className="text-4xl font-bold text-orange-600">150 000</span>
-                  <span className="text-xl text-gray-600 ml-1">FCFA</span>
-                </div>
-
-                <ul className="space-y-3 mb-8">
-                  {[
-                    "Terrain viabilisé",
-                    "Paiement flexible",
-                    "Documentation complète",
-                    "Support dédié"
-                  ].map((item, i) => (
-                    <li key={i} className="flex items-center text-sm text-gray-700">
-                      <CheckCircle className="h-4 w-4 text-orange-500 mr-3 flex-shrink-0" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-
-                <Button
-                  onClick={onReserveClick}
-                  className="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold py-3 rounded-xl"
-                >
-                  Choisir cette offre
-                </Button>
-              </CardContent>
-            </Card>
+                  <CardContent className="p-6">
+                    <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
+                      {feature.title}
+                    </h3>
+                    <p className="text-gray-600">
+                      {feature.desc}
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Features Grid */}
-      <section className="py-16 bg-gray-50">
+      {/* Advantages Section */}
+      <section className="py-20 bg-gradient-to-br from-blue-50 to-white">
         <div className="container mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-3">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
               Tout est inclus
             </h2>
-            <p className="text-gray-600">
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Votre terrain est livré avec tous les services essentiels
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {advantages.map((advantage, index) => {
               const Icon = advantage.icon;
               return (
-                <Card key={index} className="border-0 bg-white shadow-sm hover:shadow-md transition-shadow">
-                  <CardContent className="p-6 text-center">
-                    <div className="w-14 h-14 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <Icon className="h-7 w-7 text-gray-700" />
+                <Card
+                  key={index}
+                  className="border-0 bg-white shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 rounded-2xl group"
+                >
+                  <CardContent className="p-8 text-center">
+                    <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-blue-500/30">
+                      <Icon className="h-8 w-8 text-yellow-400" />
                     </div>
-                    <h3 className="font-semibold text-gray-900 mb-1">{advantage.title}</h3>
-                    <p className="text-sm text-gray-500">{advantage.value}</p>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">{advantage.title}</h3>
+                    <p className="text-gray-600">{advantage.desc}</p>
                   </CardContent>
                 </Card>
               );
@@ -237,55 +245,175 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
         </div>
       </section>
 
-      {/* Why Choose Us */}
-      <section className="py-16 bg-white">
+      {/* Pricing Section */}
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-6">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-              Pourquoi choisir KAMI-EXTENSION ?
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              Choisissez votre statut
             </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Des tarifs adaptés à votre situation
+            </p>
+          </div>
 
-            <div className="space-y-4">
-              {[
-                { icon: TrendingUp, title: "Valorisation rapide", desc: "Votre terrain prend de la valeur rapidement" },
-                { icon: Award, title: "Titre foncier garanti", desc: "Documentation légale complète et sécurisée" },
-                { icon: Clock, title: "Disponibilité immédiate", desc: "Aucune attente, votre terrain est prêt" },
-              ].map((item, index) => {
-                const Icon = item.icon;
-                return (
-                  <Card key={index} className="border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                    <CardContent className="p-6 flex items-start gap-4">
-                      <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                        <Icon className="h-6 w-6 text-emerald-600" />
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* Resident Card */}
+            <Card className="border-2 border-blue-600 bg-white shadow-2xl hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 rounded-3xl overflow-hidden group">
+              <div className="bg-gradient-to-br from-blue-600 to-blue-800 p-8 text-white">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                    <Home className="h-7 w-7 text-yellow-400" />
+                  </div>
+                  <span className="bg-yellow-400 text-gray-900 px-4 py-1 rounded-full text-sm font-bold">
+                    Populaire
+                  </span>
+                </div>
+                <h3 className="text-2xl font-bold mb-2">Résident KAMI</h3>
+                <p className="text-blue-200">Prix préférentiel</p>
+              </div>
+
+              <CardContent className="p-8">
+                <div className="text-center mb-6">
+                  <p className="text-sm text-gray-500 mb-2">Prix du terrain</p>
+                  <span className="text-5xl font-bold text-blue-600">100 000</span>
+                  <span className="text-2xl text-gray-600 ml-1">FCFA</span>
+                </div>
+
+                <ul className="space-y-4 mb-8">
+                  {[
+                    "Prix réservé aux résidents",
+                    "Paiement en plusieurs tranches",
+                    "Support personnalisé",
+                    "Accès prioritaire aux nouveaux blocs",
+                    "Documentation complète incluse"
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-center text-gray-700">
+                      <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                        <CheckCircle className="h-4 w-4 text-blue-600" />
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900 mb-1">{item.title}</h3>
-                        <p className="text-sm text-gray-600">{item.desc}</p>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+
+                <Button
+                  onClick={onReserveClick}
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white font-bold py-4 rounded-xl text-lg shadow-lg shadow-blue-500/30 transition-all hover:scale-105"
+                >
+                  Choisir cette offre
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Non-Resident Card */}
+            <Card className="border-2 border-gray-200 bg-white shadow-2xl hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 rounded-3xl overflow-hidden group">
+              <div className="bg-gradient-to-br from-gray-700 to-gray-900 p-8 text-white">
+                <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm mb-4">
+                  <Users className="h-7 w-7 text-yellow-400" />
+                </div>
+                <h3 className="text-2xl font-bold mb-2">Non-Résident</h3>
+                <p className="text-gray-300">Tarif standard</p>
+              </div>
+
+              <CardContent className="p-8">
+                <div className="text-center mb-6">
+                  <p className="text-sm text-gray-500 mb-2">Prix du terrain</p>
+                  <span className="text-5xl font-bold text-gray-700">150 000</span>
+                  <span className="text-2xl text-gray-600 ml-1">FCFA</span>
+                </div>
+
+                <ul className="space-y-4 mb-8">
+                  {[
+                    "Terrain viabilisé",
+                    "Paiement flexible",
+                    "Documentation complète",
+                    "Support dédié",
+                    "Livraison immédiate"
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-center text-gray-700">
+                      <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                        <CheckCircle className="h-4 w-4 text-gray-600" />
                       </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+
+                <Button
+                  onClick={onReserveClick}
+                  className="w-full bg-gradient-to-r from-gray-700 to-gray-900 hover:from-gray-800 hover:to-black text-white font-bold py-4 rounded-xl text-lg shadow-lg shadow-gray-500/30 transition-all hover:scale-105"
+                >
+                  Choisir cette offre
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
-        <div className="container mx-auto px-6">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+      {/* Why Choose Us */}
+      <section className="py-20 bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 text-white relative overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute top-20 right-20 w-72 h-72 bg-yellow-400/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-20 left-20 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl animate-pulse delay-1000" />
+        </div>
+
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              Pourquoi choisir KAMI-EXTENSION ?
+            </h2>
+            <p className="text-xl text-blue-200 max-w-2xl mx-auto">
+              Une opportunité d'investissement unique
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {[
+              { icon: TrendingUp, title: "Valorisation rapide", desc: "Votre terrain prend de la valeur rapidement avec le développement du quartier" },
+              { icon: Award, title: "Titre foncier garanti", desc: "Documentation légale complète et sécurisée pour votre tranquillité" },
+              { icon: Clock, title: "Disponibilité immédiate", desc: "Aucune attente, votre terrain est prêt à être construit" },
+            ].map((item, index) => {
+              const Icon = item.icon;
+              return (
+                <Card key={index} className="bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300">
+                  <CardContent className="p-8 text-center">
+                    <div className="w-16 h-16 bg-yellow-400/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                      <Icon className="h-8 w-8 text-yellow-400" />
+                    </div>
+                    <h3 className="text-xl font-bold mb-3">{item.title}</h3>
+                    <p className="text-blue-200">{item.desc}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="py-20 bg-gradient-to-br from-yellow-400 to-yellow-500 text-gray-900 relative overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute top-10 left-10 w-64 h-64 bg-white/20 rounded-full blur-3xl" />
+          <div className="absolute bottom-10 right-10 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
+        </div>
+
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
               Prêt à devenir propriétaire ?
             </h2>
-            <p className="text-lg text-gray-300 mb-8">
-              Ne manquez pas cette opportunité unique
+            <p className="text-xl mb-8 text-gray-800">
+              Ne manquez pas cette opportunité unique. Rejoignez les futurs résidents de KAMI-EXTENSION.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 onClick={onReserveClick}
                 size="lg"
-                className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-4 px-10 rounded-xl text-lg shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/40 transition-all"
+                className="bg-gray-900 hover:bg-black text-white font-bold py-5 px-12 rounded-xl text-xl shadow-2xl transition-all hover:scale-105"
               >
                 Réserver maintenant
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -293,7 +421,7 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
               <Button
                 onClick={() => setIsMenuOpen(true)}
                 variant="outline"
-                className="bg-white/10 hover:bg-white/20 text-white border-white/30 font-semibold py-4 px-10 rounded-xl text-lg backdrop-blur-sm transition-all"
+                className="bg-white/20 hover:bg-white/30 text-gray-900 border-2 border-white/40 font-bold py-5 px-12 rounded-xl text-xl backdrop-blur-sm transition-all hover:scale-105"
               >
                 En savoir plus
               </Button>
