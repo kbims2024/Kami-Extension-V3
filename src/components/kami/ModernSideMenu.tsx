@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Home, Map, FileText, Wallet, Users, User, Shield, LogOut, LogIn, Building2, X } from 'lucide-react';
+import { Home, Map, FileText, Wallet, User, Shield, LogOut, LogIn, Building2, X } from 'lucide-react';
 
 interface ModernSideMenuProps {
   isOpen: boolean;
@@ -15,7 +15,6 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
     { icon: Home, label: 'Accueil', screen: 'home' },
     { icon: Map, label: 'Plan des lots', screen: 'map' },
     { icon: Wallet, label: 'Mes réservations', screen: 'dashboard' },
-    { icon: Users, label: 'Parrainage', screen: 'affiliation' },
     { icon: User, label: 'Mon profil', screen: 'profile' },
     { icon: FileText, label: 'Règlement intérieur', screen: 'rules' },
   ];
