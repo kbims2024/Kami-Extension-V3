@@ -14,6 +14,8 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { Building2, Map, Home, Wallet, Users, User, Shield, ArrowLeft, Menu, LogOut, LogIn, CheckCircle, XCircle, AlertCircle, ChartLine, CreditCard, UserPlus, PlusCircle, Wrench, Zap, Droplet, ShieldCheck, FileText, Copy, ClipboardCheck } from 'lucide-react';
+import { EnhancedHomeScreen } from '@/components/kami/EnhancedHomeScreen';
+import { EnhancedMapScreen } from '@/components/kami/EnhancedMapScreen';
 
 export default function KamiExtensionPage() {
   const [mounted, setMounted] = useState(false);
@@ -313,14 +315,15 @@ export default function KamiExtensionPage() {
       )}
 
       {currentScreen === 'home' && (
-        <HomeScreen
+        <EnhancedHomeScreen
+          lots={lots}
           setCurrentScreen={setCurrentScreen}
           setIsMenuOpen={setIsMenuOpen}
         />
       )}
 
       {currentScreen === 'map' && (
-        <MapScreen
+        <EnhancedMapScreen
           lots={lots}
           handleOpenReservation={handleOpenReservation}
           setCurrentScreen={setCurrentScreen}
