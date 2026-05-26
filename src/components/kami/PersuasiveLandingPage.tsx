@@ -123,33 +123,36 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
         <div className="container mx-auto px-4 md:px-6 relative z-10 flex-1 flex flex-col justify-center">
           <div className="max-w-4xl mx-auto text-center">
             {/* Badge */}
-            <div className="inline-flex items-center bg-yellow-400/10 border border-yellow-400/30 px-3 md:px-4 py-2 rounded-full mb-4 md:mb-6">
+            <div className="inline-flex items-center bg-yellow-400/10 border border-yellow-400/30 px-4 md:px-4 py-2 rounded-full mb-5 md:mb-6">
               <div className="w-2 h-2 md:w-2 md:h-2 bg-yellow-400 rounded-full mr-2 animate-pulse" />
-              <span className="text-xs md:text-sm font-medium text-yellow-300">
+              <span className="text-sm md:text-sm font-medium text-yellow-300">
                 Opportunité unique à KAMI
               </span>
             </div>
 
             {/* Main Heading */}
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-3 md:mb-6 leading-tight">
+            <h1 className="text-4xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 md:mb-6 leading-tight">
               Construisez Votre
               <span className="text-yellow-400 block">Avenir à KAMI</span>
             </h1>
 
-            {/* Subtitle */}
-            <p className="text-base md:text-xl lg:text-2xl text-blue-100 mb-5 md:mb-8 leading-relaxed max-w-2xl mx-auto">
-              Le nouveau village moderne. Réservez votre terrain.
-            </p>
+            {/* Subtitle - separated */}
+            <div className="text-base md:text-xl lg:text-2xl text-blue-100 mb-2 md:mb-3 leading-relaxed max-w-2xl mx-auto">
+              Le nouveau village moderne.
+            </div>
+            <div className="text-base md:text-xl lg:text-2xl text-blue-100 mb-6 md:mb-8 leading-relaxed max-w-2xl mx-auto">
+              Réservez votre terrain.
+            </div>
 
             {/* Stats */}
-            <div className="flex flex-row gap-4 md:gap-8 justify-center mb-5 md:mb-8">
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl md:rounded-2xl px-5 md:px-8 py-3 md:py-6 border border-white/20 flex-1">
+            <div className="flex flex-row gap-3 md:gap-8 justify-center mb-5 md:mb-8">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl md:rounded-2xl px-4 md:px-8 py-3 md:py-6 border border-white/20 flex-1">
                 <p className="text-2xl md:text-4xl font-bold text-yellow-400">{animatedNumbers.available}</p>
                 <p className="text-xs md:text-sm text-blue-200 mt-1">Lots disponibles</p>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl md:rounded-2xl px-5 md:px-8 py-3 md:py-6 border border-white/20 flex-1">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl md:rounded-2xl px-4 md:px-8 py-3 md:py-6 border border-white/20 flex-1">
                 <p className="text-2xl md:text-4xl font-bold text-yellow-400">{animatedNumbers.sellRate}%</p>
-                <p className="text-xs md:text-sm text-blue-200 mt-1">Déjà réservés</p>
+                <p className="text-xs md:text-sm text-blue-200 mt-1">Achetés</p>
               </div>
             </div>
 
