@@ -112,75 +112,75 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
       </div>
 
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-blue via-blue-700 to-brand-blue text-white pt-[110px] overflow-hidden">
+      <section className="relative flex flex-col justify-center bg-gradient-to-br from-brand-blue via-blue-700 to-brand-blue text-white overflow-hidden" style={{ minHeight: 'calc(100vh - 73px)' }}>
         {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-yellow-400/10 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl animate-pulse delay-1000" />
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-3xl" />
+          <div className="absolute top-10 left-5 w-48 h-48 bg-yellow-400/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-10 right-5 w-64 h-64 bg-blue-400/10 rounded-full blur-3xl animate-pulse delay-1000" />
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-3xl" />
         </div>
 
-        <div className="container mx-auto px-6 relative z-10">
+        <div className="container mx-auto px-4 md:px-6 relative z-10 flex-1 flex flex-col justify-center">
           <div className="max-w-4xl mx-auto text-center">
             {/* Badge */}
-            <div className="inline-flex items-center bg-yellow-400/10 border border-yellow-400/30 px-4 py-2 rounded-full mb-8 animate-fade-in-down">
-              <div className="w-2 h-2 bg-yellow-400 rounded-full mr-2 animate-pulse" />
-              <span className="text-sm font-medium text-yellow-300">
+            <div className="inline-flex items-center bg-yellow-400/10 border border-yellow-400/30 px-2 md:px-4 py-1.5 md:py-2 rounded-full mb-3 md:mb-6">
+              <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-yellow-400 rounded-full mr-1.5 md:mr-2 animate-pulse" />
+              <span className="text-[10px] md:text-sm font-medium text-yellow-300">
                 Opportunité unique à KAMI
               </span>
             </div>
 
             {/* Main Heading */}
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight animate-fade-in-up">
+            <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-7xl font-bold mb-2 md:mb-6 leading-tight">
               Construisez Votre
               <span className="text-yellow-400 block">Avenir à KAMI</span>
             </h1>
 
             {/* Subtitle */}
-            <p className="text-xl md:text-2xl text-blue-100 mb-8 leading-relaxed max-w-2xl mx-auto animate-fade-in-up delay-200">
-              Le nouveau quartier moderne, propre et discipliné. Réservez votre terrain et concrétisez votre projet de vie.
+            <p className="text-sm md:text-xl lg:text-2xl text-blue-100 mb-3 md:mb-8 leading-relaxed max-w-2xl mx-auto">
+              Le nouveau quartier moderne, propre et discipliné. Réservez votre terrain.
             </p>
 
             {/* Stats */}
-            <div className="flex flex-col sm:flex-row gap-8 justify-center mb-12 animate-fade-in-up delay-300">
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-8 py-6 border border-white/20">
-                <p className="text-4xl font-bold text-yellow-400">{animatedNumbers.available}</p>
-                <p className="text-sm text-blue-200 mt-1">Lots disponibles</p>
+            <div className="flex flex-row gap-3 md:gap-8 justify-center mb-4 md:mb-8">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl md:rounded-2xl px-4 md:px-8 py-2 md:py-6 border border-white/20 flex-1">
+                <p className="text-2xl md:text-4xl font-bold text-yellow-400">{animatedNumbers.available}</p>
+                <p className="text-[10px] md:text-sm text-blue-200 mt-0.5 md:mt-1">Lots disponibles</p>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-8 py-6 border border-white/20">
-                <p className="text-4xl font-bold text-yellow-400">{animatedNumbers.sellRate}%</p>
-                <p className="text-sm text-blue-200 mt-1">Déjà réservés</p>
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl md:rounded-2xl px-4 md:px-8 py-2 md:py-6 border border-white/20 flex-1">
+                <p className="text-2xl md:text-4xl font-bold text-yellow-400">{animatedNumbers.sellRate}%</p>
+                <p className="text-[10px] md:text-sm text-blue-200 mt-0.5 md:mt-1">Déjà réservés</p>
               </div>
             </div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-400">
+            <div className="flex flex-col sm:flex-row gap-2 md:gap-4 justify-center">
               <Button
                 onClick={onReserveClick}
-                className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-4 px-10 rounded-xl text-lg shadow-2xl shadow-yellow-400/40 transition-all hover:scale-105 hover:shadow-yellow-400/50"
+                className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-2.5 md:py-4 px-6 md:px-10 rounded-lg md:rounded-xl text-sm md:text-lg shadow-2xl shadow-yellow-400/40 transition-all hover:scale-105 hover:shadow-yellow-400/50"
               >
                 Réserver mon terrain
-                <ArrowRight className="ml-2 h-5 w-5" />
+                <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5" />
               </Button>
               <Button
                 onClick={() => setCurrentScreen('map')}
                 variant="outline"
-                className="bg-white/10 hover:bg-white/20 text-white border-2 border-white/30 font-semibold py-4 px-10 rounded-xl text-lg backdrop-blur-sm transition-all hover:scale-105"
+                className="bg-white/10 hover:bg-white/20 text-white border-2 border-white/30 font-semibold py-2.5 md:py-4 px-6 md:px-10 rounded-lg md:rounded-xl text-sm md:text-lg backdrop-blur-sm transition-all hover:scale-105"
               >
-                <Map className="mr-2 h-5 w-5" />
+                <Map className="mr-2 h-4 w-4 md:h-5 md:w-5" />
                 Voir le plan
               </Button>
             </div>
 
-            {/* Scroll Indicator */}
-            <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce">
+            {/* Scroll Indicator - only on desktop */}
+            <div className="hidden md:block absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce">
               <ChevronRight className="h-6 w-6 text-blue-300 rotate-90" />
             </div>
           </div>
         </div>
 
         {/* Wave Bottom */}
-        <div className="absolute bottom-0 left-0 right-0">
+        <div className="hidden md:block absolute bottom-0 left-0 right-0">
           <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
             <path d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" className="fill-background dark:fill-background"/>
           </svg>
