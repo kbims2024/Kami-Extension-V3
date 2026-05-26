@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Menu, Map, CheckCircle, Home, Zap, Droplet, ShieldCheck, Users, TrendingUp, Clock, Award, Star, Wrench, Building2, ArrowRight, Play, ChevronRight } from 'lucide-react';
+import { Menu, Map, CheckCircle, Home, Zap, Droplet, ShieldCheck, Users, TrendingUp, Clock, Award, Wrench, Building2, ArrowRight, ChevronRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 interface PersuasiveLandingPageProps {
@@ -245,114 +245,6 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Choisissez votre statut
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Des tarifs adaptés à votre situation
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {/* Resident Card */}
-            <Card className="border-2 border-blue-600 bg-white shadow-2xl hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 rounded-3xl overflow-hidden group">
-              <div className="bg-gradient-to-br from-blue-600 to-blue-800 p-8 text-white">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                    <Home className="h-7 w-7 text-yellow-400" />
-                  </div>
-                  <span className="bg-yellow-400 text-gray-900 px-4 py-1 rounded-full text-sm font-bold">
-                    Populaire
-                  </span>
-                </div>
-                <h3 className="text-2xl font-bold mb-2">Résident KAMI</h3>
-                <p className="text-blue-200">Prix préférentiel</p>
-              </div>
-
-              <CardContent className="p-8">
-                <div className="text-center mb-6">
-                  <p className="text-sm text-gray-500 mb-2">Prix du terrain</p>
-                  <span className="text-5xl font-bold text-blue-600">100 000</span>
-                  <span className="text-2xl text-gray-600 ml-1">FCFA</span>
-                </div>
-
-                <ul className="space-y-4 mb-8">
-                  {[
-                    "Prix réservé aux résidents",
-                    "Paiement en plusieurs tranches",
-                    "Support personnalisé",
-                    "Accès prioritaire aux nouveaux blocs",
-                    "Documentation complète incluse"
-                  ].map((item, i) => (
-                    <li key={i} className="flex items-center text-gray-700">
-                      <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                        <CheckCircle className="h-4 w-4 text-blue-600" />
-                      </div>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-
-                <Button
-                  onClick={onReserveClick}
-                  className="w-full bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white font-bold py-4 rounded-xl text-lg shadow-lg shadow-blue-500/30 transition-all hover:scale-105"
-                >
-                  Choisir cette offre
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Non-Resident Card */}
-            <Card className="border-2 border-gray-200 bg-white shadow-2xl hover:shadow-3xl transition-all duration-300 hover:-translate-y-2 rounded-3xl overflow-hidden group">
-              <div className="bg-gradient-to-br from-gray-700 to-gray-900 p-8 text-white">
-                <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm mb-4">
-                  <Users className="h-7 w-7 text-yellow-400" />
-                </div>
-                <h3 className="text-2xl font-bold mb-2">Non-Résident</h3>
-                <p className="text-gray-300">Tarif standard</p>
-              </div>
-
-              <CardContent className="p-8">
-                <div className="text-center mb-6">
-                  <p className="text-sm text-gray-500 mb-2">Prix du terrain</p>
-                  <span className="text-5xl font-bold text-gray-700">150 000</span>
-                  <span className="text-2xl text-gray-600 ml-1">FCFA</span>
-                </div>
-
-                <ul className="space-y-4 mb-8">
-                  {[
-                    "Terrain viabilisé",
-                    "Paiement flexible",
-                    "Documentation complète",
-                    "Support dédié",
-                    "Livraison immédiate"
-                  ].map((item, i) => (
-                    <li key={i} className="flex items-center text-gray-700">
-                      <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                        <CheckCircle className="h-4 w-4 text-gray-600" />
-                      </div>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-
-                <Button
-                  onClick={onReserveClick}
-                  className="w-full bg-gradient-to-r from-gray-700 to-gray-900 hover:from-gray-800 hover:to-black text-white font-bold py-4 rounded-xl text-lg shadow-lg shadow-gray-500/30 transition-all hover:scale-105"
-                >
-                  Choisir cette offre
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
 
       {/* Why Choose Us */}
       <section className="py-20 bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 text-white relative overflow-hidden">
