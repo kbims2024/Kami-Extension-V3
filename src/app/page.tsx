@@ -14,7 +14,6 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { Building2, Map, Home, Wallet, Users, User, Shield, ArrowLeft, Menu, LogOut, LogIn, CheckCircle, XCircle, AlertCircle, ChartLine, CreditCard, UserPlus, PlusCircle, Wrench, Zap, Droplet, ShieldCheck, FileText, Copy, ClipboardCheck } from 'lucide-react';
-import { EnhancedHomeScreen } from '@/components/kami/EnhancedHomeScreen';
 import { EnhancedMapScreen } from '@/components/kami/EnhancedMapScreen';
 import { PersuasiveLandingPage } from '@/components/kami/PersuasiveLandingPage';
 import { TwoStepRegistration } from '@/components/kami/TwoStepRegistration';
@@ -251,11 +250,17 @@ export default function KamiExtensionPage() {
       />
 
       {/* Screens */}
-      {/* Si l'utilisateur n'est pas connecté, afficher la page d'accueil persuasive */}
-      {!currentUser && currentScreen === 'home' && (
+      {/* Page d'accueil persuasive pour tous */}
+      {currentScreen === 'home' && (
         <PersuasiveLandingPage
           lots={lots}
-          onReserveClick={() => setCurrentScreen('auth-choice')}
+          onReserveClick={() => {
+            if (currentUser) {
+              setCurrentScreen('map');
+            } else {
+              setCurrentScreen('auth-choice');
+            }
+          }}
           setIsMenuOpen={setIsMenuOpen}
           setCurrentScreen={setCurrentScreen}
         />
@@ -295,15 +300,6 @@ export default function KamiExtensionPage() {
           onLoginClick={() => setCurrentScreen('login-screen')}
           onRegisterClick={() => setCurrentScreen('register')}
           onBack={() => setCurrentScreen('home')}
-          setIsMenuOpen={setIsMenuOpen}
-        />
-      )}
-
-      {/* Si l'utilisateur est connecté, afficher l'interface complète */}
-      {currentUser && currentScreen === 'home' && (
-        <EnhancedHomeScreen
-          lots={lots}
-          setCurrentScreen={setCurrentScreen}
           setIsMenuOpen={setIsMenuOpen}
         />
       )}
