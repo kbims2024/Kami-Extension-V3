@@ -1,8 +1,34 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
+import { NextRequest, NextResponse } from 'next/server';
+import { readFileSync } from 'fs';
+
+const FILES_DB_PATH = join(process.cwd(), 'db', 'files.json');
+
+// Helper: Ensure files.json exists
+async function ensureFilesDb() {
+  const dbDir = join(process.cwd(), 'db');
+  if (!existsSync(dbDir)) {
+    await mkdir(dbDir, { recursive: true });
+  }
+  if (!existsSync(FILES_DB_PATH)) {
+    await writeFile(FILES_DB_PATH, JSON.stringify({}, null, 2));
+  }
+}
+
+// Helper: Read files.json
+async function readFilesDb() {
+  await ensureFilesDb();
+  const content = readFileSync(FILES_DB_PATH, 'utf-8');
+  return JSON.parse(content);
+}
+
+// Helper: Write files.json
+async function writeFilesDb(data: any) {
+  await ensureFilesDb();
+  await writeFile(FILES_DB_PATH, JSON.stringify(data, null, 2));
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -37,50 +63,35 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(bytes);
     await writeFile(filepath, buffer);
 
-    // Mettre à jour ou créer l'entrée dans la base de données
-    const existingFile = await db.adminFile.findUnique({
-      where: { type },
-    });
+    // Mettre à jour le fichier JSON
+    const filesDb = await readFilesDb();
 
-    let adminFile;
-    if (existingFile) {
-      // Supprimer l'ancien fichier
+    // Supprimer l'ancien fichier s'il existe
+    if (filesDb[type]) {
       try {
-        const oldPath = join(process.cwd(), 'public', existingFile.path);
+        const oldPath = join(process.cwd(), 'public', filesDb[type].path);
         if (existsSync(oldPath)) {
           await (await import('fs/promises')).unlink(oldPath);
         }
       } catch (error) {
         console.error('Erreur lors de la suppression de l\'ancien fichier:', error);
       }
-
-      // Mettre à jour l'entrée
-      adminFile = await db.adminFile.update({
-        where: { type },
-        data: {
-          filename,
-          path: `/uploads/${filename}`,
-          mimeType: file.type,
-          size: file.size,
-          updatedAt: new Date(),
-        },
-      });
-    } else {
-      // Créer une nouvelle entrée
-      adminFile = await db.adminFile.create({
-        data: {
-          type,
-          filename,
-          path: `/uploads/${filename}`,
-          mimeType: file.type,
-          size: file.size,
-        },
-      });
     }
+
+    // Mettre à jour l'entrée
+    filesDb[type] = {
+      filename,
+      path: `/uploads/${filename}`,
+      mimeType: file.type,
+      size: file.size,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await writeFilesDb(filesDb);
 
     return NextResponse.json({
       success: true,
-      file: adminFile,
+      file: filesDb[type],
     });
   } catch (error) {
     console.error('Erreur lors de l\'upload:', error);
@@ -97,15 +108,13 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Type manquant' }, { status: 400 });
     }
 
-    const file = await db.adminFile.findUnique({
-      where: { type },
-    });
+    const filesDb = await readFilesDb();
 
-    if (!file) {
+    if (!filesDb[type]) {
       return NextResponse.json({ error: 'Fichier non trouvé' }, { status: 404 });
     }
 
-    return NextResponse.json({ file });
+    return NextResponse.json({ file: filesDb[type] });
   } catch (error) {
     console.error('Erreur lors de la récupération:', error);
     return NextResponse.json({ error: 'Erreur lors de la récupération' }, { status: 500 });
@@ -121,24 +130,21 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'Type manquant' }, { status: 400 });
     }
 
-    const file = await db.adminFile.findUnique({
-      where: { type },
-    });
+    const filesDb = await readFilesDb();
 
-    if (!file) {
+    if (!filesDb[type]) {
       return NextResponse.json({ error: 'Fichier non trouvé' }, { status: 404 });
     }
 
     // Supprimer le fichier physique
-    const filepath = join(process.cwd(), 'public', file.path);
+    const filepath = join(process.cwd(), 'public', filesDb[type].path);
     if (existsSync(filepath)) {
       await (await import('fs/promises')).unlink(filepath);
     }
 
-    // Supprimer l'entrée de la base de données
-    await db.adminFile.delete({
-      where: { type },
-    });
+    // Supprimer l'entrée du fichier JSON
+    delete filesDb[type];
+    await writeFilesDb(filesDb);
 
     return NextResponse.json({ success: true });
   } catch (error) {
