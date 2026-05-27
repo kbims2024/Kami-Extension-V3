@@ -18,6 +18,8 @@ import { EnhancedHomeScreen } from '@/components/kami/EnhancedHomeScreen';
 import { EnhancedMapScreen } from '@/components/kami/EnhancedMapScreen';
 import { PersuasiveLandingPage } from '@/components/kami/PersuasiveLandingPage';
 import { TwoStepRegistration } from '@/components/kami/TwoStepRegistration';
+import { AuthChoiceScreen } from '@/components/kami/AuthChoiceScreen';
+import { LoginScreen } from '@/components/kami/LoginScreen';
 import { ModernSideMenu } from '@/components/kami/ModernSideMenu';
 
 export default function KamiExtensionPage() {
@@ -89,20 +91,15 @@ export default function KamiExtensionPage() {
     }
   };
 
-  const handleLogin = async () => {
-    if (!loginName || !loginPhone) {
-      toast.error('Veuillez remplir tous les champs');
-      return;
-    }
-
+  const handleLogin = async (name: string, phone: string) => {
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: loginName,
-          phone: loginPhone,
-          isResident: loginIsResident,
+          name,
+          phone,
+          isResident: false, // Valeur par défaut, sera mise à jour si l'utilisateur existe déjà
         }),
       });
 
@@ -110,27 +107,27 @@ export default function KamiExtensionPage() {
         const user = await response.json();
         setCurrentUser(user);
         toast.success(`Bienvenue ${user.name} !`);
-        setCurrentScreen('map');
+        setCurrentScreen('home');
       } else {
-        toast.error('Erreur lors de la connexion');
+        toast.error('Utilisateur non trouvé. Veuillez créer un compte.');
       }
     } catch (error) {
       // Fallback to local state for demo
       setCurrentUser({
-        name: loginName,
-        phone: loginPhone,
-        isResident: loginIsResident,
-        referralCode: `${loginName.substring(0, 3).toUpperCase()}${Math.floor(Math.random() * 900 + 100)}`,
+        name,
+        phone,
+        isResident: false,
+        referralCode: `${name.substring(0, 3).toUpperCase()}${Math.floor(Math.random() * 900 + 100)}`,
       });
-      toast.success(`Bienvenue ${loginName} !`);
-      setCurrentScreen('map');
+      toast.success(`Bienvenue ${name} !`);
+      setCurrentScreen('home');
     }
   };
 
   const handleOpenReservation = (lot: typeof lots[0]) => {
     if (!currentUser) {
       toast.error('Veuillez vous connecter pour réserver');
-      setCurrentScreen('login');
+      setCurrentScreen('auth-choice');
       return;
     }
     setSelectedLot(lot);
@@ -258,7 +255,7 @@ export default function KamiExtensionPage() {
       {!currentUser && currentScreen === 'home' && (
         <PersuasiveLandingPage
           lots={lots}
-          onReserveClick={() => setCurrentScreen('register')}
+          onReserveClick={() => setCurrentScreen('auth-choice')}
           setIsMenuOpen={setIsMenuOpen}
           setCurrentScreen={setCurrentScreen}
         />
@@ -273,10 +270,30 @@ export default function KamiExtensionPage() {
         />
       )}
 
+      {/* Écran de choix d'authentification */}
+      {!currentUser && currentScreen === 'auth-choice' && (
+        <AuthChoiceScreen
+          onLoginClick={() => setCurrentScreen('login-screen')}
+          onRegisterClick={() => setCurrentScreen('register')}
+          onBack={() => setCurrentScreen('home')}
+          setIsMenuOpen={setIsMenuOpen}
+        />
+      )}
+
+      {/* Écran de connexion */}
+      {!currentUser && currentScreen === 'login-screen' && (
+        <LoginScreen
+          onLogin={(name, phone) => handleLogin(name, phone)}
+          onBack={() => setCurrentScreen('auth-choice')}
+          setIsMenuOpen={setIsMenuOpen}
+        />
+      )}
+
       {/* Écran de connexion (ancien, pour compatibilité) */}
       {!currentUser && currentScreen === 'login' && (
-        <TwoStepRegistration
-          onComplete={handleRegistrationComplete}
+        <AuthChoiceScreen
+          onLoginClick={() => setCurrentScreen('login-screen')}
+          onRegisterClick={() => setCurrentScreen('register')}
           onBack={() => setCurrentScreen('home')}
           setIsMenuOpen={setIsMenuOpen}
         />
