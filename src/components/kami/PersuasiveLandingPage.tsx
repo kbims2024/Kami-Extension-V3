@@ -18,9 +18,12 @@ interface PersuasiveLandingPageProps {
 export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, setCurrentScreen }: PersuasiveLandingPageProps) {
   const { theme } = useTheme();
   const availableCount = lots.filter((l) => l.status === 'AVAILABLE').length;
+  const reservedCount = lots.filter((l) => l.status === 'RESERVED').length;
+  const paidCount = lots.filter((l) => l.status === 'PAID').length;
   const totalCount = lots.length;
-  const sellRate = totalCount > 0 ? Math.round(((totalCount - availableCount) / totalCount) * 100) : 0;
-  const [animatedNumbers, setAnimatedNumbers] = useState({ available: 0, sellRate: 0 });
+  const reservedRate = totalCount > 0 ? Math.round((reservedCount / totalCount) * 100) : 0;
+  const purchasedRate = totalCount > 0 ? Math.round((paidCount / totalCount) * 100) : 0;
+  const [animatedNumbers, setAnimatedNumbers] = useState({ available: 0, reservedRate: 0, purchasedRate: 0 });
 
   // Animation des nombres
   useEffect(() => {
@@ -36,7 +39,8 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
 
       setAnimatedNumbers({
         available: Math.floor(availableCount * easeOut),
-        sellRate: Math.floor(sellRate * easeOut),
+        reservedRate: Math.floor(reservedRate * easeOut),
+        purchasedRate: Math.floor(purchasedRate * easeOut),
       });
 
       if (currentStep >= steps) {
@@ -45,7 +49,7 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
     }, stepDuration);
 
     return () => clearInterval(interval);
-  }, [availableCount, sellRate]);
+  }, [availableCount, reservedRate, purchasedRate]);
 
   const advantages = [
     { icon: Home, title: "Terrain Constructible", desc: "Terrain viabilisé prêt à bâtir" },
@@ -145,14 +149,18 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
             </div>
 
             {/* Stats */}
-            <div className="flex flex-row gap-3 md:gap-8 justify-center mb-5 md:mb-8">
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl md:rounded-2xl px-4 md:px-8 py-3 md:py-6 border border-white/20 flex-1">
-                <p className="text-2xl md:text-4xl font-bold text-yellow-400">{animatedNumbers.available}</p>
-                <p className="text-xs md:text-sm text-blue-200 mt-1">Lots disponibles</p>
+            <div className="flex flex-row gap-2 md:gap-8 justify-center mb-5 md:mb-8">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl md:rounded-2xl px-3 md:px-8 py-2 md:py-6 border border-white/20 flex-1">
+                <p className="text-xl md:text-4xl font-bold text-yellow-400">{animatedNumbers.available}</p>
+                <p className="text-[10px] md:text-sm text-blue-200 mt-1">Disponibles</p>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl md:rounded-2xl px-4 md:px-8 py-3 md:py-6 border border-white/20 flex-1">
-                <p className="text-2xl md:text-4xl font-bold text-yellow-400">{animatedNumbers.sellRate}%</p>
-                <p className="text-xs md:text-sm text-blue-200 mt-1">Achetés</p>
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl md:rounded-2xl px-3 md:px-8 py-2 md:py-6 border border-white/20 flex-1">
+                <p className="text-xl md:text-4xl font-bold text-yellow-400">{animatedNumbers.reservedRate}%</p>
+                <p className="text-[10px] md:text-sm text-blue-200 mt-1">Réservés</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl md:rounded-2xl px-3 md:px-8 py-2 md:py-6 border border-white/20 flex-1">
+                <p className="text-xl md:text-4xl font-bold text-yellow-400">{animatedNumbers.purchasedRate}%</p>
+                <p className="text-[10px] md:text-sm text-blue-200 mt-1">Achetés</p>
               </div>
             </div>
 
