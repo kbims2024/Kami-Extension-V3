@@ -446,8 +446,8 @@ export default function KamiExtensionPage() {
   );
 }
 
-// Login Screen Component
-function LoginScreen({
+// Old Login Screen Component (déprécié)
+function OldLoginScreen({
   loginName,
   setLoginName,
   loginPhone,
