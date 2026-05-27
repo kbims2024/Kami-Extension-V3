@@ -7,6 +7,7 @@ import { FlashInfoBand } from '@/components/flash-info-band';
 import { Menu, Map, CheckCircle, Home, Zap, Droplet, ShieldCheck, Users, TrendingUp, Clock, Award, Wrench, Building2, ArrowRight, ChevronRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
+import { toast } from 'sonner';
 
 interface PersuasiveLandingPageProps {
   onReserveClick: () => void;
@@ -24,6 +25,35 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
   const reservedRate = totalCount > 0 ? Math.round((reservedCount / totalCount) * 100) : 0;
   const purchasedRate = totalCount > 0 ? Math.round((paidCount / totalCount) * 100) : 0;
   const [animatedNumbers, setAnimatedNumbers] = useState({ available: 0, reservedRate: 0, purchasedRate: 0 });
+  const [planFile, setPlanFile] = useState<{ path: string; mimeType: string } | null>(null);
+
+  // Charger le fichier du plan au montage
+  useEffect(() => {
+    loadPlanFile();
+  }, []);
+
+  const loadPlanFile = async () => {
+    try {
+      const response = await fetch('/api/admin-files?type=PLAN');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.file) {
+          setPlanFile({ path: data.file.path, mimeType: data.file.mimeType });
+        }
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement du plan:', error);
+    }
+  };
+
+  const handleViewPlan = () => {
+    if (planFile) {
+      // Ouvrir le fichier dans un nouvel onglet
+      window.open(planFile.path, '_blank');
+    } else {
+      toast.info('Le plan n\'est pas encore disponible. Veuillez contacter l\'administration.');
+    }
+  };
 
   // Animation des nombres
   useEffect(() => {
@@ -174,7 +204,7 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
               <Button
-                onClick={() => setCurrentScreen('map')}
+                onClick={handleViewPlan}
                 variant="outline"
                 className="bg-white/10 hover:bg-white/20 text-white border-2 border-white/30 font-semibold py-3 md:py-4 px-8 md:px-10 rounded-lg md:rounded-xl text-base md:text-lg backdrop-blur-sm transition-all hover:scale-105"
               >

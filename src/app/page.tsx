@@ -13,12 +13,13 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { Building2, Map, Home, Wallet, Users, User, Shield, ArrowLeft, Menu, LogOut, LogIn, CheckCircle, XCircle, AlertCircle, ChartLine, CreditCard, UserPlus, PlusCircle, Wrench, Zap, Droplet, ShieldCheck, FileText, Copy, ClipboardCheck } from 'lucide-react';
+import { Building2, Map, Home, Wallet, Users, User, Shield, ArrowLeft, Menu, LogOut, LogIn, CheckCircle, XCircle, AlertCircle, ChartLine, CreditCard, UserPlus, PlusCircle, Wrench, Zap, Droplet, ShieldCheck, FileText, Copy, ClipboardCheck, Upload } from 'lucide-react';
 import { EnhancedMapScreen } from '@/components/kami/EnhancedMapScreen';
 import { PersuasiveLandingPage } from '@/components/kami/PersuasiveLandingPage';
 import { TwoStepRegistration } from '@/components/kami/TwoStepRegistration';
 import { AuthChoiceScreen } from '@/components/kami/AuthChoiceScreen';
 import { LoginScreen } from '@/components/kami/LoginScreen';
+import { AdminFiles } from '@/components/kami/AdminFiles';
 import { ModernSideMenu } from '@/components/kami/ModernSideMenu';
 
 export default function KamiExtensionPage() {
@@ -1069,6 +1070,12 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
               <p className="text-sm font-bold">Ajouter Lots</p>
             </CardContent>
           </Card>
+          <Card className="bg-white p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition col-span-2" onClick={() => setAdminView('files')}>
+            <CardContent className="p-0 text-center py-4">
+              <Upload className="text-brand-blue h-8 w-8 mx-auto mb-2" />
+              <p className="text-sm font-bold">Gérer Fichiers (Plan du village)</p>
+            </CardContent>
+          </Card>
         </div>
       )}
 
@@ -1188,6 +1195,10 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
             </CardContent>
           </Card>
         </div>
+      )}
+
+      {adminView === 'files' && (
+        <AdminFiles onBack={() => setAdminView(null)} />
       )}
     </div>
   );
