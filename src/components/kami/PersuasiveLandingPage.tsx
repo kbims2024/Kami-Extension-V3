@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { FlashInfoBand } from '@/components/flash-info-band';
-import { Menu, Map, CheckCircle, Home, Zap, Droplet, ShieldCheck, Users, TrendingUp, Clock, Award, Wrench, Building2, ArrowRight, ChevronRight } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Menu, Map, CheckCircle, Home, Zap, Droplet, ShieldCheck, Users, TrendingUp, Clock, Award, Wrench, Building2, ArrowRight, ChevronRight, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
@@ -26,6 +27,7 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
   const purchasedRate = totalCount > 0 ? Math.round((paidCount / totalCount) * 100) : 0;
   const [animatedNumbers, setAnimatedNumbers] = useState({ available: 0, reservedRate: 0, purchasedRate: 0 });
   const [planFile, setPlanFile] = useState<{ path: string; mimeType: string } | null>(null);
+  const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
 
   // Charger le fichier du plan au montage
   useEffect(() => {
@@ -48,8 +50,7 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
 
   const handleViewPlan = () => {
     if (planFile) {
-      // Ouvrir le fichier dans un nouvel onglet
-      window.open(planFile.path, '_blank');
+      setIsPlanModalOpen(true);
     } else {
       toast.info('Le plan n\'est pas encore disponible. Veuillez contacter l\'administration.');
     }
@@ -372,6 +373,47 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
           </div>
         </div>
       </section>
+
+      {/* Plan Modal */}
+      <Dialog open={isPlanModalOpen} onOpenChange={setIsPlanModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0">
+          <DialogHeader className="p-4 border-b">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                <Map className="h-5 w-5" />
+                Plan du Village
+              </DialogTitle>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsPlanModalOpen(false)}
+                className="h-8 w-8"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </DialogHeader>
+          <div className="p-4 overflow-auto max-h-[calc(90vh-60px)] bg-gray-50">
+            {planFile && (
+              <div className="w-full flex justify-center items-center">
+                {planFile.mimeType === 'application/pdf' ? (
+                  <iframe
+                    src={planFile.path}
+                    className="w-full h-[70vh] border-0 rounded-lg"
+                    title="Plan du village"
+                  />
+                ) : (
+                  <img
+                    src={planFile.path}
+                    alt="Plan du village"
+                    className="max-w-full h-auto rounded-lg shadow-lg"
+                  />
+                )}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
