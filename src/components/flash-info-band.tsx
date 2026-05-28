@@ -60,24 +60,18 @@ export function FlashInfoBand() {
     return null;
   }
 
-  // Duplicate the items to create a seamless loop
-  const scrollContent = [...data.items, ...data.items, ...data.items];
-
   return (
     <div
       className="w-full text-white overflow-hidden"
       style={{ backgroundColor: data.settings.bgColor }}
     >
       <div className="relative">
-        {/* Scrolling Container */}
-        <div className="overflow-hidden py-3">
-          <div
-            className="flex items-center gap-12 animate-scroll hover:pause"
-            style={{ animationDuration: `${data.settings.scrollSpeed}s` }}
-          >
-            {scrollContent.map((info, index) => (
+        {/* Fixed Container - aligned to left */}
+        <div className="py-3 px-4">
+          <div className="flex items-center gap-12 flex-nowrap overflow-x-auto">
+            {data.items.map((info) => (
               <div
-                key={`${info.id}-${index}`}
+                key={info.id}
                 className="flex items-center gap-2 flex-shrink-0 whitespace-nowrap"
               >
                 {info.urgent && (
@@ -97,29 +91,6 @@ export function FlashInfoBand() {
           </div>
         </div>
       </div>
-
-      <style jsx global>{`
-        @keyframes scroll {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(-33.33%);
-          }
-        }
-
-        .animate-scroll {
-          animation: scroll linear infinite;
-        }
-
-        .animate-scroll:hover {
-          animation-play-state: paused;
-        }
-
-        .pause {
-          animation-play-state: paused;
-        }
-      `}</style>
     </div>
   );
 }
