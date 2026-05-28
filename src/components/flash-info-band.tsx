@@ -65,36 +65,39 @@ export function FlashInfoBand() {
 
   return (
     <div
-      className="w-full text-white overflow-hidden"
+      className="w-full text-white overflow-hidden flex items-center"
       style={{ backgroundColor: data.settings.bgColor }}
     >
-      <div className="relative">
-        {/* Scrolling Container - starts from left */}
-        <div className="overflow-hidden py-3">
-          <div
-            className="flex items-center gap-12 animate-scroll hover:pause"
-            style={{ animationDuration: `${data.settings.scrollSpeed}s` }}
-          >
-            {scrollContent.map((info, index) => (
-              <div
-                key={`${info.id}-${index}`}
-                className="flex items-center gap-2 flex-shrink-0 whitespace-nowrap"
-              >
-                {info.urgent && (
-                  <span className="inline-flex items-center bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                    URGENT
-                  </span>
-                )}
-                <span style={{ color: '#fbbf24' }}>
-                  {iconMap[info.icon] || <AlertCircle className="h-4 w-4" />}
+      {/* Static "FLASH INFO" label on the left */}
+      <div className="flex-shrink-0 bg-orange-500 px-4 py-3 border-2 border-red-600">
+        <span className="text-sm font-bold text-white">FLASH INFO</span>
+      </div>
+
+      {/* Scrolling Container - starts from left, right of the label */}
+      <div className="flex-1 overflow-hidden py-3">
+        <div
+          className="flex items-center gap-12 animate-scroll hover:pause"
+          style={{ animationDuration: `${data.settings.scrollSpeed}s` }}
+        >
+          {scrollContent.map((info, index) => (
+            <div
+              key={`${info.id}-${index}`}
+              className="flex items-center gap-2 flex-shrink-0 whitespace-nowrap"
+            >
+              {info.urgent && (
+                <span className="inline-flex items-center bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                  URGENT
                 </span>
-                <span className="text-sm font-medium" style={{ color: info.textColor }}>
-                  {info.text}
-                </span>
-                <span className="mx-4 opacity-50">•</span>
-              </div>
-            ))}
-          </div>
+              )}
+              <span style={{ color: '#fbbf24' }}>
+                {iconMap[info.icon] || <AlertCircle className="h-4 w-4" />}
+              </span>
+              <span className="text-sm font-medium" style={{ color: info.textColor }}>
+                {info.text}
+              </span>
+              <span className="mx-4 opacity-50">•</span>
+            </div>
+          ))}
         </div>
       </div>
 
