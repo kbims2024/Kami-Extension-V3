@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { FlashInfoBand } from '@/components/flash-info-band';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Menu, Map, CheckCircle, Home, Zap, Droplet, ShieldCheck, Users, TrendingUp, Clock, Award, Wrench, Building2, ArrowRight, ChevronRight, X } from 'lucide-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Menu, Map, CheckCircle, Home, Zap, Droplet, ShieldCheck, Users, TrendingUp, Clock, Award, Wrench, Building2, ArrowRight, ChevronRight, X, ZoomIn, ZoomOut, Maximize, Minimize } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
@@ -28,6 +28,7 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
   const [animatedNumbers, setAnimatedNumbers] = useState({ available: 0, reservedRate: 0, purchasedRate: 0 });
   const [planFile, setPlanFile] = useState<{ path: string; mimeType: string } | null>(null);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(100);
 
   // Charger le fichier du plan au montage
   useEffect(() => {
@@ -51,9 +52,22 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
   const handleViewPlan = () => {
     if (planFile) {
       setIsPlanModalOpen(true);
+      setZoomLevel(100);
     } else {
       toast.info('Le plan n\'est pas encore disponible. Veuillez contacter l\'administration.');
     }
+  };
+
+  const handleZoomIn = () => {
+    setZoomLevel(prev => Math.min(prev + 25, 300));
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel(prev => Math.max(prev - 25, 50));
+  };
+
+  const handleResetZoom = () => {
+    setZoomLevel(100);
   };
 
   // Animation des nombres
@@ -374,39 +388,91 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
         </div>
       </section>
 
-      {/* Plan Modal */}
+      {/* Plan Modal - Fullscreen with zoom controls */}
       <Dialog open={isPlanModalOpen} onOpenChange={setIsPlanModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0">
-          <DialogHeader className="p-4 border-b">
-            <div className="flex items-center justify-between">
-              <DialogTitle className="text-xl font-bold flex items-center gap-2">
-                <Map className="h-5 w-5" />
+        <DialogContent className="max-w-[100vw] max-h-[100vh] h-[100vh] w-[100vw] p-0 overflow-hidden m-0 rounded-none border-0">
+          {/* Header avec bouton de fermeture */}
+          <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+            <Button
+              variant="secondary"
+              size="icon"
+              onClick={() => setIsPlanModalOpen(false)}
+              className="h-10 w-10 bg-white/90 dark:bg-gray-900/90 shadow-lg hover:bg-white dark:hover:bg-gray-800"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+
+          {/* Title en haut à gauche */}
+          <div className="absolute top-4 left-4 z-10">
+            <div className="bg-white/90 dark:bg-gray-900/90 px-4 py-2 rounded-lg shadow-lg">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <Map className="h-5 w-5 text-blue-600" />
                 Plan du Village
-              </DialogTitle>
+              </h2>
+            </div>
+          </div>
+
+          {/* Contrôles de zoom - en bas au centre */}
+          <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-10">
+            <div className="bg-white/90 dark:bg-gray-900/90 px-4 py-3 rounded-xl shadow-lg flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleZoomOut}
+                disabled={zoomLevel <= 50}
+                className="h-9 w-9"
+              >
+                <ZoomOut className="h-4 w-4" />
+              </Button>
+              <span className="text-sm font-semibold min-w-[60px] text-center">
+                {zoomLevel}%
+              </span>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleZoomIn}
+                disabled={zoomLevel >= 300}
+                className="h-9 w-9"
+              >
+                <ZoomIn className="h-4 w-4" />
+              </Button>
+              <div className="w-px h-6 bg-gray-300 dark:bg-gray-700 mx-1" />
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setIsPlanModalOpen(false)}
-                className="h-8 w-8"
+                onClick={handleResetZoom}
+                className="h-9 w-9"
+                title="Réinitialiser le zoom"
               >
-                <X className="h-4 w-4" />
+                <Minimize className="h-4 w-4" />
               </Button>
             </div>
-          </DialogHeader>
-          <div className="p-4 overflow-auto max-h-[calc(90vh-60px)] bg-gray-50">
+          </div>
+
+          {/* Contenu du plan */}
+          <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-900 overflow-auto">
             {planFile && (
-              <div className="w-full flex justify-center items-center">
+              <div
+                className="transition-transform duration-200 ease-out"
+                style={{
+                  transform: `scale(${zoomLevel / 100})`,
+                  transformOrigin: 'center center'
+                }}
+              >
                 {planFile.mimeType === 'application/pdf' ? (
                   <iframe
                     src={planFile.path}
-                    className="w-full h-[70vh] border-0 rounded-lg"
+                    className="max-w-[90vw] max-h-[85vh] border-0 rounded-lg shadow-xl"
+                    style={{ width: '90vw', height: '85vh' }}
                     title="Plan du village"
                   />
                 ) : (
                   <img
                     src={planFile.path}
                     alt="Plan du village"
-                    className="max-w-full h-auto rounded-lg shadow-lg"
+                    className="max-w-[90vw] max-h-[85vh] object-contain rounded-lg shadow-xl"
+                    style={{ maxWidth: '90vw', maxHeight: '85vh' }}
                   />
                 )}
               </div>
