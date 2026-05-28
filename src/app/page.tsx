@@ -987,17 +987,79 @@ function RulesScreen({ setCurrentScreen, setIsMenuOpen }: any) {
 
 // Admin Screen Component
 function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen }: any) {
-  const [stats, setStats] = useState({ available: 0, reserved: 0, pending: 0, revenue: 0 });
+  // Stats state
+  const [stats, setStats] = useState({ available: 0, reserved: 0, pending: 0, revenue: 0, userCount: 0, reservationCount: 0, totalLots: 0, paid: 0 });
+  const [statsLoading, setStatsLoading] = useState(false);
+
+  // Payments state
+  const [payments, setPayments] = useState<any[]>([]);
+  const [paymentsLoading, setPaymentsLoading] = useState(false);
+
+  // Users state
+  const [users, setUsers] = useState<any[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+
+  // New lot state
   const [newLot, setNewLot] = useState({ name: '', surface: '', priceRes: '', priceNon: '' });
 
-  useEffect(() => {
-    if (adminView === 'stats') {
-      const available = lots.filter((l: any) => l.status === 'AVAILABLE').length;
-      const reserved = lots.filter((l: any) => l.status === 'RESERVED' || l.status === 'PAID').length;
-      setStats({ available, reserved, pending: 0, revenue: 0 });
+  // Load stats from API
+  const loadStats = async () => {
+    setStatsLoading(true);
+    try {
+      const response = await fetch('/api/admin/stats');
+      if (response.ok) {
+        const data = await response.json();
+        setStats({
+          available: data.available || 0,
+          reserved: (data.reserved || 0) + (data.paid || 0),
+          pending: data.pendingPayments || 0,
+          revenue: data.revenue || 0,
+          userCount: data.userCount || 0,
+          reservationCount: data.reservationCount || 0,
+          totalLots: data.totalLots || 0,
+          paid: data.paid || 0,
+        });
+      }
+    } catch (error) {
+      console.error('Error loading stats:', error);
+    } finally {
+      setStatsLoading(false);
     }
-  }, [adminView, lots]);
+  };
 
+  // Load payments from API
+  const loadPayments = async () => {
+    setPaymentsLoading(true);
+    try {
+      const response = await fetch('/api/admin/payments');
+      if (response.ok) {
+        const data = await response.json();
+        setPayments(data);
+      }
+    } catch (error) {
+      console.error('Error loading payments:', error);
+    } finally {
+      setPaymentsLoading(false);
+    }
+  };
+
+  // Load users from API
+  const loadUsers = async () => {
+    setUsersLoading(true);
+    try {
+      const response = await fetch('/api/admin/users');
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(data);
+      }
+    } catch (error) {
+      console.error('Error loading users:', error);
+    } finally {
+      setUsersLoading(false);
+    }
+  };
+
+  // Handle add lot
   const handleAddLot = async () => {
     if (!newLot.name || !newLot.surface || !newLot.priceRes || !newLot.priceNon) {
       toast.error('Remplissez tous les champs');
@@ -1024,10 +1086,95 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
         toast.error('Erreur lors de l\'ajout du lot');
       }
     } catch (error) {
-      // Fallback for demo
       toast.error('Erreur lors de l\'ajout du lot');
     }
   };
+
+  // Handle validate payment (accept payment)
+  const handleValidatePayment = async (reservationId: string) => {
+    const amount = prompt('Montant à valider (FCFA):');
+    if (!amount) return;
+
+    try {
+      const response = await fetch('/api/admin/payments', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reservationId,
+          amount: parseInt(amount),
+          status: 'VALIDATED',
+        }),
+      });
+
+      if (response.ok) {
+        toast.success('Paiement validé avec succès !');
+        loadPayments();
+        loadStats();
+        loadLots();
+      } else {
+        toast.error('Erreur lors de la validation');
+      }
+    } catch (error) {
+      toast.error('Erreur lors de la validation');
+    }
+  };
+
+  // Handle delete reservation
+  const handleDeleteReservation = async (reservationId: string) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette réservation ?')) return;
+
+    try {
+      const response = await fetch(`/api/admin/payments?id=${reservationId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        toast.success('Réservation supprimée !');
+        loadPayments();
+        loadStats();
+        loadLots();
+      } else {
+        toast.error('Erreur lors de la suppression');
+      }
+    } catch (error) {
+      toast.error('Erreur lors de la suppression');
+    }
+  };
+
+  // Handle delete user
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) return;
+
+    try {
+      const response = await fetch(`/api/admin/users?id=${userId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        toast.success('Utilisateur supprimé !');
+        loadUsers();
+        loadStats();
+      } else {
+        toast.error('Erreur lors de la suppression');
+      }
+    } catch (error) {
+      toast.error('Erreur lors de la suppression');
+    }
+  };
+
+  // Load data when view changes
+  useEffect(() => {
+    if (adminView === 'stats') {
+      loadStats();
+      // Auto-refresh every 10 seconds
+      const interval = setInterval(loadStats, 10000);
+      return () => clearInterval(interval);
+    } else if (adminView === 'payments') {
+      loadPayments();
+    } else if (adminView === 'users') {
+      loadUsers();
+    }
+  }, [adminView]);
 
   return (
     <div className="flex-1 flex flex-col bg-gray-50 p-6 pt-16">
@@ -1092,24 +1239,45 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
             <ArrowLeft className="mr-2 h-4 w-4" />
             Retour
           </Button>
-          <div className="grid grid-cols-2 gap-4">
-            <Card className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-[#10B981]">
-              <p className="text-xs text-gray-500">Encaissé</p>
-              <h3 className="text-lg font-extrabold text-gray-800">{stats.revenue.toLocaleString('fr-FR')} F</h3>
+          {statsLoading ? (
+            <Card className="bg-white p-6">
+              <CardContent className="text-center text-gray-400">
+                <AlertCircle className="h-8 w-8 mx-auto mb-2 animate-pulse" />
+                <p>Chargement...</p>
+              </CardContent>
             </Card>
-            <Card className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500">
-              <p className="text-xs text-gray-500">Disponibles</p>
-              <h3 className="text-lg font-extrabold text-gray-800">{stats.available}</h3>
-            </Card>
-            <Card className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-orange-500">
-              <p className="text-xs text-gray-500">Attente</p>
-              <h3 className="text-lg font-extrabold text-gray-800">{stats.pending}</h3>
-            </Card>
-            <Card className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-red-500">
-              <p className="text-xs text-gray-500">Réservés/Soldés</p>
-              <h3 className="text-lg font-extrabold text-gray-800">{stats.reserved}</h3>
-            </Card>
-          </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <Card className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-[#10B981]">
+                  <p className="text-xs text-gray-500">Encaissé</p>
+                  <h3 className="text-lg font-extrabold text-gray-800">{stats.revenue.toLocaleString('fr-FR')} F</h3>
+                </Card>
+                <Card className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500">
+                  <p className="text-xs text-gray-500">Disponibles</p>
+                  <h3 className="text-lg font-extrabold text-gray-800">{stats.available}</h3>
+                </Card>
+                <Card className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-orange-500">
+                  <p className="text-xs text-gray-500">Attente</p>
+                  <h3 className="text-lg font-extrabold text-gray-800">{stats.pending}</h3>
+                </Card>
+                <Card className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-red-500">
+                  <p className="text-xs text-gray-500">Réservés/Soldés</p>
+                  <h3 className="text-lg font-extrabold text-gray-800">{stats.reserved}</h3>
+                </Card>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <Card className="bg-white p-4 rounded-xl shadow-sm">
+                  <p className="text-xs text-gray-500">Total Lots</p>
+                  <h3 className="text-lg font-extrabold text-gray-800">{stats.totalLots}</h3>
+                </Card>
+                <Card className="bg-white p-4 rounded-xl shadow-sm">
+                  <p className="text-xs text-gray-500">Utilisateurs</p>
+                  <h3 className="text-lg font-extrabold text-gray-800">{stats.userCount}</h3>
+                </Card>
+              </div>
+            </>
+          )}
         </div>
       )}
 
@@ -1180,12 +1348,85 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
             <ArrowLeft className="mr-2 h-4 w-4" />
             Retour
           </Button>
-          <Card className="bg-white p-6">
-            <CardContent className="text-center text-gray-400">
-              <AlertCircle className="h-8 w-8 mx-auto mb-2" />
-              <p>Aucun paiement en attente.</p>
-            </CardContent>
-          </Card>
+          {paymentsLoading ? (
+            <Card className="bg-white p-6">
+              <CardContent className="text-center text-gray-400">
+                <AlertCircle className="h-8 w-8 mx-auto mb-2 animate-pulse" />
+                <p>Chargement...</p>
+              </CardContent>
+            </Card>
+          ) : payments.length === 0 ? (
+            <Card className="bg-white p-6">
+              <CardContent className="text-center text-gray-400">
+                <AlertCircle className="h-8 w-8 mx-auto mb-2" />
+                <p>Aucun paiement en attente.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {payments.map((payment: any) => {
+                const progress = ((payment.paidAmount || 0) / (payment.totalPrice || 1)) * 100;
+                const remaining = (payment.totalPrice || 0) - (payment.paidAmount || 0);
+                const isPaid = payment.paidAmount >= payment.totalPrice;
+
+                return (
+                  <Card key={payment.id} className="bg-white rounded-xl shadow-sm border border-gray-100">
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <h3 className="font-bold text-gray-800">Lot {payment.lot?.name || payment.lotName}</h3>
+                          <p className="text-xs text-gray-500">{payment.user?.name || 'Utilisateur inconnu'}</p>
+                        </div>
+                        <Badge className={isPaid ? 'bg-emerald-100 text-emerald-600' : 'bg-orange-100 text-orange-600'}>
+                          {isPaid ? 'Soldé' : 'En cours'}
+                        </Badge>
+                      </div>
+                      
+                      <div className="mb-3">
+                        <div className="flex justify-between text-sm mb-1">
+                          <span className="text-gray-500">Payé</span>
+                          <span className="font-bold text-[#10B981]">{(payment.paidAmount || 0).toLocaleString('fr-FR')} F</span>
+                        </div>
+                        <div className="flex justify-between text-sm mb-2">
+                          <span className="text-gray-500">Total</span>
+                          <span className="font-bold text-gray-700">{(payment.totalPrice || 0).toLocaleString('fr-FR')} F</span>
+                        </div>
+                        {!isPaid && (
+                          <div className="flex justify-between text-sm mb-2">
+                            <span className="text-gray-500">Reste</span>
+                            <span className="font-bold text-red-500">{remaining.toLocaleString('fr-FR')} F</span>
+                          </div>
+                        )}
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div className="bg-[#10B981] h-2 rounded-full transition-all" style={{ width: `${Math.min(progress, 100)}%` }} />
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2 mt-3">
+                        <Button
+                          size="sm"
+                          className="flex-1 bg-[#10B981] hover:bg-[#059669] text-white"
+                          onClick={() => handleValidatePayment(payment.id)}
+                        >
+                          <CheckCircle className="mr-1 h-4 w-4" />
+                          Valider
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="flex-1"
+                          onClick={() => handleDeleteReservation(payment.id)}
+                        >
+                          <XCircle className="mr-1 h-4 w-4" />
+                          Supprimer
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
@@ -1195,12 +1436,53 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
             <ArrowLeft className="mr-2 h-4 w-4" />
             Retour
           </Button>
-          <Card className="bg-white p-6">
-            <CardContent className="text-center text-gray-400">
-              <User className="h-8 w-8 mx-auto mb-2" />
-              <p>Aucun utilisateur enregistré.</p>
-            </CardContent>
-          </Card>
+          {usersLoading ? (
+            <Card className="bg-white p-6">
+              <CardContent className="text-center text-gray-400">
+                <User className="h-8 w-8 mx-auto mb-2 animate-pulse" />
+                <p>Chargement...</p>
+              </CardContent>
+            </Card>
+          ) : users.length === 0 ? (
+            <Card className="bg-white p-6">
+              <CardContent className="text-center text-gray-400">
+                <User className="h-8 w-8 mx-auto mb-2" />
+                <p>Aucun utilisateur enregistré.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {users.map((user: any) => (
+                <Card key={user.id} className="bg-white rounded-xl shadow-sm border border-gray-100">
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h3 className="font-bold text-gray-800">{user.name}</h3>
+                        <p className="text-xs text-gray-500 mb-1">{user.phone}</p>
+                        <div className="flex items-center gap-2">
+                          <Badge className={user.isResident ? 'bg-emerald-100 text-emerald-600' : 'bg-orange-100 text-orange-600'}>
+                            {user.isResident ? 'Résident' : 'Non-Résident'}
+                          </Badge>
+                          {user.createdAt && (
+                            <span className="text-xs text-gray-400">
+                              {new Date(user.createdAt).toLocaleDateString('fr-FR')}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleDeleteUser(user.id)}
+                      >
+                        <XCircle className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
