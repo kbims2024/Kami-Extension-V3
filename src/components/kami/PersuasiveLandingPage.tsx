@@ -70,6 +70,29 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
     setZoomLevel(100);
   };
 
+  // Gestion du zoom avec la roulette de la souris
+  useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      if (!isPlanModalOpen) return;
+
+      // Si Ctrl est pressé, c'est un zoom avec roulette
+      if (e.ctrlKey) {
+        e.preventDefault();
+        if (e.deltaY < 0) {
+          handleZoomIn();
+        } else {
+          handleZoomOut();
+        }
+      }
+    };
+
+    window.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      window.removeEventListener('wheel', handleWheel);
+    };
+  }, [isPlanModalOpen]);
+
   // Animation des nombres
   useEffect(() => {
     const duration = 2000;
@@ -397,55 +420,61 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
               variant="secondary"
               size="icon"
               onClick={() => setIsPlanModalOpen(false)}
-              className="h-10 w-10 bg-white/90 dark:bg-gray-900/90 shadow-lg hover:bg-white dark:hover:bg-gray-800"
+              className="h-12 w-12 bg-white/90 dark:bg-gray-900/90 shadow-lg hover:bg-white dark:hover:bg-gray-800 rounded-full"
             >
-              <X className="h-5 w-5" />
+              <X className="h-6 w-6" />
             </Button>
           </div>
 
-          {/* Title en haut à gauche */}
-          <div className="absolute top-4 left-4 z-10">
-            <div className="bg-white/90 dark:bg-gray-900/90 px-4 py-2 rounded-lg shadow-lg">
-              <h2 className="text-lg font-bold flex items-center gap-2">
-                <Map className="h-5 w-5 text-blue-600" />
+          {/* Title en haut à gauche - desktop only */}
+          <div className="absolute top-4 left-4 z-10 hidden md:block">
+            <div className="bg-white/90 dark:bg-gray-900/90 px-6 py-3 rounded-xl shadow-lg">
+              <h2 className="text-xl font-bold flex items-center gap-3">
+                <Map className="h-6 w-6 text-blue-600" />
                 Plan du Village
               </h2>
+              <p className="text-xs text-gray-500 mt-1">
+                Ctrl + roulette pour zoomer
+              </p>
             </div>
           </div>
 
           {/* Contrôles de zoom - en bas au centre */}
-          <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-10">
-            <div className="bg-white/90 dark:bg-gray-900/90 px-4 py-3 rounded-xl shadow-lg flex items-center gap-3">
+          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10">
+            <div className="bg-white/90 dark:bg-gray-900/90 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4">
               <Button
                 variant="outline"
                 size="icon"
                 onClick={handleZoomOut}
                 disabled={zoomLevel <= 50}
-                className="h-9 w-9"
+                className="h-12 w-12 text-lg"
               >
-                <ZoomOut className="h-4 w-4" />
+                <ZoomOut className="h-5 w-5" />
               </Button>
-              <span className="text-sm font-semibold min-w-[60px] text-center">
-                {zoomLevel}%
-              </span>
+              <div className="flex flex-col items-center min-w-[80px]">
+                <span className="text-2xl font-bold">
+                  {zoomLevel}%
+                </span>
+                <span className="text-xs text-gray-500">Zoom</span>
+              </div>
               <Button
                 variant="outline"
                 size="icon"
                 onClick={handleZoomIn}
                 disabled={zoomLevel >= 300}
-                className="h-9 w-9"
+                className="h-12 w-12 text-lg"
               >
-                <ZoomIn className="h-4 w-4" />
+                <ZoomIn className="h-5 w-5" />
               </Button>
-              <div className="w-px h-6 bg-gray-300 dark:bg-gray-700 mx-1" />
+              <div className="w-px h-10 bg-gray-300 dark:bg-gray-700 mx-2" />
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={handleResetZoom}
-                className="h-9 w-9"
+                className="h-12 w-12"
                 title="Réinitialiser le zoom"
               >
-                <Minimize className="h-4 w-4" />
+                <Minimize className="h-5 w-5" />
               </Button>
             </div>
           </div>
@@ -463,20 +492,28 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
                 {planFile.mimeType === 'application/pdf' ? (
                   <iframe
                     src={planFile.path}
-                    className="max-w-[90vw] max-h-[85vh] border-0 rounded-lg shadow-xl"
-                    style={{ width: '90vw', height: '85vh' }}
+                    className="max-w-[95vw] max-h-[88vh] border-0 rounded-lg shadow-2xl"
+                    style={{ width: '95vw', height: '88vh' }}
                     title="Plan du village"
                   />
                 ) : (
                   <img
                     src={planFile.path}
                     alt="Plan du village"
-                    className="max-w-[90vw] max-h-[85vh] object-contain rounded-lg shadow-xl"
-                    style={{ maxWidth: '90vw', maxHeight: '85vh' }}
+                    className="max-w-[95vw] max-h-[88vh] object-contain rounded-lg shadow-2xl"
+                    style={{ maxWidth: '95vw', maxHeight: '88vh' }}
                   />
                 )}
               </div>
             )}
+          </div>
+
+          {/* Raccourcis clavier pour desktop */}
+          <div className="absolute bottom-4 left-4 z-10 hidden md:block">
+            <div className="bg-white/90 dark:bg-gray-900/90 px-4 py-2 rounded-lg shadow-lg text-xs text-gray-600">
+              <kbd className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">Ctrl</kbd> + <kbd className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">↑</kbd> / <kbd className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">↓</kbd>
+              <span className="ml-2">pour zoomer</span>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
