@@ -35,9 +35,9 @@ export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-gray-50 min-h-screen">
+    <div className="flex-1 flex flex-col bg-card min-h-screen">
       {/* Header */}
-      <header className="flex justify-between items-center px-6 py-4 bg-white border-b border-gray-100 sticky top-0 z-20">
+      <header className="flex justify-between items-center px-6 py-4 bg-card border-b border-border sticky top-0 z-20">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
@@ -45,11 +45,11 @@ export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps
             onClick={onBack}
             className="hover:bg-blue-50"
           >
-            <ArrowLeft className="h-5 w-5 text-gray-700" />
+            <ArrowLeft className="h-5 w-5 text-foreground" />
           </Button>
           <div>
-            <h1 className="text-lg font-bold text-gray-900 leading-tight">Se connecter</h1>
-            <p className="text-xs text-gray-500">KAMI-EXTENSION</p>
+            <h1 className="text-lg font-bold text-foreground leading-tight">Se connecter</h1>
+            <p className="text-xs text-muted-foreground">KAMI-EXTENSION</p>
           </div>
         </div>
         {setIsMenuOpen && (
@@ -59,7 +59,7 @@ export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps
             onClick={() => setIsMenuOpen(true)}
             className="hover:bg-blue-50"
           >
-            <Menu className="h-6 w-6 text-gray-700" />
+            <Menu className="h-6 w-6 text-foreground" />
           </Button>
         )}
       </header>
@@ -72,19 +72,19 @@ export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps
             <div className="w-16 h-16 bg-gradient-to-br from-brand-blue to-blue-700 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-blue/30">
               <Building2 className="h-8 w-8 text-brand-yellow" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">
+            <h2 className="text-xl font-bold text-foreground mb-2">
               Bon retour !
             </h2>
-            <p className="text-gray-600 text-sm">
+            <p className="text-foreground text-sm">
               Entrez vos informations pour vous connecter
             </p>
           </div>
 
           {/* Form Card */}
-          <Card className="border-gray-200">
+          <Card className="border-border">
             <CardContent className="p-6 space-y-5">
               <div>
-                <Label htmlFor="name" className="text-sm font-semibold text-gray-900 mb-2 block">
+                <Label htmlFor="name" className="text-sm font-semibold text-foreground mb-2 block">
                   Nom complet
                 </Label>
                 <Input
@@ -93,12 +93,12 @@ export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps
                   placeholder="Ex: Jean Koné"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="h-11 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  className="h-11 text-base border-border focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
 
               <div>
-                <Label htmlFor="phone" className="text-sm font-semibold text-gray-900 mb-2 block">
+                <Label htmlFor="phone" className="text-sm font-semibold text-foreground mb-2 block">
                   Numéro de téléphone
                 </Label>
                 <Input
@@ -107,7 +107,7 @@ export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps
                   placeholder="Ex: 07 58 42 10"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="h-11 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  className="h-11 text-base border-border focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
 
@@ -122,9 +122,9 @@ export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps
           </Card>
 
           {/* Info */}
-          <div className="mt-6 text-center text-sm text-gray-600">
+          <div className="mt-6 text-center text-sm text-foreground">
             <p>Vous avez oublié vos informations ?</p>
-            <p className="text-gray-500 mt-1">Contactez le support pour assistance.</p>
+            <p className="text-muted-foreground mt-1">Contactez le support pour assistance.</p>
           </div>
         </div>
       </div>

@@ -26,20 +26,20 @@ export function LotCard({ name, surface, priceRes, priceNon, status, onReserve }
       case 'RESERVED':
         return <Badge className="bg-brand-yellow/20 text-yellow-700 text-[10px] px-2 py-0.5 font-bold border border-brand-yellow/30">RÉSERVÉ</Badge>;
       case 'PAID':
-        return <Badge className="bg-gray-200 text-gray-700 text-[10px] px-2 py-0.5 font-bold border border-gray-300">VENDU</Badge>;
+        return <Badge className="bg-card text-foreground text-[10px] px-2 py-0.5 font-bold border border-border">VENDU</Badge>;
     }
   };
 
   const getIconColor = () => {
     if (isAvailable) return 'text-brand-blue';
     if (isReserved) return 'text-brand-yellow';
-    return 'text-gray-400';
+    return 'text-muted-foreground';
   };
 
   const getBgClass = () => {
     if (isAvailable) return 'bg-card border-brand-blue/30 hover:border-brand-blue hover:shadow-md hover:shadow-brand-blue/10';
     if (isReserved) return 'bg-card/50 border-brand-yellow/30 opacity-75';
-    return 'bg-card/30 border-gray-300 opacity-60';
+    return 'bg-card/30 border-border opacity-60';
   };
 
   const getButton = () => {

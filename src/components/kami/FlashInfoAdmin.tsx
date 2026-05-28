@@ -231,24 +231,24 @@ export function FlashInfoAdmin({ onBack }: FlashInfoAdminProps) {
 
   if (loading) {
     return (
-      <div className="flex-1 flex flex-col bg-gray-50 p-6 pt-16">
+      <div className="flex-1 flex flex-col bg-card p-6 pt-16">
         <p>Chargement...</p>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-gray-50 p-6 pt-16">
+    <div className="flex-1 flex flex-col bg-card p-6 pt-16">
       <Button
         variant="ghost"
         size="icon"
         className="absolute top-4 left-4"
         onClick={onBack}
       >
-        <ArrowLeft className="h-5 w-5 text-gray-500" />
+        <ArrowLeft className="h-5 w-5 text-muted-foreground" />
       </Button>
 
-      <h2 className="text-2xl font-bold text-center text-gray-900 mb-6">
+      <h2 className="text-2xl font-bold text-center text-foreground mb-6">
         Gestion des Flash Infos
       </h2>
 
@@ -341,7 +341,7 @@ export function FlashInfoAdmin({ onBack }: FlashInfoAdminProps) {
                   <button
                     key={color.value}
                     onClick={() => setFormData(prev => ({ ...prev, textColor: color.value }))}
-                    className={`w-10 h-10 rounded-full border-2 ${formData.textColor === color.value ? 'border-gray-900' : 'border-gray-300'}`}
+                    className={`w-10 h-10 rounded-full border-2 ${formData.textColor === color.value ? 'border-gray-900' : 'border-border'}`}
                     style={{ backgroundColor: color.value }}
                     title={color.name}
                   />
@@ -363,7 +363,7 @@ export function FlashInfoAdmin({ onBack }: FlashInfoAdminProps) {
                   <button
                     key={color.value}
                     onClick={() => setFormData(prev => ({ ...prev, bgColor: color.value }))}
-                    className={`w-10 h-10 rounded-full border-2 ${formData.bgColor === color.value ? 'border-gray-900' : 'border-gray-300'}`}
+                    className={`w-10 h-10 rounded-full border-2 ${formData.bgColor === color.value ? 'border-gray-900' : 'border-border'}`}
                     style={{ backgroundColor: color.value }}
                     title={color.name}
                   />
@@ -422,7 +422,7 @@ export function FlashInfoAdmin({ onBack }: FlashInfoAdminProps) {
         </CardHeader>
         <CardContent>
           {data && data.items.length === 0 ? (
-            <p className="text-center text-gray-500 py-8">
+            <p className="text-center text-muted-foreground py-8">
               Aucun flash info. Cliquez sur "Ajouter" pour en créer un.
             </p>
           ) : (

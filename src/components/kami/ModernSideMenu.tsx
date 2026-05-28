@@ -32,7 +32,7 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
 
       {/* Menu */}
       <div
-        className={`fixed top-0 left-0 h-full w-80 bg-white z-50 shadow-2xl transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 left-0 h-full w-80 bg-background z-50 shadow-2xl transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -42,12 +42,12 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="absolute top-4 right-4 hover:bg-white/10 text-white"
+            className="absolute top-4 right-4 hover:bg-card/10 text-white"
           >
             <X className="h-5 w-5" />
           </Button>
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+            <div className="w-12 h-12 bg-card/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
               <Building2 className="h-6 w-6 text-yellow-400" />
             </div>
             <div>
@@ -57,7 +57,7 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
           </div>
 
           {currentUser ? (
-            <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm border border-white/20">
+            <div className="bg-card/10 rounded-xl p-3 backdrop-blur-sm border border-white/20">
               <p className="text-xs text-blue-200 mb-1">Connecté en tant que</p>
               <p className="font-semibold">{currentUser.name}</p>
               <p className="text-xs text-yellow-400 mt-1">
@@ -65,7 +65,7 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
               </p>
             </div>
           ) : (
-            <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm border border-white/20">
+            <div className="bg-card/10 rounded-xl p-3 backdrop-blur-sm border border-white/20">
               <p className="text-sm text-blue-100">
                 Connectez-vous pour réserver votre terrain
               </p>
@@ -82,13 +82,13 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
                 <Button
                   key={item.screen}
                   variant="ghost"
-                  className="w-full justify-start px-4 py-3 h-auto text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-xl transition-all group"
+                  className="w-full justify-start px-4 py-3 h-auto text-foreground hover:bg-accent hover:text-accent-foreground rounded-xl transition-all group"
                   onClick={() => {
                     onNavigate(item.screen);
                     onClose();
                   }}
                 >
-                  <Icon className="mr-3 h-5 w-5 group-hover:text-blue-600 transition-colors" />
+                  <Icon className="mr-3 h-5 w-5 transition-colors" />
                   <span className="font-medium">{item.label}</span>
                 </Button>
               );
@@ -100,28 +100,28 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
           <div className="px-3 space-y-1">
             <Button
               variant="ghost"
-              className="w-full justify-start px-4 py-3 h-auto text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-xl transition-all group"
+              className="w-full justify-start px-4 py-3 h-auto text-foreground hover:bg-accent hover:text-accent-foreground rounded-xl transition-all group"
             >
-              <Settings className="mr-3 h-5 w-5 group-hover:text-gray-600 transition-colors" />
+              <Settings className="mr-3 h-5 w-5 transition-colors" />
               <span className="font-medium">Paramètres</span>
               <ThemeToggle />
             </Button>
 
             <Button
               variant="ghost"
-              className="w-full justify-start px-4 py-3 h-auto text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all group"
+              className="w-full justify-start px-4 py-3 h-auto text-foreground hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-600 dark:hover:text-red-400 rounded-xl transition-all group"
               onClick={() => {
                 onNavigate('admin');
                 onClose();
               }}
             >
-              <Shield className="mr-3 h-5 w-5 group-hover:text-red-600 transition-colors" />
+              <Shield className="mr-3 h-5 w-5 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors" />
               <span className="font-medium">Administration</span>
             </Button>
 
             <Button
               variant="ghost"
-              className="w-full justify-start px-4 py-3 h-auto text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-xl transition-all group"
+              className="w-full justify-start px-4 py-3 h-auto text-foreground hover:bg-accent hover:text-accent-foreground rounded-xl transition-all group"
               onClick={() => {
                 if (currentUser) {
                   onLogout();
@@ -133,12 +133,12 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
             >
               {currentUser ? (
                 <>
-                  <LogOut className="mr-3 h-5 w-5 group-hover:text-blue-600 transition-colors" />
+                  <LogOut className="mr-3 h-5 w-5 transition-colors" />
                   <span className="font-medium">Déconnexion</span>
                 </>
               ) : (
                 <>
-                  <LogIn className="mr-3 h-5 w-5 group-hover:text-blue-600 transition-colors" />
+                  <LogIn className="mr-3 h-5 w-5 transition-colors" />
                   <span className="font-medium">Connexion</span>
                 </>
               )}
@@ -147,8 +147,8 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-100 bg-gray-50">
-          <p className="text-xs text-center text-gray-500">
+        <div className="p-4 border-t border-border bg-muted">
+          <p className="text-xs text-center text-muted-foreground">
             © 2024 KAMI-EXTENSION
           </p>
         </div>

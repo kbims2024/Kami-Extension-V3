@@ -235,7 +235,7 @@ export default function KamiExtensionPage() {
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100">
+    <div className="min-h-screen flex flex-col bg-background">
       {/* Toast Container */}
       <div id="toast-container" />
 
@@ -361,27 +361,27 @@ export default function KamiExtensionPage() {
       {/* Reservation Modal */}
       <Dialog open={isReservationModalOpen} onOpenChange={setIsReservationModalOpen}>
         <DialogContent className="max-w-lg rounded-t-3xl">
-          <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-4" />
+          <div className="w-10 h-1 bg-muted rounded-full mx-auto mb-4" />
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold">Lot {selectedLot?.name}</DialogTitle>
-            <p className="text-gray-500 text-sm">{selectedLot?.surface}</p>
+            <p className="text-xs text-muted-foreground">{selectedLot?.surface}</p>
           </DialogHeader>
 
           {selectedLot && currentUser && (
             <div className="space-y-4">
-              <Card className="bg-gray-50 border-gray-100">
+              <Card className="bg-card border-border">
                 <CardContent className="p-3 flex items-center justify-between">
                   <div className="flex items-center">
                     <User className="mr-3 h-5 w-5 text-[#8B5E3C]" />
                     <div>
-                      <p className="text-xs text-gray-500">Votre statut</p>
-                      <p className="font-bold text-gray-800">
+                      <p className="text-xs text-muted-foreground">Votre statut</p>
+                      <p className="font-bold text-foreground">
                         {currentUser.isResident ? 'Résident KAMI' : 'Non-Résident'}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-gray-500">Prix appliqué</p>
+                    <p className="text-xs text-muted-foreground">Prix appliqué</p>
                     <p className="font-extrabold text-[#8B5E3C]">
                       {(currentUser.isResident ? selectedLot.priceRes : selectedLot.priceNon).toLocaleString('fr-FR')} F
                     </p>
@@ -391,7 +391,7 @@ export default function KamiExtensionPage() {
 
               <div>
                 <Label>Montant à payer maintenant</Label>
-                <p className="text-xs text-gray-400 mb-2">Minimum requis : 10 000 F</p>
+                <p className="text-xs text-muted-foreground mb-2">Minimum requis : 10 000 F</p>
                 <Input
                   type="number"
                   min={10000}
@@ -408,7 +408,7 @@ export default function KamiExtensionPage() {
                       checked={agreeRules}
                       onCheckedChange={(checked) => setAgreeRules(checked as boolean)}
                     />
-                    <span className="text-xs font-bold text-gray-700">
+                    <span className="text-xs font-bold text-foreground">
                       J'ACCEPTE LE RÈGLEMENT INTÉRIEUR
                     </span>
                   </label>
@@ -425,7 +425,7 @@ export default function KamiExtensionPage() {
                 </Button>
                 <Button
                   variant="ghost"
-                  className="w-full text-gray-500"
+                  className="w-full text-muted-foreground"
                   onClick={() => setIsReservationModalOpen(false)}
                 >
                   Annuler
@@ -437,7 +437,7 @@ export default function KamiExtensionPage() {
       </Dialog>
 
       {/* Footer */}
-      <footer className="mt-auto bg-white border-t border-gray-200 py-4 px-6 text-center text-sm text-gray-500">
+      <footer className="mt-auto bg-card border-t border-border py-4 px-6 text-center text-sm text-muted-foreground">
         <p>© 2024 KAMI-EXTENSION - Tous droits réservés</p>
       </footer>
     </div>
@@ -455,7 +455,7 @@ function OldLoginScreen({
   handleLogin,
 }: any) {
   return (
-    <div className="flex-1 flex flex-col items-center justify-center bg-white p-6 pt-16">
+    <div className="flex-1 flex flex-col items-center justify-center bg-card p-6 pt-16">
       <div className="flex flex-col items-center mb-10">
         <div className="w-24 h-24 rounded-full bg-[#8B5E3C] flex items-center justify-center mb-4 shadow-lg">
           <Building2 className="text-white h-10 w-10" />
@@ -465,7 +465,7 @@ function OldLoginScreen({
 
       <div className="w-full max-w-md space-y-4">
         <div>
-          <Label className="block text-sm font-bold text-gray-700 mb-1">Nom complet</Label>
+          <Label className="block text-sm font-bold text-foreground mb-1">Nom complet</Label>
           <Input
             type="text"
             placeholder="Ex: Jean Koné"
@@ -476,7 +476,7 @@ function OldLoginScreen({
         </div>
 
         <div>
-          <Label className="block text-sm font-bold text-gray-700 mb-1">Numéro de téléphone</Label>
+          <Label className="block text-sm font-bold text-foreground mb-1">Numéro de téléphone</Label>
           <Input
             type="tel"
             placeholder="+225 07 XX XX XX"
@@ -487,27 +487,27 @@ function OldLoginScreen({
         </div>
 
         <div>
-          <Label className="block text-sm font-bold text-gray-700 mb-2">Votre statut de résidence :</Label>
+          <Label className="block text-sm font-bold text-foreground mb-2">Votre statut de résidence :</Label>
           <RadioGroup value={loginIsResident.toString()} onValueChange={(v) => setLoginIsResident(v === 'true')}>
             <div
-              className={`flex items-center p-3 border-2 rounded-xl cursor-pointer transition-all ${loginIsResident ? 'border-[#10B981] bg-emerald-50' : 'border-gray-200'}`}
+              className={`flex items-center p-3 border-2 rounded-xl cursor-pointer transition-all ${loginIsResident ? 'border-[#10B981] bg-emerald-50' : 'border-border'}`}
             >
               <RadioGroupItem value="true" id="resident-yes" className="mr-3" />
               <Label htmlFor="resident-yes" className="cursor-pointer flex-1">
                 <div>
-                  <span className="font-bold text-gray-800 block">Résident de KAMI</span>
-                  <p className="text-xs text-gray-500">Prix des lots : 100 000 F</p>
+                  <span className="font-bold text-foreground block">Résident de KAMI</span>
+                  <p className="text-xs text-muted-foreground">Prix des lots : 100 000 F</p>
                 </div>
               </Label>
             </div>
             <div
-              className={`flex items-center p-3 border-2 rounded-xl cursor-pointer transition-all mt-2 ${!loginIsResident ? 'border-[#10B981] bg-emerald-50' : 'border-gray-200'}`}
+              className={`flex items-center p-3 border-2 rounded-xl cursor-pointer transition-all mt-2 ${!loginIsResident ? 'border-[#10B981] bg-emerald-50' : 'border-border'}`}
             >
               <RadioGroupItem value="false" id="resident-no" className="mr-3" />
               <Label htmlFor="resident-no" className="cursor-pointer flex-1">
                 <div>
-                  <span className="font-bold text-gray-800 block">Non-Résident</span>
-                  <p className="text-xs text-gray-500">Prix des lots : 150 000 F</p>
+                  <span className="font-bold text-foreground block">Non-Résident</span>
+                  <p className="text-xs text-muted-foreground">Prix des lots : 150 000 F</p>
                 </div>
               </Label>
             </div>
@@ -528,11 +528,11 @@ function OldLoginScreen({
 // Home Screen Component
 function HomeScreen({ setCurrentScreen, setIsMenuOpen }: any) {
   return (
-    <div className="flex-1 flex flex-col bg-white">
-      <header className="flex justify-between items-center p-4 bg-white sticky top-0 z-10 shadow-sm">
+    <div className="flex-1 flex flex-col bg-card">
+      <header className="flex justify-between items-center p-4 bg-card sticky top-0 z-10 shadow-sm">
         <h1 className="text-xl font-extrabold text-[#8B5E3C]">KAMI-EXTENSION</h1>
         <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(true)}>
-          <Menu className="h-6 w-6 text-gray-700" />
+          <Menu className="h-6 w-6 text-foreground" />
         </Button>
       </header>
 
@@ -546,7 +546,7 @@ function HomeScreen({ setCurrentScreen, setIsMenuOpen }: any) {
         </p>
         <Button
           onClick={() => setCurrentScreen('map')}
-          className="bg-white text-[#8B5E3C] font-bold py-3 px-6 rounded-full shadow-lg hover:bg-gray-100 relative z-10"
+          className="bg-card text-[#8B5E3C] font-bold py-3 px-6 rounded-full shadow-lg hover:bg-background relative z-10"
         >
           <Map className="mr-2 h-4 w-4" />
           Voir les lots disponibles
@@ -557,25 +557,25 @@ function HomeScreen({ setCurrentScreen, setIsMenuOpen }: any) {
         <Card className="bg-emerald-50 border-emerald-100">
           <CardContent className="p-4 text-center">
             <Wrench className="text-[#10B981] h-8 w-8 mx-auto mb-2" />
-            <h4 className="font-bold text-sm text-gray-800">Routes Pavées</h4>
+            <h4 className="font-bold text-sm text-foreground">Routes Pavées</h4>
           </CardContent>
         </Card>
         <Card className="bg-blue-50 border-blue-100">
           <CardContent className="p-4 text-center">
             <Zap className="text-blue-500 h-8 w-8 mx-auto mb-2" />
-            <h4 className="font-bold text-sm text-gray-800">Électricité</h4>
+            <h4 className="font-bold text-sm text-foreground">Électricité</h4>
           </CardContent>
         </Card>
         <Card className="bg-cyan-50 border-cyan-100">
           <CardContent className="p-4 text-center">
             <Droplet className="text-cyan-500 h-8 w-8 mx-auto mb-2" />
-            <h4 className="font-bold text-sm text-gray-800">Eau Courante</h4>
+            <h4 className="font-bold text-sm text-foreground">Eau Courante</h4>
           </CardContent>
         </Card>
         <Card className="bg-purple-50 border-purple-100">
           <CardContent className="p-4 text-center">
             <ShieldCheck className="text-purple-500 h-8 w-8 mx-auto mb-2" />
-            <h4 className="font-bold text-sm text-gray-800">Sécurité</h4>
+            <h4 className="font-bold text-sm text-foreground">Sécurité</h4>
           </CardContent>
         </Card>
       </div>
@@ -584,8 +584,8 @@ function HomeScreen({ setCurrentScreen, setIsMenuOpen }: any) {
         <Card className="border-2 border-dashed border-[#8B5E3C]">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <h4 className="font-bold text-gray-800">Règlement Intérieur</h4>
-              <p className="text-xs text-gray-500">Discipline et propreté</p>
+              <h4 className="font-bold text-foreground">Règlement Intérieur</h4>
+              <p className="text-xs text-muted-foreground">Discipline et propreté</p>
             </div>
             <Button
               onClick={() => setCurrentScreen('rules')}
@@ -627,20 +627,20 @@ function MapScreen({ lots, handleOpenReservation, setCurrentScreen, setIsMenuOpe
       );
     }
     return (
-      <Button disabled className="w-full mt-2 bg-gray-300 text-gray-500 text-xs font-bold h-8">
+      <Button disabled className="w-full mt-2 bg-muted text-muted-foreground text-xs font-bold h-8">
         {lot.status === 'RESERVED' ? 'Réservé' : 'Soldé'}
       </Button>
     );
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-gray-100 pb-20">
-      <header className="bg-white p-4 pb-2 shadow-sm flex justify-between items-center sticky top-0 z-10">
+    <div className="flex-1 flex flex-col bg-background pb-20">
+      <header className="bg-card p-4 pb-2 shadow-sm flex justify-between items-center sticky top-0 z-10">
         <div className="flex items-center">
           <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(true)}>
-            <Menu className="h-5 w-5 text-gray-700" />
+            <Menu className="h-5 w-5 text-foreground" />
           </Button>
-          <h2 className="text-lg font-bold text-gray-800 ml-2">Plan du Village</h2>
+          <h2 className="text-lg font-bold text-foreground ml-2">Plan du Village</h2>
         </div>
         <Badge className="bg-red-100 text-red-600 text-xs font-bold">{availableCount} Libres</Badge>
       </header>
@@ -652,10 +652,10 @@ function MapScreen({ lots, handleOpenReservation, setCurrentScreen, setIsMenuOpe
               key={lot.id}
               className={`border-2 ${
                 lot.status === 'AVAILABLE'
-                  ? 'bg-white border-emerald-200'
+                  ? 'bg-card border-emerald-200'
                   : lot.status === 'RESERVED'
-                  ? 'bg-gray-100 border-orange-200 opacity-50'
-                  : 'bg-gray-100 border-red-200 opacity-50'
+                  ? 'bg-background border-orange-200 opacity-50'
+                  : 'bg-background border-red-200 opacity-50'
               } rounded-2xl`}
             >
               <CardContent className="p-3 flex flex-col justify-between h-full">
@@ -668,8 +668,8 @@ function MapScreen({ lots, handleOpenReservation, setCurrentScreen, setIsMenuOpe
                     />
                     {getStatusBadge(lot.status)}
                   </div>
-                  <h4 className="font-bold text-gray-800">Lot {lot.name}</h4>
-                  <p className="text-xs text-gray-500">{lot.surface}</p>
+                  <h4 className="font-bold text-foreground">Lot {lot.name}</h4>
+                  <p className="text-xs text-muted-foreground">{lot.surface}</p>
                 </div>
                 <div>
                   <p className="font-extrabold text-[#8B5E3C] text-sm">
@@ -683,7 +683,7 @@ function MapScreen({ lots, handleOpenReservation, setCurrentScreen, setIsMenuOpe
         </div>
       </div>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around py-3 text-gray-400">
+      <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border flex justify-around py-3 text-muted-foreground">
         <Button
           variant="ghost"
           className="flex flex-col items-center h-auto"
@@ -716,17 +716,17 @@ function MapScreen({ lots, handleOpenReservation, setCurrentScreen, setIsMenuOpe
 // Dashboard Screen Component
 function DashboardScreen({ myReservations, setCurrentScreen, setIsMenuOpen }: any) {
   return (
-    <div className="flex-1 flex flex-col bg-gray-100 pb-20">
-      <header className="bg-white p-4 shadow-sm flex items-center sticky top-0 z-10">
+    <div className="flex-1 flex flex-col bg-background pb-20">
+      <header className="bg-card p-4 shadow-sm flex items-center sticky top-0 z-10">
         <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(true)}>
-          <Menu className="h-5 w-5 text-gray-700" />
+          <Menu className="h-5 w-5 text-foreground" />
         </Button>
-        <h2 className="text-lg font-bold text-gray-800 ml-2">Mes Réservations</h2>
+        <h2 className="text-lg font-bold text-foreground ml-2">Mes Réservations</h2>
       </header>
 
       <div className="flex-1 overflow-y-auto p-4">
         {myReservations.length === 0 ? (
-          <div className="text-center text-gray-400 mt-20">
+          <div className="text-center text-muted-foreground mt-20">
             <Home className="h-12 w-12 mx-auto mb-4" />
             <p>Aucun lot réservé.</p>
           </div>
@@ -737,30 +737,30 @@ function DashboardScreen({ myReservations, setCurrentScreen, setIsMenuOpen }: an
             const remaining = reservation.totalPrice - reservation.paidAmount;
 
             return (
-              <Card key={reservation.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 mb-4">
+              <Card key={reservation.id} className="bg-card rounded-2xl shadow-sm border border-border mb-4">
                 <CardContent className="p-4">
                   <div className="flex justify-between items-center mb-3">
-                    <h3 className="font-bold text-gray-800">Lot {reservation.lotName}</h3>
+                    <h3 className="font-bold text-foreground">Lot {reservation.lotName}</h3>
                     <Badge className={isPaid ? 'bg-emerald-100 text-emerald-600' : 'bg-orange-100 text-orange-600'}>
                       {isPaid ? 'Soldé ✓' : 'Réservé'}
                     </Badge>
                   </div>
-                  <p className="text-xs text-gray-400 mb-2">
+                  <p className="text-xs text-muted-foreground mb-2">
                     Statut: {reservation.isResident ? 'Résident' : 'Non-Résident'} ({reservation.totalPrice.toLocaleString('fr-FR')} F)
                   </p>
-                  <Card className="bg-gray-50 border-0">
+                  <Card className="bg-card border-0">
                     <CardContent className="p-3">
                       <div className="flex justify-between text-sm mb-1">
-                        <span className="text-gray-500">Payé</span>
+                        <span className="text-muted-foreground">Payé</span>
                         <span className="font-bold text-[#10B981]">{reservation.paidAmount.toLocaleString('fr-FR')} F</span>
                       </div>
                       {!isPaid && (
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-500">Reste</span>
+                          <span className="text-muted-foreground">Reste</span>
                           <span className="font-bold text-red-500">{remaining.toLocaleString('fr-FR')} F</span>
                         </div>
                       )}
-                      <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                      <div className="w-full bg-border rounded-full h-1.5 mt-2">
                         <div className="bg-[#10B981] h-1.5 rounded-full" style={{ width: `${progress}%` }} />
                       </div>
                     </CardContent>
@@ -772,7 +772,7 @@ function DashboardScreen({ myReservations, setCurrentScreen, setIsMenuOpen }: an
         )}
       </div>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around py-3 text-gray-400">
+      <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border flex justify-around py-3 text-muted-foreground">
         <Button
           variant="ghost"
           className="flex flex-col items-center h-auto"
@@ -805,14 +805,14 @@ function DashboardScreen({ myReservations, setCurrentScreen, setIsMenuOpen }: an
 // Profile Screen Component
 function ProfileScreen({ currentUser, copyReferralLink, setCurrentScreen, setIsMenuOpen }: any) {
   return (
-    <div className="flex-1 flex flex-col bg-white p-6 pt-16">
+    <div className="flex-1 flex flex-col bg-card p-6 pt-16">
       <Button
         variant="ghost"
         size="icon"
         className="absolute top-4 left-4"
         onClick={() => { setIsMenuOpen(true); setCurrentScreen('home'); }}
       >
-        <ArrowLeft className="h-5 w-5 text-gray-500" />
+        <ArrowLeft className="h-5 w-5 text-muted-foreground" />
       </Button>
 
       <h2 className="text-2xl font-bold text-center text-[#8B5E3C] mb-6">Mon Profil</h2>
@@ -821,26 +821,26 @@ function ProfileScreen({ currentUser, copyReferralLink, setCurrentScreen, setIsM
         <div className="w-24 h-24 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
           <User className="h-10 w-10 text-[#10B981]" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-800">{currentUser?.name || 'Non connecté'}</h2>
-        <p className="text-gray-500">{currentUser?.phone || ''}</p>
+        <h2 className="text-2xl font-bold text-foreground">{currentUser?.name || 'Non connecté'}</h2>
+        <p className="text-muted-foreground">{currentUser?.phone || ''}</p>
       </div>
 
       <div className="space-y-4">
-        <Card className="bg-gray-50 border-gray-100">
+        <Card className="bg-card border-border">
           <CardContent className="p-4 flex justify-between items-center">
             <div>
-              <p className="text-sm text-gray-500">Nom complet</p>
-              <p className="font-bold text-gray-800">{currentUser?.name || '-'}</p>
+              <p className="text-sm text-muted-foreground">Nom complet</p>
+              <p className="font-bold text-foreground">{currentUser?.name || '-'}</p>
             </div>
             <User className="h-5 w-5 text-[#8B5E3C]" />
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-50 border-gray-100">
+        <Card className="bg-card border-border">
           <CardContent className="p-4 flex justify-between items-center">
             <div>
-              <p className="text-sm text-gray-500">Téléphone</p>
-              <p className="font-bold text-gray-800">{currentUser?.phone || '-'}</p>
+              <p className="text-sm text-muted-foreground">Téléphone</p>
+              <p className="font-bold text-foreground">{currentUser?.phone || '-'}</p>
             </div>
             <User className="h-5 w-5 text-[#8B5E3C]" />
           </CardContent>
@@ -855,7 +855,7 @@ function ProfileScreen({ currentUser, copyReferralLink, setCurrentScreen, setIsM
         >
           <CardContent className="p-4 flex justify-between items-center">
             <div>
-              <p className="text-sm text-gray-500">Statut de résidence</p>
+              <p className="text-sm text-muted-foreground">Statut de résidence</p>
               <p className={`font-bold ${currentUser?.isResident ? 'text-emerald-700' : 'text-orange-700'}`}>
                 {currentUser?.isResident ? 'Résident KAMI (100 000 F)' : 'Non-Résident (150 000 F)'}
               </p>
@@ -865,15 +865,15 @@ function ProfileScreen({ currentUser, copyReferralLink, setCurrentScreen, setIsM
         </Card>
 
         {currentUser?.referralCode && (
-          <Card className="bg-gray-50 border-gray-100">
+          <Card className="bg-card border-border">
             <CardContent className="p-4">
-              <p className="text-sm text-gray-500 mb-2">Code de parrainage</p>
-              <div className="flex items-center bg-white border rounded-lg p-2">
+              <p className="text-sm text-muted-foreground mb-2">Code de parrainage</p>
+              <div className="flex items-center bg-card border rounded-lg p-2">
                 <input
                   type="text"
                   value={`kami.app/ref/${currentUser.referralCode}`}
                   readOnly
-                  className="flex-1 text-sm outline-none text-gray-700 font-semibold bg-transparent"
+                  className="flex-1 text-sm outline-none text-foreground font-semibold bg-transparent"
                 />
                 <Button
                   onClick={copyReferralLink}
@@ -894,33 +894,33 @@ function ProfileScreen({ currentUser, copyReferralLink, setCurrentScreen, setIsM
 // Affiliation Screen Component
 function AffiliationScreen({ currentUser, copyReferralLink, setCurrentScreen, setIsMenuOpen }: any) {
   return (
-    <div className="flex-1 flex flex-col bg-white p-6 pt-16">
+    <div className="flex-1 flex flex-col bg-card p-6 pt-16">
       <Button
         variant="ghost"
         size="icon"
         className="absolute top-4 left-4"
         onClick={() => { setIsMenuOpen(true); setCurrentScreen('home'); }}
       >
-        <ArrowLeft className="h-5 w-5 text-gray-500" />
+        <ArrowLeft className="h-5 w-5 text-muted-foreground" />
       </Button>
 
       <h2 className="text-2xl font-bold text-center text-[#8B5E3C] mb-6">Parrainage</h2>
 
       <Card className="bg-emerald-50 p-6 rounded-2xl text-center border border-emerald-100 mb-6">
-        <p className="text-gray-600 text-sm">Vos gains totaux</p>
+        <p className="text-foreground text-sm">Vos gains totaux</p>
         <h3 className="text-4xl font-extrabold text-[#10B981] mt-2">
           0 <span className="text-lg">FCFA</span>
         </h3>
       </Card>
 
-      <Card className="bg-gray-50 p-4 rounded-xl mb-6">
-        <p className="text-sm text-gray-500 mb-2">Partagez votre lien :</p>
-        <div className="flex items-center bg-white border rounded-lg p-2">
+      <Card className="bg-card p-4 rounded-xl mb-6">
+        <p className="text-sm text-muted-foreground mb-2">Partagez votre lien :</p>
+        <div className="flex items-center bg-card border rounded-lg p-2">
           <input
             type="text"
             value={currentUser?.referralCode ? `kami.app/ref/${currentUser.referralCode}` : 'Non connecté'}
             readOnly
-            className="flex-1 text-sm outline-none text-gray-700 font-semibold bg-transparent"
+            className="flex-1 text-sm outline-none text-foreground font-semibold bg-transparent"
           />
           <Button
             onClick={copyReferralLink}
@@ -933,7 +933,7 @@ function AffiliationScreen({ currentUser, copyReferralLink, setCurrentScreen, se
         </div>
       </Card>
 
-      <p className="text-xs text-gray-400 text-center">
+      <p className="text-xs text-muted-foreground text-center">
         Gagnez des commissions quand vos filleuls achètent un lot.
       </p>
     </div>
@@ -943,19 +943,19 @@ function AffiliationScreen({ currentUser, copyReferralLink, setCurrentScreen, se
 // Rules Screen Component
 function RulesScreen({ setCurrentScreen, setIsMenuOpen }: any) {
   return (
-    <div className="flex-1 flex flex-col bg-white p-6 pt-16">
+    <div className="flex-1 flex flex-col bg-card p-6 pt-16">
       <Button
         variant="ghost"
         size="icon"
         className="absolute top-4 left-4"
         onClick={() => setCurrentScreen('home')}
       >
-        <ArrowLeft className="h-5 w-5 text-gray-500" />
+        <ArrowLeft className="h-5 w-5 text-muted-foreground" />
       </Button>
 
       <h2 className="text-2xl font-bold text-center text-[#8B5E3C] mb-6">Règlement Intérieur</h2>
 
-      <div className="space-y-4 text-gray-700 text-sm leading-relaxed">
+      <div className="space-y-4 text-foreground text-sm leading-relaxed">
         <div className="flex items-start">
           <Wrench className="text-[#10B981] mt-1 mr-3 h-5 w-5" />
           <p>
@@ -1178,14 +1178,14 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
   }, [adminView]);
 
   return (
-    <div className="flex-1 flex flex-col bg-gray-50 p-6 pt-16">
+    <div className="flex-1 flex flex-col bg-card p-6 pt-16">
       <Button
         variant="ghost"
         size="icon"
         className="absolute top-4 left-4"
         onClick={() => setCurrentScreen('home')}
       >
-        <ArrowLeft className="h-5 w-5 text-gray-500" />
+        <ArrowLeft className="h-5 w-5 text-muted-foreground" />
       </Button>
 
       <h2 className="text-2xl font-bold text-center text-red-600 mb-6 flex items-center justify-center">
@@ -1195,37 +1195,37 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
 
       {!adminView && (
         <div className="grid grid-cols-2 gap-4">
-          <Card className="bg-white p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('stats')}>
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('stats')}>
             <CardContent className="p-0 text-center">
               <ChartLine className="text-[#10B981] h-8 w-8 mx-auto mb-2" />
               <p className="text-sm font-bold">Statistiques</p>
             </CardContent>
           </Card>
-          <Card className="bg-white p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('payments')}>
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('payments')}>
             <CardContent className="p-0 text-center">
               <CheckCircle className="text-blue-500 h-8 w-8 mx-auto mb-2" />
               <p className="text-sm font-bold">Valider Paiements</p>
             </CardContent>
           </Card>
-          <Card className="bg-white p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('users')}>
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('users')}>
             <CardContent className="p-0 text-center">
               <UserPlus className="text-purple-500 h-8 w-8 mx-auto mb-2" />
               <p className="text-sm font-bold">Gérer Utilisateurs</p>
             </CardContent>
           </Card>
-          <Card className="bg-white p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('add-lots')}>
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('add-lots')}>
             <CardContent className="p-0 text-center">
               <PlusCircle className="text-[#8B5E3C] h-8 w-8 mx-auto mb-2" />
               <p className="text-sm font-bold">Ajouter Lots</p>
             </CardContent>
           </Card>
-          <Card className="bg-white p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('flash-infos')}>
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('flash-infos')}>
             <CardContent className="p-0 text-center">
               <FileText className="text-brand-blue h-8 w-8 mx-auto mb-2" />
               <p className="text-sm font-bold">Flash Infos</p>
             </CardContent>
           </Card>
-          <Card className="bg-white p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition col-span-2" onClick={() => setAdminView('files')}>
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition col-span-2" onClick={() => setAdminView('files')}>
             <CardContent className="p-0 text-center py-4">
               <Upload className="text-brand-blue h-8 w-8 mx-auto mb-2" />
               <p className="text-sm font-bold">Gérer Fichiers (Plan du village)</p>
@@ -1236,13 +1236,13 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
 
       {adminView === 'stats' && (
         <div className="mt-6">
-          <Button variant="ghost" onClick={() => setAdminView(null)} className="mb-4 text-gray-500">
+          <Button variant="ghost" onClick={() => setAdminView(null)} className="mb-4 text-muted-foreground">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Retour
           </Button>
           {statsLoading ? (
-            <Card className="bg-white p-6">
-              <CardContent className="text-center text-gray-400">
+            <Card className="bg-card p-6">
+              <CardContent className="text-center text-muted-foreground">
                 <AlertCircle className="h-8 w-8 mx-auto mb-2 animate-pulse" />
                 <p>Chargement...</p>
               </CardContent>
@@ -1250,31 +1250,31 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
           ) : (
             <>
               <div className="grid grid-cols-2 gap-4 mb-4">
-                <Card className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-[#10B981]">
-                  <p className="text-xs text-gray-500">Encaissé</p>
-                  <h3 className="text-lg font-extrabold text-gray-800">{stats.revenue.toLocaleString('fr-FR')} F</h3>
+                <Card className="bg-card p-4 rounded-xl shadow-sm border-l-4 border-[#10B981]">
+                  <p className="text-xs text-muted-foreground">Encaissé</p>
+                  <h3 className="text-lg font-extrabold text-foreground">{stats.revenue.toLocaleString('fr-FR')} F</h3>
                 </Card>
-                <Card className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500">
-                  <p className="text-xs text-gray-500">Disponibles</p>
-                  <h3 className="text-lg font-extrabold text-gray-800">{stats.available}</h3>
+                <Card className="bg-card p-4 rounded-xl shadow-sm border-l-4 border-blue-500">
+                  <p className="text-xs text-muted-foreground">Disponibles</p>
+                  <h3 className="text-lg font-extrabold text-foreground">{stats.available}</h3>
                 </Card>
-                <Card className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-orange-500">
-                  <p className="text-xs text-gray-500">Attente</p>
-                  <h3 className="text-lg font-extrabold text-gray-800">{stats.pending}</h3>
+                <Card className="bg-card p-4 rounded-xl shadow-sm border-l-4 border-orange-500">
+                  <p className="text-xs text-muted-foreground">Attente</p>
+                  <h3 className="text-lg font-extrabold text-foreground">{stats.pending}</h3>
                 </Card>
-                <Card className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-red-500">
-                  <p className="text-xs text-gray-500">Réservés/Soldés</p>
-                  <h3 className="text-lg font-extrabold text-gray-800">{stats.reserved}</h3>
+                <Card className="bg-card p-4 rounded-xl shadow-sm border-l-4 border-red-500">
+                  <p className="text-xs text-muted-foreground">Réservés/Soldés</p>
+                  <h3 className="text-lg font-extrabold text-foreground">{stats.reserved}</h3>
                 </Card>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <Card className="bg-white p-4 rounded-xl shadow-sm">
-                  <p className="text-xs text-gray-500">Total Lots</p>
-                  <h3 className="text-lg font-extrabold text-gray-800">{stats.totalLots}</h3>
+                <Card className="bg-card p-4 rounded-xl shadow-sm">
+                  <p className="text-xs text-muted-foreground">Total Lots</p>
+                  <h3 className="text-lg font-extrabold text-foreground">{stats.totalLots}</h3>
                 </Card>
-                <Card className="bg-white p-4 rounded-xl shadow-sm">
-                  <p className="text-xs text-gray-500">Utilisateurs</p>
-                  <h3 className="text-lg font-extrabold text-gray-800">{stats.userCount}</h3>
+                <Card className="bg-card p-4 rounded-xl shadow-sm">
+                  <p className="text-xs text-muted-foreground">Utilisateurs</p>
+                  <h3 className="text-lg font-extrabold text-foreground">{stats.userCount}</h3>
                 </Card>
               </div>
             </>
@@ -1284,11 +1284,11 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
 
       {adminView === 'add-lots' && (
         <div className="mt-6">
-          <Button variant="ghost" onClick={() => setAdminView(null)} className="mb-4 text-gray-500">
+          <Button variant="ghost" onClick={() => setAdminView(null)} className="mb-4 text-muted-foreground">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Retour
           </Button>
-          <Card className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+          <Card className="bg-card p-4 rounded-xl shadow-sm border border-border">
             <CardContent className="space-y-4">
               <div>
                 <Label className="text-sm">Îlot</Label>
@@ -1354,20 +1354,20 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
 
       {adminView === 'payments' && (
         <div className="mt-6">
-          <Button variant="ghost" onClick={() => setAdminView(null)} className="mb-4 text-gray-500">
+          <Button variant="ghost" onClick={() => setAdminView(null)} className="mb-4 text-muted-foreground">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Retour
           </Button>
           {paymentsLoading ? (
-            <Card className="bg-white p-6">
-              <CardContent className="text-center text-gray-400">
+            <Card className="bg-card p-6">
+              <CardContent className="text-center text-muted-foreground">
                 <AlertCircle className="h-8 w-8 mx-auto mb-2 animate-pulse" />
                 <p>Chargement...</p>
               </CardContent>
             </Card>
           ) : payments.length === 0 ? (
-            <Card className="bg-white p-6">
-              <CardContent className="text-center text-gray-400">
+            <Card className="bg-card p-6">
+              <CardContent className="text-center text-muted-foreground">
                 <AlertCircle className="h-8 w-8 mx-auto mb-2" />
                 <p>Aucun paiement en attente.</p>
               </CardContent>
@@ -1380,12 +1380,12 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
                 const isPaid = payment.paidAmount >= payment.totalPrice;
 
                 return (
-                  <Card key={payment.id} className="bg-white rounded-xl shadow-sm border border-gray-100">
+                  <Card key={payment.id} className="bg-card rounded-xl shadow-sm border border-border">
                     <CardContent className="p-4">
                       <div className="flex justify-between items-start mb-3">
                         <div>
-                          <h3 className="font-bold text-gray-800">Lot {payment.lot?.name || payment.lotName}</h3>
-                          <p className="text-xs text-gray-500">{payment.user?.name || 'Utilisateur inconnu'}</p>
+                          <h3 className="font-bold text-foreground">Lot {payment.lot?.name || payment.lotName}</h3>
+                          <p className="text-xs text-muted-foreground">{payment.user?.name || 'Utilisateur inconnu'}</p>
                         </div>
                         <Badge className={isPaid ? 'bg-emerald-100 text-emerald-600' : 'bg-orange-100 text-orange-600'}>
                           {isPaid ? 'Soldé' : 'En cours'}
@@ -1394,20 +1394,20 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
                       
                       <div className="mb-3">
                         <div className="flex justify-between text-sm mb-1">
-                          <span className="text-gray-500">Payé</span>
+                          <span className="text-muted-foreground">Payé</span>
                           <span className="font-bold text-[#10B981]">{(payment.paidAmount || 0).toLocaleString('fr-FR')} F</span>
                         </div>
                         <div className="flex justify-between text-sm mb-2">
-                          <span className="text-gray-500">Total</span>
-                          <span className="font-bold text-gray-700">{(payment.totalPrice || 0).toLocaleString('fr-FR')} F</span>
+                          <span className="text-muted-foreground">Total</span>
+                          <span className="font-bold text-foreground">{(payment.totalPrice || 0).toLocaleString('fr-FR')} F</span>
                         </div>
                         {!isPaid && (
                           <div className="flex justify-between text-sm mb-2">
-                            <span className="text-gray-500">Reste</span>
+                            <span className="text-muted-foreground">Reste</span>
                             <span className="font-bold text-red-500">{remaining.toLocaleString('fr-FR')} F</span>
                           </div>
                         )}
-                        <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="w-full bg-border rounded-full h-2">
                           <div className="bg-[#10B981] h-2 rounded-full transition-all" style={{ width: `${Math.min(progress, 100)}%` }} />
                         </div>
                       </div>
@@ -1442,20 +1442,20 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
 
       {adminView === 'users' && (
         <div className="mt-6">
-          <Button variant="ghost" onClick={() => setAdminView(null)} className="mb-4 text-gray-500">
+          <Button variant="ghost" onClick={() => setAdminView(null)} className="mb-4 text-muted-foreground">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Retour
           </Button>
           {usersLoading ? (
-            <Card className="bg-white p-6">
-              <CardContent className="text-center text-gray-400">
+            <Card className="bg-card p-6">
+              <CardContent className="text-center text-muted-foreground">
                 <User className="h-8 w-8 mx-auto mb-2 animate-pulse" />
                 <p>Chargement...</p>
               </CardContent>
             </Card>
           ) : users.length === 0 ? (
-            <Card className="bg-white p-6">
-              <CardContent className="text-center text-gray-400">
+            <Card className="bg-card p-6">
+              <CardContent className="text-center text-muted-foreground">
                 <User className="h-8 w-8 mx-auto mb-2" />
                 <p>Aucun utilisateur enregistré.</p>
               </CardContent>
@@ -1463,18 +1463,18 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
           ) : (
             <div className="space-y-4">
               {users.map((user: any) => (
-                <Card key={user.id} className="bg-white rounded-xl shadow-sm border border-gray-100">
+                <Card key={user.id} className="bg-card rounded-xl shadow-sm border border-border">
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <h3 className="font-bold text-gray-800">{user.name}</h3>
-                        <p className="text-xs text-gray-500 mb-1">{user.phone}</p>
+                        <h3 className="font-bold text-foreground">{user.name}</h3>
+                        <p className="text-xs text-muted-foreground mb-1">{user.phone}</p>
                         <div className="flex items-center gap-2">
                           <Badge className={user.isResident ? 'bg-emerald-100 text-emerald-600' : 'bg-orange-100 text-orange-600'}>
                             {user.isResident ? 'Résident' : 'Non-Résident'}
                           </Badge>
                           {user.createdAt && (
-                            <span className="text-xs text-gray-400">
+                            <span className="text-xs text-muted-foreground">
                               {new Date(user.createdAt).toLocaleDateString('fr-FR')}
                             </span>
                           )}

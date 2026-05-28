@@ -62,9 +62,9 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-gray-50 min-h-screen">
+    <div className="flex-1 flex flex-col bg-card min-h-screen">
       {/* Header */}
-      <header className="flex justify-between items-center px-6 py-4 bg-white border-b border-gray-100 sticky top-0 z-20">
+      <header className="flex justify-between items-center px-6 py-4 bg-card border-b border-border sticky top-0 z-20">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
@@ -72,11 +72,11 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
             onClick={step === 1 ? onBack : () => setStep(1)}
             className="hover:bg-blue-50"
           >
-            <ArrowLeft className="h-5 w-5 text-gray-700" />
+            <ArrowLeft className="h-5 w-5 text-foreground" />
           </Button>
           <div>
-            <h1 className="text-lg font-bold text-gray-900 leading-tight">Créer un compte</h1>
-            <p className="text-xs text-gray-500">
+            <h1 className="text-lg font-bold text-foreground leading-tight">Créer un compte</h1>
+            <p className="text-xs text-muted-foreground">
               {step === 1 ? 'Étape 1 sur 2' : 'Étape 2 sur 2'}
             </p>
           </div>
@@ -88,16 +88,16 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
             onClick={() => setIsMenuOpen(true)}
             className="hover:bg-blue-50"
           >
-            <Menu className="h-6 w-6 text-gray-700" />
+            <Menu className="h-6 w-6 text-foreground" />
           </Button>
         )}
       </header>
 
       {/* Progress Bar */}
-      <div className="bg-white px-6 py-3 border-b border-gray-100">
+      <div className="bg-card px-6 py-3 border-b border-border">
         <div className="flex gap-2 max-w-md">
-          <div className={`flex-1 h-1.5 rounded-full transition-all duration-500 ${step >= 1 ? 'bg-blue-600' : 'bg-gray-200'}`} />
-          <div className={`flex-1 h-1.5 rounded-full transition-all duration-500 ${step >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`} />
+          <div className={`flex-1 h-1.5 rounded-full transition-all duration-500 ${step >= 1 ? 'bg-blue-600' : 'bg-card'}`} />
+          <div className={`flex-1 h-1.5 rounded-full transition-all duration-500 ${step >= 2 ? 'bg-blue-600' : 'bg-card'}`} />
         </div>
       </div>
 
@@ -107,10 +107,10 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
           {step === 1 ? (
             <div className="space-y-6">
               <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                <h2 className="text-2xl font-bold text-foreground mb-2">
                   Quel est votre statut ?
                 </h2>
-                <p className="text-gray-600">
+                <p className="text-foreground">
                   Sélectionnez votre situation pour bénéficier du tarif adapté
                 </p>
               </div>
@@ -120,7 +120,7 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
                 className={`border-2 cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 ${
                   isResident === true
                     ? 'border-blue-600 bg-blue-50/50 shadow-md'
-                    : 'border-gray-200 bg-white hover:border-blue-400'
+                    : 'border-border bg-card hover:border-blue-400'
                 }`}
                 onClick={() => setIsResident(true)}
               >
@@ -128,13 +128,13 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
-                        isResident === true ? 'bg-blue-600' : 'bg-gray-100'
+                        isResident === true ? 'bg-blue-600' : 'bg-background'
                       }`}>
-                        <Home className={`h-6 w-6 ${isResident === true ? 'text-white' : 'text-gray-600'}`} />
+                        <Home className={`h-6 w-6 ${isResident === true ? 'text-white' : 'text-foreground'}`} />
                       </div>
                       <div>
-                        <h3 className="text-lg font-bold text-gray-900">Résident KAMI</h3>
-                        <p className="text-sm text-gray-500">Habitant du village</p>
+                        <h3 className="text-lg font-bold text-foreground">Résident KAMI</h3>
+                        <p className="text-sm text-muted-foreground">Habitant du village</p>
                       </div>
                     </div>
                     {isResident === true && (
@@ -146,14 +146,14 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
 
                   <div className="mb-4">
                     <span className="text-3xl font-bold text-blue-600">100 000</span>
-                    <span className="text-lg text-gray-600 ml-1">FCFA</span>
+                    <span className="text-lg text-foreground ml-1">FCFA</span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
                     {residentBenefits.map((benefit, i) => {
                       const Icon = benefit.icon;
                       return (
-                        <div key={i} className="flex items-center gap-2 text-sm text-gray-700">
+                        <div key={i} className="flex items-center gap-2 text-sm text-foreground">
                           <Icon className="h-4 w-4 text-blue-600 flex-shrink-0" />
                           <span>{benefit.text}</span>
                         </div>
@@ -168,7 +168,7 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
                 className={`border-2 cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 ${
                   isResident === false
                     ? 'border-blue-600 bg-blue-50/50 shadow-md'
-                    : 'border-gray-200 bg-white hover:border-blue-400'
+                    : 'border-border bg-card hover:border-blue-400'
                 }`}
                 onClick={() => setIsResident(false)}
               >
@@ -176,13 +176,13 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
-                        isResident === false ? 'bg-blue-600' : 'bg-gray-100'
+                        isResident === false ? 'bg-blue-600' : 'bg-background'
                       }`}>
-                        <Users className={`h-6 w-6 ${isResident === false ? 'text-white' : 'text-gray-600'}`} />
+                        <Users className={`h-6 w-6 ${isResident === false ? 'text-white' : 'text-foreground'}`} />
                       </div>
                       <div>
-                        <h3 className="text-lg font-bold text-gray-900">Non-Résident</h3>
-                        <p className="text-sm text-gray-500">Extérieur au village</p>
+                        <h3 className="text-lg font-bold text-foreground">Non-Résident</h3>
+                        <p className="text-sm text-muted-foreground">Extérieur au village</p>
                       </div>
                     </div>
                     {isResident === false && (
@@ -193,16 +193,16 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
                   </div>
 
                   <div className="mb-4">
-                    <span className="text-3xl font-bold text-gray-700">150 000</span>
-                    <span className="text-lg text-gray-600 ml-1">FCFA</span>
+                    <span className="text-3xl font-bold text-foreground">150 000</span>
+                    <span className="text-lg text-foreground ml-1">FCFA</span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
                     {nonResidentBenefits.map((benefit, i) => {
                       const Icon = benefit.icon;
                       return (
-                        <div key={i} className="flex items-center gap-2 text-sm text-gray-700">
-                          <Icon className="h-4 w-4 text-gray-600 flex-shrink-0" />
+                        <div key={i} className="flex items-center gap-2 text-sm text-foreground">
+                          <Icon className="h-4 w-4 text-foreground flex-shrink-0" />
                           <span>{benefit.text}</span>
                         </div>
                       );
@@ -223,10 +223,10 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
           ) : (
             <div className="space-y-6">
               <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                <h2 className="text-2xl font-bold text-foreground mb-2">
                   Vos informations
                 </h2>
-                <p className="text-gray-600">
+                <p className="text-foreground">
                   Complétez votre profil pour finaliser l'inscription
                 </p>
               </div>
@@ -241,19 +241,19 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
                           <Home className="h-5 w-5 text-blue-600" />
                         </div>
                       ) : (
-                        <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                          <Users className="h-5 w-5 text-gray-600" />
+                        <div className="w-10 h-10 bg-background rounded-lg flex items-center justify-center">
+                          <Users className="h-5 w-5 text-foreground" />
                         </div>
                       )}
                       <div>
-                        <p className="text-xs text-gray-500">Votre statut</p>
-                        <p className="font-bold text-gray-900">
+                        <p className="text-xs text-muted-foreground">Votre statut</p>
+                        <p className="font-bold text-foreground">
                           {isResident ? 'Résident KAMI' : 'Non-Résident'}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-gray-500">Prix du lot</p>
+                      <p className="text-xs text-muted-foreground">Prix du lot</p>
                       <p className="font-bold text-blue-600">
                         {isResident ? '100 000' : '150 000'} FCFA
                       </p>
@@ -263,10 +263,10 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
               </Card>
 
               {/* Form */}
-              <Card className="border-gray-200">
+              <Card className="border-border">
                 <CardContent className="p-6 space-y-5">
                   <div>
-                    <Label htmlFor="name" className="text-sm font-semibold text-gray-900 mb-2 block">
+                    <Label htmlFor="name" className="text-sm font-semibold text-foreground mb-2 block">
                       Nom complet
                     </Label>
                     <Input
@@ -275,12 +275,12 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
                       placeholder="Ex: Jean Koné"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="h-11 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      className="h-11 text-base border-border focus:border-blue-500 focus:ring-blue-500"
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="phone" className="text-sm font-semibold text-gray-900 mb-2 block">
+                    <Label htmlFor="phone" className="text-sm font-semibold text-foreground mb-2 block">
                       Numéro de téléphone
                     </Label>
                     <Input
@@ -289,7 +289,7 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
                       placeholder="Ex: 07 58 42 10"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="h-11 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      className="h-11 text-base border-border focus:border-blue-500 focus:ring-blue-500"
                     />
                   </div>
 
@@ -300,8 +300,8 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
                         <CheckCircle className="h-4 w-4 text-white" />
                       </div>
                       <div className="text-sm">
-                        <p className="font-medium text-gray-900 mb-1">Ce qui vous attend :</p>
-                        <ul className="space-y-1 text-gray-700">
+                        <p className="font-medium text-foreground mb-1">Ce qui vous attend :</p>
+                        <ul className="space-y-1 text-foreground">
                           <li>• Paiement flexible à partir de <strong>10 000 FCFA</strong></li>
                           <li>• Accès immédiat au plan des lots</li>
                           <li>• Support client disponible</li>
@@ -323,7 +323,7 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
               <Button
                 onClick={() => setStep(1)}
                 variant="ghost"
-                className="w-full text-gray-600 hover:text-gray-900 font-medium"
+                className="w-full text-foreground hover:text-foreground font-medium"
               >
                 Retour
               </Button>

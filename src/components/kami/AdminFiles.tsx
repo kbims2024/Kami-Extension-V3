@@ -116,17 +116,17 @@ export function AdminFiles({ onBack }: AdminFilesProps) {
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-gray-50 p-6 pt-16">
+    <div className="flex-1 flex flex-col bg-card p-6 pt-16">
       <Button
         variant="ghost"
         size="icon"
         className="absolute top-4 left-4"
         onClick={onBack}
       >
-        <ArrowLeft className="h-5 w-5 text-gray-500" />
+        <ArrowLeft className="h-5 w-5 text-muted-foreground" />
       </Button>
 
-      <h2 className="text-2xl font-bold text-center text-gray-900 mb-6">
+      <h2 className="text-2xl font-bold text-center text-foreground mb-6">
         Gestion des Fichiers
       </h2>
 
@@ -145,8 +145,8 @@ export function AdminFiles({ onBack }: AdminFilesProps) {
                   <div className="flex items-start gap-3">
                     <CheckCircle className="h-6 w-6 text-green-600 mt-1" />
                     <div>
-                      <p className="font-semibold text-gray-900">{currentFile.filename}</p>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="font-semibold text-foreground">{currentFile.filename}</p>
+                      <p className="text-sm text-foreground mt-1">
                         {formatFileSize(currentFile.size)} • {currentFile.mimeType}
                       </p>
                       <a
@@ -170,10 +170,10 @@ export function AdminFiles({ onBack }: AdminFilesProps) {
                 </div>
               </div>
             ) : (
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <div className="bg-card border border-border rounded-lg p-4">
                 <div className="flex items-center gap-3">
-                  <AlertCircle className="h-6 w-6 text-gray-400" />
-                  <p className="text-sm text-gray-600">
+                  <AlertCircle className="h-6 w-6 text-muted-foreground" />
+                  <p className="text-sm text-foreground">
                     Aucun fichier n'a été uploadé
                   </p>
                 </div>
@@ -200,17 +200,17 @@ export function AdminFiles({ onBack }: AdminFilesProps) {
                   onChange={handleFileChange}
                   className="mt-2"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Taille maximale : 10 Mo
                 </p>
               </div>
 
               {file && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <p className="text-sm text-gray-700">
+                  <p className="text-sm text-foreground">
                     <span className="font-semibold">Fichier sélectionné :</span> {file.name}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     {formatFileSize(file.size)}
                   </p>
                 </div>

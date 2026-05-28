@@ -17,11 +17,11 @@ export function EnhancedHomeScreen({ lots, setCurrentScreen, setIsMenuOpen }: En
   const sellRate = totalCount > 0 ? Math.round(((soldCount + reservedCount) / totalCount) * 100) : 0;
 
   return (
-    <div className="flex-1 flex flex-col bg-white">
-      <header className="flex justify-between items-center p-4 bg-white sticky top-0 z-10 shadow-sm">
+    <div className="flex-1 flex flex-col bg-card">
+      <header className="flex justify-between items-center p-4 bg-card sticky top-0 z-10 shadow-sm">
         <h1 className="text-xl font-extrabold text-[#8B5E3C]">KAMI-EXTENSION</h1>
         <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(true)}>
-          <Menu className="h-6 w-6 text-gray-700" />
+          <Menu className="h-6 w-6 text-foreground" />
         </Button>
       </header>
 
@@ -35,7 +35,7 @@ export function EnhancedHomeScreen({ lots, setCurrentScreen, setIsMenuOpen }: En
         </p>
         <Button
           onClick={() => setCurrentScreen('map')}
-          className="bg-white text-[#8B5E3C] font-bold py-3 px-6 rounded-full shadow-lg hover:bg-gray-100 relative z-10"
+          className="bg-card text-[#8B5E3C] font-bold py-3 px-6 rounded-full shadow-lg hover:bg-background relative z-10"
         >
           <Map className="mr-2 h-4 w-4" />
           Voir les lots disponibles
@@ -50,44 +50,44 @@ export function EnhancedHomeScreen({ lots, setCurrentScreen, setIsMenuOpen }: En
             value={availableCount}
             icon={Home}
             iconColor="text-[#10B981]"
-            bgColor="bg-white"
+            bgColor="bg-card"
           />
           <StatsCard
             title="Taux de Vente"
             value={`${sellRate}%`}
             icon={TrendingUp}
             iconColor="text-blue-500"
-            bgColor="bg-white"
+            bgColor="bg-card"
           />
         </div>
       </div>
 
       {/* Features Grid */}
       <div className="px-6 pb-6">
-        <h3 className="text-lg font-bold text-gray-800 mb-4">Nos Atouts</h3>
+        <h3 className="text-lg font-bold text-foreground mb-4">Nos Atouts</h3>
         <div className="grid grid-cols-2 gap-4">
           <Card className="bg-emerald-50 border-emerald-100">
             <CardContent className="p-4 text-center">
               <Wrench className="text-[#10B981] h-8 w-8 mx-auto mb-2" />
-              <h4 className="font-bold text-sm text-gray-800">Routes Pavées</h4>
+              <h4 className="font-bold text-sm text-foreground">Routes Pavées</h4>
             </CardContent>
           </Card>
           <Card className="bg-blue-50 border-blue-100">
             <CardContent className="p-4 text-center">
               <Zap className="text-blue-500 h-8 w-8 mx-auto mb-2" />
-              <h4 className="font-bold text-sm text-gray-800">Électricité</h4>
+              <h4 className="font-bold text-sm text-foreground">Électricité</h4>
             </CardContent>
           </Card>
           <Card className="bg-cyan-50 border-cyan-100">
             <CardContent className="p-4 text-center">
               <Droplet className="text-cyan-500 h-8 w-8 mx-auto mb-2" />
-              <h4 className="font-bold text-sm text-gray-800">Eau Courante</h4>
+              <h4 className="font-bold text-sm text-foreground">Eau Courante</h4>
             </CardContent>
           </Card>
           <Card className="bg-purple-50 border-purple-100">
             <CardContent className="p-4 text-center">
               <ShieldCheck className="text-purple-500 h-8 w-8 mx-auto mb-2" />
-              <h4 className="font-bold text-sm text-gray-800">Sécurité</h4>
+              <h4 className="font-bold text-sm text-foreground">Sécurité</h4>
             </CardContent>
           </Card>
         </div>
@@ -112,8 +112,8 @@ export function EnhancedHomeScreen({ lots, setCurrentScreen, setIsMenuOpen }: En
                 <span className="opacity-90">Disponibles</span>
                 <span className="font-bold">{availableCount} lots</span>
               </div>
-              <div className="w-full bg-white/20 rounded-full h-2">
-                <div className="bg-white h-2 rounded-full transition-all" style={{ width: `${(availableCount / totalCount) * 100}%` }} />
+              <div className="w-full bg-card/20 rounded-full h-2">
+                <div className="bg-card h-2 rounded-full transition-all" style={{ width: `${(availableCount / totalCount) * 100}%` }} />
               </div>
               <div className="flex justify-between text-sm">
                 <span className="opacity-90">Réservés</span>
@@ -139,8 +139,8 @@ export function EnhancedHomeScreen({ lots, setCurrentScreen, setIsMenuOpen }: En
         <Card className="border-2 border-dashed border-[#8B5E3C]">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <h4 className="font-bold text-gray-800">Règlement Intérieur</h4>
-              <p className="text-xs text-gray-500">Discipline et propreté</p>
+              <h4 className="font-bold text-foreground">Règlement Intérieur</h4>
+              <p className="text-xs text-muted-foreground">Discipline et propreté</p>
             </div>
             <Button
               onClick={() => setCurrentScreen('rules')}
