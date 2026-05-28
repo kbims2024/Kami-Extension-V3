@@ -20,6 +20,7 @@ import { TwoStepRegistration } from '@/components/kami/TwoStepRegistration';
 import { AuthChoiceScreen } from '@/components/kami/AuthChoiceScreen';
 import { LoginScreen } from '@/components/kami/LoginScreen';
 import { AdminFiles } from '@/components/kami/AdminFiles';
+import { FlashInfoAdmin } from '@/components/kami/FlashInfoAdmin';
 import { ModernSideMenu } from '@/components/kami/ModernSideMenu';
 
 export default function KamiExtensionPage() {
@@ -1070,6 +1071,12 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
               <p className="text-sm font-bold">Ajouter Lots</p>
             </CardContent>
           </Card>
+          <Card className="bg-white p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('flash-infos')}>
+            <CardContent className="p-0 text-center">
+              <FileText className="text-brand-blue h-8 w-8 mx-auto mb-2" />
+              <p className="text-sm font-bold">Flash Infos</p>
+            </CardContent>
+          </Card>
           <Card className="bg-white p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition col-span-2" onClick={() => setAdminView('files')}>
             <CardContent className="p-0 text-center py-4">
               <Upload className="text-brand-blue h-8 w-8 mx-auto mb-2" />
@@ -1195,6 +1202,10 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
             </CardContent>
           </Card>
         </div>
+      )}
+
+      {adminView === 'flash-infos' && (
+        <FlashInfoAdmin onBack={() => setAdminView(null)} />
       )}
 
       {adminView === 'files' && (

@@ -1,57 +1,80 @@
 'use client';
 
-import { AlertCircle, Calendar, TrendingUp, Users } from 'lucide-react';
+import { AlertCircle, Calendar, TrendingUp, Users, Star, Info, Bell, Flame, Sparkles } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 interface FlashInfoItem {
   id: string;
-  icon: React.ReactNode;
+  icon: string;
   text: string;
+  textColor: string;
+  bgColor: string;
   urgent?: boolean;
+  position: number;
 }
 
+interface FlashInfoData {
+  items: FlashInfoItem[];
+  settings: {
+    scrollSpeed: number;
+    bgColor: string;
+    textColor: string;
+  };
+}
+
+const iconMap: { [key: string]: React.ReactNode } = {
+  AlertCircle: <AlertCircle className="h-4 w-4" />,
+  TrendingUp: <TrendingUp className="h-4 w-4" />,
+  Calendar: <Calendar className="h-4 w-4" />,
+  Users: <Users className="h-4 w-4" />,
+  Star: <Star className="h-4 w-4" />,
+  Info: <Info className="h-4 w-4" />,
+  Bell: <Bell className="h-4 w-4" />,
+  Flame: <Flame className="h-4 w-4" />,
+  Sparkles: <Sparkles className="h-4 w-4" />
+};
+
 export function FlashInfoBand() {
-  const flashInfos: FlashInfoItem[] = [
-    {
-      id: '1',
-      icon: <AlertCircle className="h-4 w-4" />,
-      text: '🎉 Promotion spéciale : -10% sur tous les lots de l\'Îlot A jusqu\'au 31 décembre !',
-      urgent: true,
-    },
-    {
-      id: '2',
-      icon: <TrendingUp className="h-4 w-4" />,
-      text: '📈 15 lots déjà réservés cette semaine ! Ne manquez pas cette opportunité.',
-      urgent: false,
-    },
-    {
-      id: '3',
-      icon: <Calendar className="h-4 w-4" />,
-      text: '📅 Journée portes ouvertes : Samedi 15 Décembre de 9h à 17h sur le site.',
-      urgent: false,
-    },
-    {
-      id: '4',
-      icon: <Users className="h-4 w-4" />,
-      text: '👥 Plus de 50 familles ont déjà rejoint KAMI-EXTENSION. Rejoignez-nous !',
-      urgent: false,
-    },
-    {
-      id: '5',
-      icon: <AlertCircle className="h-4 w-4" />,
-      text: '⚡ Nouveau : Paiement en plusieurs fois disponible pour tous les lots !',
-      urgent: true,
-    },
-  ];
+  const [data, setData] = useState<FlashInfoData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadFlashInfo();
+  }, []);
+
+  const loadFlashInfo = async () => {
+    try {
+      const response = await fetch('/api/flash-info');
+      if (response.ok) {
+        const flashData = await response.json();
+        setData(flashData);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des flash infos:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading || !data) {
+    return null;
+  }
 
   // Duplicate the items to create a seamless loop
-  const scrollContent = [...flashInfos, ...flashInfos, ...flashInfos];
+  const scrollContent = [...data.items, ...data.items, ...data.items];
 
   return (
-    <div className="w-full bg-gradient-to-r from-brand-blue to-blue-700 dark:from-blue-900 dark:to-blue-950 text-white overflow-hidden">
+    <div
+      className="w-full text-white overflow-hidden"
+      style={{ backgroundColor: data.settings.bgColor }}
+    >
       <div className="relative">
         {/* Scrolling Container */}
         <div className="overflow-hidden py-3">
-          <div className="flex items-center gap-12 animate-scroll hover:pause">
+          <div
+            className="flex items-center gap-12 animate-scroll hover:pause"
+            style={{ animationDuration: `${data.settings.scrollSpeed}s` }}
+          >
             {scrollContent.map((info, index) => (
               <div
                 key={`${info.id}-${index}`}
@@ -62,9 +85,13 @@ export function FlashInfoBand() {
                     URGENT
                   </span>
                 )}
-                <span className="text-brand-yellow">{info.icon}</span>
-                <span className="text-sm font-medium">{info.text}</span>
-                <span className="text-brand-blue/50 mx-4">•</span>
+                <span style={{ color: '#fbbf24' }}>
+                  {iconMap[info.icon] || <AlertCircle className="h-4 w-4" />}
+                </span>
+                <span className="text-sm font-medium" style={{ color: info.textColor }}>
+                  {info.text}
+                </span>
+                <span className="mx-4 opacity-50">•</span>
               </div>
             ))}
           </div>
@@ -82,7 +109,7 @@ export function FlashInfoBand() {
         }
 
         .animate-scroll {
-          animation: scroll 30s linear infinite;
+          animation: scroll linear infinite;
         }
 
         .animate-scroll:hover {
