@@ -413,7 +413,7 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
 
       {/* Plan Modal - Fullscreen with zoom controls */}
       <Dialog open={isPlanModalOpen} onOpenChange={setIsPlanModalOpen}>
-        <DialogContent className="max-w-[100vw] max-h-[100vh] h-[100vh] w-[100vw] p-0 overflow-hidden m-0 rounded-none border-0">
+        <DialogContent className="max-w-[95vw] max-h-[95vh] h-[90vh] w-[90vw] md:max-w-[98vw] md:max-h-[98vh] md:h-[95vh] md:w-[95vw] p-0 overflow-hidden m-auto rounded-xl md:rounded-2xl border-2 shadow-2xl">
           {/* Header avec bouton de fermeture */}
           <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
             <Button
@@ -426,61 +426,61 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
             </Button>
           </div>
 
-          {/* Title en haut à gauche - desktop only */}
-          <div className="absolute top-4 left-4 z-10 hidden md:block">
+          {/* Title en haut à gauche - visible on all screens */}
+          <div className="absolute top-4 left-4 z-10">
             <div className="bg-white/90 dark:bg-gray-900/90 px-6 py-3 rounded-xl shadow-lg">
-              <h2 className="text-xl font-bold flex items-center gap-3">
-                <Map className="h-6 w-6 text-blue-600" />
+              <h2 className="text-lg md:text-xl font-bold flex items-center gap-3">
+                <Map className="h-5 w-5 md:h-6 md:w-6 text-blue-600" />
                 Plan du Village
               </h2>
-              <p className="text-xs text-gray-500 mt-1">
-                Ctrl + roulette pour zoomer
+              <p className="text-xs text-gray-500 mt-1 hidden md:block">
+                Utilisez les boutons ou Ctrl + roulette pour zoomer
               </p>
             </div>
           </div>
 
           {/* Contrôles de zoom - en bas au centre */}
           <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10">
-            <div className="bg-white/90 dark:bg-gray-900/90 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4">
+            <div className="bg-white/90 dark:bg-gray-900/90 px-4 md:px-6 py-3 md:py-4 rounded-2xl shadow-2xl flex items-center gap-2 md:gap-4">
               <Button
                 variant="outline"
                 size="icon"
                 onClick={handleZoomOut}
                 disabled={zoomLevel <= 50}
-                className="h-12 w-12 text-lg"
+                className="h-10 w-10 md:h-12 md:w-12 text-base md:text-lg"
               >
-                <ZoomOut className="h-5 w-5" />
+                <ZoomOut className="h-4 w-4 md:h-5 md:w-5" />
               </Button>
-              <div className="flex flex-col items-center min-w-[80px]">
-                <span className="text-2xl font-bold">
+              <div className="flex flex-col items-center min-w-[60px] md:min-w-[80px]">
+                <span className="text-lg md:text-2xl font-bold">
                   {zoomLevel}%
                 </span>
-                <span className="text-xs text-gray-500">Zoom</span>
+                <span className="text-[10px] md:text-xs text-gray-500">Zoom</span>
               </div>
               <Button
                 variant="outline"
                 size="icon"
                 onClick={handleZoomIn}
                 disabled={zoomLevel >= 300}
-                className="h-12 w-12 text-lg"
+                className="h-10 w-10 md:h-12 md:w-12 text-base md:text-lg"
               >
-                <ZoomIn className="h-5 w-5" />
+                <ZoomIn className="h-4 w-4 md:h-5 md:w-5" />
               </Button>
-              <div className="w-px h-10 bg-gray-300 dark:bg-gray-700 mx-2" />
+              <div className="w-px h-8 md:h-10 bg-gray-300 dark:bg-gray-700 mx-1 md:mx-2" />
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={handleResetZoom}
-                className="h-12 w-12"
+                className="h-10 w-10 md:h-12 md:w-12"
                 title="Réinitialiser le zoom"
               >
-                <Minimize className="h-5 w-5" />
+                <Minimize className="h-4 w-4 md:h-5 md:w-5" />
               </Button>
             </div>
           </div>
 
           {/* Contenu du plan */}
-          <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-900 overflow-auto">
+          <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-900 overflow-auto p-4 md:p-8">
             {planFile && (
               <div
                 className="transition-transform duration-200 ease-out"
@@ -492,16 +492,16 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
                 {planFile.mimeType === 'application/pdf' ? (
                   <iframe
                     src={planFile.path}
-                    className="max-w-[95vw] max-h-[88vh] border-0 rounded-lg shadow-2xl"
-                    style={{ width: '95vw', height: '88vh' }}
+                    className="max-w-[85vw] max-h-[80vh] md:max-w-[90vw] md:max-h-[85vh] border-0 rounded-lg shadow-2xl"
+                    style={{ width: '85vw', height: '80vh' }}
                     title="Plan du village"
                   />
                 ) : (
                   <img
                     src={planFile.path}
                     alt="Plan du village"
-                    className="max-w-[95vw] max-h-[88vh] object-contain rounded-lg shadow-2xl"
-                    style={{ maxWidth: '95vw', maxHeight: '88vh' }}
+                    className="max-w-[85vw] max-h-[80vh] md:max-w-[90vw] md:max-h-[85vh] object-contain rounded-lg shadow-2xl"
+                    style={{ maxWidth: '85vw', maxHeight: '80vh' }}
                   />
                 )}
               </div>
