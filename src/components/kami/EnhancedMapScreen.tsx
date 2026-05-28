@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { ThemeToggle } from '@/components/theme-toggle';
 import { Menu, Home, Wallet, Map as MapIcon, Building2, Filter } from 'lucide-react';
 import { LotFilters } from './LotFilters';
 import { LotBlock } from './LotBlock';
@@ -54,7 +53,6 @@ export function EnhancedMapScreen({ lots, handleOpenReservation, setCurrentScree
             </Button>
             <h2 className="text-lg font-bold text-foreground ml-2">Plan du Village</h2>
           </div>
-          <ThemeToggle />
         </div>
         <LotFilters
           activeFilter={activeFilter}

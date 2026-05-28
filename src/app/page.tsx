@@ -1000,7 +1000,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
   const [usersLoading, setUsersLoading] = useState(false);
 
   // New lot state
-  const [newLot, setNewLot] = useState({ name: '', surface: '', priceRes: '', priceNon: '' });
+  const [newLot, setNewLot] = useState({ name: '', surface: '', block: '', priceRes: '', priceNon: '' });
 
   // Load stats from API
   const loadStats = async () => {
@@ -1061,7 +1061,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
 
   // Handle add lot
   const handleAddLot = async () => {
-    if (!newLot.name || !newLot.surface || !newLot.priceRes || !newLot.priceNon) {
+    if (!newLot.name || !newLot.surface || !newLot.block || !newLot.priceRes || !newLot.priceNon) {
       toast.error('Remplissez tous les champs');
       return;
     }
@@ -1073,6 +1073,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
         body: JSON.stringify({
           name: newLot.name,
           surface: newLot.surface,
+          block: newLot.block,
           priceRes: parseInt(newLot.priceRes),
           priceNon: parseInt(newLot.priceNon),
         }),
@@ -1080,7 +1081,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
 
       if (response.ok) {
         toast.success(`Lot ${newLot.name} ajouté !`);
-        setNewLot({ name: '', surface: '', priceRes: '', priceNon: '' });
+        setNewLot({ name: '', surface: '', block: '', priceRes: '', priceNon: '' });
         loadLots();
       } else {
         toast.error('Erreur lors de l\'ajout du lot');
@@ -1289,13 +1290,22 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
           </Button>
           <Card className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
             <CardContent className="space-y-4">
+              <div>
+                <Label className="text-sm">Îlot</Label>
+                <Input
+                  value={newLot.block}
+                  onChange={(e) => setNewLot({ ...newLot, block: e.target.value })}
+                  placeholder="A"
+                  className="mt-1"
+                />
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label className="text-sm">Numéro</Label>
                   <Input
                     value={newLot.name}
                     onChange={(e) => setNewLot({ ...newLot, name: e.target.value })}
-                    placeholder="A-01"
+                    placeholder="01"
                     className="mt-1"
                   />
                 </div>

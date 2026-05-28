@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Home, Map, FileText, Wallet, User, Shield, LogOut, LogIn, Building2, X } from 'lucide-react';
+import { ThemeToggle } from '@/components/theme-toggle';
+import { Home, Map, FileText, Wallet, User, Shield, LogOut, LogIn, Building2, X, Settings } from 'lucide-react';
 
 interface ModernSideMenuProps {
   isOpen: boolean;
@@ -97,6 +98,15 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
           <Separator className="my-4" />
 
           <div className="px-3 space-y-1">
+            <Button
+              variant="ghost"
+              className="w-full justify-start px-4 py-3 h-auto text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-xl transition-all group"
+            >
+              <Settings className="mr-3 h-5 w-5 group-hover:text-gray-600 transition-colors" />
+              <span className="font-medium">Paramètres</span>
+              <ThemeToggle />
+            </Button>
+
             <Button
               variant="ghost"
               className="w-full justify-start px-4 py-3 h-auto text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all group"
