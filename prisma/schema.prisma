@@ -80,3 +80,13 @@ model AdminFile {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 }
+
+model Logo {
+  id              String      @id @default(cuid())
+  text            String      @default("KAMI-EXTENSION")
+  imageUrl        String?
+  textColor       String      @default("#8B5E3C")
+  backgroundColor String      @default("#ffffff")
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}

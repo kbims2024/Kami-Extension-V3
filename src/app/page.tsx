@@ -22,6 +22,7 @@ import { LoginScreen } from '@/components/kami/LoginScreen';
 import { AdminFiles } from '@/components/kami/AdminFiles';
 import { FlashInfoAdmin } from '@/components/kami/FlashInfoAdmin';
 import { ModernSideMenu } from '@/components/kami/ModernSideMenu';
+import { AdminLogo } from '@/components/kami/AdminLogo';
 
 export default function KamiExtensionPage() {
   const [mounted, setMounted] = useState(false);
@@ -1219,6 +1220,12 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
               <p className="text-sm font-bold">Ajouter Lots</p>
             </CardContent>
           </Card>
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('logo')}>
+            <CardContent className="p-0 text-center">
+              <FileText className="text-orange-500 h-8 w-8 mx-auto mb-2" />
+              <p className="text-sm font-bold">Éditer le Logo</p>
+            </CardContent>
+          </Card>
           <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('flash-infos')}>
             <CardContent className="p-0 text-center">
               <FileText className="text-brand-blue h-8 w-8 mx-auto mb-2" />
@@ -1493,6 +1500,16 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {adminView === 'logo' && (
+        <div className="mt-6">
+          <Button variant="ghost" onClick={() => setAdminView(null)} className="mb-4 text-muted-foreground">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Retour
+          </Button>
+          <AdminLogo />
         </div>
       )}
 
