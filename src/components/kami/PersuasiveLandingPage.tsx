@@ -29,6 +29,7 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
   const [planFile, setPlanFile] = useState<{ path: string; mimeType: string } | null>(null);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(100);
+  const [isServicesModalOpen, setIsServicesModalOpen] = useState(false);
 
   // Charger le fichier du plan au montage
   useEffect(() => {
@@ -128,6 +129,27 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
     { icon: Users, title: "Communauté", desc: "Voisinage unie" },
   ];
 
+  const essentialServices = [
+    {
+      icon: Zap,
+      title: "Électricité",
+      desc: "Réseau électrique moderne et fiable, alimenté par SODECI. Transformateurs installés avec capacité suffisante pour tous les lots.",
+      features: ["Alimentation continue", "Compteurs individuels", "Normes de sécurité", "Maintenance incluse"]
+    },
+    {
+      icon: Droplet,
+      title: "Eau Potable",
+      desc: "Adduction d'eau potable via SODECI. Chaque lot dispose d'un branchement individuel avec compteur.",
+      features: ["Eau potable 24h/24", "Branchement individuel", "Normes sanitaires", "Système de purification"]
+    },
+    {
+      icon: ShieldCheck,
+      title: "Sécurité",
+      desc: "Quartier surveillé 24h/24 par une équipe de sécurité professionnelle et un système de surveillance moderne.",
+      features: ["Gardiennage 24h/24", "Caméras de surveillance", "Éclairage public", "Contrôle d'accès"]
+    }
+  ];
+
   const features = [
     { number: "01", title: "Inscription Gratuite", desc: "Créez votre compte en quelques secondes sans frais" },
     { number: "02", title: "Choisissez Votre Lot", desc: "Sélectionnez parmi les terrains disponibles" },
@@ -209,10 +231,10 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
             </h1>
 
             {/* Subtitle - separated */}
-            <div className="text-base md:text-xl lg:text-2xl text-blue-100 mb-2 md:mb-3 leading-relaxed max-w-2xl mx-auto">
+            <div className="text-base md:text-xl lg:text-2xl text-blue-100 mb-2 leading-relaxed max-w-2xl mx-auto">
               Le nouveau village moderne.
             </div>
-            <div className="text-base md:text-xl lg:text-2xl text-blue-100 mb-6 md:mb-8 leading-relaxed max-w-2xl mx-auto">
+            <div className="text-base md:text-xl lg:text-2xl text-blue-100 pb-2 leading-relaxed max-w-2xl mx-auto">
               Réservez votre terrain.
             </div>
 
@@ -259,8 +281,8 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
         </div>
 
         {/* Wave Bottom */}
-        <div className="hidden md:block absolute bottom-0 left-0 right-0">
-          <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
+        <div className="hidden md:block absolute bottom-0 left-0 right-0 -mt-4">
+          <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-8 md:h-12">
             <path d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" className="fill-background dark:fill-background"/>
           </svg>
         </div>
@@ -312,7 +334,7 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto mb-8">
             {advantages.map((advantage, index) => {
               const Icon = advantage.icon;
               return (
@@ -330,6 +352,35 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
                 </Card>
               );
             })}
+          </div>
+
+          {/* Bouton intelligent Électricité, Eau et Sécurité */}
+          <div className="max-w-2xl mx-auto mt-12">
+            <Button
+              onClick={() => setIsServicesModalOpen(true)}
+              className="w-full bg-gradient-to-r from-blue-500 via-cyan-500 to-purple-500 hover:from-blue-600 hover:via-cyan-600 hover:to-purple-600 text-white font-bold py-6 px-8 rounded-2xl text-lg shadow-2xl transition-all hover:scale-105 hover:shadow-lg"
+            >
+              <div className="flex items-center justify-center gap-3">
+                <div className="flex items-center gap-2">
+                  <Zap className="h-5 w-5" />
+                  <span>Électricité</span>
+                </div>
+                <span className="text-white/50">•</span>
+                <div className="flex items-center gap-2">
+                  <Droplet className="h-5 w-5" />
+                  <span>Eau</span>
+                </div>
+                <span className="text-white/50">•</span>
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-5 w-5" />
+                  <span>Sécurité</span>
+                </div>
+                <ChevronRight className="h-5 w-5 ml-2" />
+              </div>
+            </Button>
+            <p className="text-center text-sm text-muted-foreground mt-3">
+              Cliquez pour voir les détails des services essentiels inclus
+            </p>
           </div>
         </div>
       </section>
@@ -514,6 +565,80 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
               <kbd className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">Ctrl</kbd> + <kbd className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">↑</kbd> / <kbd className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">↓</kbd>
               <span className="ml-2">pour zoomer</span>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Services Modal - Électricité, Eau et Sécurité */}
+      <Dialog open={isServicesModalOpen} onOpenChange={setIsServicesModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto m-auto rounded-2xl border-2 shadow-2xl">
+          <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-border z-10 pb-4 mb-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground">
+                Services Essentiels Inclus
+              </h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsServicesModalOpen(false)}
+                className="h-10 w-10"
+              >
+                <X className="h-6 w-6" />
+              </Button>
+            </div>
+            <p className="text-muted-foreground mt-2">
+              Tous les services essentiels sont déjà installés et inclus dans votre terrain
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            {essentialServices.map((service, index) => {
+              const Icon = service.icon;
+              const colors = [
+                'from-yellow-500 to-orange-500',
+                'from-blue-500 to-cyan-500',
+                'from-purple-500 to-pink-500'
+              ];
+              const bgColor = [
+                'bg-yellow-50 dark:bg-yellow-950/30',
+                'bg-blue-50 dark:bg-blue-950/30',
+                'bg-purple-50 dark:bg-purple-950/30'
+              ];
+
+              return (
+                <Card key={index} className={`border-0 shadow-lg ${bgColor[index]}`}>
+                  <CardContent className="p-6">
+                    <div className="flex items-start gap-4">
+                      <div className={`w-16 h-16 bg-gradient-to-br ${colors[index]} rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0`}>
+                        <Icon className="h-8 w-8 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold text-foreground mb-2">
+                          {service.title}
+                        </h3>
+                        <p className="text-muted-foreground mb-4">
+                          {service.desc}
+                        </p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {service.features.map((feature, featureIndex) => (
+                            <div key={featureIndex} className="flex items-center gap-2">
+                              <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                              <span className="text-sm text-foreground">{feature}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          <div className="mt-6 pt-4 border-t border-border">
+            <p className="text-sm text-muted-foreground text-center">
+              ✓ Tous ces services sont inclus dans le prix de votre terrain sans frais supplémentaires
+            </p>
           </div>
         </DialogContent>
       </Dialog>
