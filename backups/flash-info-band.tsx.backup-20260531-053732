@@ -68,14 +68,13 @@ export function FlashInfoBand() {
       className="w-full text-white overflow-hidden flex items-center"
       style={{ backgroundColor: data.settings.bgColor }}
     >
-      {/* Static "FLASH INFO" label on the left - INFO on mobile, FLASH INFO on desktop */}
-      <div className="flex-shrink-0 bg-orange-500 px-3 md:px-4 py-2 md:py-3 border-2 border-red-600">
-        <span className="hidden md:inline text-sm font-bold text-white">FLASH</span>
-        <span className="text-xs md:text-sm font-bold text-white"> INFO</span>
+      {/* Static "FLASH INFO" label on the left */}
+      <div className="flex-shrink-0 bg-orange-500 px-4 py-3 border-2 border-red-600">
+        <span className="text-sm font-bold text-white">FLASH INFO</span>
       </div>
 
       {/* Scrolling Container - starts from left, right of the label */}
-      <div className="flex-1 overflow-hidden py-2 md:py-3">
+      <div className="flex-1 overflow-hidden py-3">
         <div
           className="flex items-center gap-12 animate-scroll hover:pause"
           style={{ animationDuration: `${data.settings.scrollSpeed}s` }}
