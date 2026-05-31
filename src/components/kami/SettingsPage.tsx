@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Settings, ThemeToggle, Info, Zap, Shield, Palette } from 'lucide-react';
+import { ThemeToggle } from '@/components/theme-toggle';
+import { ArrowLeft, Settings, Info, Zap, Shield, Palette } from 'lucide-react';
 import { FlashInfoAdmin } from './FlashInfoAdmin';
 
 interface SettingsPageProps {
