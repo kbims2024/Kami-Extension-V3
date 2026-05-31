@@ -6,14 +6,6 @@ import { readFileSync } from 'fs';
 
 const COLOR_FAVORITES_DB_PATH = join(process.cwd(), 'db', 'color-favorites.json');
 
-interface ColorFavorite {
-  id: string;
-  name: string;
-  value: string;
-  type: 'text' | 'background';
-  createdAt: string;
-}
-
 // Helper: Ensure color-favorites.json exists
 async function ensureColorFavoritesDb() {
   const dbDir = join(process.cwd(), 'db');
@@ -21,8 +13,7 @@ async function ensureColorFavoritesDb() {
     await mkdir(dbDir, { recursive: true });
   }
   if (!existsSync(COLOR_FAVORITES_DB_PATH)) {
-    const defaultData: { favorites: ColorFavorite[] } = { favorites: [] };
-    await writeFile(COLOR_FAVORITES_DB_PATH, JSON.stringify(defaultData, null, 2));
+    await writeFile(COLOR_FAVORITES_DB_PATH, JSON.stringify([], null, 2));
   }
 }
 
@@ -40,27 +31,17 @@ async function writeColorFavoritesDb(data: any) {
 }
 
 // GET - Récupérer tous les favoris de couleurs
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(req.url);
-    const type = searchParams.get('type'); // 'text' ou 'background'
-
-    const data = await readColorFavoritesDb();
-    let favorites = data.favorites;
-
-    // Filtrer par type si spécifié
-    if (type && (type === 'text' || type === 'background')) {
-      favorites = favorites.filter((fav: ColorFavorite) => fav.type === type);
-    }
-
+    const favorites = await readColorFavoritesDb();
     return NextResponse.json(favorites);
   } catch (error) {
     console.error('Erreur lors de la récupération des favoris de couleurs:', error);
-    return NextResponse.json({ error: 'Erreur lors de la récupération' }, { status: 500 });
+    return NextResponse.json([], { status: 200 });
   }
 }
 
-// POST - Ajouter un favori de couleur
+// POST - Créer un nouveau favori de couleur
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -70,26 +51,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Nom, valeur et type requis' }, { status: 400 });
     }
 
-    if (type !== 'text' && type !== 'background') {
-      return NextResponse.json({ error: 'Type doit être "text" ou "background"' }, { status: 400 });
-    }
-
-    const data = await readColorFavoritesDb();
-    const newFavorite: ColorFavorite = {
+    const favorites = await readColorFavoritesDb();
+    const newFavorite = {
       id: Date.now().toString(),
       name,
       value,
-      type,
+      type, // 'text' or 'background'
       createdAt: new Date().toISOString()
     };
 
-    data.favorites.push(newFavorite);
-    await writeColorFavoritesDb(data);
+    favorites.push(newFavorite);
+    await writeColorFavoritesDb(favorites);
 
     return NextResponse.json({ success: true, favorite: newFavorite });
   } catch (error) {
-    console.error('Erreur lors de l\'ajout du favori de couleur:', error);
-    return NextResponse.json({ error: 'Erreur lors de l\'ajout' }, { status: 500 });
+    console.error('Erreur lors de la création du favori de couleur:', error);
+    return NextResponse.json({ error: 'Erreur lors de la création' }, { status: 500 });
   }
 }
 
@@ -103,10 +80,10 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'ID requis' }, { status: 400 });
     }
 
-    const data = await readColorFavoritesDb();
-    data.favorites = data.favorites.filter((fav: ColorFavorite) => fav.id !== id);
+    const favorites = await readColorFavoritesDb();
+    const filteredFavorites = favorites.filter((fav: any) => fav.id !== id);
 
-    await writeColorFavoritesDb(data);
+    await writeColorFavoritesDb(filteredFavorites);
 
     return NextResponse.json({ success: true });
   } catch (error) {
