@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Plus, Edit, Trash2, Save, X, MoveUp, MoveDown } from 'lucide-react';
+import { ArrowLeft, Plus, Edit, Trash2, Save, X, MoveUp, MoveDown, Star, Heart } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface FlashInfoItem {
@@ -26,6 +26,14 @@ interface FlashInfoData {
     bgColor: string;
     textColor: string;
   };
+}
+
+interface ColorFavorite {
+  id: string;
+  name: string;
+  value: string;
+  type: 'text' | 'background';
+  createdAt: string;
 }
 
 const iconOptions = [
@@ -76,9 +84,13 @@ export function FlashInfoAdmin({ onBack }: FlashInfoAdminProps) {
     position: 0
   });
   const [emojiInput, setEmojiInput] = useState('');
+  const [colorFavorites, setColorFavorites] = useState<ColorFavorite[]>([]);
+  const [showFavoriteName, setShowFavoriteName] = useState<{ type: 'text' | 'background'; value: string } | null>(null);
+  const [favoriteNameInput, setFavoriteNameInput] = useState('');
 
   useEffect(() => {
     loadFlashInfo();
+    loadColorFavorites();
   }, []);
 
   const loadFlashInfo = async () => {
@@ -92,6 +104,18 @@ export function FlashInfoAdmin({ onBack }: FlashInfoAdminProps) {
       console.error('Erreur lors du chargement:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadColorFavorites = async () => {
+    try {
+      const response = await fetch('/api/color-favorites');
+      if (response.ok) {
+        const favorites = await response.json();
+        setColorFavorites(favorites);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des favoris de couleurs:', error);
     }
   };
 
@@ -229,6 +253,56 @@ export function FlashInfoAdmin({ onBack }: FlashInfoAdminProps) {
 
   const commonEmojis = ['🎉', '📈', '📅', '👥', '⚡', '🔥', '✨', '🎁', '💰', '🏠', '📍', '🚀', '💡', '📢', '🏆'];
 
+  const handleSaveColorFavorite = async () => {
+    if (!favoriteNameInput.trim() || !showFavoriteName) {
+      toast.error('Veuillez entrer un nom pour le favori');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/color-favorites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: favoriteNameInput.trim(),
+          value: showFavoriteName.value,
+          type: showFavoriteName.type
+        })
+      });
+
+      if (response.ok) {
+        toast.success('Couleur ajoutée aux favoris !');
+        setShowFavoriteName(null);
+        setFavoriteNameInput('');
+        loadColorFavorites();
+      } else {
+        toast.error('Erreur lors de l\'ajout du favori');
+      }
+    } catch (error) {
+      toast.error('Erreur lors de l\'ajout du favori');
+    }
+  };
+
+  const handleDeleteColorFavorite = async (id: string) => {
+    try {
+      const response = await fetch(`/api/color-favorites?id=${id}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        toast.success('Favori supprimé !');
+        loadColorFavorites();
+      } else {
+        toast.error('Erreur lors de la suppression');
+      }
+    } catch (error) {
+      toast.error('Erreur lors de la suppression');
+    }
+  };
+
+  const textColorFavorites = colorFavorites.filter(f => f.type === 'text');
+  const bgColorFavorites = colorFavorites.filter(f => f.type === 'background');
+
   if (loading) {
     return (
       <div className="flex-1 flex flex-col bg-card p-6 pt-16">
@@ -333,7 +407,7 @@ export function FlashInfoAdmin({ onBack }: FlashInfoAdminProps) {
               </select>
             </div>
 
-            {/* Couleur du texte */}
+            {/* Couleur du texte avec favoris */}
             <div>
               <Label htmlFor="textColor">Couleur du texte</Label>
               <div className="flex gap-2 mt-2 flex-wrap">
@@ -347,15 +421,53 @@ export function FlashInfoAdmin({ onBack }: FlashInfoAdminProps) {
                   />
                 ))}
               </div>
-              <Input
-                type="color"
-                value={formData.textColor}
-                onChange={(e) => setFormData(prev => ({ ...prev, textColor: e.target.value }))}
-                className="mt-2 w-20"
-              />
+
+              {/* Favoris de couleurs de texte */}
+              {textColorFavorites.length > 0 && (
+                <div className="mt-2">
+                  <Label className="text-xs text-muted-foreground">Favoris de texte</Label>
+                  <div className="flex gap-2 mt-1 flex-wrap items-center">
+                    {textColorFavorites.map((fav) => (
+                      <div key={fav.id} className="relative group">
+                        <button
+                          onClick={() => setFormData(prev => ({ ...prev, textColor: fav.value }))}
+                          className={`w-8 h-8 rounded-full border-2 ${formData.textColor === fav.value ? 'border-gray-900' : 'border-border'}`}
+                          style={{ backgroundColor: fav.value }}
+                          title={fav.name}
+                        />
+                        <button
+                          onClick={() => handleDeleteColorFavorite(fav.id)}
+                          className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Supprimer le favori"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-2 mt-2">
+                <Input
+                  type="color"
+                  value={formData.textColor}
+                  onChange={(e) => setFormData(prev => ({ ...prev, textColor: e.target.value }))}
+                  className="w-20"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowFavoriteName({ type: 'text', value: formData.textColor })}
+                  className="flex-1"
+                >
+                  <Heart className="h-4 w-4 mr-2" />
+                  Ajouter aux favoris
+                </Button>
+              </div>
             </div>
 
-            {/* Couleur de fond */}
+            {/* Couleur de fond avec favoris */}
             <div>
               <Label htmlFor="bgColor">Couleur de fond</Label>
               <div className="flex gap-2 mt-2 flex-wrap">
@@ -369,12 +481,50 @@ export function FlashInfoAdmin({ onBack }: FlashInfoAdminProps) {
                   />
                 ))}
               </div>
-              <Input
-                type="color"
-                value={formData.bgColor}
-                onChange={(e) => setFormData(prev => ({ ...prev, bgColor: e.target.value }))}
-                className="mt-2 w-20"
-              />
+
+              {/* Favoris de couleurs de fond */}
+              {bgColorFavorites.length > 0 && (
+                <div className="mt-2">
+                  <Label className="text-xs text-muted-foreground">Favoris de fond</Label>
+                  <div className="flex gap-2 mt-1 flex-wrap items-center">
+                    {bgColorFavorites.map((fav) => (
+                      <div key={fav.id} className="relative group">
+                        <button
+                          onClick={() => setFormData(prev => ({ ...prev, bgColor: fav.value }))}
+                          className={`w-8 h-8 rounded-full border-2 ${formData.bgColor === fav.value ? 'border-gray-900' : 'border-border'}`}
+                          style={{ backgroundColor: fav.value }}
+                          title={fav.name}
+                        />
+                        <button
+                          onClick={() => handleDeleteColorFavorite(fav.id)}
+                          className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Supprimer le favori"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-2 mt-2">
+                <Input
+                  type="color"
+                  value={formData.bgColor}
+                  onChange={(e) => setFormData(prev => ({ ...prev, bgColor: e.target.value }))}
+                  className="w-20"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowFavoriteName({ type: 'background', value: formData.bgColor })}
+                  className="flex-1"
+                >
+                  <Heart className="h-4 w-4 mr-2" />
+                  Ajouter aux favoris
+                </Button>
+              </div>
             </div>
 
             {/* Urgent */}
@@ -395,6 +545,45 @@ export function FlashInfoAdmin({ onBack }: FlashInfoAdminProps) {
               </Button>
               <Button variant="outline" onClick={handleCancel}>
                 <X className="h-4 w-4 mr-2" />
+                Annuler
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Modal pour nommer le favori de couleur */}
+      {showFavoriteName && (
+        <Card className="mb-6 border-2 border-yellow-400">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-yellow-700">
+              <Heart className="h-5 w-5" />
+              Nommer le favori de couleur
+            </CardTitle>
+            <CardDescription>
+              Donnez un nom à cette couleur pour la retrouver facilement
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-lg border-2" style={{ backgroundColor: showFavoriteName.value }} />
+              <div className="flex-1">
+                <Label htmlFor="favoriteName">Nom du favori</Label>
+                <Input
+                  id="favoriteName"
+                  value={favoriteNameInput}
+                  onChange={(e) => setFavoriteNameInput(e.target.value)}
+                  placeholder="Ex: Vert promo, Bleu urgent, etc."
+                  className="mt-2"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handleSaveColorFavorite} className="flex-1">
+                <Star className="h-4 w-4 mr-2" />
+                Sauvegarder comme favori
+              </Button>
+              <Button variant="outline" onClick={() => { setShowFavoriteName(null); setFavoriteNameInput(''); }}>
                 Annuler
               </Button>
             </div>

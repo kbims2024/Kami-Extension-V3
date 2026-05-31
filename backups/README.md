@@ -24,6 +24,23 @@ Ce dossier contient les sauvegardes des fichiers modifiés pour permettre une re
 cp /home/z/my-project/backups/flash-info-band.tsx.backup-20260531-053732 /home/z/my-project/src/components/flash-info-band.tsx
 ```
 
+#### `flash-info-band.tsx.backup-20260531-053853`
+**Description**: Sauvegarde avant ajout fonctionnalité favoris de couleurs dans FlashInfoAdmin
+
+**Modifications effectuées**:
+- Ajout de l'interface ColorFavorite
+- Ajout des états pour gérer les favoris de couleurs
+- Ajout des fonctions loadColorFavorites, handleSaveColorFavorite, handleDeleteColorFavorite
+- Ajout de la modal pour nommer les favoris de couleurs
+- Ajout de l'affichage des favoris (texte et fond) dans le formulaire
+- Création de l'API route `/api/color-favorites` (GET, POST, DELETE)
+
+**Commande de restauration**:
+```bash
+cp /home/z/my-project/backups/flash-info-band.tsx.backup-20260531-053853 /home/z/my-project/src/components/flash-info-band.tsx
+cp /home/z/my-project/backups/flash-info-api-route.ts.backup-20260531-053853 /home/z/my-project/src/app/api/flash-info/route.ts
+```
+
 ---
 
 ## Instructions de restauration

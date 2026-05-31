@@ -3,6 +3,51 @@
 ## Summary
 Fixed all dark mode color issues in the KAMI-EXTENSION Next.js project by replacing fixed color classes with theme-aware classes that automatically adapt to light/dark mode.
 
+---
+
+## Session 2025-05-31 - Flash Info Mobile & Admin Enhancement
+
+### Mobile Flash Info Band Enhancement (flash-info-band.tsx.backup-20260531-053732)
+- Mobile: "FLASH INFO" → "INFO" (plus compact)
+- Desktop: "FLASH INFO" (inchangé)
+- Épaisseur conteneur réduite: `py-3` → `py-2 md:py-3`
+- Padding horizontal réduit: `px-4` → `px-3 md:px-4`
+- Taille texte réduite: `text-sm` → `text-xs md:text-sm`
+
+### Flash Info Admin Enhancement with Color Favorites (flash-info-band.tsx.backup-20260531-053853)
+**Fonctionnalités ajoutées**:
+1. ✅ Ajouter des flash infos (existait déjà)
+2. ✅ Déplacer selon les priorités (boutons MoveUp/MoveDown)
+3. ✅ Choisir la couleur du texte (presets + color picker)
+4. ✅ **NOUVEAU : Mettre la couleur en favoris pour réutilisation**
+5. ✅ Ajouter des émoticônes (boutons rapides + personnalisés)
+6. ✅ Déclarer une info comme urgente (checkbox)
+7. ✅ Interface intuitive (aperçu en direct, formulaires clairs)
+
+**Composants créés/modifiés**:
+- `src/components/kami/FlashInfoAdmin.tsx` - Ajout fonctionnalité favoris de couleurs
+- `src/app/api/color-favorites/route.ts` - API CRUD pour les favoris (GET, POST, DELETE)
+
+**Nouvelle fonctionnalité - Favoris de couleurs**:
+- Bouton "Ajouter aux favoris" pour chaque couleur (texte et fond)
+- Modal pour nommer le favori avec aperçu de la couleur
+- Affichage des favoris de texte et de fond séparément
+- Bouton X pour supprimer un favori au survol
+- Persistance dans `db/color-favorites.json`
+
+**Interface utilisateur**:
+- Palette de couleurs prédéfinies
+- Picker de couleur personnalisé
+- 15 émoticônes rapides (🎉, 📈, 📅, 👥, ⚡, 🔥, ✨, etc.)
+- Champs de saisie d'émoticône personnalisée
+- Drag & drop des infos (via boutons up/down)
+- Aperçu en direct des flash infos
+- Badge "URGENT" pour les infos urgentes
+
+---
+
+## Original Dark Mode Fixes
+
 ## Files Modified
 
 ### 1. `/home/z/my-project/src/app/page.tsx`
