@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
       totalPrice: r.totalPrice,
       isResident: r.isResident,
       status: r.status,
+      createdAt: r.createdAt.toISOString(),
     }));
 
     return NextResponse.json(formattedReservations);
@@ -108,6 +109,7 @@ export async function POST(request: NextRequest) {
       totalPrice: fullReservation!.totalPrice,
       isResident: fullReservation!.isResident,
       status: fullReservation!.status,
+      createdAt: fullReservation!.createdAt.toISOString(),
     });
   } catch (error) {
     console.error('Error creating reservation:', error);
