@@ -256,3 +256,73 @@ All text and UI elements now properly adapt to both light and dark modes:
 - Lot: id, name, block, surface, priceRes, priceNon, status, description, positionX, positionY
 - Reservation: id, userId, lotId, paidAmount, totalPrice, isResident, status
 - Payment: id, userId, lotId, amount, status, type
+
+---
+
+## Session 2025-06-01 - Admin Dashboard Implementation
+
+### Admin Dashboard Feature - Complete Configuration with Histograms
+
+**Objectif**: Créer un tableau de bord administrateur complet avec visualisations de données (histogrammes, graphiques) pour gérer l'ensemble de la plateforme.
+
+**Fichiers créés/modifiés**:
+
+1. **`src/components/kami/AdminDashboard.tsx`** - Composant principal du tableau de bord administrateur
+   - 4 cartes statistiques principales: Total Lots, Utilisateurs, Revenus Totaux, Paiements en attente
+   - Graphiques de visualisation avec Recharts:
+     - **Pie Chart**: Distribution des lots par statut (Disponible, Réservé, Payé)
+     - **Stacked Bar Chart**: Répartition des lots par îlots avec breakdown par statut
+     - **Pie Chart**: Types d'utilisateurs (Résidents vs Non-Résidents)
+     - **Line Chart**: Historique des revenus récents (7 derniers paiements)
+   - 3 onglets détaillés:
+     - Utilisateurs: liste avec statistiques par utilisateur (réservations, total payé)
+     - Lots: liste complète avec prix et statuts
+     - Paiements: historique des 10 derniers paiements
+   - 3 cartes statistiques secondaires: Réservations ce mois, Paiements ce mois, Moyenne par utilisateur
+   - Interface responsive avec design cohérent
+
+2. **`src/app/api/admin/dashboard-stats/route.ts`** - API pour les statistiques administratives
+   - Calcul: totalLots, availableLots, reservedLots, paidLots
+   - Calcul: totalUsers, activeUsers, totalRevenue, pendingPayments
+   - Calcul: reservationsThisMonth, paymentsThisMonth, averagePaymentPerUser, occupancyRate
+   - Statistiques en temps réel basées sur la base de données
+
+3. **`src/app/api/admin/payments-list/route.ts`** - API pour la liste des paiements
+   - Liste complète des paiements avec détails utilisateur et lot
+   - Formatage des dates pour le frontend
+   - Inclusion des données utilisateur et lot pour affichage
+
+4. **`src/app/api/admin/users/route.ts`** - Mise à jour de l'API utilisateurs
+   - Ajout des statistiques par utilisateur (reservationCount, totalPaid)
+   - Inclusion des relations reservations et payments
+   - Calcul automatique des montants payés validés
+
+5. **`src/app/page.tsx`** - Intégration du AdminDashboard
+   - Ajout de l'option "Tableau de Bord" dans le menu admin
+   - Condition d'affichage quand adminView === 'dashboard'
+   - Bouton de retour vers le menu admin
+
+**Bibliothèques installées**:
+- recharts@3.8.1 - Bibliothèque de graphiques pour React
+
+**Caractéristiques techniques**:
+- TypeScript avec types définis (AdminStats, User, Lot, RecentPayment)
+- Gestion d'état avec React hooks (useState, useEffect)
+- Chargement asynchrone des données avec affichage de spinner
+- Graphiques interactifs avec Recharts (ResponsiveContainer, Tooltip, Legend)
+- Support du thème light/dark mode
+- Responsive design (mobile-first)
+- Utilisation des composants shadcn/ui
+- Icons Lucide React cohérents avec le reste de l'application
+- Calculs automatiques des pourcentages et moyennes
+
+**Visualisations implémentées**:
+1. **Distribution des Lots**: Pie chart montrant la répartition par statut
+2. **Répartition par Îlots**: Stacked bar chart pour voir la disponibilité par bloc
+3. **Types d'Utilisateurs**: Pie chart comparant résidents et non-résidents
+4. **Revenus Récents**: Line chart montrant l'évolution des paiements
+
+**Navigation**:
+- Accès via: Menu latéral → Administration → Tableau de Bord
+- Bouton de retour vers le menu admin
+- Navigation fluide entre les différentes sections admin

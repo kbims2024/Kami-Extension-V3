@@ -25,6 +25,7 @@ import { ModernSideMenu } from '@/components/kami/ModernSideMenu';
 import { AdminLogo } from '@/components/kami/AdminLogo';
 import { SettingsPage } from '@/components/kami/SettingsPage';
 import { UserDashboard } from '@/components/kami/UserDashboard';
+import { AdminDashboard } from '@/components/kami/AdminDashboard';
 
 export default function KamiExtensionPage() {
   const [mounted, setMounted] = useState(false);
@@ -1206,10 +1207,10 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
 
       {!adminView && (
         <div className="grid grid-cols-2 gap-4">
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('stats')}>
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('dashboard')}>
             <CardContent className="p-0 text-center">
               <ChartLine className="text-[#10B981] h-8 w-8 mx-auto mb-2" />
-              <p className="text-sm font-bold">Statistiques</p>
+              <p className="text-sm font-bold">Tableau de Bord</p>
             </CardContent>
           </Card>
           <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('payments')}>
@@ -1248,6 +1249,16 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
               <p className="text-sm font-bold">Gérer Fichiers (Plan du village)</p>
             </CardContent>
           </Card>
+        </div>
+      )}
+
+      {adminView === 'dashboard' && (
+        <div className="mt-6">
+          <Button variant="ghost" onClick={() => setAdminView(null)} className="mb-4 text-muted-foreground">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Retour
+          </Button>
+          <AdminDashboard onBack={() => setAdminView(null)} />
         </div>
       )}
 

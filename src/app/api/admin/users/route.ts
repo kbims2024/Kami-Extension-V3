@@ -8,9 +8,33 @@ export async function GET() {
       orderBy: {
         createdAt: 'desc',
       },
+      include: {
+        reservations: true,
+        payments: true
+      }
     });
 
-    return NextResponse.json(users);
+    // Add statistics for each user
+    const usersWithStats = users.map(user => {
+      const reservationCount = user.reservations.length;
+      const totalPaid = user.payments
+        .filter(p => p.status === 'VALIDATED')
+        .reduce((sum, p) => sum + p.amount, 0);
+
+      return {
+        id: user.id,
+        name: user.name,
+        phone: user.phone,
+        isResident: user.isResident,
+        referralCode: user.referralCode,
+        status: user.status,
+        reservationCount,
+        totalPaid,
+        createdAt: user.createdAt.toISOString()
+      };
+    });
+
+    return NextResponse.json(usersWithStats);
   } catch (error) {
     console.error('Erreur lors de la récupération des utilisateurs:', error);
     return NextResponse.json({ error: 'Erreur lors de la récupération des utilisateurs' }, { status: 500 });
