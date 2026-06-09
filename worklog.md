@@ -197,3 +197,62 @@ All text and UI elements now properly adapt to both light and dark modes:
 - ✅ Borders and dividers are visible
 - ✅ Interactive elements maintain proper contrast
 - ✅ Brand colors are preserved for consistency
+
+---
+
+## Session 2025-06-01 - User Dashboard Implementation
+
+### User Dashboard Feature - Complete Configuration
+
+**Objectif**: Créer un tableau de bord utilisateur complet pour suivre toutes les statistiques d'opérations (lots réservés, avances, reste à payer, lots achetés, etc.)
+
+**Fichiers créés/modifiés**:
+
+1. **`src/components/kami/UserDashboard.tsx`** - Composant principal du tableau de bord utilisateur
+   - Interface responsive avec cartes de statistiques
+   - 4 cartes principales: Lots Réservés, Lots Achetés, Total Avancé, Reste à Payer
+   - Section Progression Globale avec barre de progression animée
+   - Section Résumé des Opérations (en cours, finalisés, total paiements)
+   - Onglets pour basculer entre "Mes Réservations" et "Mes Paiements"
+   - Liste détaillée des réservations avec progression de paiement par lot
+   - Historique des paiements avec statuts (Validé/En attente)
+   - Navigation cohérente avec barre de navigation en bas
+   - Header avec menu burger pour accès rapide
+
+2. **`src/app/api/user/stats/route.ts`** - API pour les statistiques utilisateur
+   - Récupère les statistiques globales de l'utilisateur
+   - Calcul: totalReserved, totalPurchased, totalPaid, totalRemaining, totalInvestment
+   - Calcul: averageProgress, totalAdvances, paymentProgress
+   - Support du paramètre userId pour identification
+
+3. **`src/app/api/user/reservations/route.ts`** - API pour les réservations utilisateur
+   - Liste complète des réservations de l'utilisateur
+   - Inclusion des détails du lot (name, block, surface)
+   - Formatage des dates pour le frontend
+   - Statuts: RESERVED, PAID
+
+4. **`src/app/api/user/payments/route.ts`** - API pour les paiements utilisateur
+   - Historique complet des paiements de l'utilisateur
+   - Détails du lot associé à chaque paiement
+   - Statuts: PENDING, VALIDATED
+   - Types: FULL, PARTIAL
+
+**Intégration**:
+- Déjà intégré dans `src/app/page.tsx` (écran 'dashboard')
+- Navigation existante dans `src/components/kami/ModernSideMenu.tsx` (Menu: "Mes réservations")
+- Compatible avec le système d'authentification existant
+
+**Caractéristiques techniques**:
+- TypeScript avec types définis (UserStats, Reservation, Payment)
+- Gestion d'état avec React hooks (useState, useEffect)
+- Chargement asynchrone des données avec affichage de spinner
+- Support du thème light/dark mode
+- Responsive design (mobile-first)
+- Utilisation des composants shadcn/ui (Card, Tabs, Badge, ScrollArea, Button)
+- Icons Lucide React cohérents avec le reste de l'application
+
+**Schéma Prisma existant**:
+- User: id, name, phone, isResident, referralCode, referredByCode, status
+- Lot: id, name, block, surface, priceRes, priceNon, status, description, positionX, positionY
+- Reservation: id, userId, lotId, paidAmount, totalPrice, isResident, status
+- Payment: id, userId, lotId, amount, status, type
