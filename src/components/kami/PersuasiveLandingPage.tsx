@@ -28,7 +28,7 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
   const [isServicesModalOpen, setIsServicesModalOpen] = useState(false);
 
   const handleViewPlan = () => {
-    setCurrentScreen('plan');
+    window.location.href = '/view-plan';
   };
 
   // Animation des nombres

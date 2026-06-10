@@ -12,12 +12,12 @@ interface PlanPageProps {
 export function PlanPage({ setCurrentScreen, setIsMenuOpen }: PlanPageProps) {
   const [opened, setOpened] = useState(false);
 
-  // Ouvrir le PDF dans le navigateur dès l'arrivée sur la page
+  // Ouvrir le PDF dans la page actuelle
   useEffect(() => {
     if (!opened) {
       setOpened(true);
-      // Ouvrir le PDF directement dans le navigateur
-      window.open('/view-plan', '_blank');
+      // Ouvrir le PDF dans la page actuelle
+      window.location.href = '/view-plan';
     }
   }, [opened]);
 
