@@ -48,6 +48,14 @@ interface AppState {
   setMyReservations: (reservations: Reservation[]) => void;
   addReservation: (reservation: Reservation) => void;
 
+  // Notification state
+  congratulationNotification: {
+    show: boolean;
+    lotName: string;
+    lotBlock: string;
+  } | null;
+  setCongratulationNotification: (notification: { show: boolean; lotName: string; lotBlock: string } | null) => void;
+
   // UI state
   isMenuOpen: boolean;
   setIsMenuOpen: (open: boolean) => void;
@@ -63,7 +71,7 @@ export const useAppStore = create<AppState>()(
       // User state
       currentUser: null,
       setCurrentUser: (user) => set({ currentUser: user }),
-      logout: () => set({ currentUser: null, myReservations: [] }),
+      logout: () => set({ currentUser: null, myReservations: [], congratulationNotification: null }),
 
       // Navigation state
       currentScreen: 'home',
@@ -81,6 +89,11 @@ export const useAppStore = create<AppState>()(
           myReservations: [...state.myReservations, reservation],
         })),
 
+      // Notification state
+      congratulationNotification: null,
+      setCongratulationNotification: (notification) =>
+        set({ congratulationNotification: notification }),
+
       // UI state
       isMenuOpen: false,
       setIsMenuOpen: (open) => set({ isMenuOpen: open }),
@@ -95,6 +108,7 @@ export const useAppStore = create<AppState>()(
       partialize: (state) => ({
         currentUser: state.currentUser,
         myReservations: state.myReservations,
+        congratulationNotification: state.congratulationNotification,
       }),
     }
   )

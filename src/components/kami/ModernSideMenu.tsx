@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { Home, Map, FileText, Wallet, User, Shield, LogOut, LogIn, Building2, X, Settings } from 'lucide-react';
+import { Home, Map, FileText, Wallet, User, Shield, LogOut, LogIn, Building2, X, Settings, MessageSquare } from 'lucide-react';
 
 interface ModernSideMenuProps {
   isOpen: boolean;
@@ -16,7 +16,8 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
     { icon: Home, label: 'Accueil', screen: 'home' },
     { icon: Map, label: 'Plan des lots', screen: 'map' },
     { icon: Wallet, label: 'Mes réservations', screen: 'dashboard' },
-    { icon: User, label: 'Mon profil', screen: 'profile' },
+    { icon: MessageSquare, label: 'Discussions', screen: 'chat', requireAuth: true },
+    { icon: User, label: 'Mon profil', screen: 'profile', requireAuth: true },
     { icon: FileText, label: 'Règlement intérieur', screen: 'rules' },
   ];
 
@@ -78,6 +79,9 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
           <nav className="space-y-1 px-3">
             {menuItems.map((item) => {
               const Icon = item.icon;
+              if ('requireAuth' in item && item.requireAuth && !currentUser) {
+                return null;
+              }
               return (
                 <Button
                   key={item.screen}

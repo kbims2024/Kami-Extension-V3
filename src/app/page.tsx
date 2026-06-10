@@ -26,6 +26,9 @@ import { AdminLogo } from '@/components/kami/AdminLogo';
 import { SettingsPage } from '@/components/kami/SettingsPage';
 import { UserDashboard } from '@/components/kami/UserDashboard';
 import { AdminDashboard } from '@/components/kami/AdminDashboard';
+import { CongratulationNotification } from '@/components/kami/CongratulationNotification';
+import { ChatPage } from '@/components/kami/ChatPage';
+import { AdminChatPage } from '@/components/kami/AdminChatPage';
 
 export default function KamiExtensionPage() {
   const [mounted, setMounted] = useState(false);
@@ -48,6 +51,8 @@ export default function KamiExtensionPage() {
     setSelectedLot,
     isReservationModalOpen,
     setIsReservationModalOpen,
+    congratulationNotification,
+    setCongratulationNotification,
   } = useAppStore();
 
   // Form states
@@ -63,6 +68,7 @@ export default function KamiExtensionPage() {
     loadLots();
     if (currentUser?.id) {
       loadMyReservations();
+      checkCongratulationNotifications();
     }
   }, [currentUser]);
 
@@ -225,6 +231,26 @@ export default function KamiExtensionPage() {
     }
   };
 
+  const checkCongratulationNotifications = async () => {
+    if (!currentUser?.id) return;
+
+    try {
+      const response = await fetch(`/api/user/notifications?userId=${currentUser?.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.shouldShow) {
+          setCongratulationNotification({
+            show: true,
+            lotName: data.lotName,
+            lotBlock: data.lotBlock,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error checking notifications:', error);
+    }
+  };
+
   if (!mounted) return null;
 
   return (
@@ -359,6 +385,20 @@ export default function KamiExtensionPage() {
         <SettingsPage onBack={() => setCurrentScreen('home')} />
       )}
 
+      {currentScreen === 'chat' && (
+        <ChatPage
+          setCurrentScreen={setCurrentScreen}
+          setIsMenuOpen={setIsMenuOpen}
+        />
+      )}
+
+      {currentScreen === 'admin-chat' && (
+        <AdminChatPage
+          setCurrentScreen={setCurrentScreen}
+          setIsMenuOpen={setIsMenuOpen}
+        />
+      )}
+
       {/* Reservation Modal */}
       <Dialog open={isReservationModalOpen} onOpenChange={setIsReservationModalOpen}>
         <DialogContent className="max-w-lg rounded-t-3xl">
@@ -437,10 +477,14 @@ export default function KamiExtensionPage() {
         </DialogContent>
       </Dialog>
 
+
       {/* Footer */}
       <footer className="mt-auto bg-card border-t border-border py-4 px-6 text-center text-sm text-muted-foreground">
         <p>© 2024 KAMI-EXTENSION - Tous droits réservés</p>
       </footer>
+
+      {/* Congratulation Notification */}
+      <CongratulationNotification />
     </div>
   );
 }

@@ -23,10 +23,13 @@ model User {
   status              String      @default("ACTIVE") // ACTIVE, BLOCKED
   resetToken          String?     @unique
   resetTokenExpires   DateTime?
+  congratulatedLots   String      @default("") // JSON array of lot IDs the user has been congratulated for
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
   reservations        Reservation[]
   payments            Payment[]
+  sentMessages        Message[]   @relation("SentMessages")
+  receivedMessages    Message[]   @relation("ReceivedMessages")
 }
 
 model Lot {
@@ -92,4 +95,19 @@ model Logo {
   backgroundColor String      @default("#ffffff")
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+}
+
+model Message {
+  id          String      @id @default(cuid())
+  senderId    String
+  sender      User        @relation("SentMessages", fields: [senderId], references: [id])
+  receiverId  String
+  receiver    User        @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  content     String
+  read        Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([senderId])
+  @@index([receiverId])
 }

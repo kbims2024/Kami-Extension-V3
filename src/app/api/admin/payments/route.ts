@@ -67,6 +67,23 @@ export async function PUT(request: NextRequest) {
         where: { id: reservation.lotId },
         data: { status: 'PAID' },
       });
+
+      // Check if user has already been congratulated for this lot
+      const user = await db.user.findUnique({
+        where: { id: reservation.userId },
+      });
+
+      if (user) {
+        const congratulatedLots = user.congratulatedLots ? JSON.parse(user.congratulatedLots) : [];
+        if (!congratulatedLots.includes(reservation.lotId)) {
+          // User has not been congratulated yet, add lot to list
+          congratulatedLots.push(reservation.lotId);
+          await db.user.update({
+            where: { id: reservation.userId },
+            data: { congratulatedLots: JSON.stringify(congratulatedLots) },
+          });
+        }
+      }
     } else if (newStatus === 'RESERVED' && reservation.lot.status === 'AVAILABLE') {
       await db.lot.update({
         where: { id: reservation.lotId },
