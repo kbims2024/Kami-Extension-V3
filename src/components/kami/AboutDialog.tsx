@@ -153,7 +153,7 @@ export function AboutDialog({ open, onOpenChange, onNavigate, onReserveClick }: 
                     <Users className="h-5 w-5 text-emerald-600" />
                     <span className="font-bold text-emerald-700 dark:text-emerald-400">Résident KAMI</span>
                   </div>
-                  <Badge className="bg-emerald-100 text-emerald-700">-33%</Badge>
+                  <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">-33%</Badge>
                 </div>
                 <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">100 000 FCFA</p>
                 <p className="text-xs text-muted-foreground mt-1">Prix spécial pour les habitants du village</p>
@@ -165,7 +165,7 @@ export function AboutDialog({ open, onOpenChange, onNavigate, onReserveClick }: 
                     <Building2 className="h-5 w-5 text-orange-600" />
                     <span className="font-bold text-orange-700 dark:text-orange-400">Non-Résident</span>
                   </div>
-                  <Badge className="bg-orange-100 text-orange-700">Standard</Badge>
+                  <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">Standard</Badge>
                 </div>
                 <p className="text-2xl font-bold text-orange-700 dark:text-orange-400">150 000 FCFA</p>
                 <p className="text-xs text-muted-foreground mt-1">Tarif attractif pour tous</p>

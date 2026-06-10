@@ -622,7 +622,7 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
                         <div className="grid grid-cols-2 gap-2">
                           {service.features.map((feature, featureIndex) => (
                             <div key={featureIndex} className="flex items-center gap-2">
-                              <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                              <CheckCircle className="h-4 w-4 text-emerald-500 dark:text-emerald-400 flex-shrink-0" />
                               <span className="text-sm text-foreground">{feature}</span>
                             </div>
                           ))}

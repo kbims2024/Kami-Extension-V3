@@ -56,7 +56,7 @@ export function EnhancedHomeScreen({ lots, setCurrentScreen, setIsMenuOpen }: En
             title="Taux de Vente"
             value={`${sellRate}%`}
             icon={TrendingUp}
-            iconColor="text-blue-500"
+            iconColor="text-blue-500 dark:text-blue-400"
             bgColor="bg-card"
           />
         </div>
@@ -66,27 +66,27 @@ export function EnhancedHomeScreen({ lots, setCurrentScreen, setIsMenuOpen }: En
       <div className="px-6 pb-6">
         <h3 className="text-lg font-bold text-foreground mb-4">Nos Atouts</h3>
         <div className="grid grid-cols-2 gap-4">
-          <Card className="bg-emerald-50 border-emerald-100">
+          <Card className="bg-emerald-50 border-emerald-100 dark:bg-emerald-900/20 dark:border-emerald-800">
             <CardContent className="p-4 text-center">
-              <Wrench className="text-[#10B981] h-8 w-8 mx-auto mb-2" />
+              <Wrench className="text-[#10B981] dark:text-emerald-400 h-8 w-8 mx-auto mb-2" />
               <h4 className="font-bold text-sm text-foreground">Routes Pavées</h4>
             </CardContent>
           </Card>
-          <Card className="bg-blue-50 border-blue-100">
+          <Card className="bg-blue-50 border-blue-100 dark:bg-blue-900/20 dark:border-blue-800">
             <CardContent className="p-4 text-center">
-              <Zap className="text-blue-500 h-8 w-8 mx-auto mb-2" />
+              <Zap className="text-blue-500 dark:text-blue-400 h-8 w-8 mx-auto mb-2" />
               <h4 className="font-bold text-sm text-foreground">Électricité</h4>
             </CardContent>
           </Card>
-          <Card className="bg-cyan-50 border-cyan-100">
+          <Card className="bg-cyan-50 border-cyan-100 dark:bg-cyan-900/20 dark:border-cyan-800">
             <CardContent className="p-4 text-center">
-              <Droplet className="text-cyan-500 h-8 w-8 mx-auto mb-2" />
+              <Droplet className="text-cyan-500 dark:text-cyan-400 h-8 w-8 mx-auto mb-2" />
               <h4 className="font-bold text-sm text-foreground">Eau Courante</h4>
             </CardContent>
           </Card>
-          <Card className="bg-purple-50 border-purple-100">
+          <Card className="bg-purple-50 border-purple-100 dark:bg-purple-900/20 dark:border-purple-800">
             <CardContent className="p-4 text-center">
-              <ShieldCheck className="text-purple-500 h-8 w-8 mx-auto mb-2" />
+              <ShieldCheck className="text-purple-500 dark:text-purple-400 h-8 w-8 mx-auto mb-2" />
               <h4 className="font-bold text-sm text-foreground">Sécurité</h4>
             </CardContent>
           </Card>

@@ -127,7 +127,7 @@ const StatCard: React.FC<StatCardProps> = ({
         <p className="text-xs text-muted-foreground mt-1">{description}</p>
       )}
       {(change || trend !== undefined) && (
-        <div className={`flex items-center text-xs mt-2 ${changePositive ? 'text-emerald-500' : 'text-red-500'}`}>
+        <div className={`flex items-center text-xs mt-2 ${changePositive ? 'text-emerald-500 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
           {changePositive ? <ArrowUpRight className="h-3 w-3 mr-1" /> : <ArrowDownRight className="h-3 w-3 mr-1" />}
           <span>{change || `${trend?.toFixed(1)}%`}</span>
         </div>
@@ -267,20 +267,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
           <StatCard
             title="Utilisateurs"
             value={stats?.totalUsers || 0}
-            icon={<Users className="h-5 w-5 text-blue-500" />}
+            icon={<Users className="h-5 w-5 text-blue-500 dark:text-blue-400" />}
             description="Utilisateurs inscrits"
             change={stats?.activeUsers ? `${stats.activeUsers} actifs` : undefined}
           />
           <StatCard
             title="Revenus Totaux"
             value={`${(stats?.totalRevenue || 0).toLocaleString()} FCFA`}
-            icon={<DollarSign className="h-5 w-5 text-emerald-500" />}
+            icon={<DollarSign className="h-5 w-5 text-emerald-500 dark:text-emerald-400" />}
             description="Cumul des paiements"
           />
           <StatCard
             title="Paiements en attente"
             value={stats?.pendingPayments || 0}
-            icon={<AlertCircle className="h-5 w-5 text-orange-500" />}
+            icon={<AlertCircle className="h-5 w-5 text-orange-500 dark:text-orange-400" />}
             description="À valider"
             changePositive={false}
           />
@@ -388,13 +388,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
               <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t">
                 <div className="text-center">
                   <p className="text-sm text-muted-foreground">Résidents</p>
-                  <p className="text-2xl font-bold text-[#8B5E3C]">
+                  <p className="text-2xl font-bold text-[#8B5E3C] dark:text-[#A5785C]">
                     {users.filter(u => u.isResident).length}
                   </p>
                 </div>
                 <div className="text-center">
                   <p className="text-sm text-muted-foreground">Non-Résidents</p>
-                  <p className="text-2xl font-bold text-blue-500">
+                  <p className="text-2xl font-bold text-blue-500 dark:text-blue-400">
                     {users.filter(u => !u.isResident).length}
                   </p>
                 </div>
@@ -442,19 +442,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
           <StatCard
             title="Réservations ce mois"
             value={stats?.reservationsThisMonth || 0}
-            icon={<ShoppingCart className="h-5 w-5 text-purple-500" />}
+            icon={<ShoppingCart className="h-5 w-5 text-purple-500 dark:text-purple-400" />}
             description="Nouvelles réservations"
           />
           <StatCard
             title="Paiements ce mois"
             value={stats?.paymentsThisMonth || 0}
-            icon={<Wallet className="h-5 w-5 text-cyan-500" />}
+            icon={<Wallet className="h-5 w-5 text-cyan-500 dark:text-cyan-400" />}
             description="Transactions validées"
           />
           <StatCard
             title="Moyenne par utilisateur"
             value={formatCurrency(stats?.averagePaymentPerUser || 0)}
-            icon={<TrendingUp className="h-5 w-5 text-rose-500" />}
+            icon={<TrendingUp className="h-5 w-5 text-rose-500 dark:text-rose-400" />}
             description="Investissement moyen"
           />
         </div>
@@ -496,13 +496,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
                                 <h4 className="font-semibold text-foreground">{user.name}</h4>
                                 <Badge
                                   variant={user.status === 'ACTIVE' ? 'default' : 'secondary'}
-                                  className={user.status === 'ACTIVE' ? 'bg-emerald-500 hover:bg-emerald-600' : ''}
+                                  className={user.status === 'ACTIVE' ? 'bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500' : ''}
                                 >
                                   {user.status === 'ACTIVE' ? 'Actif' : 'Bloqué'}
                                 </Badge>
                                 <Badge
                                   variant="secondary"
-                                  className={user.isResident ? 'bg-[#8B5E3C]/10 text-[#8B5E3C]' : 'bg-blue-500/10 text-blue-500'}
+                                  className={user.isResident ? 'bg-[#8B5E3C]/10 text-[#8B5E3C] dark:text-[#A5785C]' : 'bg-blue-500/10 text-blue-500 dark:text-blue-400'}
                                 >
                                   {user.isResident ? 'Résident' : 'Non-Résident'}
                                 </Badge>
@@ -520,7 +520,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
                             </div>
                             <div className="flex justify-between text-sm">
                               <span className="text-muted-foreground">Total Payé</span>
-                              <span className="font-medium text-emerald-500">
+                              <span className="font-medium text-emerald-500 dark:text-emerald-400">
                                 {formatCurrency(user.totalPaid)}
                               </span>
                             </div>
@@ -549,11 +549,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
                       const getStatusBadge = () => {
                         switch (lot.status) {
                           case 'AVAILABLE':
-                            return <Badge className="bg-emerald-100 text-emerald-700">DISPONIBLE</Badge>
+                            return <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">DISPONIBLE</Badge>
                           case 'RESERVED':
-                            return <Badge className="bg-orange-100 text-orange-700">RÉSERVÉ</Badge>
+                            return <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">RÉSERVÉ</Badge>
                           case 'PAID':
-                            return <Badge className="bg-red-100 text-red-700">SOLDÉ</Badge>
+                            return <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">SOLDÉ</Badge>
                         }
                       }
                       
@@ -575,13 +575,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
                             <div className="space-y-2">
                               <div className="flex justify-between text-sm">
                                 <span className="text-muted-foreground">Prix Résident</span>
-                                <span className="font-medium text-[#8B5E3C]">
+                                <span className="font-medium text-[#8B5E3C] dark:text-[#A5785C]">
                                   {formatCurrency(lot.priceRes)}
                                 </span>
                               </div>
                               <div className="flex justify-between text-sm">
                                 <span className="text-muted-foreground">Prix Non-Résident</span>
-                                <span className="font-medium text-blue-500">
+                                <span className="font-medium text-blue-500 dark:text-blue-400">
                                   {formatCurrency(lot.priceNon)}
                                 </span>
                               </div>
@@ -624,8 +624,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
                                     variant={payment.status === 'VALIDATED' ? 'default' : 'secondary'}
                                     className={
                                       payment.status === 'VALIDATED'
-                                        ? 'bg-emerald-500 hover:bg-emerald-600'
-                                        : 'bg-orange-500/10 text-orange-500'
+                                        ? 'bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500'
+                                        : 'bg-orange-500/10 text-orange-500 dark:text-orange-400'
                                     }
                                   >
                                     {payment.status === 'VALIDATED' ? 'Validé' : 'En attente'}

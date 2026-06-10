@@ -92,7 +92,7 @@ const StatCard: React.FC<StatCardProps> = ({
         <p className="text-xs text-muted-foreground mt-1">{description}</p>
       )}
       {change && (
-        <div className={`flex items-center text-xs mt-2 ${changePositive ? 'text-emerald-500' : 'text-red-500'}`}>
+        <div className={`flex items-center text-xs mt-2 ${changePositive ? 'text-emerald-500 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
           {changePositive ? <ArrowUpRight className="h-3 w-3 mr-1" /> : <ArrowDownRight className="h-3 w-3 mr-1" />}
           <span>{change}</span>
         </div>
@@ -218,19 +218,19 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, setCu
         <StatCard
           title="Lots Achétés"
           value={stats?.totalPurchased || 0}
-          icon={<CheckCircle2 className="h-5 w-5 text-emerald-500" />}
+          icon={<CheckCircle2 className="h-5 w-5 text-emerald-500 dark:text-emerald-400" />}
           description="Payés intégralement"
         />
         <StatCard
           title="Total Avancé"
           value={`${stats?.totalAdvances?.toLocaleString() || 0} FCFA`}
-          icon={<Wallet className="h-5 w-5 text-blue-500" />}
+          icon={<Wallet className="h-5 w-5 text-blue-500 dark:text-blue-400" />}
           description="Montant total payé"
         />
         <StatCard
           title="Reste à Payer"
           value={`${stats?.totalRemaining?.toLocaleString() || 0} FCFA`}
-          icon={<AlertCircle className="h-5 w-5 text-orange-500" />}
+          icon={<AlertCircle className="h-5 w-5 text-orange-500 dark:text-orange-400" />}
           description="Montant restant dû"
         />
       </div>
@@ -262,7 +262,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, setCu
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">Progression Moyenne</p>
-                <p className="text-2xl font-bold text-emerald-500">
+                <p className="text-2xl font-bold text-emerald-500 dark:text-emerald-400">
                   {stats?.paymentProgress?.toFixed(1) || 0}%
                 </p>
               </div>
@@ -284,7 +284,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, setCu
             <div className="space-y-4">
               <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                 <div className="flex items-center gap-3">
-                  <Clock className="h-4 w-4 text-orange-500" />
+                  <Clock className="h-4 w-4 text-orange-500 dark:text-orange-400" />
                   <span className="text-sm text-foreground">En cours de paiement</span>
                 </div>
                 <Badge variant="secondary">
@@ -293,19 +293,19 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, setCu
               </div>
               <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                 <div className="flex items-center gap-3">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500 dark:text-emerald-400" />
                   <span className="text-sm text-foreground">Finalisés</span>
                 </div>
-                <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-500">
+                <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-500 dark:text-emerald-400">
                   {stats?.totalPurchased || 0}
                 </Badge>
               </div>
               <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                 <div className="flex items-center gap-3">
-                  <DollarSign className="h-4 w-4 text-blue-500" />
+                  <DollarSign className="h-4 w-4 text-blue-500 dark:text-blue-400" />
                   <span className="text-sm text-foreground">Total Paiements</span>
                 </div>
-                <Badge variant="secondary" className="bg-blue-500/10 text-blue-500">
+                <Badge variant="secondary" className="bg-blue-500/10 text-blue-500 dark:text-blue-400">
                   {payments.length}
                 </Badge>
               </div>
@@ -380,7 +380,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, setCu
                               </div>
                               <div className="flex justify-between text-sm">
                                 <span className="text-muted-foreground">Payé</span>
-                                <span className="font-medium text-emerald-500">
+                                <span className="font-medium text-emerald-500 dark:text-emerald-400">
                                   {formatCurrency(reservation.paidAmount)}
                                 </span>
                               </div>
@@ -431,8 +431,8 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, setCu
                                   variant={payment.status === 'VALIDATED' ? 'default' : 'secondary'}
                                   className={
                                     payment.status === 'VALIDATED'
-                                      ? 'bg-emerald-500 hover:bg-emerald-600'
-                                      : 'bg-orange-500/10 text-orange-500'
+                                      ? 'bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500'
+                                      : 'bg-orange-500/10 text-orange-500 dark:text-orange-400'
                                   }
                                 >
                                   {payment.status === 'VALIDATED' ? 'Validé' : 'En attente'}

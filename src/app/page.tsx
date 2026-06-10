@@ -413,7 +413,7 @@ export default function KamiExtensionPage() {
                 />
               </div>
 
-              <Card className="bg-orange-50 border-orange-200">
+              <Card className="bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800">
                 <CardContent className="p-3">
                   <label className="flex items-center space-x-2 cursor-pointer">
                     <Checkbox
@@ -502,7 +502,7 @@ function OldLoginScreen({
           <Label className="block text-sm font-bold text-foreground mb-2">Votre statut de résidence :</Label>
           <RadioGroup value={loginIsResident.toString()} onValueChange={(v) => setLoginIsResident(v === 'true')}>
             <div
-              className={`flex items-center p-3 border-2 rounded-xl cursor-pointer transition-all ${loginIsResident ? 'border-[#10B981] bg-emerald-50' : 'border-border'}`}
+              className={`flex items-center p-3 border-2 rounded-xl cursor-pointer transition-all ${loginIsResident ? 'border-[#10B981] bg-emerald-50 dark:bg-emerald-900/20' : 'border-border'}`}
             >
               <RadioGroupItem value="true" id="resident-yes" className="mr-3" />
               <Label htmlFor="resident-yes" className="cursor-pointer flex-1">
@@ -513,7 +513,7 @@ function OldLoginScreen({
               </Label>
             </div>
             <div
-              className={`flex items-center p-3 border-2 rounded-xl cursor-pointer transition-all mt-2 ${!loginIsResident ? 'border-[#10B981] bg-emerald-50' : 'border-border'}`}
+              className={`flex items-center p-3 border-2 rounded-xl cursor-pointer transition-all mt-2 ${!loginIsResident ? 'border-[#10B981] bg-emerald-50 dark:bg-emerald-900/20' : 'border-border'}`}
             >
               <RadioGroupItem value="false" id="resident-no" className="mr-3" />
               <Label htmlFor="resident-no" className="cursor-pointer flex-1">
@@ -566,27 +566,27 @@ function HomeScreen({ setCurrentScreen, setIsMenuOpen }: any) {
       </div>
 
       <div className="p-6 grid grid-cols-2 gap-4">
-        <Card className="bg-emerald-50 border-emerald-100">
+        <Card className="bg-emerald-50 border-emerald-100 dark:bg-emerald-900/20 dark:border-emerald-800">
           <CardContent className="p-4 text-center">
-            <Wrench className="text-[#10B981] h-8 w-8 mx-auto mb-2" />
+            <Wrench className="text-[#10B981] dark:text-emerald-400 h-8 w-8 mx-auto mb-2" />
             <h4 className="font-bold text-sm text-foreground">Routes Pavées</h4>
           </CardContent>
         </Card>
-        <Card className="bg-blue-50 border-blue-100">
+        <Card className="bg-blue-50 border-blue-100 dark:bg-blue-900/20 dark:border-blue-800">
           <CardContent className="p-4 text-center">
-            <Zap className="text-blue-500 h-8 w-8 mx-auto mb-2" />
+            <Zap className="text-blue-500 dark:text-blue-400 h-8 w-8 mx-auto mb-2" />
             <h4 className="font-bold text-sm text-foreground">Électricité</h4>
           </CardContent>
         </Card>
-        <Card className="bg-cyan-50 border-cyan-100">
+        <Card className="bg-cyan-50 border-cyan-100 dark:bg-cyan-900/20 dark:border-cyan-800">
           <CardContent className="p-4 text-center">
-            <Droplet className="text-cyan-500 h-8 w-8 mx-auto mb-2" />
+            <Droplet className="text-cyan-500 dark:text-cyan-400 h-8 w-8 mx-auto mb-2" />
             <h4 className="font-bold text-sm text-foreground">Eau Courante</h4>
           </CardContent>
         </Card>
-        <Card className="bg-purple-50 border-purple-100">
+        <Card className="bg-purple-50 border-purple-100 dark:bg-purple-900/20 dark:border-purple-800">
           <CardContent className="p-4 text-center">
-            <ShieldCheck className="text-purple-500 h-8 w-8 mx-auto mb-2" />
+            <ShieldCheck className="text-purple-500 dark:text-purple-400 h-8 w-8 mx-auto mb-2" />
             <h4 className="font-bold text-sm text-foreground">Sécurité</h4>
           </CardContent>
         </Card>
@@ -619,11 +619,11 @@ function MapScreen({ lots, handleOpenReservation, setCurrentScreen, setIsMenuOpe
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'AVAILABLE':
-        return <Badge className="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-0.5 font-bold">DISPONIBLE</Badge>;
+        return <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] px-2 py-0.5 font-bold">DISPONIBLE</Badge>;
       case 'RESERVED':
-        return <Badge className="bg-orange-100 text-orange-700 text-[10px] px-2 py-0.5 font-bold">RÉSERVÉ</Badge>;
+        return <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 text-[10px] px-2 py-0.5 font-bold">RÉSERVÉ</Badge>;
       case 'PAID':
-        return <Badge className="bg-red-100 text-red-700 text-[10px] px-2 py-0.5 font-bold">SOLDÉ</Badge>;
+        return <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-[10px] px-2 py-0.5 font-bold">SOLDÉ</Badge>;
     }
   };
 
@@ -654,7 +654,7 @@ function MapScreen({ lots, handleOpenReservation, setCurrentScreen, setIsMenuOpe
           </Button>
           <h2 className="text-lg font-bold text-foreground ml-2">Plan du Village</h2>
         </div>
-        <Badge className="bg-red-100 text-red-600 text-xs font-bold">{availableCount} Libres</Badge>
+        <Badge className="bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 text-xs font-bold">{availableCount} Libres</Badge>
       </header>
 
       <div className="flex-1 overflow-y-auto p-4">
@@ -753,7 +753,7 @@ function DashboardScreen({ myReservations, setCurrentScreen, setIsMenuOpen }: an
                 <CardContent className="p-4">
                   <div className="flex justify-between items-center mb-3">
                     <h3 className="font-bold text-foreground">Lot {reservation.lotName}</h3>
-                    <Badge className={isPaid ? 'bg-emerald-100 text-emerald-600' : 'bg-orange-100 text-orange-600'}>
+                    <Badge className={isPaid ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'}>
                       {isPaid ? 'Soldé ✓' : 'Réservé'}
                     </Badge>
                   </div>
@@ -769,7 +769,7 @@ function DashboardScreen({ myReservations, setCurrentScreen, setIsMenuOpen }: an
                       {!isPaid && (
                         <div className="flex justify-between text-sm">
                           <span className="text-muted-foreground">Reste</span>
-                          <span className="font-bold text-red-500">{remaining.toLocaleString('fr-FR')} F</span>
+                          <span className="font-bold text-red-500 dark:text-red-400">{remaining.toLocaleString('fr-FR')} F</span>
                         </div>
                       )}
                       <div className="w-full bg-border rounded-full h-1.5 mt-2">
@@ -861,18 +861,18 @@ function ProfileScreen({ currentUser, copyReferralLink, setCurrentScreen, setIsM
         <Card
           className={
             currentUser?.isResident
-              ? 'bg-emerald-50 border-emerald-200'
-              : 'bg-orange-50 border-orange-200'
+              ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800'
+              : 'bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800'
           }
         >
           <CardContent className="p-4 flex justify-between items-center">
             <div>
               <p className="text-sm text-muted-foreground">Statut de résidence</p>
-              <p className={`font-bold ${currentUser?.isResident ? 'text-emerald-700' : 'text-orange-700'}`}>
+              <p className={`font-bold ${currentUser?.isResident ? 'text-emerald-700 dark:text-emerald-400' : 'text-orange-700 dark:text-orange-400'}`}>
                 {currentUser?.isResident ? 'Résident KAMI (100 000 F)' : 'Non-Résident (150 000 F)'}
               </p>
             </div>
-            <Home className={`h-5 w-5 ${currentUser?.isResident ? 'text-emerald-600' : 'text-orange-600'}`} />
+            <Home className={`h-5 w-5 ${currentUser?.isResident ? 'text-emerald-600 dark:text-emerald-400' : 'text-orange-600 dark:text-orange-400'}`} />
           </CardContent>
         </Card>
 
@@ -918,9 +918,9 @@ function AffiliationScreen({ currentUser, copyReferralLink, setCurrentScreen, se
 
       <h2 className="text-2xl font-bold text-center text-[#8B5E3C] mb-6">Parrainage</h2>
 
-      <Card className="bg-emerald-50 p-6 rounded-2xl text-center border border-emerald-100 mb-6">
+      <Card className="bg-emerald-50 p-6 rounded-2xl text-center border border-emerald-100 dark:bg-emerald-900/20 dark:border-emerald-800 mb-6">
         <p className="text-foreground text-sm">Vos gains totaux</p>
-        <h3 className="text-4xl font-extrabold text-[#10B981] mt-2">
+        <h3 className="text-4xl font-extrabold text-[#10B981] dark:text-emerald-400 mt-2">
           0 <span className="text-lg">FCFA</span>
         </h3>
       </Card>
@@ -1415,7 +1415,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
                           <h3 className="font-bold text-foreground">Lot {payment.lot?.name || payment.lotName}</h3>
                           <p className="text-xs text-muted-foreground">{payment.user?.name || 'Utilisateur inconnu'}</p>
                         </div>
-                        <Badge className={isPaid ? 'bg-emerald-100 text-emerald-600' : 'bg-orange-100 text-orange-600'}>
+                        <Badge className={isPaid ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'}>
                           {isPaid ? 'Soldé' : 'En cours'}
                         </Badge>
                       </div>
@@ -1432,7 +1432,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
                         {!isPaid && (
                           <div className="flex justify-between text-sm mb-2">
                             <span className="text-muted-foreground">Reste</span>
-                            <span className="font-bold text-red-500">{remaining.toLocaleString('fr-FR')} F</span>
+                            <span className="font-bold text-red-500 dark:text-red-400">{remaining.toLocaleString('fr-FR')} F</span>
                           </div>
                         )}
                         <div className="w-full bg-border rounded-full h-2">
