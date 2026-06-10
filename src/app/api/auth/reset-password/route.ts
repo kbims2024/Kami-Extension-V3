@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { verifyPassword, generateResetToken, hashPassword } from '@/lib/password'
+import { hashPassword } from '@/lib/password'
 
 export async function POST(request: NextRequest) {
   try {
-    const { phone, password } = await request.json()
+    const { phone, password, resetToken } = await request.json()
 
-    if (!phone || !password) {
+    if (!phone || !password || !resetToken) {
       return NextResponse.json(
-        { error: 'Numéro de téléphone et mot de passe requis' },
+        { error: 'Numéro de téléphone, mot de passe et code de réinitialisation requis' },
         { status: 400 }
       )
     }
@@ -32,12 +32,32 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Verify reset token
+    if (!user.resetToken || user.resetToken !== resetToken) {
+      return NextResponse.json(
+        { error: 'Code de réinitialisation invalide' },
+        { status: 400 }
+      )
+    }
+
+    // Check if token is expired
+    if (!user.resetTokenExpires || new Date() > user.resetTokenExpires) {
+      return NextResponse.json(
+        { error: 'Code de réinitialisation expiré' },
+        { status: 400 }
+      )
+    }
+
     // Hash and update password
     const hashedPassword = hashPassword(password)
 
     await db.user.update({
       where: { id: user.id },
-      data: { password: hashedPassword }
+      data: {
+        password: hashedPassword,
+        resetToken: null,
+        resetTokenExpires: null
+      }
     })
 
     return NextResponse.json({ success: true })

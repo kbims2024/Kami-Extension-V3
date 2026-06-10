@@ -11,20 +11,22 @@ datasource db {
 }
 
 model User {
-  id              String      @id @default(cuid())
-  name            String
-  phone           String      @unique
-  password        String?
-  isResident      Boolean     @default(true)
-  referralCode    String?     @unique
-  referredByCode  String?
-  referrer        User?       @relation("Referrals", fields: [referredByCode], references: [referralCode])
-  referrals       User[]      @relation("Referrals")
-  status          String      @default("ACTIVE") // ACTIVE, BLOCKED
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  reservations    Reservation[]
-  payments        Payment[]
+  id                  String      @id @default(cuid())
+  name                String
+  phone               String      @unique
+  password            String?
+  isResident          Boolean     @default(true)
+  referralCode        String?     @unique
+  referredByCode      String?
+  referrer            User?       @relation("Referrals", fields: [referredByCode], references: [referralCode])
+  referrals           User[]      @relation("Referrals")
+  status              String      @default("ACTIVE") // ACTIVE, BLOCKED
+  resetToken          String?     @unique
+  resetTokenExpires   DateTime?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  reservations        Reservation[]
+  payments            Payment[]
 }
 
 model Lot {
