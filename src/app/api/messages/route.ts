@@ -1,21 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
+// Helper to get or create admin ID
+async function getAdminId(): Promise<string> {
+  let admin = await db.user.findFirst({
+    where: { phone: 'ADMIN' },
+  });
+
+  if (!admin) {
+    admin = await db.user.create({
+      data: {
+        name: 'Administrateur',
+        phone: 'ADMIN',
+        isResident: true,
+      },
+    });
+  }
+
+  return admin.id;
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const { content, receiverId } = await request.json();
+    const { content, receiverId, senderId } = await request.json();
 
-    // Get sender from session or create a default admin
-    const senderId = 'ADMIN'; // In production, this would come from auth
-
-    if (!content || !receiverId) {
-      return NextResponse.json({ error: 'Contenu et destinataire requis' }, { status: 400 });
+    if (!content || !receiverId || !senderId) {
+      return NextResponse.json({ error: 'Contenu, destinataire et expéditeur requis' }, { status: 400 });
     }
 
-    // Check if receiver exists
-    let receiver = null;
+    // Verify sender exists
+    const sender = await db.user.findUnique({
+      where: { id: senderId },
+    });
+
+    if (!sender) {
+      return NextResponse.json({ error: 'Expéditeur non trouvé' }, { status: 404 });
+    }
+
+    // Verify receiver exists (unless it's ADMIN phone)
     if (receiverId !== 'ADMIN') {
-      receiver = await db.user.findUnique({
+      const receiver = await db.user.findUnique({
         where: { id: receiverId },
       });
 
@@ -24,12 +48,18 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // If receiver is ADMIN, get the admin user ID
+    let finalReceiverId = receiverId;
+    if (receiverId === 'ADMIN') {
+      finalReceiverId = await getAdminId();
+    }
+
     // Create message
     const message = await db.message.create({
       data: {
         content,
         senderId,
-        receiverId,
+        receiverId: finalReceiverId,
       },
       include: {
         sender: {
@@ -65,14 +95,30 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'ID utilisateur requis' }, { status: 400 });
     }
 
-    // Get all messages where user is either sender or receiver
-    const messages = await db.message.findMany({
-      where: {
+    // Get admin ID
+    const adminId = await getAdminId();
+
+    // For admin view, userId is the target user
+    // For user view, userId is the current user
+    let whereClause: any = {};
+
+    // Check if we're querying as admin or as user
+    if (userId === adminId) {
+      // Admin viewing all messages with any user - not supported in this simple version
+      // Admin should use userId parameter to see conversation with specific user
+      return NextResponse.json([]);
+    } else {
+      // User view or admin viewing specific conversation
+      whereClause = {
         OR: [
-          { senderId: userId },
-          { receiverId: userId },
+          { senderId: userId, receiverId: adminId },
+          { senderId: adminId, receiverId: userId },
         ],
-      },
+      };
+    }
+
+    const messages = await db.message.findMany({
+      where: whereClause,
       include: {
         sender: {
           select: {
@@ -86,6 +132,22 @@ export async function GET(request: NextRequest) {
         createdAt: 'asc',
       },
     });
+
+    // If the user is receiver of admin messages, mark them as read
+    const unreadMessages = messages.filter(
+      m => m.receiverId === userId && !m.read
+    );
+
+    if (unreadMessages.length > 0) {
+      await db.message.updateMany({
+        where: {
+          id: { in: unreadMessages.map(m => m.id) },
+        },
+        data: {
+          read: true,
+        },
+      });
+    }
 
     return NextResponse.json(messages);
   } catch (error) {

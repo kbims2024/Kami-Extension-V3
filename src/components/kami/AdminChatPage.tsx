@@ -33,6 +33,7 @@ interface AdminChatPageProps {
 }
 
 export function AdminChatPage({ setCurrentScreen, setIsMenuOpen }: AdminChatPageProps) {
+  const [adminId, setAdminId] = useState<string | null>(null);
   const [users, setUsers] = useState<SimpleUser[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<SimpleUser | null>(null);
@@ -43,8 +44,14 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen }: AdminChatPage
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    loadUsers();
+    loadAdminId();
   }, []);
+
+  useEffect(() => {
+    if (adminId) {
+      loadUsers();
+    }
+  }, [adminId]);
 
   useEffect(() => {
     if (selectedUserId) {
@@ -55,6 +62,18 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen }: AdminChatPage
       return () => clearInterval(intId);
     }
   }, [selectedUserId]);
+
+  const loadAdminId = async () => {
+    try {
+      const response = await fetch('/api/admin/ensure');
+      if (response.ok) {
+        const data = await response.json();
+        setAdminId(data.adminId);
+      }
+    } catch (error) {
+      console.error('Error loading admin ID:', error);
+    }
+  };
 
   const loadUsers = async () => {
     try {
@@ -81,7 +100,7 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen }: AdminChatPage
   };
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedUserId || isLoading) return;
+    if (!newMessage.trim() || !selectedUserId || isLoading || !adminId) return;
 
     setIsLoading(true);
     try {
@@ -91,6 +110,7 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen }: AdminChatPage
         body: JSON.stringify({
           content: newMessage,
           receiverId: selectedUserId,
+          senderId: adminId,
         }),
       });
 
@@ -252,7 +272,7 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen }: AdminChatPage
                 </div>
               ) : (
                 messages.map((message) => {
-                  const isMyMessage = message.senderId === 'ADMIN';
+                  const isMyMessage = message.senderId === adminId;
 
                   return (
                     <div
@@ -266,11 +286,6 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen }: AdminChatPage
                             : 'bg-muted text-foreground'
                         }`}
                       >
-                        {!isMyMessage && (
-                          <p className="text-xs font-semibold mb-1 opacity-70">
-                            {message.sender.name}
-                          </p>
-                        )}
                         <p className="text-sm leading-relaxed">{message.content}</p>
                         <div className="flex items-center justify-end gap-1 mt-1">
                           <p className="text-xs opacity-70">

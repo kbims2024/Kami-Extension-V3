@@ -23,7 +23,8 @@ import {
   MapPin,
   ShoppingCart,
   UserCheck,
-  UserPlus
+  UserPlus,
+  MessageSquare
 } from 'lucide-react'
 import { 
   BarChart, 
@@ -251,7 +252,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
             <p className="text-xs text-muted-foreground">Vue d'ensemble de la plateforme</p>
           </div>
         </div>
-        <Badge className="bg-[#8B5E3C]">Administration</Badge>
+        <div className="flex items-center gap-3">
+          <Badge className="bg-[#8B5E3C]">Administration</Badge>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCurrentScreen?.('admin-chat')}
+            className="hover:bg-blue-50 dark:hover:bg-blue-950"
+          >
+            <MessageSquare className="h-5 w-5 text-foreground" />
+          </Button>
+        </div>
       </header>
 
       <div className="flex-1 p-4 space-y-6">

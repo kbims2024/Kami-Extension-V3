@@ -71,6 +71,7 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen }: ChatPageProps) {
         body: JSON.stringify({
           content: newMessage,
           receiverId: 'ADMIN', // Special ID for admin
+          senderId: currentUser.id,
         }),
       });
 
