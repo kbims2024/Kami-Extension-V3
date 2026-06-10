@@ -42,7 +42,10 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
       if (response.ok) {
         const data = await response.json();
         if (data.file) {
-          setPlanFile({ path: data.file.path, mimeType: data.file.mimeType });
+          setPlanFile({
+            path: `/api/serve-file?type=PLAN`,
+            mimeType: data.file.mimeType
+          });
         }
       }
     } catch (error) {
@@ -531,10 +534,10 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
           </div>
 
           {/* Contenu du plan */}
-          <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-900 overflow-auto p-4 md:p-8">
+          <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-900 overflow-hidden">
             {planFile && (
               <div
-                className="transition-transform duration-200 ease-out"
+                className="w-full h-full transition-transform duration-200 ease-out"
                 style={{
                   transform: `scale(${zoomLevel / 100})`,
                   transformOrigin: 'center center'
@@ -542,17 +545,16 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
               >
                 {planFile.mimeType === 'application/pdf' ? (
                   <iframe
-                    src={planFile.path}
-                    className="max-w-[85vw] max-h-[80vh] md:max-w-[90vw] md:max-h-[85vh] border-0 rounded-lg shadow-2xl"
-                    style={{ width: '85vw', height: '80vh' }}
+                    src={`${planFile.path}#toolbar=0&navpanes=0&scrollbar=0`}
+                    className="w-full h-full border-0"
                     title="Plan du village"
+                    sandbox="allow-same-origin allow-scripts allow-forms"
                   />
                 ) : (
                   <img
                     src={planFile.path}
                     alt="Plan du village"
-                    className="max-w-[85vw] max-h-[80vh] md:max-w-[90vw] md:max-h-[85vh] object-contain rounded-lg shadow-2xl"
-                    style={{ maxWidth: '85vw', maxHeight: '80vh' }}
+                    className="w-full h-full object-contain"
                   />
                 )}
               </div>
