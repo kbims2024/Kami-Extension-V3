@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, ArrowRight, CheckCircle, Home, Users, Building2, Menu, ShieldCheck, Clock, Star } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, Home, Users, Shield, Eye, EyeOff, Menu } from 'lucide-react';
 
 interface TwoStepRegistrationProps {
-  onComplete: (userData: { name: string; phone: string; isResident: boolean }) => void;
+  onComplete: (userData: { name: string; phone: string; isResident: boolean; password: string }) => void;
   onBack: () => void;
   setIsMenuOpen?: (open: boolean) => void;
 }
@@ -16,23 +16,23 @@ interface TwoStepRegistrationProps {
 export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoStepRegistrationProps) {
   const [step, setStep] = useState(1);
   const [isResident, setIsResident] = useState<boolean | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
+    password: '',
+    confirmPassword: '',
   });
 
   const residentBenefits = [
     { icon: Home, text: "Prix : 100 000 FCFA" },
-    { icon: Clock, text: "Paiement en tranches" },
-    { icon: Star, text: "Support prioritaire" },
-    { icon: ShieldCheck, text: "Accès exclusif" },
+    { icon: Shield, text: "Sécurisé par mot de passe" },
   ];
 
   const nonResidentBenefits = [
-    { icon: Home, text: "Prix : 150 000 FCFA" },
-    { icon: Clock, text: "Paiement flexible" },
-    { icon: Star, text: "Support dédié" },
-    { icon: ShieldCheck, text: "Terrain viabilisé" },
+    { icon: Users, text: "Prix : 150 000 FCFA" },
+    { icon: Shield, text: "Sécurisé par mot de passe" },
   ];
 
   const handleStep1Submit = () => {
@@ -44,7 +44,7 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
   };
 
   const handleStep2Submit = () => {
-    if (!formData.name || !formData.phone) {
+    if (!formData.name || !formData.phone || !formData.password) {
       alert('Veuillez remplir tous les champs');
       return;
     }
@@ -54,10 +54,21 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
       return;
     }
 
+    if (formData.password.length < 6) {
+      alert('Le mot de passe doit contenir au moins 6 caractères');
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      alert('Les mots de passe ne correspondent pas');
+      return;
+    }
+
     onComplete({
       name: formData.name,
       phone: formData.phone,
-      isResident: isResident!
+      isResident: isResident!,
+      password: formData.password,
     });
   };
 
@@ -289,8 +300,66 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
                       placeholder="Ex: 07 58 42 10"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="h-11 text-base border-border focus:border-blue-500 focus:ring-blue-500"
+                      className="h-11 text-base border-border focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400"
                     />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="password" className="text-sm font-semibold text-foreground mb-2 block">
+                      Mot de passe
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Min. 6 caractères"
+                        value={formData.password}
+                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        className="h-11 text-base border-border focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 pr-10"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-0 top-0 h-11 w-11 hover:bg-transparent"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="confirmPassword" className="text-sm font-semibold text-foreground mb-2 block">
+                      Confirmer le mot de passe
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="confirmPassword"
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        placeholder="Confirmer votre mot de passe"
+                        value={formData.confirmPassword}
+                        onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                        className="h-11 text-base border-border focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 pr-10"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-0 top-0 h-11 w-11 hover:bg-transparent"
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </Button>
+                    </div>
                   </div>
 
                   {/* Info Box */}

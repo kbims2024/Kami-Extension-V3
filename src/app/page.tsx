@@ -96,7 +96,7 @@ export default function KamiExtensionPage() {
     }
   };
 
-  const handleLogin = async (name: string, phone: string) => {
+  const handleLogin = async (name: string, phone: string, password?: string) => {
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -104,7 +104,7 @@ export default function KamiExtensionPage() {
         body: JSON.stringify({
           name,
           phone,
-          isResident: false, // Valeur par défaut, sera mise à jour si l'utilisateur existe déjà
+          password: password || undefined,
         }),
       });
 
@@ -114,18 +114,12 @@ export default function KamiExtensionPage() {
         toast.success(`Bienvenue ${user.name} !`);
         setCurrentScreen('home');
       } else {
-        toast.error('Utilisateur non trouvé. Veuillez créer un compte.');
+        const data = await response.json();
+        toast.error(data.error || 'Erreur de connexion');
       }
     } catch (error) {
-      // Fallback to local state for demo
-      setCurrentUser({
-        name,
-        phone,
-        isResident: false,
-        referralCode: `${name.substring(0, 3).toUpperCase()}${Math.floor(Math.random() * 900 + 100)}`,
-      });
-      toast.success(`Bienvenue ${name} !`);
-      setCurrentScreen('home');
+      console.error('Login error:', error);
+      toast.error('Erreur de connexion');
     }
   };
 
@@ -203,7 +197,7 @@ export default function KamiExtensionPage() {
     toast.success('Lien copié !');
   };
 
-  const handleRegistrationComplete = async (userData: { name: string; phone: string; isResident: boolean }) => {
+  const handleRegistrationComplete = async (userData: { name: string; phone: string; isResident: boolean; password: string }) => {
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -212,6 +206,7 @@ export default function KamiExtensionPage() {
           name: userData.name,
           phone: userData.phone,
           isResident: userData.isResident,
+          password: userData.password,
         }),
       });
 
@@ -221,18 +216,12 @@ export default function KamiExtensionPage() {
         toast.success(`Bienvenue ${user.name} ! Votre compte est créé.`);
         setCurrentScreen('map');
       } else {
-        toast.error('Erreur lors de la création du compte');
+        const data = await response.json();
+        toast.error(data.error || 'Erreur lors de la création du compte');
       }
     } catch (error) {
-      // Fallback to local state for demo
-      setCurrentUser({
-        name: userData.name,
-        phone: userData.phone,
-        isResident: userData.isResident,
-        referralCode: `${userData.name.substring(0, 3).toUpperCase()}${Math.floor(Math.random() * 900 + 100)}`,
-      });
-      toast.success(`Bienvenue ${userData.name} ! Votre compte est créé.`);
-      setCurrentScreen('map');
+      console.error('Registration error:', error);
+      toast.error('Erreur lors de la création du compte');
     }
   };
 
