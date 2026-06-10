@@ -23,7 +23,8 @@ export function PlanPage({ setCurrentScreen, setIsMenuOpen }: PlanPageProps) {
   useEffect(() => {
     if (planFile && !loading && !opened) {
       setOpened(true);
-      const newWindow = window.open(planFile.path, '_blank');
+      // Ouvrir la page avec le PDF dans un nouvel onglet
+      const newWindow = window.open('/view-plan', '_blank');
       if (newWindow) {
         newWindow.focus();
       }
@@ -56,11 +57,9 @@ export function PlanPage({ setCurrentScreen, setIsMenuOpen }: PlanPageProps) {
   };
 
   const handleOpenAgain = () => {
-    if (planFile) {
-      const newWindow = window.open(planFile.path, '_blank');
-      if (newWindow) {
-        newWindow.focus();
-      }
+    const newWindow = window.open('/view-plan', '_blank');
+    if (newWindow) {
+      newWindow.focus();
     }
   };
 
