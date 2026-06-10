@@ -544,12 +544,20 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
                 }}
               >
                 {planFile.mimeType === 'application/pdf' ? (
-                  <iframe
-                    src={`${planFile.path}#toolbar=0&navpanes=0&scrollbar=0`}
-                    className="w-full h-full border-0"
-                    title="Plan du village"
-                    sandbox="allow-same-origin allow-scripts allow-forms"
-                  />
+                  <div className="w-full h-full">
+                    <object
+                      data={`${planFile.path}#toolbar=0&navpanes=0&scrollbar=0`}
+                      type="application/pdf"
+                      className="w-full h-full"
+                    >
+                      <p className="text-center text-sm text-gray-600 dark:text-gray-400 p-4">
+                        Le PDF ne peut pas être affiché.{' '}
+                        <a href={planFile.path} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                          Cliquez ici pour ouvrir le PDF dans un nouvel onglet
+                        </a>
+                      </p>
+                    </object>
+                  </div>
                 ) : (
                   <img
                     src={planFile.path}
