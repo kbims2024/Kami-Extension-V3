@@ -5,10 +5,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { FlashInfoBand } from '@/components/flash-info-band';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Menu, Map, CheckCircle, Home, Zap, Droplet, ShieldCheck, Users, TrendingUp, Clock, Award, Wrench, Building2, ArrowRight, ChevronRight, X, ZoomIn, ZoomOut, Maximize, Minimize } from 'lucide-react';
+import { Menu, Map, CheckCircle, Home, Zap, Droplet, ShieldCheck, Users, TrendingUp, Clock, Award, Wrench, Building2, ArrowRight, ChevronRight, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
-import { toast } from 'sonner';
 
 interface PersuasiveLandingPageProps {
   onReserveClick: () => void;
@@ -26,76 +25,11 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
   const reservedRate = totalCount > 0 ? Math.round((reservedCount / totalCount) * 100) : 0;
   const purchasedRate = totalCount > 0 ? Math.round((paidCount / totalCount) * 100) : 0;
   const [animatedNumbers, setAnimatedNumbers] = useState({ available: 0, reservedRate: 0, purchasedRate: 0 });
-  const [planFile, setPlanFile] = useState<{ path: string; mimeType: string } | null>(null);
-  const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
-  const [zoomLevel, setZoomLevel] = useState(100);
   const [isServicesModalOpen, setIsServicesModalOpen] = useState(false);
 
-  // Charger le fichier du plan au montage
-  useEffect(() => {
-    loadPlanFile();
-  }, []);
-
-  const loadPlanFile = async () => {
-    try {
-      const response = await fetch('/api/admin-files?type=PLAN');
-      if (response.ok) {
-        const data = await response.json();
-        if (data.file) {
-          setPlanFile({
-            path: `/api/serve-file?type=PLAN`,
-            mimeType: data.file.mimeType
-          });
-        }
-      }
-    } catch (error) {
-      console.error('Erreur lors du chargement du plan:', error);
-    }
-  };
-
   const handleViewPlan = () => {
-    if (planFile) {
-      setIsPlanModalOpen(true);
-      setZoomLevel(100);
-    } else {
-      toast.info('Le plan n\'est pas encore disponible. Veuillez contacter l\'administration.');
-    }
+    setCurrentScreen('plan');
   };
-
-  const handleZoomIn = () => {
-    setZoomLevel(prev => Math.min(prev + 25, 300));
-  };
-
-  const handleZoomOut = () => {
-    setZoomLevel(prev => Math.max(prev - 25, 50));
-  };
-
-  const handleResetZoom = () => {
-    setZoomLevel(100);
-  };
-
-  // Gestion du zoom avec la roulette de la souris
-  useEffect(() => {
-    const handleWheel = (e: WheelEvent) => {
-      if (!isPlanModalOpen) return;
-
-      // Si Ctrl est pressé, c'est un zoom avec roulette
-      if (e.ctrlKey) {
-        e.preventDefault();
-        if (e.deltaY < 0) {
-          handleZoomIn();
-        } else {
-          handleZoomOut();
-        }
-      }
-    };
-
-    window.addEventListener('wheel', handleWheel, { passive: false });
-
-    return () => {
-      window.removeEventListener('wheel', handleWheel);
-    };
-  }, [isPlanModalOpen]);
 
   // Animation des nombres
   useEffect(() => {
@@ -464,120 +398,6 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
           </div>
         </div>
       </section>
-
-      {/* Plan Modal - Fullscreen with zoom controls */}
-      <Dialog open={isPlanModalOpen} onOpenChange={setIsPlanModalOpen}>
-        <DialogContent className="max-w-[95vw] max-h-[95vh] h-[90vh] w-[90vw] md:max-w-[98vw] md:max-h-[98vh] md:h-[95vh] md:w-[95vw] p-0 overflow-hidden m-auto rounded-xl md:rounded-2xl border-2 shadow-2xl">
-          {/* Header avec bouton de fermeture */}
-          <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
-            <Button
-              variant="secondary"
-              size="icon"
-              onClick={() => setIsPlanModalOpen(false)}
-              className="h-12 w-12 bg-white/90 dark:bg-gray-900/90 shadow-lg hover:bg-white dark:hover:bg-gray-800 rounded-full"
-            >
-              <X className="h-6 w-6" />
-            </Button>
-          </div>
-
-          {/* Title en haut à gauche - visible on all screens */}
-          <div className="absolute top-4 left-4 z-10">
-            <div className="bg-white/90 dark:bg-gray-900/90 px-6 py-3 rounded-xl shadow-lg">
-              <h2 className="text-lg md:text-xl font-bold flex items-center gap-3">
-                <Map className="h-5 w-5 md:h-6 md:w-6 text-blue-600" />
-                Plan du Village
-              </h2>
-              <p className="text-xs text-gray-500 mt-1 hidden md:block">
-                Utilisez les boutons ou Ctrl + roulette pour zoomer
-              </p>
-            </div>
-          </div>
-
-          {/* Contrôles de zoom - en bas au centre */}
-          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10">
-            <div className="bg-white/90 dark:bg-gray-900/90 px-4 md:px-6 py-3 md:py-4 rounded-2xl shadow-2xl flex items-center gap-2 md:gap-4">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleZoomOut}
-                disabled={zoomLevel <= 50}
-                className="h-10 w-10 md:h-12 md:w-12 text-base md:text-lg"
-              >
-                <ZoomOut className="h-4 w-4 md:h-5 md:w-5" />
-              </Button>
-              <div className="flex flex-col items-center min-w-[60px] md:min-w-[80px]">
-                <span className="text-lg md:text-2xl font-bold">
-                  {zoomLevel}%
-                </span>
-                <span className="text-[10px] md:text-xs text-gray-500">Zoom</span>
-              </div>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleZoomIn}
-                disabled={zoomLevel >= 300}
-                className="h-10 w-10 md:h-12 md:w-12 text-base md:text-lg"
-              >
-                <ZoomIn className="h-4 w-4 md:h-5 md:w-5" />
-              </Button>
-              <div className="w-px h-8 md:h-10 bg-gray-300 dark:bg-gray-700 mx-1 md:mx-2" />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleResetZoom}
-                className="h-10 w-10 md:h-12 md:w-12"
-                title="Réinitialiser le zoom"
-              >
-                <Minimize className="h-4 w-4 md:h-5 md:w-5" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Contenu du plan */}
-          <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-900 overflow-hidden">
-            {planFile && (
-              <div
-                className="w-full h-full transition-transform duration-200 ease-out"
-                style={{
-                  transform: `scale(${zoomLevel / 100})`,
-                  transformOrigin: 'center center'
-                }}
-              >
-                {planFile.mimeType === 'application/pdf' ? (
-                  <div className="w-full h-full">
-                    <object
-                      data={`${planFile.path}#toolbar=0&navpanes=0&scrollbar=0`}
-                      type="application/pdf"
-                      className="w-full h-full"
-                    >
-                      <p className="text-center text-sm text-gray-600 dark:text-gray-400 p-4">
-                        Le PDF ne peut pas être affiché.{' '}
-                        <a href={planFile.path} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                          Cliquez ici pour ouvrir le PDF dans un nouvel onglet
-                        </a>
-                      </p>
-                    </object>
-                  </div>
-                ) : (
-                  <img
-                    src={planFile.path}
-                    alt="Plan du village"
-                    className="w-full h-full object-contain"
-                  />
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Raccourcis clavier pour desktop */}
-          <div className="absolute bottom-4 left-4 z-10 hidden md:block">
-            <div className="bg-white/90 dark:bg-gray-900/90 px-4 py-2 rounded-lg shadow-lg text-xs text-gray-600">
-              <kbd className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">Ctrl</kbd> + <kbd className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">↑</kbd> / <kbd className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">↓</kbd>
-              <span className="ml-2">pour zoomer</span>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Services Modal - Électricité, Eau et Sécurité */}
       <Dialog open={isServicesModalOpen} onOpenChange={setIsServicesModalOpen}>

@@ -29,6 +29,7 @@ import { AdminDashboard } from '@/components/kami/AdminDashboard';
 import { CongratulationNotification } from '@/components/kami/CongratulationNotification';
 import { ChatPage } from '@/components/kami/ChatPage';
 import { AdminChatPage } from '@/components/kami/AdminChatPage';
+import { PlanPage } from '@/components/kami/PlanPage';
 
 export default function KamiExtensionPage() {
   const [mounted, setMounted] = useState(false);
@@ -383,6 +384,13 @@ export default function KamiExtensionPage() {
 
       {currentScreen === 'settings' && (
         <SettingsPage onBack={() => setCurrentScreen('home')} />
+      )}
+
+      {currentScreen === 'plan' && (
+        <PlanPage
+          setCurrentScreen={setCurrentScreen}
+          setIsMenuOpen={setIsMenuOpen}
+        />
       )}
 
       {currentScreen === 'chat' && (
