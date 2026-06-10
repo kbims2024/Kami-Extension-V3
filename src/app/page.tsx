@@ -912,7 +912,7 @@ function ProfileScreen({ currentUser, copyReferralLink, setCurrentScreen, setIsM
         {currentUser?.referralCode && (
           <Card className="bg-card border-border">
             <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground mb-2">Code de parrainage</p>
+              <p className="text-sm text-muted-foreground mb-2">Partager</p>
               <div className="flex items-center bg-card border rounded-lg p-2">
                 <input
                   type="text"
