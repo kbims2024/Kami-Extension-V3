@@ -49,43 +49,18 @@ export default function ViewPlanPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header avec bouton de retour */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 dark:bg-background/95 backdrop-blur-md border-b border-border">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleBack}
-                className="hover:bg-blue-50 dark:hover:bg-blue-950 transition-colors"
-                title="Retour à l'accueil"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div className="flex items-center gap-2">
-                <Map className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                <h1 className="text-base sm:text-lg font-bold text-foreground">Plan du Village - KAMI-EXTENSION</h1>
-              </div>
-            </div>
-            {planUrl && !loading && (
-              <Button
-                onClick={handleDownload}
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2 transition-colors"
-                title="Télécharger le PDF"
-              >
-                <Download className="h-4 w-4" />
-                <span className="hidden sm:inline">Télécharger</span>
-              </Button>
-            )}
-          </div>
-        </div>
-      </header>
+      {/* Bouton de retour - même style que les autres pages */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute top-4 left-4 z-50"
+        onClick={handleBack}
+      >
+        <ArrowLeft className="h-5 w-5 text-muted-foreground" />
+      </Button>
 
       {/* Contenu principal - PDF Viewer */}
-      <div className="pt-16 h-screen">
+      <div className="h-screen pt-16">
         {loading ? (
           <div className="h-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
             <div className="text-center">
@@ -142,20 +117,6 @@ export default function ViewPlanPage() {
             </object>
           </div>
         ) : null}
-      </div>
-
-      {/* Footer avec informations */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/95 dark:bg-background/95 backdrop-blur-md border-t border-border py-2 px-4">
-        <div className="container mx-auto flex items-center justify-between text-xs text-muted-foreground">
-          <div className="flex items-center gap-4">
-            <span>Utilisez Ctrl + Molette pour zoomer</span>
-            <span className="hidden sm:inline">•</span>
-            <span className="hidden sm:inline">Utilisez Ctrl + S pour enregistrer</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span>KAMI-EXTENSION © 2024</span>
-          </div>
-        </div>
       </div>
     </div>
   );
