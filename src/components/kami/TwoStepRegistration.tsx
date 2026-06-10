@@ -96,8 +96,8 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
       {/* Progress Bar */}
       <div className="bg-card px-6 py-3 border-b border-border">
         <div className="flex gap-2 max-w-md">
-          <div className={`flex-1 h-1.5 rounded-full transition-all duration-500 ${step >= 1 ? 'bg-blue-600' : 'bg-card'}`} />
-          <div className={`flex-1 h-1.5 rounded-full transition-all duration-500 ${step >= 2 ? 'bg-blue-600' : 'bg-card'}`} />
+          <div className={`flex-1 h-1.5 rounded-full transition-all duration-500 ${step >= 1 ? 'bg-blue-600 dark:bg-blue-500' : 'bg-card'}`} />
+          <div className={`flex-1 h-1.5 rounded-full transition-all duration-500 ${step >= 2 ? 'bg-blue-600 dark:bg-blue-500' : 'bg-card'}`} />
         </div>
       </div>
 
@@ -128,7 +128,7 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
-                        isResident === true ? 'bg-blue-600' : 'bg-background'
+                        isResident === true ? 'bg-blue-600 dark:bg-blue-500' : 'bg-background'
                       }`}>
                         <Home className={`h-6 w-6 ${isResident === true ? 'text-white' : 'text-foreground'}`} />
                       </div>
@@ -138,14 +138,14 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
                       </div>
                     </div>
                     {isResident === true && (
-                      <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                      <div className="w-6 h-6 bg-blue-600 dark:bg-blue-500 rounded-full flex items-center justify-center">
                         <CheckCircle className="h-4 w-4 text-white" />
                       </div>
                     )}
                   </div>
 
                   <div className="mb-4">
-                    <span className="text-3xl font-bold text-blue-600">100 000</span>
+                    <span className="text-3xl font-bold text-blue-600 dark:text-blue-400">100 000</span>
                     <span className="text-lg text-foreground ml-1">FCFA</span>
                   </div>
 
@@ -154,7 +154,7 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
                       const Icon = benefit.icon;
                       return (
                         <div key={i} className="flex items-center gap-2 text-sm text-foreground">
-                          <Icon className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                          <Icon className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                           <span>{benefit.text}</span>
                         </div>
                       );
@@ -176,7 +176,7 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
-                        isResident === false ? 'bg-blue-600' : 'bg-background'
+                        isResident === false ? 'bg-blue-600 dark:bg-blue-500' : 'bg-background'
                       }`}>
                         <Users className={`h-6 w-6 ${isResident === false ? 'text-white' : 'text-foreground'}`} />
                       </div>
@@ -186,7 +186,7 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
                       </div>
                     </div>
                     {isResident === false && (
-                      <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                      <div className="w-6 h-6 bg-blue-600 dark:bg-blue-500 rounded-full flex items-center justify-center">
                         <CheckCircle className="h-4 w-4 text-white" />
                       </div>
                     )}
@@ -213,7 +213,7 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
 
               <Button
                 onClick={handleStep1Submit}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 rounded-xl text-base shadow-lg shadow-blue-500/30 transition-all hover:scale-[1.02]"
+                className="w-full bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white font-semibold py-4 rounded-xl text-base shadow-lg shadow-blue-500/30 transition-all hover:scale-[1.02]"
                 disabled={isResident === null}
               >
                 Continuer
@@ -232,13 +232,13 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
               </div>
 
               {/* Selected Status Card */}
-              <Card className="bg-gradient-to-br from-blue-50 to-white border-blue-200">
+              <Card className="bg-gradient-to-br from-blue-50 to-white dark:from-blue-900/20 dark:to-card border-blue-200 dark:border-blue-800">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       {isResident ? (
-                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <Home className="h-5 w-5 text-blue-600" />
+                        <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                          <Home className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                         </div>
                       ) : (
                         <div className="w-10 h-10 bg-background rounded-lg flex items-center justify-center">
@@ -294,9 +294,9 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
                   </div>
 
                   {/* Info Box */}
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-4">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
                     <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <div className="w-6 h-6 bg-blue-600 dark:bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                         <CheckCircle className="h-4 w-4 text-white" />
                       </div>
                       <div className="text-sm">
@@ -314,7 +314,7 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
 
               <Button
                 onClick={handleStep2Submit}
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-4 rounded-xl text-base shadow-lg shadow-blue-500/30 transition-all hover:scale-[1.02]"
+                className="w-full bg-gradient-to-r from-blue-600 dark:from-blue-500 to-blue-700 dark:to-blue-600 hover:from-blue-700 dark:hover:from-blue-600 hover:to-blue-800 dark:hover:to-blue-700 text-white font-semibold py-4 rounded-xl text-base shadow-lg shadow-blue-500/30 dark:shadow-blue-500/20 transition-all hover:scale-[1.02]"
               >
                 Créer mon compte
                 <ArrowRight className="ml-2 h-5 w-5" />

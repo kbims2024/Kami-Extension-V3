@@ -250,7 +250,7 @@ export function AdminHeroImage({ onBack }: AdminHeroImageProps) {
               <Button
                 onClick={handleUpload}
                 disabled={!file || uploading}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3"
+                className="w-full bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white font-semibold py-3"
               >
                 {uploading ? 'Upload en cours...' : 'Uploader l\'image'}
               </Button>

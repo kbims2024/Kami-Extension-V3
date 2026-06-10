@@ -112,7 +112,7 @@ export function AuthChoiceScreen({ onLoginClick, onRegisterClick, onBack, setIsM
           </div>
 
           {/* Info Box */}
-          <div className="mt-8 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-5">
+          <div className="mt-8 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl p-5">
             <div className="text-sm">
               <p className="font-medium text-foreground mb-2">Pourquoi créer un compte ?</p>
               <ul className="space-y-1.5 text-foreground">

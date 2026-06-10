@@ -37,7 +37,7 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
         }`}
       >
         {/* Header */}
-        <div className="bg-gradient-to-br from-blue-600 to-blue-800 p-6 text-white relative">
+        <div className="bg-gradient-to-br from-blue-600 to-blue-800 dark:from-blue-700 dark:to-blue-900 p-6 text-white relative">
           <Button
             variant="ghost"
             size="icon"

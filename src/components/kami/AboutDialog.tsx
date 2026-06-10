@@ -150,7 +150,7 @@ export function AboutDialog({ open, onOpenChange, onNavigate, onReserveClick }: 
               <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <Users className="h-5 w-5 text-emerald-600" />
+                    <Users className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                     <span className="font-bold text-emerald-700 dark:text-emerald-400">Résident KAMI</span>
                   </div>
                   <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">-33%</Badge>
@@ -162,7 +162,7 @@ export function AboutDialog({ open, onOpenChange, onNavigate, onReserveClick }: 
               <div className="bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 rounded-xl p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <Building2 className="h-5 w-5 text-orange-600" />
+                    <Building2 className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                     <span className="font-bold text-orange-700 dark:text-orange-400">Non-Résident</span>
                   </div>
                   <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">Standard</Badge>

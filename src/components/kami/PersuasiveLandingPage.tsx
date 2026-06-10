@@ -258,7 +258,7 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
             <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
               <Button
                 onClick={onReserveClick}
-                className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-3 md:py-4 px-8 md:px-10 rounded-lg md:rounded-xl text-base md:text-lg shadow-2xl shadow-yellow-400/40 transition-all hover:scale-105 hover:shadow-yellow-400/50"
+                className="bg-yellow-400 dark:bg-yellow-500 hover:bg-yellow-500 dark:hover:bg-yellow-600 text-gray-900 dark:text-gray-900 font-bold py-3 md:py-4 px-8 md:px-10 rounded-lg md:rounded-xl text-base md:text-lg shadow-2xl shadow-yellow-400/40 dark:shadow-yellow-400/30 transition-all hover:scale-105 hover:shadow-yellow-400/50"
               >
                 Réserver mon terrain
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -358,7 +358,7 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
           <div className="max-w-2xl mx-auto mt-12">
             <Button
               onClick={() => setIsServicesModalOpen(true)}
-              className="w-full bg-gradient-to-r from-blue-500 via-cyan-500 to-purple-500 hover:from-blue-600 hover:via-cyan-600 hover:to-purple-600 text-white font-bold py-6 px-8 rounded-2xl text-lg shadow-2xl transition-all hover:scale-105 hover:shadow-lg"
+              className="w-full bg-gradient-to-r from-blue-500 via-cyan-500 to-purple-500 dark:from-blue-600 dark:via-cyan-600 dark:to-purple-600 hover:from-blue-600 hover:via-cyan-600 hover:to-purple-600 dark:hover:from-blue-700 dark:hover:via-cyan-700 dark:hover:to-purple-700 text-white font-bold py-6 px-8 rounded-2xl text-lg shadow-2xl transition-all hover:scale-105 hover:shadow-lg"
             >
               <div className="flex items-center justify-center gap-3">
                 <div className="flex items-center gap-2">
@@ -595,9 +595,9 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
             {essentialServices.map((service, index) => {
               const Icon = service.icon;
               const colors = [
-                'from-yellow-500 to-orange-500',
-                'from-blue-500 to-cyan-500',
-                'from-purple-500 to-pink-500'
+                'from-yellow-500 to-orange-500 dark:from-yellow-600 dark:to-orange-600',
+                'from-blue-500 to-cyan-500 dark:from-blue-600 dark:to-cyan-600',
+                'from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600'
               ];
               const bgColor = [
                 'bg-yellow-50 dark:bg-yellow-950/30',

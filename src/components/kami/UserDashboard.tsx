@@ -360,7 +360,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, setCu
                                   <h4 className="font-semibold text-foreground">{reservation.lotName}</h4>
                                   <Badge
                                     variant={isPaid ? 'default' : 'secondary'}
-                                    className={isPaid ? 'bg-emerald-500 hover:bg-emerald-600' : ''}
+                                    className={isPaid ? 'bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500' : ''}
                                   >
                                     {isPaid ? 'Payé' : 'En cours'}
                                   </Badge>

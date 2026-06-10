@@ -206,7 +206,7 @@ export function AdminFiles({ onBack }: AdminFilesProps) {
               </div>
 
               {file && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
                   <p className="text-sm text-foreground">
                     <span className="font-semibold">Fichier sélectionné :</span> {file.name}
                   </p>
@@ -219,7 +219,7 @@ export function AdminFiles({ onBack }: AdminFilesProps) {
               <Button
                 onClick={handleUpload}
                 disabled={!file || uploading}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3"
+                className="w-full bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white font-semibold py-3"
               >
                 {uploading ? 'Upload en cours...' : 'Uploader le fichier'}
               </Button>

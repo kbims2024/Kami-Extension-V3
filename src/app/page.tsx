@@ -664,10 +664,10 @@ function MapScreen({ lots, handleOpenReservation, setCurrentScreen, setIsMenuOpe
               key={lot.id}
               className={`border-2 ${
                 lot.status === 'AVAILABLE'
-                  ? 'bg-card border-emerald-200'
+                  ? 'bg-card border-emerald-200 dark:border-emerald-700'
                   : lot.status === 'RESERVED'
-                  ? 'bg-background border-orange-200 opacity-50'
-                  : 'bg-background border-red-200 opacity-50'
+                  ? 'bg-background border-orange-200 dark:border-orange-700 opacity-50'
+                  : 'bg-background border-red-200 dark:border-red-700 opacity-50'
               } rounded-2xl`}
             >
               <CardContent className="p-3 flex flex-col justify-between h-full">
@@ -675,7 +675,7 @@ function MapScreen({ lots, handleOpenReservation, setCurrentScreen, setIsMenuOpe
                   <div className="flex justify-between items-start mb-2">
                     <Home
                       className={`h-5 w-5 ${
-                        lot.status === 'AVAILABLE' ? 'text-emerald-500' : lot.status === 'RESERVED' ? 'text-orange-400' : 'text-red-400'
+                        lot.status === 'AVAILABLE' ? 'text-emerald-500 dark:text-emerald-400' : lot.status === 'RESERVED' ? 'text-orange-400' : 'text-red-400'
                       }`}
                     />
                     {getStatusBadge(lot.status)}
@@ -1215,25 +1215,25 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
           </Card>
           <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('payments')}>
             <CardContent className="p-0 text-center">
-              <CheckCircle className="text-blue-500 h-8 w-8 mx-auto mb-2" />
+              <CheckCircle className="text-blue-500 dark:text-blue-400 h-8 w-8 mx-auto mb-2" />
               <p className="text-sm font-bold">Valider Paiements</p>
             </CardContent>
           </Card>
           <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('users')}>
             <CardContent className="p-0 text-center">
-              <UserPlus className="text-purple-500 h-8 w-8 mx-auto mb-2" />
+              <UserPlus className="text-purple-500 dark:text-purple-400 h-8 w-8 mx-auto mb-2" />
               <p className="text-sm font-bold">Gérer Utilisateurs</p>
             </CardContent>
           </Card>
           <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('add-lots')}>
             <CardContent className="p-0 text-center">
-              <PlusCircle className="text-[#8B5E3C] h-8 w-8 mx-auto mb-2" />
+              <PlusCircle className="text-[#8B5E3C] dark:text-[#A5785C] h-8 w-8 mx-auto mb-2" />
               <p className="text-sm font-bold">Ajouter Lots</p>
             </CardContent>
           </Card>
           <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('logo')}>
             <CardContent className="p-0 text-center">
-              <FileText className="text-orange-500 h-8 w-8 mx-auto mb-2" />
+              <FileText className="text-orange-500 dark:text-orange-400 h-8 w-8 mx-auto mb-2" />
               <p className="text-sm font-bold">Éditer le Logo</p>
             </CardContent>
           </Card>
@@ -1498,7 +1498,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
                         <h3 className="font-bold text-foreground">{user.name}</h3>
                         <p className="text-xs text-muted-foreground mb-1">{user.phone}</p>
                         <div className="flex items-center gap-2">
-                          <Badge className={user.isResident ? 'bg-emerald-100 text-emerald-600' : 'bg-orange-100 text-orange-600'}>
+                          <Badge className={user.isResident ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'}>
                             {user.isResident ? 'Résident' : 'Non-Résident'}
                           </Badge>
                           {user.createdAt && (
