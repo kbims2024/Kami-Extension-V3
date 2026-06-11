@@ -64,15 +64,6 @@ export default function KamiExtensionPage() {
   const [agreeRules, setAgreeRules] = useState(false);
   const [adminView, setAdminView] = useState<string | null>(null);
 
-  useEffect(() => {
-    setMounted(true);
-    loadLots();
-    if (currentUser?.id) {
-      loadMyReservations();
-      checkCongratulationNotifications();
-    }
-  }, [currentUser]);
-
   const loadLots = async () => {
     try {
       const response = await fetch('/api/lots');
@@ -102,6 +93,35 @@ export default function KamiExtensionPage() {
       console.error('Error loading reservations:', error);
     }
   };
+
+  const checkCongratulationNotifications = async () => {
+    if (!currentUser?.id) return;
+
+    try {
+      const response = await fetch(`/api/user/notifications?userId=${currentUser?.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.shouldShow) {
+          setCongratulationNotification({
+            show: true,
+            lotName: data.lotName,
+            lotBlock: data.lotBlock,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error checking notifications:', error);
+    }
+  };
+
+  useEffect(() => {
+    setMounted(true);
+    loadLots();
+    if (currentUser?.id) {
+      loadMyReservations();
+      checkCongratulationNotifications();
+    }
+  }, [currentUser]);
 
   const handleLogin = async (name: string, phone: string, password?: string) => {
     try {

@@ -6,16 +6,29 @@ import { hashPassword, verifyPassword } from '@/lib/password';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, phone, isResident, password } = body;
+    const { name, phone, email, isResident, password } = body;
 
-    if (!name || !phone) {
-      return NextResponse.json({ error: 'Nom et téléphone requis' }, { status: 400 });
+    // Valider qu'au moins un identifiant est fourni (email ou téléphone)
+    if (!name || (!phone && !email)) {
+      return NextResponse.json({ error: 'Nom et au moins un identifiant (téléphone ou email) sont requis' }, { status: 400 });
     }
 
-    // Vérifier si l'utilisateur existe déjà
-    let user = await db.user.findUnique({
-      where: { phone },
-    });
+    // Vérifier le mot de passe est fourni
+    if (!password) {
+      return NextResponse.json({ error: 'Mot de passe requis' }, { status: 400 });
+    }
+
+    // Rechercher l'utilisateur par téléphone ou par email
+    let user = null;
+    if (phone) {
+      user = await db.user.findUnique({
+        where: { phone },
+      });
+    } else if (email) {
+      user = await db.user.findUnique({
+        where: { email },
+      });
+    }
 
     if (!user) {
       // Créer un nouvel utilisateur
@@ -23,7 +36,8 @@ export async function POST(request: NextRequest) {
       user = await db.user.create({
         data: {
           name,
-          phone,
+          phone: phone || null,
+          email: email || null,
           isResident: isResident !== undefined ? isResident : true,
           referralCode,
           status: 'ACTIVE',
