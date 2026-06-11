@@ -4,15 +4,16 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { ArrowLeft, Settings, Info, Zap, Shield, Palette } from 'lucide-react';
+import { ArrowLeft, Settings, Info, Zap, Shield, Palette, Image as ImageIcon } from 'lucide-react';
 import { FlashInfoAdmin } from './FlashInfoAdmin';
+import { AdminHeroImage } from './AdminHeroImage';
 
 interface SettingsPageProps {
   onBack: () => void;
 }
 
 export function SettingsPage({ onBack }: SettingsPageProps) {
-  const [activeSection, setActiveSection] = useState<'main' | 'flash-info'>('main');
+  const [activeSection, setActiveSection] = useState<'main' | 'flash-info' | 'hero-image'>('main');
 
   return (
     <div className="flex-1 flex flex-col bg-card p-6 pt-16">
@@ -77,6 +78,28 @@ export function SettingsPage({ onBack }: SettingsPageProps) {
               </CardContent>
             </Card>
 
+            {/* Hero Image Settings */}
+            <Card
+              className="border-l-4 border-orange-500 cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => setActiveSection('hero-image')}
+            >
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-orange-700 dark:text-orange-400">
+                  <ImageIcon className="h-5 w-5" />
+                  Image de Fond de l'Accueil
+                </CardTitle>
+                <CardDescription>
+                  Définissez l'image de fond personnalisée pour la section d'accueil
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button variant="outline" className="w-full">
+                  <ImageIcon className="mr-2 h-4 w-4" />
+                  Gérer l'image de fond
+                </Button>
+              </CardContent>
+            </Card>
+
             {/* Performance */}
             <Card className="border-l-4 border-yellow-500">
               <CardHeader>
@@ -122,9 +145,11 @@ export function SettingsPage({ onBack }: SettingsPageProps) {
             </Card>
           </div>
         </>
-      ) : (
+      ) : activeSection === 'flash-info' ? (
         <FlashInfoAdmin onBack={() => setActiveSection('main')} />
-      )}
+      ) : activeSection === 'hero-image' ? (
+        <AdminHeroImage onBack={() => setActiveSection('main')} />
+      ) : null}
     </div>
   );
 }

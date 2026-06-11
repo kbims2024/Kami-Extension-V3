@@ -26,6 +26,7 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
   const purchasedRate = totalCount > 0 ? Math.round((paidCount / totalCount) * 100) : 0;
   const [animatedNumbers, setAnimatedNumbers] = useState({ available: 0, reservedRate: 0, purchasedRate: 0 });
   const [isServicesModalOpen, setIsServicesModalOpen] = useState(false);
+  const [heroBackground, setHeroBackground] = useState<string | null>(null);
 
   const handleViewPlan = () => {
     window.location.href = '/view-plan';
@@ -56,6 +57,24 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
 
     return () => clearInterval(interval);
   }, [availableCount, reservedRate, purchasedRate]);
+
+  // Charger l'image de fond HERO depuis les paramètres
+  useEffect(() => {
+    const loadHeroImage = async () => {
+      try {
+        const response = await fetch('/api/admin-files?type=HERO');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.file && data.file.path) {
+            setHeroBackground(data.file.path);
+          }
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement de l\'image de fond:', error);
+      }
+    };
+    loadHeroImage();
+  }, []);
 
   const advantages = [
     { icon: Home, title: "Terrain Constructible", desc: "Terrain viabilisé prêt à bâtir" },
@@ -143,7 +162,18 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
       </div>
 
       {/* Hero Section */}
-      <section className="relative flex flex-col justify-center bg-gradient-to-br from-brand-blue via-blue-700 to-brand-blue text-white overflow-hidden" style={{ minHeight: 'calc(100vh - 73px)' }}>
+      <section
+        className="relative flex flex-col justify-center text-white overflow-hidden"
+        style={{
+          minHeight: 'calc(100vh - 73px)',
+          backgroundImage: heroBackground ? `url(${heroBackground})` : undefined,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }}
+      >
+        {/* Gradient overlay pour la lisibilité du texte */}
+        <div className={`absolute inset-0 ${heroBackground ? 'bg-gradient-to-br from-brand-blue/90 via-blue-700/90 to-brand-blue/90' : 'bg-gradient-to-br from-brand-blue via-blue-700 to-brand-blue'}`} />
         {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-10 left-5 w-48 h-48 bg-yellow-400/10 rounded-full blur-3xl animate-pulse" />

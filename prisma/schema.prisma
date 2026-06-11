@@ -111,3 +111,10 @@ model Message {
   @@index([senderId])
   @@index([receiverId])
 }
+
+model Settings {
+  id              String      @id @default(cuid())
+  heroBackground  String?     // Background image for hero section
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
