@@ -52,7 +52,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     await db.user.delete({
-      where: { id: parseInt(userId) },
+      where: { id: userId },
     });
 
     return NextResponse.json({ success: true });

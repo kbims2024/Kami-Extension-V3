@@ -24,8 +24,12 @@ import {
   ShoppingCart,
   UserCheck,
   UserPlus,
-  MessageSquare
+  MessageSquare,
+  Ban,
+  ShieldAlert,
+  Trash2
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { 
   BarChart, 
   Bar, 
@@ -206,6 +210,80 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
 
   const formatCurrency = (amount: number) => {
     return `${amount.toLocaleString()} FCFA`
+  }
+
+  // Gestion des utilisateurs
+  const handleBlockUser = async (userId: string, userName: string) => {
+    if (!confirm(`Voulez-vous vraiment bloquer l'utilisateur ${userName} ?`)) return;
+
+    try {
+      const response = await fetch(`/api/admin/users/${encodeURIComponent(userId)}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'BLOCKED' }),
+      });
+
+      if (response.ok) {
+        toast.success('Utilisateur bloqué avec succès !');
+        // Recharger la liste des utilisateurs
+        const usersResponse = await fetch('/api/admin/users');
+        if (usersResponse.ok) {
+          setUsers(await usersResponse.json());
+        }
+      } else {
+        toast.error('Erreur lors du blocage de l\'utilisateur');
+      }
+    } catch (error) {
+      toast.error('Erreur lors du blocage de l\'utilisateur');
+    }
+  }
+
+  const handleUnblockUser = async (userId: string, userName: string) => {
+    if (!confirm(`Voulez-vous vraiment débloquer l'utilisateur ${userName} ?`)) return;
+
+    try {
+      const response = await fetch(`/api/admin/users/${encodeURIComponent(userId)}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'ACTIVE' }),
+      });
+
+      if (response.ok) {
+        toast.success('Utilisateur débloqué avec succès !');
+        // Recharger la liste des utilisateurs
+        const usersResponse = await fetch('/api/admin/users');
+        if (usersResponse.ok) {
+          setUsers(await usersResponse.json());
+        }
+      } else {
+        toast.error('Erreur lors du déblocage de l\'utilisateur');
+      }
+    } catch (error) {
+      toast.error('Erreur lors du déblocage de l\'utilisateur');
+    }
+  }
+
+  const handleDeleteUser = async (userId: string, userName: string) => {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur ${userName} ? Cette action est irréversible.`)) return;
+
+    try {
+      const response = await fetch(`/api/admin/users?id=${encodeURIComponent(userId)}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        toast.success('Utilisateur supprimé avec succès !');
+        // Recharger la liste des utilisateurs
+        const usersResponse = await fetch('/api/admin/users');
+        if (usersResponse.ok) {
+          setUsers(await usersResponse.json());
+        }
+      } else {
+        toast.error('Erreur lors de la suppression de l\'utilisateur');
+      }
+    } catch (error) {
+      toast.error('Erreur lors de la suppression de l\'utilisateur');
+    }
   }
 
   // Données pour les graphiques
@@ -535,6 +613,37 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
                                 {formatCurrency(user.totalPaid)}
                               </span>
                             </div>
+                          </div>
+                          <div className="flex gap-2 mt-3 pt-3 border-t border-border">
+                            {user.status === 'ACTIVE' ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleBlockUser(user.id, user.name)}
+                                className="flex-1 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/30"
+                              >
+                                <Ban className="h-4 w-4 mr-1" />
+                                Bloquer
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleUnblockUser(user.id, user.name)}
+                                className="flex-1 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+                              >
+                                <ShieldAlert className="h-4 w-4 mr-1" />
+                                Débloquer
+                              </Button>
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteUser(user.id, user.name)}
+                              className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
                         </CardContent>
                       </Card>

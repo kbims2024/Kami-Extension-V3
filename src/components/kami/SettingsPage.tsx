@@ -4,16 +4,17 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { ArrowLeft, Settings, Info, Zap, Shield, Palette, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Settings, Info, Zap, Shield, Palette, Image as ImageIcon, Building2 } from 'lucide-react';
 import { FlashInfoAdmin } from './FlashInfoAdmin';
 import { AdminHeroImage } from './AdminHeroImage';
+import { AdminLogo } from './AdminLogo';
 
 interface SettingsPageProps {
   onBack: () => void;
 }
 
 export function SettingsPage({ onBack }: SettingsPageProps) {
-  const [activeSection, setActiveSection] = useState<'main' | 'flash-info' | 'hero-image'>('main');
+  const [activeSection, setActiveSection] = useState<'main' | 'flash-info' | 'hero-image' | 'logo'>('main');
 
   return (
     <div className="flex-1 flex flex-col bg-card p-6 pt-16">
@@ -100,6 +101,28 @@ export function SettingsPage({ onBack }: SettingsPageProps) {
               </CardContent>
             </Card>
 
+            {/* Logo Settings */}
+            <Card
+              className="border-l-4 border-[#8B5E3C] cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => setActiveSection('logo')}
+            >
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-[#8B5E3C] dark:text-[#A5785C]">
+                  <Building2 className="h-5 w-5" />
+                  Logo de l'Application
+                </CardTitle>
+                <CardDescription>
+                  Personnalisez le logo de l'application (texte ou image)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button variant="outline" className="w-full">
+                  <Building2 className="mr-2 h-4 w-4" />
+                  Gérer le logo
+                </Button>
+              </CardContent>
+            </Card>
+
             {/* Performance */}
             <Card className="border-l-4 border-yellow-500">
               <CardHeader>
@@ -149,6 +172,8 @@ export function SettingsPage({ onBack }: SettingsPageProps) {
         <FlashInfoAdmin onBack={() => setActiveSection('main')} />
       ) : activeSection === 'hero-image' ? (
         <AdminHeroImage onBack={() => setActiveSection('main')} />
+      ) : activeSection === 'logo' ? (
+        <AdminLogo onBack={() => setActiveSection('main')} />
       ) : null}
     </div>
   );
