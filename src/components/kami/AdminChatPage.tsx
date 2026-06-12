@@ -172,7 +172,7 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen }: AdminChatPage
           </Button>
           <div>
             <h1 className="text-lg font-bold text-foreground leading-tight">Discussions</h1>
-            <p className="text-xs text-muted-foreground">Administrateur</p>
+            <p className="text-xs text-muted-foreground">Comité de Gestion des Lots</p>
           </div>
         </div>
         <Button

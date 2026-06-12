@@ -120,7 +120,7 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen }: ChatPageProps) {
           </Button>
           <div>
             <h1 className="text-lg font-bold text-foreground leading-tight">Discussion</h1>
-            <p className="text-xs text-muted-foreground">Échange avec l'administrateur</p>
+            <p className="text-xs text-muted-foreground">Échange avec le Comité de Gestion des Lots</p>
           </div>
         </div>
         <Button
@@ -142,7 +142,7 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen }: ChatPageProps) {
               Aucun message pour le moment
             </p>
             <p className="text-sm text-muted-foreground mt-2">
-              Envoyez votre premier message à l'administrateur
+              Envoyez votre premier message au Comité de Gestion des Lots
             </p>
           </div>
         ) : (

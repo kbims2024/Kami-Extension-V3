@@ -22,7 +22,8 @@ import {
   User,
   Menu,
   Home,
-  Map
+  Map,
+  MessageSquare
 } from 'lucide-react'
 
 // Types pour les données utilisateur
@@ -234,6 +235,34 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, setCu
           description="Montant restant dû"
         />
       </div>
+
+      {/* Bouton Discussion avec le Comité de Gestion */}
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
+                <MessageSquare className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground text-lg">
+                  Discuter avec le Comité de Gestion
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Posez vos questions ou signalez un problème
+                </p>
+              </div>
+            </div>
+            <Button
+              onClick={() => setCurrentScreen?.('chat')}
+              className="bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 text-white font-medium"
+            >
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Discuter
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Statistiques financières détaillées */}
       <div className="grid gap-4 md:grid-cols-2">
