@@ -101,6 +101,16 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
 
           <Separator className="my-4" />
 
+          {/* Theme Toggle */}
+          <div className="px-3 mb-2">
+            <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-muted/50 border border-border">
+              <span className="text-sm font-medium text-foreground">Mode sombre</span>
+              <ThemeToggle />
+            </div>
+          </div>
+
+          <Separator className="my-4" />
+
           <div className="px-3 space-y-1">
             <Button
               variant="ghost"
