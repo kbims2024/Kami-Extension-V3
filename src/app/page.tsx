@@ -409,7 +409,7 @@ export default function KamiExtensionPage() {
       )}
 
       {currentScreen === 'management-committee' && (
-        <ManagementCommitteeManagement onBack={() => setCurrentScreen('home')} />
+        <ManagementCommitteeManagement onBack={() => setCurrentScreen('home')} setCurrentScreen={setCurrentScreen} />
       )}
 
       {/* Reservation Modal */}

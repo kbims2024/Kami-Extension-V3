@@ -53,6 +53,36 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen }: AdminChatPage
     }
   }, [adminId]);
 
+  // Listen for selected user from localStorage
+  useEffect(() => {
+    const selectedChatUser = localStorage.getItem('selectedChatUser');
+    if (selectedChatUser && adminId) {
+      try {
+        const user = JSON.parse(selectedChatUser);
+        // Find the user in the users list
+        const foundUser = users.find(u => u.id === user.id);
+        if (foundUser) {
+          setSelectedUser(foundUser);
+          setSelectedUserId(foundUser.id);
+        } else {
+          // If not found in users list, create a temporary user object
+          const tempUser: SimpleUser = {
+            id: user.id,
+            name: user.name,
+            phone: '',
+            isResident: false
+          };
+          setSelectedUser(tempUser);
+          setSelectedUserId(tempUser.id);
+        }
+        // Clear the localStorage
+        localStorage.removeItem('selectedChatUser');
+      } catch (error) {
+        console.error('Error parsing selected user:', error);
+      }
+    }
+  }, [adminId, users]);
+
   useEffect(() => {
     if (selectedUserId) {
       loadMessages(selectedUserId);
