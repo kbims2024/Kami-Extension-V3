@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { Home, Map, FileText, Wallet, User, Shield, LogOut, LogIn, Building2, X, Settings, MessageSquare } from 'lucide-react';
+import { Home, Map, FileText, Wallet, User, Shield, LogOut, LogIn, Building2, X, Settings, MessageSquare, Sun, Moon } from 'lucide-react';
 
 interface ModernSideMenuProps {
   isOpen: boolean;
@@ -101,10 +101,14 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
 
           <Separator className="my-4" />
 
-          {/* Theme Toggle */}
-          <div className="px-3 mb-2">
-            <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-muted/50 border border-border">
-              <span className="text-sm font-medium text-foreground">Mode sombre</span>
+          <div className="px-3 space-y-1">
+            {/* Theme Toggle */}
+            <div className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-accent hover:text-accent-foreground transition-all group">
+              <div className="flex items-center">
+                <Sun className="mr-3 h-5 w-5 dark:hidden transition-colors" />
+                <Moon className="mr-3 h-5 w-5 hidden dark:block transition-colors" />
+                <span className="font-medium">Mode sombre</span>
+              </div>
               <ThemeToggle />
             </div>
           </div>
