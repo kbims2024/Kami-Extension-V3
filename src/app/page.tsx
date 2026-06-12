@@ -252,26 +252,6 @@ export default function KamiExtensionPage() {
     }
   };
 
-  const checkCongratulationNotifications = async () => {
-    if (!currentUser?.id) return;
-
-    try {
-      const response = await fetch(`/api/user/notifications?userId=${currentUser?.id}`);
-      if (response.ok) {
-        const data = await response.json();
-        if (data.shouldShow) {
-          setCongratulationNotification({
-            show: true,
-            lotName: data.lotName,
-            lotBlock: data.lotBlock,
-          });
-        }
-      }
-    } catch (error) {
-      console.error('Error checking notifications:', error);
-    }
-  };
-
   if (!mounted) return null;
 
   return (
