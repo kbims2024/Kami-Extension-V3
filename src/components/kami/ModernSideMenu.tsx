@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { ThemeToggle } from '@/components/theme-toggle';
-import { Home, Map, FileText, Wallet, User, Shield, LogOut, LogIn, Building2, X, Settings, MessageSquare, Sun, Moon } from 'lucide-react';
+
+import { Home, Map, FileText, Wallet, User, Shield, LogOut, LogIn, Building2, X, Settings, MessageSquare, Users } from 'lucide-react';
 
 interface ModernSideMenuProps {
   isOpen: boolean;
@@ -17,6 +17,7 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
     { icon: Map, label: 'Plan des lots', screen: 'map' },
     { icon: Wallet, label: 'Mes réservations', screen: 'dashboard' },
     { icon: MessageSquare, label: 'Discussions', screen: 'chat', requireAuth: true },
+    { icon: Users, label: 'Comité de Gestion des Lots', screen: 'management-committee', requireAuth: true, isAdminOnly: true },
     { icon: User, label: 'Mon profil', screen: 'profile', requireAuth: true },
     { icon: FileText, label: 'Règlement intérieur', screen: 'rules' },
   ];
@@ -82,6 +83,9 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
               if ('requireAuth' in item && item.requireAuth && !currentUser) {
                 return null;
               }
+              if ('isAdminOnly' in item && item.isAdminOnly && (!currentUser || !currentUser.isAdmin)) {
+                return null;
+              }
               return (
                 <Button
                   key={item.screen}
@@ -99,21 +103,7 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
             })}
           </nav>
 
-          <Separator className="my-4" />
 
-          <div className="px-3 space-y-1">
-            {/* Theme Toggle */}
-            <div className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-accent hover:text-accent-foreground transition-all group">
-              <div className="flex items-center">
-                <Sun className="mr-3 h-5 w-5 dark:hidden transition-colors" />
-                <Moon className="mr-3 h-5 w-5 hidden dark:block transition-colors" />
-                <span className="font-medium">Mode sombre</span>
-              </div>
-              <ThemeToggle />
-            </div>
-          </div>
-
-          <Separator className="my-4" />
 
           <div className="px-3 space-y-1">
             <Button

@@ -30,6 +30,7 @@ import { CongratulationNotification } from '@/components/kami/CongratulationNoti
 import { ChatPage } from '@/components/kami/ChatPage';
 import { AdminChatPage } from '@/components/kami/AdminChatPage';
 import { PlanPage } from '@/components/kami/PlanPage';
+import { ManagementCommitteeManagement } from '@/components/kami/ManagementCommitteeManagement';
 
 export default function KamiExtensionPage() {
   const [mounted, setMounted] = useState(false);
@@ -405,6 +406,10 @@ export default function KamiExtensionPage() {
           setCurrentScreen={setCurrentScreen}
           setIsMenuOpen={setIsMenuOpen}
         />
+      )}
+
+      {currentScreen === 'management-committee' && (
+        <ManagementCommitteeManagement onBack={() => setCurrentScreen('home')} />
       )}
 
       {/* Reservation Modal */}
