@@ -25,6 +25,8 @@ export async function GET() {
         id: user.id,
         name: user.name,
         phone: user.phone,
+        email: user.email,
+        role: user.role,
         isResident: user.isResident,
         referralCode: user.referralCode,
         status: user.status,

@@ -4,17 +4,18 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { ArrowLeft, Settings, Info, Zap, Shield, Palette, Image as ImageIcon, Building2 } from 'lucide-react';
+import { ArrowLeft, Settings, Info, Zap, Shield, Palette, Image as ImageIcon, Building2, Users } from 'lucide-react';
 import { FlashInfoAdmin } from './FlashInfoAdmin';
 import { AdminHeroImage } from './AdminHeroImage';
 import { AdminLogo } from './AdminLogo';
+import { ManagementCommitteeManagement } from './ManagementCommitteeManagement';
 
 interface SettingsPageProps {
   onBack: () => void;
 }
 
 export function SettingsPage({ onBack }: SettingsPageProps) {
-  const [activeSection, setActiveSection] = useState<'main' | 'flash-info' | 'hero-image' | 'logo'>('main');
+  const [activeSection, setActiveSection] = useState<'main' | 'flash-info' | 'hero-image' | 'logo' | 'management-committee'>('main');
 
   return (
     <div className="flex-1 flex flex-col bg-card p-6 pt-16">
@@ -123,6 +124,28 @@ export function SettingsPage({ onBack }: SettingsPageProps) {
               </CardContent>
             </Card>
 
+            {/* Management Committee Settings */}
+            <Card
+              className="border-l-4 border-purple-600 cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => setActiveSection('management-committee')}
+            >
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-purple-700 dark:text-purple-400">
+                  <Users className="h-5 w-5" />
+                  Comité de Gestion des Lots
+                </CardTitle>
+                <CardDescription>
+                  Gérez les membres du comité qui répondent aux utilisateurs
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button variant="outline" className="w-full">
+                  <Users className="mr-2 h-4 w-4" />
+                  Gérer le comité
+                </Button>
+              </CardContent>
+            </Card>
+
             {/* Performance */}
             <Card className="border-l-4 border-yellow-500">
               <CardHeader>
@@ -174,6 +197,8 @@ export function SettingsPage({ onBack }: SettingsPageProps) {
         <AdminHeroImage onBack={() => setActiveSection('main')} />
       ) : activeSection === 'logo' ? (
         <AdminLogo onBack={() => setActiveSection('main')} />
+      ) : activeSection === 'management-committee' ? (
+        <ManagementCommitteeManagement />
       ) : null}
     </div>
   );

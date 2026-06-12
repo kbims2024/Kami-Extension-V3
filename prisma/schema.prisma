@@ -16,6 +16,7 @@ model User {
   phone               String      @unique
   email               String?     @unique
   password            String?
+  role                String      @default("USER") // USER, ADMIN, MANAGEMENT_COMMITTEE
   isResident          Boolean     @default(true)
   referralCode        String?     @unique
   referredByCode      String?
