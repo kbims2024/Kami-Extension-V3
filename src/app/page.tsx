@@ -31,6 +31,7 @@ import { ChatPage } from '@/components/kami/ChatPage';
 import { AdminChatPage } from '@/components/kami/AdminChatPage';
 import { PlanPage } from '@/components/kami/PlanPage';
 import { ManagementCommitteeManagement } from '@/components/kami/ManagementCommitteeManagement';
+import { PageTransition } from '@/components/ui/page-transition';
 
 export default function KamiExtensionPage() {
   const [mounted, setMounted] = useState(false);
@@ -275,141 +276,175 @@ export default function KamiExtensionPage() {
       {/* Screens */}
       {/* Page d'accueil persuasive pour tous */}
       {currentScreen === 'home' && (
-        <PersuasiveLandingPage
-          lots={lots}
-          onReserveClick={() => {
-            if (currentUser) {
-              setCurrentScreen('map');
-            } else {
-              setCurrentScreen('auth-choice');
-            }
-          }}
-          setIsMenuOpen={setIsMenuOpen}
-          setCurrentScreen={setCurrentScreen}
-        />
+        <PageTransition>
+          <PersuasiveLandingPage
+            lots={lots}
+            onReserveClick={() => {
+              if (currentUser) {
+                setCurrentScreen('map');
+              } else {
+                setCurrentScreen('auth-choice');
+              }
+            }}
+            setIsMenuOpen={setIsMenuOpen}
+            setCurrentScreen={setCurrentScreen}
+          />
+        </PageTransition>
       )}
 
       {/* Écran d'inscription en 2 étapes */}
       {!currentUser && currentScreen === 'register' && (
-        <TwoStepRegistration
-          onComplete={handleRegistrationComplete}
-          onBack={() => setCurrentScreen('home')}
-          setIsMenuOpen={setIsMenuOpen}
-        />
+        <PageTransition>
+          <TwoStepRegistration
+            onComplete={handleRegistrationComplete}
+            onBack={() => setCurrentScreen('home')}
+            setIsMenuOpen={setIsMenuOpen}
+          />
+        </PageTransition>
       )}
 
       {/* Écran de choix d'authentification */}
       {!currentUser && currentScreen === 'auth-choice' && (
-        <AuthChoiceScreen
-          onLoginClick={() => setCurrentScreen('login-screen')}
-          onRegisterClick={() => setCurrentScreen('register')}
-          onBack={() => setCurrentScreen('home')}
-          setIsMenuOpen={setIsMenuOpen}
-        />
+        <PageTransition>
+          <AuthChoiceScreen
+            onLoginClick={() => setCurrentScreen('login-screen')}
+            onRegisterClick={() => setCurrentScreen('register')}
+            onBack={() => setCurrentScreen('home')}
+            setIsMenuOpen={setIsMenuOpen}
+          />
+        </PageTransition>
       )}
 
       {/* Écran de connexion */}
       {!currentUser && currentScreen === 'login-screen' && (
-        <LoginScreen
-          onLogin={(name, phone) => handleLogin(name, phone)}
-          onBack={() => setCurrentScreen('auth-choice')}
-          setIsMenuOpen={setIsMenuOpen}
-        />
+        <PageTransition>
+          <LoginScreen
+            onLogin={(name, phone) => handleLogin(name, phone)}
+            onBack={() => setCurrentScreen('auth-choice')}
+            setIsMenuOpen={setIsMenuOpen}
+          />
+        </PageTransition>
       )}
 
       {/* Écran de connexion (ancien, pour compatibilité) */}
       {!currentUser && currentScreen === 'login' && (
-        <AuthChoiceScreen
-          onLoginClick={() => setCurrentScreen('login-screen')}
-          onRegisterClick={() => setCurrentScreen('register')}
-          onBack={() => setCurrentScreen('home')}
-          setIsMenuOpen={setIsMenuOpen}
-        />
+        <PageTransition>
+          <AuthChoiceScreen
+            onLoginClick={() => setCurrentScreen('login-screen')}
+            onRegisterClick={() => setCurrentScreen('register')}
+            onBack={() => setCurrentScreen('home')}
+            setIsMenuOpen={setIsMenuOpen}
+          />
+        </PageTransition>
       )}
 
       {currentScreen === 'map' && (
-        <EnhancedMapScreen
-          lots={lots}
-          handleOpenReservation={handleOpenReservation}
-          setCurrentScreen={setCurrentScreen}
-          setIsMenuOpen={setIsMenuOpen}
-        />
+        <PageTransition>
+          <EnhancedMapScreen
+            lots={lots}
+            handleOpenReservation={handleOpenReservation}
+            setCurrentScreen={setCurrentScreen}
+            setIsMenuOpen={setIsMenuOpen}
+          />
+        </PageTransition>
       )}
 
       {currentScreen === 'dashboard' && (
-        <UserDashboard
-          currentUser={currentUser}
-          setCurrentScreen={setCurrentScreen}
-          setIsMenuOpen={setIsMenuOpen}
-        />
+        <PageTransition>
+          <UserDashboard
+            currentUser={currentUser}
+            setCurrentScreen={setCurrentScreen}
+            setIsMenuOpen={setIsMenuOpen}
+          />
+        </PageTransition>
       )}
 
       {currentScreen === 'profile' && (
-        <ProfileScreen
-          currentUser={currentUser}
-          copyReferralLink={copyReferralLink}
-          setCurrentScreen={setCurrentScreen}
-          setIsMenuOpen={setIsMenuOpen}
-        />
+        <PageTransition>
+          <ProfileScreen
+            currentUser={currentUser}
+            copyReferralLink={copyReferralLink}
+            setCurrentScreen={setCurrentScreen}
+            setIsMenuOpen={setIsMenuOpen}
+          />
+        </PageTransition>
       )}
 
       {currentScreen === 'affiliation' && (
-        <AffiliationScreen
-          currentUser={currentUser}
-          copyReferralLink={copyReferralLink}
-          setCurrentScreen={setCurrentScreen}
-          setIsMenuOpen={setIsMenuOpen}
-        />
+        <PageTransition>
+          <AffiliationScreen
+            currentUser={currentUser}
+            copyReferralLink={copyReferralLink}
+            setCurrentScreen={setCurrentScreen}
+            setIsMenuOpen={setIsMenuOpen}
+          />
+        </PageTransition>
       )}
 
       {currentScreen === 'rules' && (
-        <RulesScreen
-          setCurrentScreen={setCurrentScreen}
-          setIsMenuOpen={setIsMenuOpen}
-        />
+        <PageTransition>
+          <RulesScreen
+            setCurrentScreen={setCurrentScreen}
+            setIsMenuOpen={setIsMenuOpen}
+          />
+        </PageTransition>
       )}
 
       {currentScreen === 'admin' && (
-        <AdminScreen
-          adminView={adminView}
-          setAdminView={setAdminView}
-          lots={lots}
-          loadLots={loadLots}
-          setCurrentScreen={setCurrentScreen}
-        />
+        <PageTransition>
+          <AdminScreen
+            adminView={adminView}
+            setAdminView={setAdminView}
+            lots={lots}
+            loadLots={loadLots}
+            setCurrentScreen={setCurrentScreen}
+          />
+        </PageTransition>
       )}
 
       {currentScreen === 'admin-flash-infos' && (
-        <FlashInfoAdmin onBack={() => setCurrentScreen('home')} />
+        <PageTransition>
+          <FlashInfoAdmin onBack={() => setCurrentScreen('home')} />
+        </PageTransition>
       )}
 
       {currentScreen === 'settings' && (
-        <SettingsPage onBack={() => setCurrentScreen('home')} />
+        <PageTransition>
+          <SettingsPage onBack={() => setCurrentScreen('home')} />
+        </PageTransition>
       )}
 
       {currentScreen === 'plan' && (
-        <PlanPage
-          setCurrentScreen={setCurrentScreen}
-          setIsMenuOpen={setIsMenuOpen}
-        />
+        <PageTransition>
+          <PlanPage
+            setCurrentScreen={setCurrentScreen}
+            setIsMenuOpen={setIsMenuOpen}
+          />
+        </PageTransition>
       )}
 
       {currentScreen === 'chat' && (
-        <ChatPage
-          setCurrentScreen={setCurrentScreen}
-          setIsMenuOpen={setIsMenuOpen}
-        />
+        <PageTransition>
+          <ChatPage
+            setCurrentScreen={setCurrentScreen}
+            setIsMenuOpen={setIsMenuOpen}
+          />
+        </PageTransition>
       )}
 
       {currentScreen === 'admin-chat' && (
-        <AdminChatPage
-          setCurrentScreen={setCurrentScreen}
-          setIsMenuOpen={setIsMenuOpen}
-        />
+        <PageTransition>
+          <AdminChatPage
+            setCurrentScreen={setCurrentScreen}
+            setIsMenuOpen={setIsMenuOpen}
+          />
+        </PageTransition>
       )}
 
       {currentScreen === 'management-committee' && (
-        <ManagementCommitteeManagement onBack={() => setCurrentScreen('home')} setCurrentScreen={setCurrentScreen} />
+        <PageTransition>
+          <ManagementCommitteeManagement onBack={() => setCurrentScreen('home')} setCurrentScreen={setCurrentScreen} />
+        </PageTransition>
       )}
 
       {/* Reservation Modal */}
