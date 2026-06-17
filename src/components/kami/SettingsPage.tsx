@@ -5,7 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, Settings, Shield, Palette } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { ArrowLeft, Settings, Shield, Palette, AlertCircle } from 'lucide-react';
 
 interface SettingsPageProps {
   onBack: () => void;
@@ -18,6 +21,11 @@ export function SettingsPage({ onBack }: SettingsPageProps) {
   // Security settings
   const [secureConnection, setSecureConnection] = useState(true);
   const [adminMode, setAdminMode] = useState(false);
+
+  // Password dialog state
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [adminPassword, setAdminPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
   // Load settings from localStorage on mount
   useEffect(() => {
@@ -43,6 +51,39 @@ export function SettingsPage({ onBack }: SettingsPageProps) {
   useEffect(() => {
     localStorage.setItem('settings-admin', adminMode.toString());
   }, [adminMode]);
+
+  // Handle admin mode toggle
+  const handleAdminToggle = (checked: boolean) => {
+    if (checked) {
+      // Ask for password when enabling
+      setShowPasswordDialog(true);
+      setPasswordError('');
+    } else {
+      // Disable without password
+      setAdminMode(false);
+    }
+  };
+
+  // Handle password submission
+  const handlePasswordSubmit = () => {
+    const ADMIN_PASSWORD = 'admin123'; // In production, this should be stored securely on server
+
+    if (adminPassword === ADMIN_PASSWORD) {
+      setAdminMode(true);
+      setShowPasswordDialog(false);
+      setAdminPassword('');
+      setPasswordError('');
+    } else {
+      setPasswordError('Mot de passe incorrect');
+    }
+  };
+
+  // Handle password dialog close
+  const handlePasswordDialogClose = () => {
+    setShowPasswordDialog(false);
+    setAdminPassword('');
+    setPasswordError('');
+  };
 
   return (
     <div className="flex-1 flex flex-col bg-background p-6 pt-16 animate-fade-in-up">
@@ -126,13 +167,60 @@ export function SettingsPage({ onBack }: SettingsPageProps) {
               </div>
               <Switch
                 checked={adminMode}
-                onCheckedChange={setAdminMode}
+                onCheckedChange={handleAdminToggle}
                 className="data-[state=checked]:bg-red-500"
               />
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Password Dialog for Admin Mode */}
+      <Dialog open={showPasswordDialog} onOpenChange={handlePasswordDialogClose}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-red-500" />
+              Mot de passe administrateur
+            </DialogTitle>
+            <DialogDescription>
+              Entrez le mot de passe administrateur pour activer le mode admin
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="admin-password">Mot de passe</Label>
+              <Input
+                id="admin-password"
+                type="password"
+                value={adminPassword}
+                onChange={(e) => setAdminPassword(e.target.value)}
+                placeholder="Entrez le mot de passe"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handlePasswordSubmit();
+                  }
+                }}
+                autoFocus
+              />
+            </div>
+            {passwordError && (
+              <div className="flex items-center gap-2 text-sm text-destructive">
+                <AlertCircle className="h-4 w-4" />
+                {passwordError}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={handlePasswordDialogClose}>
+              Annuler
+            </Button>
+            <Button onClick={handlePasswordSubmit}>
+              Confirmer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
