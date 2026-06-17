@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Building2,
   Wallet,
@@ -20,26 +20,15 @@ import {
   ArrowDownRight,
   BarChart3,
   Activity,
-  MapPin,
-  ShoppingCart,
-  UserCheck,
-  UserPlus,
-  MessageSquare,
-  Ban,
-  ShieldAlert,
-  Trash2,
-  ArrowUpDown,
-  ChevronUp,
-  ChevronDown
+  MapPin
 } from 'lucide-react'
-import { toast } from 'sonner'
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   LineChart,
   Line,
@@ -63,19 +52,6 @@ interface AdminStats {
   paymentsThisMonth: number
   averagePaymentPerUser: number
   occupancyRate: number
-}
-
-interface User {
-  id: string
-  name: string
-  phone: string
-  isResident: boolean
-  referralCode: string
-  status: string
-  reservationCount: number
-  totalPaid: number
-  createdAt: string
-  kycVerified?: boolean
 }
 
 interface Lot {
@@ -156,14 +132,8 @@ const COLORS = ['#10B981', '#F59E0B', '#EF4444', '#8B5E3C', '#3B82F6']
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurrentScreen }) => {
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState<AdminStats | null>(null)
-  const [users, setUsers] = useState<User[]>([])
   const [lots, setLots] = useState<Lot[]>([])
   const [recentPayments, setRecentPayments] = useState<RecentPayment[]>([])
-
-  // États de filtrage pour les utilisateurs
-  const [userFilter, setUserFilter] = useState<string>('')
-  const [sortField, setSortField] = useState<string>('createdAt')
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -174,13 +144,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
         if (statsResponse.ok) {
           const statsData = await statsResponse.json()
           setStats(statsData)
-        }
-
-        // Fetch users
-        const usersResponse = await fetch('/api/admin/users')
-        if (usersResponse.ok) {
-          const usersData = await usersResponse.json()
-          setUsers(usersData)
         }
 
         // Fetch lots
@@ -221,761 +184,305 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
     return `${amount.toLocaleString()} FCFA`
   }
 
-  // Fonction de tri des utilisateurs
-  const handleSort = (field: string) => {
-    if (sortField === field) {
-      // Inverser la direction si on clique sur le même champ
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
-    } else {
-      // Nouveau champ, trier par défaut desc pour la date, asc sinon
-      setSortField(field)
-      setSortDirection(field === 'createdAt' ? 'desc' : 'asc')
-    }
-  }
-
-  // Fonction de filtrage des utilisateurs
-  const filteredUsers = users.filter(user => {
-    if (!userFilter) return true
-    const filter = userFilter.toLowerCase()
-
-    switch (userFilter) {
-      case 'active':
-        return user.status === 'ACTIVE'
-      case 'blocked':
-        return user.status === 'BLOCKED'
-      case 'resident':
-        return user.isResident
-      case 'non-resident':
-        return !user.isResident
-      case 'kyc-verified':
-        return user.kycVerified === true
-      case 'kyc-pending':
-        return user.kycVerified !== true
-      default:
-        return user.name.toLowerCase().includes(filter) ||
-               user.phone.includes(filter) ||
-               user.referralCode.toLowerCase().includes(filter)
-    }
-  })
-
-  // Fonction de tri des utilisateurs filtrés
-  const sortedUsers = [...filteredUsers].sort((a, b) => {
-    let comparison = 0
-
-    switch (sortField) {
-      case 'name':
-        comparison = a.name.localeCompare(b.name)
-        break
-      case 'type':
-        comparison = a.isResident === b.isResident ? 0 : a.isResident ? -1 : 1
-        break
-      case 'status':
-        comparison = a.status.localeCompare(b.status)
-        break
-      case 'kyc':
-        const aKyc = a.kycVerified ? 1 : 0
-        const bKyc = b.kycVerified ? 1 : 0
-        comparison = aKyc - bKyc
-        break
-      case 'createdAt':
-        comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        break
-      default:
-        comparison = 0
-    }
-
-    return sortDirection === 'asc' ? comparison : -comparison
-  })
-
-  const formatSortIcon = (field: string) => {
-    if (sortField !== field) {
-      return <ArrowUpDown className="h-3 w-3 ml-1 opacity-50" />
-    }
-    return sortDirection === 'asc'
-      ? <ChevronUp className="h-3 w-3 ml-1" />
-      : <ChevronDown className="h-3 w-3 ml-1" />
-  }
-
-  const handleUserFilterClick = (filter: string) => {
-    if (userFilter === filter) {
-      setUserFilter('')
-    } else {
-      setUserFilter(filter)
-    }
-  }
-
-  // Gestion des utilisateurs
-  const handleBlockUser = async (userId: string, userName: string) => {
-    if (!confirm(`Voulez-vous vraiment bloquer l'utilisateur ${userName} ?`)) return;
-
-    try {
-      const response = await fetch(`/api/admin/users/${encodeURIComponent(userId)}/status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'BLOCKED' }),
-      });
-
-      if (response.ok) {
-        toast.success('Utilisateur bloqué avec succès !');
-        // Recharger la liste des utilisateurs
-        const usersResponse = await fetch('/api/admin/users');
-        if (usersResponse.ok) {
-          setUsers(await usersResponse.json());
-        }
-      } else {
-        toast.error('Erreur lors du blocage de l\'utilisateur');
-      }
-    } catch (error) {
-      toast.error('Erreur lors du blocage de l\'utilisateur');
-    }
-  }
-
-  const handleUnblockUser = async (userId: string, userName: string) => {
-    if (!confirm(`Voulez-vous vraiment débloquer l'utilisateur ${userName} ?`)) return;
-
-    try {
-      const response = await fetch(`/api/admin/users/${encodeURIComponent(userId)}/status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'ACTIVE' }),
-      });
-
-      if (response.ok) {
-        toast.success('Utilisateur débloqué avec succès !');
-        // Recharger la liste des utilisateurs
-        const usersResponse = await fetch('/api/admin/users');
-        if (usersResponse.ok) {
-          setUsers(await usersResponse.json());
-        }
-      } else {
-        toast.error('Erreur lors du déblocage de l\'utilisateur');
-      }
-    } catch (error) {
-      toast.error('Erreur lors du déblocage de l\'utilisateur');
-    }
-  }
-
-  const handleDeleteUser = async (userId: string, userName: string) => {
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur ${userName} ? Cette action est irréversible.`)) return;
-
-    try {
-      const response = await fetch(`/api/admin/users?id=${encodeURIComponent(userId)}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        toast.success('Utilisateur supprimé avec succès !');
-        // Recharger la liste des utilisateurs
-        const usersResponse = await fetch('/api/admin/users');
-        if (usersResponse.ok) {
-          setUsers(await usersResponse.json());
-        }
-      } else {
-        toast.error('Erreur lors de la suppression de l\'utilisateur');
-      }
-    } catch (error) {
-      toast.error('Erreur lors de la suppression de l\'utilisateur');
-    }
-  }
-
-  // Données pour les graphiques
-  const lotStatusData = [
-    { name: 'Disponible', value: stats?.availableLots || 0, color: '#10B981' },
-    { name: 'Réservé', value: stats?.reservedLots || 0, color: '#F59E0B' },
-    { name: 'Payé', value: stats?.paidLots || 0, color: '#EF4444' }
+  const lotStatsData = [
+    { name: 'Disponibles', value: stats?.availableLots || 0, color: '#10B981' },
+    { name: 'Réservés', value: stats?.reservedLots || 0, color: '#F59E0B' },
+    { name: 'Soldés', value: stats?.paidLots || 0, color: '#EF4444' }
   ]
 
-  const blockDistribution = lots.reduce((acc, lot) => {
-    const block = lot.block
-    if (!acc[block]) {
-      acc[block] = { block, available: 0, reserved: 0, paid: 0 }
-    }
-    if (lot.status === 'AVAILABLE') acc[block].available++
-    else if (lot.status === 'RESERVED') acc[block].reserved++
-    else if (lot.status === 'PAID') acc[block].paid++
-    return acc
-  }, {} as Record<string, any>)
-
-  const blockData = Object.values(blockDistribution)
-
-  const userStatsData = [
-    { name: 'Résidents', value: users.filter(u => u.isResident).length, color: '#8B5E3C' },
-    { name: 'Non-Résidents', value: users.filter(u => !u.isResident).length, color: '#3B82F6' }
+  const paymentStatusData = [
+    { name: 'Validés', value: stats?.paidLots || 0, color: '#10B981' },
+    { name: 'En attente', value: stats?.pendingPayments || 0, color: '#F59E0B' }
   ]
 
-  const revenueData = recentPayments.slice(0, 7).reverse().map((payment, index) => ({
-    name: new Date(payment.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
-    montant: payment.amount,
-    lot: payment.lotName
-  }))
+  const monthlyData = [
+    { month: 'Jan', revenue: 0, reservations: 0 },
+    { month: 'Fév', revenue: 0, reservations: 0 },
+    { month: 'Mar', revenue: 0, reservations: 0 },
+    { month: 'Avr', revenue: 0, reservations: 0 },
+    { month: 'Mai', revenue: 0, reservations: 0 },
+    { month: 'Juin', revenue: 0, reservations: 0 },
+    { month: 'Juil', revenue: stats?.totalRevenue || 0, reservations: stats?.reservationsThisMonth || 0 },
+  ]
 
   return (
-    <div className="min-h-screen flex flex-col bg-background pb-20">
-      {/* Header */}
-      <header className="bg-card p-4 shadow-sm flex items-center justify-between sticky top-0 z-10">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={onBack}>
-            <ArrowUpRight className="h-5 w-5 text-foreground rotate-180" />
-          </Button>
-          <div>
-            <h1 className="text-xl font-bold text-foreground">Tableau de Bord Admin</h1>
-            <p className="text-xs text-muted-foreground">Vue d'ensemble de la plateforme</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <Badge className="bg-[#8B5E3C]">Administration</Badge>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setCurrentScreen?.('admin-chat')}
-            className="hover:bg-blue-50 dark:hover:bg-blue-950"
-          >
-            <MessageSquare className="h-5 w-5 text-foreground" />
-          </Button>
-        </div>
-      </header>
+    <div className="space-y-6">
+      {onBack && (
+        <Button variant="ghost" onClick={onBack} className="text-muted-foreground">
+          Retour
+        </Button>
+      )}
 
-      <div className="flex-1 p-4 space-y-6">
-        {/* Cartes de statistiques principales */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            title="Total Lots"
-            value={stats?.totalLots || 0}
-            icon={<Building2 className="h-5 w-5 text-primary" />}
-            description="Lots dans le système"
-            trend={stats?.occupancyRate}
-          />
-          <StatCard
-            title="Utilisateurs"
-            value={stats?.totalUsers || 0}
-            icon={<Users className="h-5 w-5 text-blue-500 dark:text-blue-400" />}
-            description="Utilisateurs inscrits"
-            change={stats?.activeUsers ? `${stats.activeUsers} actifs` : undefined}
-          />
-          <StatCard
-            title="Revenus Totaux"
-            value={`${(stats?.totalRevenue || 0).toLocaleString()} FCFA`}
-            icon={<DollarSign className="h-5 w-5 text-emerald-500 dark:text-emerald-400" />}
-            description="Cumul des paiements"
-          />
-          <StatCard
-            title="Paiements en attente"
-            value={stats?.pendingPayments || 0}
-            icon={<AlertCircle className="h-5 w-5 text-orange-500 dark:text-orange-400" />}
-            description="À valider"
-            changePositive={false}
-          />
-        </div>
-
-        {/* Graphiques principaux */}
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* Distribution des lots par statut */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Activity className="h-5 w-5 text-primary" />
-                Distribution des Lots
-              </CardTitle>
-              <CardDescription>
-                Répartition par statut
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <RechartsPieChart>
-                  <Pie
-                    data={lotStatusData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {lotStatusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: number) => value.toLocaleString()} />
-                  <Legend />
-                </RechartsPieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Répartition par îlots */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-primary" />
-                Répartition par Îlots
-              </CardTitle>
-              <CardDescription>
-                Distribution des lots par bloc
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={blockData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="block" />
-                  <YAxis />
-                  <Tooltip formatter={(value: number) => value.toLocaleString()} />
-                  <Legend />
-                  <Bar dataKey="available" stackId="a" fill="#10B981" name="Disponible" />
-                  <Bar dataKey="reserved" stackId="a" fill="#F59E0B" name="Réservé" />
-                  <Bar dataKey="paid" stackId="a" fill="#EF4444" name="Payé" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Statistiques utilisateurs et revenus */}
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* Types d'utilisateurs */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <UserCheck className="h-5 w-5 text-primary" />
-                Types d'Utilisateurs
-              </CardTitle>
-              <CardDescription>
-                Résidents vs Non-Résidents
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={250}>
-                <RechartsPieChart>
-                  <Pie
-                    data={userStatsData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {userStatsData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: number) => value.toLocaleString()} />
-                  <Legend />
-                </RechartsPieChart>
-              </ResponsiveContainer>
-              <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t">
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground">Résidents</p>
-                  <p className="text-2xl font-bold text-[#8B5E3C] dark:text-[#A5785C]">
-                    {users.filter(u => u.isResident).length}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground">Non-Résidents</p>
-                  <p className="text-2xl font-bold text-blue-500 dark:text-blue-400">
-                    {users.filter(u => !u.isResident).length}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Historique des revenus récents */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Activity className="h-5 w-5 text-primary" />
-                Revenus Récents
-              </CardTitle>
-              <CardDescription>
-                Derniers paiements (7 derniers)
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={revenueData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip 
-                    formatter={(value: number) => [formatCurrency(value), 'Montant']}
-                    labelFormatter={(label) => `Date: ${label}`}
-                  />
-                  <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="montant" 
-                    stroke="#10B981" 
-                    strokeWidth={2}
-                    name="Montant"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Statistiques détaillées */}
-        <div className="grid gap-4 md:grid-cols-3">
-          <StatCard
-            title="Réservations ce mois"
-            value={stats?.reservationsThisMonth || 0}
-            icon={<ShoppingCart className="h-5 w-5 text-purple-500 dark:text-purple-400" />}
-            description="Nouvelles réservations"
-          />
-          <StatCard
-            title="Paiements ce mois"
-            value={stats?.paymentsThisMonth || 0}
-            icon={<Wallet className="h-5 w-5 text-cyan-500 dark:text-cyan-400" />}
-            description="Transactions validées"
-          />
-          <StatCard
-            title="Moyenne par utilisateur"
-            value={formatCurrency(stats?.averagePaymentPerUser || 0)}
-            icon={<TrendingUp className="h-5 w-5 text-rose-500 dark:text-rose-400" />}
-            description="Investissement moyen"
-          />
-        </div>
-
-        {/* Détails avec onglets */}
-        <Tabs defaultValue="users" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="users" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Gérer utilisateur ({users.length})
-            </TabsTrigger>
-            <TabsTrigger value="lots" className="flex items-center gap-2">
-              <Building2 className="h-4 w-4" />
-              Lots ({lots.length})
-            </TabsTrigger>
-            <TabsTrigger value="payments" className="flex items-center gap-2">
-              <DollarSign className="h-4 w-4" />
-              Paiements ({recentPayments.length})
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="users" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Liste des Utilisateurs</CardTitle>
-                <CardDescription>
-                  {sortedUsers.length} utilisateur{sortedUsers.length > 1 ? 's' : ''} affiché{sortedUsers.length > 1 ? 's' : ''}
-                  {userFilter && ` • Filtre actif: ${userFilter}`}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-border">
-                        <th
-                          className="text-left py-3 px-4 font-semibold text-foreground cursor-pointer hover:bg-muted/50 transition-colors"
-                          onClick={() => handleSort('name')}
-                        >
-                          <div className="flex items-center">
-                            Utilisateur
-                            {formatSortIcon('name')}
-                          </div>
-                        </th>
-                        <th
-                          className="text-left py-3 px-4 font-semibold text-foreground cursor-pointer hover:bg-muted/50 transition-colors"
-                          onClick={() => handleUserFilterClick(userFilter === 'resident' ? '' : 'resident')}
-                        >
-                          <div className="flex items-center gap-2">
-                            Type
-                            {userFilter === 'resident' && (
-                              <Badge variant="secondary" className="text-xs">
-                                {sortedUsers.filter(u => u.isResident).length}
-                              </Badge>
-                            )}
-                            {userFilter === 'non-resident' && (
-                              <Badge variant="secondary" className="text-xs">
-                                {sortedUsers.filter(u => !u.isResident).length}
-                              </Badge>
-                            )}
-                          </div>
-                        </th>
-                        <th
-                          className="text-left py-3 px-4 font-semibold text-foreground cursor-pointer hover:bg-muted/50 transition-colors"
-                          onClick={() => handleUserFilterClick(userFilter === 'active' ? '' : 'active')}
-                        >
-                          <div className="flex items-center gap-2">
-                            Statut
-                            {userFilter === 'active' && (
-                              <Badge variant="secondary" className="text-xs">
-                                {sortedUsers.filter(u => u.status === 'ACTIVE').length}
-                              </Badge>
-                            )}
-                            {userFilter === 'blocked' && (
-                              <Badge variant="secondary" className="text-xs">
-                                {sortedUsers.filter(u => u.status === 'BLOCKED').length}
-                              </Badge>
-                            )}
-                          </div>
-                        </th>
-                        <th
-                          className="text-left py-3 px-4 font-semibold text-foreground cursor-pointer hover:bg-muted/50 transition-colors"
-                          onClick={() => handleUserFilterClick(userFilter === 'kyc-verified' ? '' : 'kyc-verified')}
-                        >
-                          <div className="flex items-center gap-2">
-                            KYC
-                            {userFilter === 'kyc-verified' && (
-                              <Badge variant="secondary" className="text-xs">
-                                {sortedUsers.filter(u => u.kycVerified).length}
-                              </Badge>
-                            )}
-                            {userFilter === 'kyc-pending' && (
-                              <Badge variant="secondary" className="text-xs">
-                                {sortedUsers.filter(u => !u.kycVerified).length}
-                              </Badge>
-                            )}
-                          </div>
-                        </th>
-                        <th
-                          className="text-left py-3 px-4 font-semibold text-foreground cursor-pointer hover:bg-muted/50 transition-colors"
-                          onClick={() => handleSort('createdAt')}
-                        >
-                          <div className="flex items-center">
-                            Date
-                            {formatSortIcon('createdAt')}
-                          </div>
-                        </th>
-                        <th className="text-left py-3 px-4 font-semibold text-foreground">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {sortedUsers.map((user, index) => (
-                        <tr key={user.id || `admin-user-${index}`} className="border-b border-border hover:bg-muted/30 transition-colors">
-                          <td className="py-3 px-4">
-                            <div>
-                              <p className="font-medium text-foreground">{user.name}</p>
-                              <p className="text-xs text-muted-foreground">{user.phone}</p>
-                            </div>
-                          </td>
-                          <td className="py-3 px-4">
-                            <Badge
-                              variant="secondary"
-                              className={user.isResident ? 'bg-[#8B5E3C]/10 text-[#8B5E3C] dark:text-[#A5785C]' : 'bg-blue-500/10 text-blue-500 dark:text-blue-400'}
-                            >
-                              {user.isResident ? 'Résident' : 'Non-Résident'}
-                            </Badge>
-                          </td>
-                          <td className="py-3 px-4">
-                            <Badge
-                              variant={user.status === 'ACTIVE' ? 'default' : 'secondary'}
-                              className={user.status === 'ACTIVE' ? 'bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500' : ''}
-                            >
-                              {user.status === 'ACTIVE' ? 'Actif' : 'Bloqué'}
-                            </Badge>
-                          </td>
-                          <td className="py-3 px-4">
-                            <Badge
-                              variant={user.kycVerified ? 'default' : 'secondary'}
-                              className={user.kycVerified ? 'bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500' : 'bg-orange-500/10 text-orange-500 dark:text-orange-400'}
-                            >
-                              {user.kycVerified ? 'Vérifié' : 'En attente'}
-                            </Badge>
-                          </td>
-                          <td className="py-3 px-4">
-                            <div>
-                              <p className="text-sm text-foreground">
-                                {new Date(user.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {new Date(user.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                              </p>
-                            </div>
-                          </td>
-                          <td className="py-3 px-4">
-                            <div className="flex gap-1">
-                              {user.status === 'ACTIVE' ? (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleBlockUser(user.id, user.name)}
-                                  className="text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/30"
-                                >
-                                  <Ban className="h-3 w-3" />
-                                </Button>
-                              ) : (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleUnblockUser(user.id, user.name)}
-                                  className="text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
-                                >
-                                  <ShieldAlert className="h-3 w-3" />
-                                </Button>
-                              )}
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleDeleteUser(user.id, user.name)}
-                                className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {sortedUsers.length === 0 && (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Aucun utilisateur trouvé</p>
-                    {userFilter && (
-                      <Button
-                        variant="outline"
-                        onClick={() => setUserFilter('')}
-                        className="mt-4"
-                      >
-                        Effacer le filtre
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="lots" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Liste des Lots</CardTitle>
-                <CardDescription>
-                  Tous les lots de la plateforme
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[400px] pr-4">
-                  <div className="space-y-4">
-                    {lots.map((lot) => {
-                      const getStatusBadge = () => {
-                        switch (lot.status) {
-                          case 'AVAILABLE':
-                            return <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">DISPONIBLE</Badge>
-                          case 'RESERVED':
-                            return <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">RÉSERVÉ</Badge>
-                          case 'PAID':
-                            return <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">SOLDÉ</Badge>
-                        }
-                      }
-                      
-                      return (
-                        <Card key={lot.id} className="border-border">
-                          <CardContent className="p-4">
-                            <div className="flex items-start justify-between mb-3">
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                  <h4 className="font-semibold text-foreground">{lot.name}</h4>
-                                  {getStatusBadge()}
-                                </div>
-                                <p className="text-sm text-muted-foreground">
-                                  Îlot {lot.block} • {lot.surface}
-                                </p>
-                              </div>
-                              <MapPin className="h-4 w-4 text-muted-foreground" />
-                            </div>
-                            <div className="space-y-2">
-                              <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Prix Résident</span>
-                                <span className="font-medium text-[#8B5E3C] dark:text-[#A5785C]">
-                                  {formatCurrency(lot.priceRes)}
-                                </span>
-                              </div>
-                              <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Prix Non-Résident</span>
-                                <span className="font-medium text-blue-500 dark:text-blue-400">
-                                  {formatCurrency(lot.priceNon)}
-                                </span>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )
-                    })}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="payments" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Paiements Récents</CardTitle>
-                <CardDescription>
-                  Derniers paiements effectués
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[400px] pr-4">
-                  <div className="space-y-4">
-                    {recentPayments.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center py-12 text-center">
-                        <DollarSign className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                        <p className="text-muted-foreground">Aucun paiement récent</p>
-                      </div>
-                    ) : (
-                      recentPayments.map((payment, index) => (
-                        <Card key={payment.id || `recent-pay-${index}`} className="border-border">
-                          <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                  <h4 className="font-semibold text-foreground">{payment.userName}</h4>
-                                  <Badge
-                                    variant={payment.status === 'VALIDATED' ? 'default' : 'secondary'}
-                                    className={
-                                      payment.status === 'VALIDATED'
-                                        ? 'bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500'
-                                        : 'bg-orange-500/10 text-orange-500 dark:text-orange-400'
-                                    }
-                                  >
-                                    {payment.status === 'VALIDATED' ? 'Validé' : 'En attente'}
-                                  </Badge>
-                                </div>
-                                <p className="text-sm text-muted-foreground">
-                                  Lot {payment.lotName} • {payment.type === 'FULL' ? 'Paiement complet' : 'Paiement partiel'}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {new Date(payment.createdAt).toLocaleDateString('fr-FR', {
-                                    day: 'numeric',
-                                    month: 'long',
-                                    year: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                  })}
-                                </p>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-2xl font-bold text-foreground">
-                                  {formatCurrency(payment.amount)}
-                                </p>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))
-                    )}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+      <div>
+        <h2 className="text-3xl font-bold text-foreground mb-2">Tableau de Bord Administrateur</h2>
+        <p className="text-muted-foreground">Aperçu global de la plateforme</p>
       </div>
+
+      {/* Cartes de statistiques principales */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatCard
+          title="Utilisateurs"
+          value={stats?.totalUsers || 0}
+          description={`${stats?.activeUsers || 0} actifs`}
+          icon={<Users className="h-5 w-5 text-primary" />}
+          change={'+12%'}
+          changePositive={true}
+        />
+        <StatCard
+          title="Lots Disponibles"
+          value={stats?.availableLots || 0}
+          description={`Sur ${stats?.totalLots || 0} total`}
+          icon={<Building2 className="h-5 w-5 text-emerald-500" />}
+        />
+        <StatCard
+          title="Chiffre d'Affaires"
+          value={formatCurrency(stats?.totalRevenue || 0)}
+          description={`${stats?.paymentsThisMonth || 0} paiements ce mois`}
+          icon={<Wallet className="h-5 w-5 text-[#8B5E3C]" />}
+          change={'+23%'}
+          changePositive={true}
+        />
+        <StatCard
+          title="Réservations"
+          value={stats?.reservationsThisMonth || 0}
+          description="Ce mois-ci"
+          icon={<Calendar className="h-5 w-5 text-blue-500" />}
+          change={'+8%'}
+          changePositive={true}
+        />
+      </div>
+
+      {/* Graphiques */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Répartition des lots */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Répartition des Lots
+            </CardTitle>
+            <CardDescription>
+              État actuel de tous les lots
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={250}>
+              <RechartsPieChart>
+                <Pie
+                  data={lotStatsData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {lotStatsData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Legend />
+              </RechartsPieChart>
+            </ResponsiveContainer>
+            <div className="grid grid-cols-3 gap-4 mt-4">
+              <div className="text-center p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/20">
+                <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{stats?.availableLots || 0}</div>
+                <div className="text-xs text-muted-foreground">Disponibles</div>
+              </div>
+              <div className="text-center p-3 rounded-lg bg-orange-50 dark:bg-orange-950/20">
+                <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{stats?.reservedLots || 0}</div>
+                <div className="text-xs text-muted-foreground">Réservés</div>
+              </div>
+              <div className="text-center p-3 rounded-lg bg-red-50 dark:bg-red-950/20">
+                <div className="text-2xl font-bold text-red-600 dark:text-red-400">{stats?.paidLots || 0}</div>
+                <div className="text-xs text-muted-foreground">Soldés</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Évolution mensuelle */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Évolution Mensuelle
+            </CardTitle>
+            <CardDescription>
+              Réservations et revenus des 6 derniers mois
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={250}>
+              <LineChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis
+                  dataKey="month"
+                  className="text-xs"
+                  stroke="currentColor"
+                />
+                <YAxis
+                  className="text-xs"
+                  stroke="currentColor"
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px',
+                  }}
+                />
+                <Legend />
+                <Line type="monotone" dataKey="reservations" stroke={COLORS[4]} strokeWidth={2} name="Réservations" />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Détails avec onglets */}
+      <Tabs defaultValue="lots" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="lots" className="flex items-center gap-2">
+            <Building2 className="h-4 w-4" />
+            Lots ({lots.length})
+          </TabsTrigger>
+          <TabsTrigger value="payments" className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4" />
+            Paiements ({recentPayments.length})
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="lots" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Liste des Lots</CardTitle>
+              <CardDescription>
+                Tous les lots de la plateforme
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[400px] pr-4">
+                <div className="space-y-4">
+                  {lots.map((lot) => {
+                    const getStatusBadge = () => {
+                      switch (lot.status) {
+                        case 'AVAILABLE':
+                          return <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">DISPONIBLE</Badge>
+                        case 'RESERVED':
+                          return <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">RÉSERVÉ</Badge>
+                        case 'PAID':
+                          return <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">SOLDÉ</Badge>
+                      }
+                    }
+
+                    return (
+                      <Card key={lot.id} className="border-border">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-semibold text-foreground">{lot.name}</h4>
+                                {getStatusBadge()}
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                Îlot {lot.block} • {lot.surface}
+                              </p>
+                            </div>
+                            <MapPin className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-muted-foreground">Prix Résident</span>
+                              <span className="font-medium text-[#8B5E3C] dark:text-[#A5785C]">
+                                {formatCurrency(lot.priceRes)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-muted-foreground">Prix Non-Résident</span>
+                              <span className="font-medium text-blue-500 dark:text-blue-400">
+                                {formatCurrency(lot.priceNon)}
+                              </span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="payments" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Paiements Récents</CardTitle>
+              <CardDescription>
+                Derniers paiements effectués
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[400px] pr-4">
+                <div className="space-y-4">
+                  {recentPayments.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Wallet className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>Aucun paiement récent</p>
+                    </div>
+                  ) : (
+                    recentPayments.map((payment) => (
+                      <Card key={payment.id} className="border-border">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <div>
+                              <h4 className="font-semibold text-foreground">{payment.userName}</h4>
+                              <p className="text-sm text-muted-foreground">Lot {payment.lotName}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-bold text-foreground">{formatCurrency(payment.amount)}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(payment.createdAt).toLocaleDateString('fr-FR')}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between mt-2">
+                            <Badge
+                              variant={payment.status === 'VALIDATED' ? 'default' : 'secondary'}
+                              className={
+                                payment.status === 'VALIDATED'
+                                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                                  : ''
+                              }
+                            >
+                              {payment.status === 'VALIDATED' ? (
+                                <>
+                                  <CheckCircle2 className="h-3 w-3 mr-1" />
+                                  Validé
+                                </>
+                              ) : (
+                                <>
+                                  <Clock className="h-3 w-3 mr-1" />
+                                  En attente
+                                </>
+                              )}
+                            </Badge>
+                            <Badge variant="outline">
+                              {payment.type}
+                            </Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
-
-export default AdminDashboard

@@ -32,528 +32,528 @@
     32→import { PlanPage } from '@/components/kami/PlanPage';
     33→import { ManagementCommitteeManagement } from '@/components/kami/ManagementCommitteeManagement';
     34→import { PageTransition } from '@/components/ui/page-transition';
-    35→
-    36→export default function KamiExtensionPage() {
-    37→  const [mounted, setMounted] = useState(false);
-    38→
-    39→  // Store state
-    40→  const {
-    41→    currentUser,
-    42→    setCurrentUser,
-    43→    logout,
-    44→    currentScreen,
-    45→    setCurrentScreen,
-    46→    lots,
-    47→    setLots,
-    48→    myReservations,
-    49→    setMyReservations,
-    50→    addReservation,
-    51→    isMenuOpen,
-    52→    setIsMenuOpen,
-    53→    selectedLot,
-    54→    setSelectedLot,
-    55→    isReservationModalOpen,
-    56→    setIsReservationModalOpen,
-    57→    congratulationNotification,
-    58→    setCongratulationNotification,
-    59→  } = useAppStore();
-    60→
-    61→  // Form states
-    62→  const [loginName, setLoginName] = useState('');
-    63→  const [loginPhone, setLoginPhone] = useState('');
-    64→  const [loginIsResident, setLoginIsResident] = useState(true);
-    65→  const [paymentAmount, setPaymentAmount] = useState('');
-    66→  const [agreeRules, setAgreeRules] = useState(false);
-    67→  const [adminView, setAdminView] = useState<string | null>(null);
-    68→
-    69→  const loadLots = async () => {
-    70→    try {
-    71→      const response = await fetch('/api/lots');
-    72→      if (response.ok) {
-    73→        const data = await response.json();
-    74→        setLots(data);
-    75→      }
-    76→    } catch (error) {
-    77→      console.error('Error loading lots:', error);
-    78→      // Use demo data if API fails
-    79→      setLots([
-    80→        { id: '1', name: 'A-01', surface: '300m²', priceRes: 100000, priceNon: 150000, status: 'AVAILABLE' },
-    81→        { id: '2', name: 'A-02', surface: '350m²', priceRes: 100000, priceNon: 150000, status: 'AVAILABLE' },
-    82→        { id: '3', name: 'B-01', surface: '400m²', priceRes: 150000, priceNon: 200000, status: 'AVAILABLE' },
-    83→      ]);
-    84→    }
-    85→  };
-    86→
-    87→  const loadMyReservations = async () => {
-    88→    try {
-    89→      const response = await fetch(`/api/reservations?userId=${currentUser?.id}`);
-    90→      if (response.ok) {
-    91→        const data = await response.json();
-    92→        setMyReservations(data);
-    93→      }
-    94→    } catch (error) {
-    95→      console.error('Error loading reservations:', error);
-    96→    }
-    97→  };
-    98→
-    99→  const checkCongratulationNotifications = async () => {
-   100→    if (!currentUser?.id) return;
-   101→
-   102→    try {
-   103→      const response = await fetch(`/api/user/notifications?userId=${currentUser?.id}`);
-   104→      if (response.ok) {
-   105→        const data = await response.json();
-   106→        if (data.shouldShow) {
-   107→          setCongratulationNotification({
-   108→            show: true,
-   109→            lotName: data.lotName,
-   110→            lotBlock: data.lotBlock,
-   111→          });
-   112→        }
-   113→      }
-   114→    } catch (error) {
-   115→      console.error('Error checking notifications:', error);
-   116→    }
-   117→  };
-   118→
-   119→  useEffect(() => {
-   120→    setMounted(true);
-   121→    loadLots();
-   122→    if (currentUser?.id) {
-   123→      loadMyReservations();
-   124→      checkCongratulationNotifications();
-   125→    }
-   126→  }, [currentUser]);
-   127→
-   128→  const handleLogin = async (name: string, phone: string, password?: string) => {
-   129→    try {
-   130→      const response = await fetch('/api/auth/login', {
-   131→        method: 'POST',
-   132→        headers: { 'Content-Type': 'application/json' },
-   133→        body: JSON.stringify({
-   134→          name,
-   135→          phone,
-   136→          password: password || undefined,
-   137→        }),
-   138→      });
-   139→
-   140→      if (response.ok) {
-   141→        const user = await response.json();
-   142→        setCurrentUser(user);
-   143→        toast.success(`Bienvenue ${user.name} !`);
-   144→        setCurrentScreen('home');
-   145→      } else {
-   146→        const data = await response.json();
-   147→        toast.error(data.error || 'Erreur de connexion');
-   148→      }
-   149→    } catch (error) {
-   150→      console.error('Login error:', error);
-   151→      toast.error('Erreur de connexion');
-   152→    }
-   153→  };
-   154→
-   155→  const handleOpenReservation = (lot: typeof lots[0]) => {
-   156→    if (!currentUser) {
-   157→      toast.error('Veuillez vous connecter pour réserver');
-   158→      setCurrentScreen('auth-choice');
-   159→      return;
-   160→    }
-   161→    setSelectedLot(lot);
-   162→    setPaymentAmount('');
-   163→    setAgreeRules(false);
-   164→    setIsReservationModalOpen(true);
-   165→  };
-   166→
-   167→  const handleReservation = async () => {
-   168→    if (!selectedLot || !currentUser) return;
-   169→
-   170→    const amount = parseInt(paymentAmount);
-   171→    const totalPrice = currentUser.isResident ? selectedLot.priceRes : selectedLot.priceNon;
-   172→
-   173→    if (!amount || amount < 10000) {
-   174→      toast.error('Le montant minimum est de 10 000 FCFA');
-   175→      return;
-   176→    }
-   177→
-   178→    if (amount > totalPrice) {
-   179→      toast.error('Le montant dépasse le prix du lot');
-   180→      return;
-   181→    }
-   182→
-   183→    try {
-   184→      const response = await fetch('/api/reservations', {
-   185→        method: 'POST',
-   186→        headers: { 'Content-Type': 'application/json' },
-   187→        body: JSON.stringify({
-   188→          userId: currentUser.id,
-   189→          lotId: selectedLot.id,
-   190→          amount,
-   191→          totalPrice,
-   192→          isResident: currentUser.isResident,
-   193→        }),
-   194→      });
-   195→
-   196→      if (response.ok) {
-   197→        const reservation = await response.json();
-   198→        addReservation(reservation);
-   199→        toast.success('Paiement validé avec succès !');
-   200→        setIsReservationModalOpen(false);
-   201→        loadLots();
-   202→      } else {
-   203→        toast.error('Erreur lors de la réservation');
-   204→      }
-   205→    } catch (error) {
-   206→      // Fallback for demo
-   207→      const newReservation = {
-   208→        id: `RES-${Date.now()}`,
-   209→        lotId: selectedLot.id,
-   210→        lotName: selectedLot.name,
-   211→        surface: selectedLot.surface,
-   212→        paidAmount: amount,
-   213→        totalPrice,
-   214→        isResident: currentUser.isResident,
-   215→        status: amount === totalPrice ? ('PAID' as const) : ('RESERVED' as const),
-   216→      };
-   217→      addReservation(newReservation);
-   218→      toast.success('Paiement validé avec succès !');
-   219→      setIsReservationModalOpen(false);
-   220→    }
-   221→  };
-   222→
-   223→  const copyReferralLink = () => {
-   224→    if (!currentUser?.referralCode) return;
-   225→    navigator.clipboard.writeText(`kami.app/ref/${currentUser.referralCode}`);
-   226→    toast.success('Lien copié !');
-   227→  };
-   228→
-   229→  const handleRegistrationComplete = async (userData: { name: string; phone: string; isResident: boolean; password: string }) => {
-   230→    try {
-   231→      const response = await fetch('/api/auth/register', {
-   232→        method: 'POST',
-   233→        headers: { 'Content-Type': 'application/json' },
-   234→        body: JSON.stringify({
-   235→          name: userData.name,
-   236→          phone: userData.phone,
-   237→          isResident: userData.isResident,
-   238→          password: userData.password,
-   239→        }),
-   240→      });
-   241→
-   242→      if (response.ok) {
-   243→        const user = await response.json();
-   244→        setCurrentUser(user);
-   245→        toast.success(`Bienvenue ${user.name} ! Votre compte est créé.`);
-   246→        setCurrentScreen('map');
-   247→      } else {
-   248→        const data = await response.json();
-   249→        toast.error(data.error || 'Erreur lors de la création du compte');
-   250→      }
-   251→    } catch (error) {
-   252→      console.error('Registration error:', error);
-   253→      toast.error('Erreur lors de la création du compte');
-   254→    }
-   255→  };
-   256→
-   257→  if (!mounted) return null;
-   258→
-   259→  return (
-   260→    <div className="min-h-screen flex flex-col bg-background">
-   261→      {/* Toast Container */}
-   262→      <div id="toast-container" />
-   263→
-   264→      {/* Modern Side Menu */}
-   265→      <ModernSideMenu
-   266→        isOpen={isMenuOpen}
-   267→        onClose={() => setIsMenuOpen(false)}
-   268→        currentUser={currentUser}
-   269→        onNavigate={setCurrentScreen}
-   270→        onLogout={() => {
-   271→          logout();
-   272→          toast.success('Déconnexion réussie');
-   273→        }}
-   274→      />
-   275→
-   276→      {/* Screens */}
-   277→      {/* Page d'accueil persuasive pour tous */}
-   278→      {currentScreen === 'home' && (
-   279→        <PageTransition>
-   280→          <PersuasiveLandingPage
-   281→            lots={lots}
-   282→            onReserveClick={() => {
-   283→              if (currentUser) {
-   284→                setCurrentScreen('map');
-   285→              } else {
-   286→                setCurrentScreen('auth-choice');
-   287→              }
-   288→            }}
-   289→            setIsMenuOpen={setIsMenuOpen}
-   290→            setCurrentScreen={setCurrentScreen}
-   291→          />
-   292→        </PageTransition>
-   293→      )}
-   294→
-   295→      {/* Écran d'inscription en 2 étapes */}
-   296→      {!currentUser && currentScreen === 'register' && (
-   297→        <PageTransition>
-   298→          <TwoStepRegistration
-   299→            onComplete={handleRegistrationComplete}
-   300→            onBack={() => setCurrentScreen('home')}
-   301→            setIsMenuOpen={setIsMenuOpen}
-   302→          />
-   303→        </PageTransition>
-   304→      )}
-   305→
-   306→      {/* Écran de choix d'authentification */}
-   307→      {!currentUser && currentScreen === 'auth-choice' && (
-   308→        <PageTransition>
-   309→          <AuthChoiceScreen
-   310→            onLoginClick={() => setCurrentScreen('login-screen')}
-   311→            onRegisterClick={() => setCurrentScreen('register')}
-   312→            onBack={() => setCurrentScreen('home')}
-   313→            setIsMenuOpen={setIsMenuOpen}
-   314→          />
-   315→        </PageTransition>
-   316→      )}
-   317→
-   318→      {/* Écran de connexion */}
-   319→      {!currentUser && currentScreen === 'login-screen' && (
-   320→        <PageTransition>
-   321→          <LoginScreen
-   322→            onLogin={(name, phone) => handleLogin(name, phone)}
-   323→            onBack={() => setCurrentScreen('auth-choice')}
-   324→            setIsMenuOpen={setIsMenuOpen}
-   325→          />
-   326→        </PageTransition>
-   327→      )}
-   328→
-   329→      {/* Écran de connexion (ancien, pour compatibilité) */}
-   330→      {!currentUser && currentScreen === 'login' && (
-   331→        <PageTransition>
-   332→          <AuthChoiceScreen
-   333→            onLoginClick={() => setCurrentScreen('login-screen')}
-   334→            onRegisterClick={() => setCurrentScreen('register')}
-   335→            onBack={() => setCurrentScreen('home')}
-   336→            setIsMenuOpen={setIsMenuOpen}
-   337→          />
-   338→        </PageTransition>
-   339→      )}
-   340→
-   341→      {currentScreen === 'map' && (
-   342→        <PageTransition>
-   343→          <EnhancedMapScreen
-   344→            lots={lots}
-   345→            handleOpenReservation={handleOpenReservation}
-   346→            setCurrentScreen={setCurrentScreen}
-   347→            setIsMenuOpen={setIsMenuOpen}
-   348→          />
-   349→        </PageTransition>
-   350→      )}
-   351→
-   352→      {currentScreen === 'dashboard' && (
-   353→        <PageTransition>
-   354→          <UserDashboard
-   355→            currentUser={currentUser}
-   356→            setCurrentScreen={setCurrentScreen}
-   357→            setIsMenuOpen={setIsMenuOpen}
-   358→          />
-   359→        </PageTransition>
-   360→      )}
-   361→
-   362→      {currentScreen === 'profile' && (
-   363→        <PageTransition>
-   364→          <ProfileScreen
-   365→            currentUser={currentUser}
-   366→            copyReferralLink={copyReferralLink}
-   367→            setCurrentScreen={setCurrentScreen}
-   368→            setIsMenuOpen={setIsMenuOpen}
-   369→          />
-   370→        </PageTransition>
-   371→      )}
-   372→
-   373→      {currentScreen === 'affiliation' && (
-   374→        <PageTransition>
-   375→          <AffiliationScreen
-   376→            currentUser={currentUser}
-   377→            copyReferralLink={copyReferralLink}
-   378→            setCurrentScreen={setCurrentScreen}
-   379→            setIsMenuOpen={setIsMenuOpen}
-   380→          />
-   381→        </PageTransition>
-   382→      )}
-   383→
-   384→      {currentScreen === 'rules' && (
-   385→        <PageTransition>
-   386→          <RulesScreen
-   387→            setCurrentScreen={setCurrentScreen}
-   388→            setIsMenuOpen={setIsMenuOpen}
-   389→          />
-   390→        </PageTransition>
-   391→      )}
-   392→
-   393→      {currentScreen === 'admin' && (
-   394→        <PageTransition>
-   395→          <AdminScreen
-   396→            adminView={adminView}
-   397→            setAdminView={setAdminView}
-   398→            lots={lots}
-   399→            loadLots={loadLots}
-   400→            setCurrentScreen={setCurrentScreen}
-   401→          />
-   402→        </PageTransition>
-   403→      )}
-   404→
-   405→      {currentScreen === 'admin-flash-infos' && (
-   406→        <PageTransition>
-   407→          <FlashInfoAdmin onBack={() => setCurrentScreen('home')} />
-   408→        </PageTransition>
-   409→      )}
-   410→
-   411→      {currentScreen === 'settings' && (
-   412→        <PageTransition>
-   413→          <SettingsPage onBack={() => setCurrentScreen('home')} />
-   414→        </PageTransition>
-   415→      )}
-   416→
-   417→      {currentScreen === 'plan' && (
-   418→        <PageTransition>
-   419→          <PlanPage
-   420→            setCurrentScreen={setCurrentScreen}
-   421→            setIsMenuOpen={setIsMenuOpen}
-   422→          />
-   423→        </PageTransition>
-   424→      )}
-   425→
-   426→      {currentScreen === 'chat' && (
-   427→        <PageTransition>
-   428→          <ChatPage
-   429→            setCurrentScreen={setCurrentScreen}
-   430→            setIsMenuOpen={setIsMenuOpen}
-   431→          />
-   432→        </PageTransition>
-   433→      )}
-   434→
-   435→      {currentScreen === 'admin-chat' && (
-   436→        <PageTransition>
-   437→          <AdminChatPage
-   438→            setCurrentScreen={setCurrentScreen}
-   439→            setIsMenuOpen={setIsMenuOpen}
-   440→          />
-   441→        </PageTransition>
-   442→      )}
-   443→
-   444→      {currentScreen === 'management-committee' && (
-   445→        <PageTransition>
-   446→          <ManagementCommitteeManagement onBack={() => setCurrentScreen('home')} setCurrentScreen={setCurrentScreen} />
-   447→        </PageTransition>
-   448→      )}
-   449→
-   450→      {/* Reservation Modal */}
-   451→      <Dialog open={isReservationModalOpen} onOpenChange={setIsReservationModalOpen}>
-   452→        <DialogContent className="max-w-lg rounded-t-3xl">
-   453→          <div className="w-10 h-1 bg-muted rounded-full mx-auto mb-4" />
-   454→          <DialogHeader>
-   455→            <DialogTitle className="text-2xl font-bold">Lot {selectedLot?.name}</DialogTitle>
-   456→            <p className="text-xs text-muted-foreground">{selectedLot?.surface}</p>
-   457→          </DialogHeader>
-   458→
-   459→          {selectedLot && currentUser && (
-   460→            <div className="space-y-4">
-   461→              <Card className="bg-card border-border">
-   462→                <CardContent className="p-3 flex items-center justify-between">
-   463→                  <div className="flex items-center">
-   464→                    <User className="mr-3 h-5 w-5 text-[#8B5E3C]" />
-   465→                    <div>
-   466→                      <p className="text-xs text-muted-foreground">Votre statut</p>
-   467→                      <p className="font-bold text-foreground">
-   468→                        {currentUser.isResident ? 'Résident KAMI' : 'Non-Résident'}
-   469→                      </p>
-   470→                    </div>
-   471→                  </div>
-   472→                  <div className="text-right">
-   473→                    <p className="text-xs text-muted-foreground">Prix appliqué</p>
-   474→                    <p className="font-extrabold text-[#8B5E3C]">
-   475→                      {(currentUser.isResident ? selectedLot.priceRes : selectedLot.priceNon).toLocaleString('fr-FR')} F
-   476→                    </p>
-   477→                  </div>
-   478→                </CardContent>
-   479→              </Card>
-   480→
-   481→              <div>
-   482→                <Label>Montant à payer maintenant</Label>
-   483→                <p className="text-xs text-muted-foreground mb-2">Minimum requis : 10 000 F</p>
-   484→                <Input
-   485→                  type="number"
-   486→                  min={10000}
-   487→                  placeholder="Ex: 50000"
-   488→                  value={paymentAmount}
-   489→                  onChange={(e) => setPaymentAmount(e.target.value)}
-   490→                />
-   491→              </div>
-   492→
-   493→              <Card className="bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800">
-   494→                <CardContent className="p-3">
-   495→                  <label className="flex items-center space-x-2 cursor-pointer">
-   496→                    <Checkbox
-   497→                      checked={agreeRules}
-   498→                      onCheckedChange={(checked) => setAgreeRules(checked as boolean)}
-   499→                    />
-   500→                    <span className="text-xs font-bold text-foreground">
-   501→                      J'ACCEPTE LE RÈGLEMENT INTÉRIEUR
-   502→                    </span>
-   503→                  </label>
-   504→                </CardContent>
-   505→              </Card>
-   506→
-   507→              <DialogFooter className="flex-col gap-2">
-   508→                <Button
-   509→                  className="w-full bg-[#10B981] hover:bg-[#059669] text-white font-bold py-4 rounded-2xl"
-   510→                  disabled={!agreeRules}
-   511→                  onClick={handleReservation}
-   512→                >
-   513→                  Confirmer le paiement
-   514→                </Button>
-   515→                <Button
-   516→                  variant="ghost"
-   517→                  className="w-full text-muted-foreground"
-   518→                  onClick={() => setIsReservationModalOpen(false)}
-   519→                >
-   520→                  Annuler
-   521→                </Button>
-   522→              </DialogFooter>
-   523→            </div>
-   524→          )}
-   525→        </DialogContent>
-   526→      </Dialog>
-   527→
+    35→import { LogoDisplay } from '@/components/kami/LogoDisplay';
+    36→
+    37→export default function KamiExtensionPage() {
+    38→  const [mounted, setMounted] = useState(false);
+    39→
+    40→  // Store state
+    41→  const {
+    42→    currentUser,
+    43→    setCurrentUser,
+    44→    logout,
+    45→    currentScreen,
+    46→    setCurrentScreen,
+    47→    lots,
+    48→    setLots,
+    49→    myReservations,
+    50→    setMyReservations,
+    51→    addReservation,
+    52→    isMenuOpen,
+    53→    setIsMenuOpen,
+    54→    selectedLot,
+    55→    setSelectedLot,
+    56→    isReservationModalOpen,
+    57→    setIsReservationModalOpen,
+    58→    congratulationNotification,
+    59→    setCongratulationNotification,
+    60→  } = useAppStore();
+    61→
+    62→  // Form states
+    63→  const [loginName, setLoginName] = useState('');
+    64→  const [loginPhone, setLoginPhone] = useState('');
+    65→  const [loginIsResident, setLoginIsResident] = useState(true);
+    66→  const [paymentAmount, setPaymentAmount] = useState('');
+    67→  const [agreeRules, setAgreeRules] = useState(false);
+    68→  const [adminView, setAdminView] = useState<string | null>(null);
+    69→
+    70→  const loadLots = async () => {
+    71→    try {
+    72→      const response = await fetch('/api/lots');
+    73→      if (response.ok) {
+    74→        const data = await response.json();
+    75→        setLots(data);
+    76→      }
+    77→    } catch (error) {
+    78→      console.error('Error loading lots:', error);
+    79→      // Use demo data if API fails
+    80→      setLots([
+    81→        { id: '1', name: 'A-01', surface: '300m²', priceRes: 100000, priceNon: 150000, status: 'AVAILABLE' },
+    82→        { id: '2', name: 'A-02', surface: '350m²', priceRes: 100000, priceNon: 150000, status: 'AVAILABLE' },
+    83→        { id: '3', name: 'B-01', surface: '400m²', priceRes: 150000, priceNon: 200000, status: 'AVAILABLE' },
+    84→      ]);
+    85→    }
+    86→  };
+    87→
+    88→  const loadMyReservations = async () => {
+    89→    try {
+    90→      const response = await fetch(`/api/reservations?userId=${currentUser?.id}`);
+    91→      if (response.ok) {
+    92→        const data = await response.json();
+    93→        setMyReservations(data);
+    94→      }
+    95→    } catch (error) {
+    96→      console.error('Error loading reservations:', error);
+    97→    }
+    98→  };
+    99→
+   100→  const checkCongratulationNotifications = async () => {
+   101→    if (!currentUser?.id) return;
+   102→
+   103→    try {
+   104→      const response = await fetch(`/api/user/notifications?userId=${currentUser?.id}`);
+   105→      if (response.ok) {
+   106→        const data = await response.json();
+   107→        if (data.shouldShow) {
+   108→          setCongratulationNotification({
+   109→            show: true,
+   110→            lotName: data.lotName,
+   111→            lotBlock: data.lotBlock,
+   112→          });
+   113→        }
+   114→      }
+   115→    } catch (error) {
+   116→      console.error('Error checking notifications:', error);
+   117→    }
+   118→  };
+   119→
+   120→  useEffect(() => {
+   121→    setMounted(true);
+   122→    loadLots();
+   123→    if (currentUser?.id) {
+   124→      loadMyReservations();
+   125→      checkCongratulationNotifications();
+   126→    }
+   127→  }, [currentUser]);
+   128→
+   129→  const handleLogin = async (name: string, phone: string, password?: string) => {
+   130→    try {
+   131→      const response = await fetch('/api/auth/login', {
+   132→        method: 'POST',
+   133→        headers: { 'Content-Type': 'application/json' },
+   134→        body: JSON.stringify({
+   135→          name,
+   136→          phone,
+   137→          password: password || undefined,
+   138→        }),
+   139→      });
+   140→
+   141→      if (response.ok) {
+   142→        const user = await response.json();
+   143→        setCurrentUser(user);
+   144→        toast.success(`Bienvenue ${user.name} !`);
+   145→        setCurrentScreen('home');
+   146→      } else {
+   147→        const data = await response.json();
+   148→        toast.error(data.error || 'Erreur de connexion');
+   149→      }
+   150→    } catch (error) {
+   151→      console.error('Login error:', error);
+   152→      toast.error('Erreur de connexion');
+   153→    }
+   154→  };
+   155→
+   156→  const handleOpenReservation = (lot: typeof lots[0]) => {
+   157→    if (!currentUser) {
+   158→      toast.error('Veuillez vous connecter pour réserver');
+   159→      setCurrentScreen('auth-choice');
+   160→      return;
+   161→    }
+   162→    setSelectedLot(lot);
+   163→    setPaymentAmount('');
+   164→    setAgreeRules(false);
+   165→    setIsReservationModalOpen(true);
+   166→  };
+   167→
+   168→  const handleReservation = async () => {
+   169→    if (!selectedLot || !currentUser) return;
+   170→
+   171→    const amount = parseInt(paymentAmount);
+   172→    const totalPrice = currentUser.isResident ? selectedLot.priceRes : selectedLot.priceNon;
+   173→
+   174→    if (!amount || amount < 10000) {
+   175→      toast.error('Le montant minimum est de 10 000 FCFA');
+   176→      return;
+   177→    }
+   178→
+   179→    if (amount > totalPrice) {
+   180→      toast.error('Le montant dépasse le prix du lot');
+   181→      return;
+   182→    }
+   183→
+   184→    try {
+   185→      const response = await fetch('/api/reservations', {
+   186→        method: 'POST',
+   187→        headers: { 'Content-Type': 'application/json' },
+   188→        body: JSON.stringify({
+   189→          userId: currentUser.id,
+   190→          lotId: selectedLot.id,
+   191→          amount,
+   192→          totalPrice,
+   193→          isResident: currentUser.isResident,
+   194→        }),
+   195→      });
+   196→
+   197→      if (response.ok) {
+   198→        const reservation = await response.json();
+   199→        addReservation(reservation);
+   200→        toast.success('Paiement validé avec succès !');
+   201→        setIsReservationModalOpen(false);
+   202→        loadLots();
+   203→      } else {
+   204→        toast.error('Erreur lors de la réservation');
+   205→      }
+   206→    } catch (error) {
+   207→      // Fallback for demo
+   208→      const newReservation = {
+   209→        id: `RES-${Date.now()}`,
+   210→        lotId: selectedLot.id,
+   211→        lotName: selectedLot.name,
+   212→        surface: selectedLot.surface,
+   213→        paidAmount: amount,
+   214→        totalPrice,
+   215→        isResident: currentUser.isResident,
+   216→        status: amount === totalPrice ? ('PAID' as const) : ('RESERVED' as const),
+   217→      };
+   218→      addReservation(newReservation);
+   219→      toast.success('Paiement validé avec succès !');
+   220→      setIsReservationModalOpen(false);
+   221→    }
+   222→  };
+   223→
+   224→  const copyReferralLink = () => {
+   225→    if (!currentUser?.referralCode) return;
+   226→    navigator.clipboard.writeText(`kami.app/ref/${currentUser.referralCode}`);
+   227→    toast.success('Lien copié !');
+   228→  };
+   229→
+   230→  const handleRegistrationComplete = async (userData: { name: string; phone: string; isResident: boolean; password: string }) => {
+   231→    try {
+   232→      const response = await fetch('/api/auth/register', {
+   233→        method: 'POST',
+   234→        headers: { 'Content-Type': 'application/json' },
+   235→        body: JSON.stringify({
+   236→          name: userData.name,
+   237→          phone: userData.phone,
+   238→          isResident: userData.isResident,
+   239→          password: userData.password,
+   240→        }),
+   241→      });
+   242→
+   243→      if (response.ok) {
+   244→        const user = await response.json();
+   245→        setCurrentUser(user);
+   246→        toast.success(`Bienvenue ${user.name} ! Votre compte est créé.`);
+   247→        setCurrentScreen('map');
+   248→      } else {
+   249→        const data = await response.json();
+   250→        toast.error(data.error || 'Erreur lors de la création du compte');
+   251→      }
+   252→    } catch (error) {
+   253→      console.error('Registration error:', error);
+   254→      toast.error('Erreur lors de la création du compte');
+   255→    }
+   256→  };
+   257→
+   258→  if (!mounted) return null;
+   259→
+   260→  return (
+   261→    <div className="min-h-screen flex flex-col bg-background">
+   262→      {/* Toast Container */}
+   263→      <div id="toast-container" />
+   264→
+   265→      {/* Modern Side Menu */}
+   266→      <ModernSideMenu
+   267→        isOpen={isMenuOpen}
+   268→        onClose={() => setIsMenuOpen(false)}
+   269→        currentUser={currentUser}
+   270→        onNavigate={setCurrentScreen}
+   271→        onLogout={() => {
+   272→          logout();
+   273→          toast.success('Déconnexion réussie');
+   274→        }}
+   275→      />
+   276→
+   277→      {/* Screens */}
+   278→      {/* Page d'accueil persuasive pour tous */}
+   279→      {currentScreen === 'home' && (
+   280→        <PageTransition>
+   281→          <PersuasiveLandingPage
+   282→            lots={lots}
+   283→            onReserveClick={() => {
+   284→              if (currentUser) {
+   285→                setCurrentScreen('map');
+   286→              } else {
+   287→                setCurrentScreen('auth-choice');
+   288→              }
+   289→            }}
+   290→            setIsMenuOpen={setIsMenuOpen}
+   291→            setCurrentScreen={setCurrentScreen}
+   292→          />
+   293→        </PageTransition>
+   294→      )}
+   295→
+   296→      {/* Écran d'inscription en 2 étapes */}
+   297→      {!currentUser && currentScreen === 'register' && (
+   298→        <PageTransition>
+   299→          <TwoStepRegistration
+   300→            onComplete={handleRegistrationComplete}
+   301→            onBack={() => setCurrentScreen('home')}
+   302→            setIsMenuOpen={setIsMenuOpen}
+   303→          />
+   304→        </PageTransition>
+   305→      )}
+   306→
+   307→      {/* Écran de choix d'authentification */}
+   308→      {!currentUser && currentScreen === 'auth-choice' && (
+   309→        <PageTransition>
+   310→          <AuthChoiceScreen
+   311→            onLoginClick={() => setCurrentScreen('login-screen')}
+   312→            onRegisterClick={() => setCurrentScreen('register')}
+   313→            onBack={() => setCurrentScreen('home')}
+   314→            setIsMenuOpen={setIsMenuOpen}
+   315→          />
+   316→        </PageTransition>
+   317→      )}
+   318→
+   319→      {/* Écran de connexion */}
+   320→      {!currentUser && currentScreen === 'login-screen' && (
+   321→        <PageTransition>
+   322→          <LoginScreen
+   323→            onLogin={(name, phone) => handleLogin(name, phone)}
+   324→            onBack={() => setCurrentScreen('auth-choice')}
+   325→            setIsMenuOpen={setIsMenuOpen}
+   326→          />
+   327→        </PageTransition>
+   328→      )}
+   329→
+   330→      {/* Écran de connexion (ancien, pour compatibilité) */}
+   331→      {!currentUser && currentScreen === 'login' && (
+   332→        <PageTransition>
+   333→          <AuthChoiceScreen
+   334→            onLoginClick={() => setCurrentScreen('login-screen')}
+   335→            onRegisterClick={() => setCurrentScreen('register')}
+   336→            onBack={() => setCurrentScreen('home')}
+   337→            setIsMenuOpen={setIsMenuOpen}
+   338→          />
+   339→        </PageTransition>
+   340→      )}
+   341→
+   342→      {currentScreen === 'map' && (
+   343→        <PageTransition>
+   344→          <EnhancedMapScreen
+   345→            lots={lots}
+   346→            handleOpenReservation={handleOpenReservation}
+   347→            setCurrentScreen={setCurrentScreen}
+   348→            setIsMenuOpen={setIsMenuOpen}
+   349→          />
+   350→        </PageTransition>
+   351→      )}
+   352→
+   353→      {currentScreen === 'dashboard' && (
+   354→        <PageTransition>
+   355→          <UserDashboard
+   356→            currentUser={currentUser}
+   357→            setCurrentScreen={setCurrentScreen}
+   358→            setIsMenuOpen={setIsMenuOpen}
+   359→          />
+   360→        </PageTransition>
+   361→      )}
+   362→
+   363→      {currentScreen === 'profile' && (
+   364→        <PageTransition>
+   365→          <ProfileScreen
+   366→            currentUser={currentUser}
+   367→            copyReferralLink={copyReferralLink}
+   368→            setCurrentScreen={setCurrentScreen}
+   369→            setIsMenuOpen={setIsMenuOpen}
+   370→          />
+   371→        </PageTransition>
+   372→      )}
+   373→
+   374→      {currentScreen === 'affiliation' && (
+   375→        <PageTransition>
+   376→          <AffiliationScreen
+   377→            currentUser={currentUser}
+   378→            copyReferralLink={copyReferralLink}
+   379→            setCurrentScreen={setCurrentScreen}
+   380→            setIsMenuOpen={setIsMenuOpen}
+   381→          />
+   382→        </PageTransition>
+   383→      )}
+   384→
+   385→      {currentScreen === 'rules' && (
+   386→        <PageTransition>
+   387→          <RulesScreen
+   388→            setCurrentScreen={setCurrentScreen}
+   389→            setIsMenuOpen={setIsMenuOpen}
+   390→          />
+   391→        </PageTransition>
+   392→      )}
+   393→
+   394→      {currentScreen === 'admin' && (
+   395→        <PageTransition>
+   396→          <AdminScreen
+   397→            adminView={adminView}
+   398→            setAdminView={setAdminView}
+   399→            lots={lots}
+   400→            loadLots={loadLots}
+   401→            setCurrentScreen={setCurrentScreen}
+   402→          />
+   403→        </PageTransition>
+   404→      )}
+   405→
+   406→      {currentScreen === 'admin-flash-infos' && (
+   407→        <PageTransition>
+   408→          <FlashInfoAdmin onBack={() => setCurrentScreen('home')} />
+   409→        </PageTransition>
+   410→      )}
+   411→
+   412→      {currentScreen === 'settings' && (
+   413→        <PageTransition>
+   414→          <SettingsPage onBack={() => setCurrentScreen('home')} />
+   415→        </PageTransition>
+   416→      )}
+   417→
+   418→      {currentScreen === 'plan' && (
+   419→        <PageTransition>
+   420→          <PlanPage
+   421→            setCurrentScreen={setCurrentScreen}
+   422→            setIsMenuOpen={setIsMenuOpen}
+   423→          />
+   424→        </PageTransition>
+   425→      )}
+   426→
+   427→      {currentScreen === 'chat' && (
+   428→        <PageTransition>
+   429→          <ChatPage
+   430→            setCurrentScreen={setCurrentScreen}
+   431→            setIsMenuOpen={setIsMenuOpen}
+   432→          />
+   433→        </PageTransition>
+   434→      )}
+   435→
+   436→      {currentScreen === 'admin-chat' && (
+   437→        <PageTransition>
+   438→          <AdminChatPage
+   439→            setCurrentScreen={setCurrentScreen}
+   440→            setIsMenuOpen={setIsMenuOpen}
+   441→          />
+   442→        </PageTransition>
+   443→      )}
+   444→
+   445→      {currentScreen === 'management-committee' && (
+   446→        <PageTransition>
+   447→          <ManagementCommitteeManagement onBack={() => setCurrentScreen('home')} setCurrentScreen={setCurrentScreen} />
+   448→        </PageTransition>
+   449→      )}
+   450→
+   451→      {/* Reservation Modal */}
+   452→      <Dialog open={isReservationModalOpen} onOpenChange={setIsReservationModalOpen}>
+   453→        <DialogContent className="max-w-lg rounded-t-3xl">
+   454→          <div className="w-10 h-1 bg-muted rounded-full mx-auto mb-4" />
+   455→          <DialogHeader>
+   456→            <DialogTitle className="text-2xl font-bold">Lot {selectedLot?.name}</DialogTitle>
+   457→            <p className="text-xs text-muted-foreground">{selectedLot?.surface}</p>
+   458→          </DialogHeader>
+   459→
+   460→          {selectedLot && currentUser && (
+   461→            <div className="space-y-4">
+   462→              <Card className="bg-card border-border">
+   463→                <CardContent className="p-3 flex items-center justify-between">
+   464→                  <div className="flex items-center">
+   465→                    <User className="mr-3 h-5 w-5 text-[#8B5E3C]" />
+   466→                    <div>
+   467→                      <p className="text-xs text-muted-foreground">Votre statut</p>
+   468→                      <p className="font-bold text-foreground">
+   469→                        {currentUser.isResident ? 'Résident KAMI' : 'Non-Résident'}
+   470→                      </p>
+   471→                    </div>
+   472→                  </div>
+   473→                  <div className="text-right">
+   474→                    <p className="text-xs text-muted-foreground">Prix appliqué</p>
+   475→                    <p className="font-extrabold text-[#8B5E3C]">
+   476→                      {(currentUser.isResident ? selectedLot.priceRes : selectedLot.priceNon).toLocaleString('fr-FR')} F
+   477→                    </p>
+   478→                  </div>
+   479→                </CardContent>
+   480→              </Card>
+   481→
+   482→              <div>
+   483→                <Label>Montant à payer maintenant</Label>
+   484→                <p className="text-xs text-muted-foreground mb-2">Minimum requis : 10 000 F</p>
+   485→                <Input
+   486→                  type="number"
+   487→                  min={10000}
+   488→                  placeholder="Ex: 50000"
+   489→                  value={paymentAmount}
+   490→                  onChange={(e) => setPaymentAmount(e.target.value)}
+   491→                />
+   492→              </div>
+   493→
+   494→              <Card className="bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800">
+   495→                <CardContent className="p-3">
+   496→                  <label className="flex items-center space-x-2 cursor-pointer">
+   497→                    <Checkbox
+   498→                      checked={agreeRules}
+   499→                      onCheckedChange={(checked) => setAgreeRules(checked as boolean)}
+   500→                    />
+   501→                    <span className="text-xs font-bold text-foreground">
+   502→                      J'ACCEPTE LE RÈGLEMENT INTÉRIEUR
+   503→                    </span>
+   504→                  </label>
+   505→                </CardContent>
+   506→              </Card>
+   507→
+   508→              <DialogFooter className="flex-col gap-2">
+   509→                <Button
+   510→                  className="w-full bg-[#10B981] hover:bg-[#059669] text-white font-bold py-4 rounded-2xl"
+   511→                  disabled={!agreeRules}
+   512→                  onClick={handleReservation}
+   513→                >
+   514→                  Confirmer le paiement
+   515→                </Button>
+   516→                <Button
+   517→                  variant="ghost"
+   518→                  className="w-full text-muted-foreground"
+   519→                  onClick={() => setIsReservationModalOpen(false)}
+   520→                >
+   521→                  Annuler
+   522→                </Button>
+   523→              </DialogFooter>
+   524→            </div>
+   525→          )}
+   526→        </DialogContent>
+   527→      </Dialog>
    528→
-   529→      {/* Footer */}
-   530→      <footer className="mt-auto bg-card border-t border-border py-4 px-6 text-center text-sm text-muted-foreground">
-   531→        <p>© 2024 KAMI-EXTENSION - Tous droits réservés</p>
-   532→      </footer>
-   533→
-   534→      {/* Congratulation Notification */}
-   535→      <CongratulationNotification />
-   536→    </div>
-   537→  );
-   538→}
-   539→
-   540→// Old Login Screen Component (déprécié)
-   541→function OldLoginScreen({
-   542→  loginName,
-   543→  setLoginName,
-   544→  loginPhone,
-   545→  setLoginPhone,
-   546→  loginIsResident,
-   547→  setLoginIsResident,
-   548→  handleLogin,
-   549→}: any) {
-   550→  return (
-   551→    <div className="flex-1 flex flex-col items-center justify-center bg-card p-6 pt-16">
-   552→      <div className="flex flex-col items-center mb-10">
-   553→        <div className="w-24 h-24 rounded-full bg-[#8B5E3C] flex items-center justify-center mb-4 shadow-lg">
-   554→          <Building2 className="text-white h-10 w-10" />
-   555→        </div>
-   556→        <h1 className="text-3xl font-extrabold text-[#8B5E3C]">KAMI-EXTENSION</h1>
+   529→
+   530→      {/* Footer */}
+   531→      <footer className="mt-auto bg-card border-t border-border py-4 px-6 text-center text-sm text-muted-foreground">
+   532→        <p>© 2024 KAMI-EXTENSION - Tous droits réservés</p>
+   533→      </footer>
+   534→
+   535→      {/* Congratulation Notification */}
+   536→      <CongratulationNotification />
+   537→    </div>
+   538→  );
+   539→}
+   540→
+   541→// Old Login Screen Component (déprécié)
+   542→function OldLoginScreen({
+   543→  loginName,
+   544→  setLoginName,
+   545→  loginPhone,
+   546→  setLoginPhone,
+   547→  loginIsResident,
+   548→  setLoginIsResident,
+   549→  handleLogin,
+   550→}: any) {
+   551→  return (
+   552→    <div className="flex-1 flex flex-col items-center justify-center bg-card p-6 pt-16">
+   553→      <div className="flex flex-col items-center mb-10">
+   554→        <div className="mb-4">
+   555→          <LogoDisplay size="xl" showBackground={true} />
+   556→        </div>
    557→      </div>
    558→
    559→      <div className="w-full max-w-md space-y-4">
@@ -623,7 +623,7 @@
    623→  return (
    624→    <div className="flex-1 flex flex-col bg-card">
    625→      <header className="flex justify-between items-center p-4 bg-card sticky top-0 z-10 shadow-sm">
-   626→        <h1 className="text-xl font-extrabold text-[#8B5E3C]">KAMI-EXTENSION</h1>
+   626→        <LogoDisplay size="xl" className="text-[#8B5E3C]" />
    627→        <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(true)}>
    628→          <Menu className="h-6 w-6 text-foreground" />
    629→        </Button>
@@ -830,7 +830,7 @@
    830→            const remaining = reservation.totalPrice - reservation.paidAmount;
    831→
    832→            return (
-   833→              <Card key={reservation.id} className="bg-card rounded-2xl shadow-sm border border-border mb-4">
+   833→              <Card key={reservation.id || `res-${reservation.lotId}`} className="bg-card rounded-2xl shadow-sm border border-border mb-4">
    834→                <CardContent className="p-4">
    835→                  <div className="flex justify-between items-center mb-3">
    836→                    <h3 className="font-bold text-foreground">Lot {reservation.lotName}</h3>
@@ -1489,7 +1489,7 @@
   1489→                const isPaid = payment.paidAmount >= payment.totalPrice;
   1490→
   1491→                return (
-  1492→                  <Card key={payment.id} className="bg-card rounded-xl shadow-sm border border-border">
+  1492→                  <Card key={payment.id || `pay-${payment.lotId}`} className="bg-card rounded-xl shadow-sm border border-border">
   1493→                    <CardContent className="p-4">
   1494→                      <div className="flex justify-between items-start mb-3">
   1495→                        <div>
@@ -1571,8 +1571,8 @@
   1571→            </Card>
   1572→          ) : (
   1573→            <div className="space-y-4">
-  1574→              {users.map((user: any) => (
-  1575→                <Card key={user.id} className="bg-card rounded-xl shadow-sm border border-border">
+  1574→              {users.map((user: any, index: number) => (
+  1575→                <Card key={user.id || `user-${index}`} className="bg-card rounded-xl shadow-sm border border-border">
   1576→                  <CardContent className="p-4">
   1577→                    <div className="flex justify-between items-start">
   1578→                      <div className="flex-1">

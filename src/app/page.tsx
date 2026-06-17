@@ -26,6 +26,7 @@ import { AdminLogo } from '@/components/kami/AdminLogo';
 import { SettingsPage } from '@/components/kami/SettingsPage';
 import { UserDashboard } from '@/components/kami/UserDashboard';
 import { AdminDashboard } from '@/components/kami/AdminDashboard';
+import { UserManagement } from '@/components/kami/UserManagement';
 import { CongratulationNotification } from '@/components/kami/CongratulationNotification';
 import { ChatPage } from '@/components/kami/ChatPage';
 import { AdminChatPage } from '@/components/kami/AdminChatPage';
@@ -1551,57 +1552,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
 
       {adminView === 'users' && (
         <div className="mt-6">
-          <Button variant="ghost" onClick={() => setAdminView(null)} className="mb-4 text-muted-foreground">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Retour
-          </Button>
-          {usersLoading ? (
-            <Card className="bg-card p-6">
-              <CardContent className="text-center text-muted-foreground">
-                <User className="h-8 w-8 mx-auto mb-2 animate-pulse" />
-                <p>Chargement...</p>
-              </CardContent>
-            </Card>
-          ) : users.length === 0 ? (
-            <Card className="bg-card p-6">
-              <CardContent className="text-center text-muted-foreground">
-                <User className="h-8 w-8 mx-auto mb-2" />
-                <p>Aucun utilisateur enregistré.</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              {users.map((user: any, index: number) => (
-                <Card key={user.id || `user-${index}`} className="bg-card rounded-xl shadow-sm border border-border">
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h3 className="font-bold text-foreground">{user.name}</h3>
-                        <p className="text-xs text-muted-foreground mb-1">{user.phone}</p>
-                        <div className="flex items-center gap-2">
-                          <Badge className={user.isResident ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'}>
-                            {user.isResident ? 'Résident' : 'Non-Résident'}
-                          </Badge>
-                          {user.createdAt && (
-                            <span className="text-xs text-muted-foreground">
-                              {new Date(user.createdAt).toLocaleDateString('fr-FR')}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => handleDeleteUser(user.id)}
-                      >
-                        <XCircle className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+          <UserManagement onBack={() => setAdminView(null)} />
         </div>
       )}
 
