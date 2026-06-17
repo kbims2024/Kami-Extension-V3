@@ -203,13 +203,13 @@ export function ManagementCommitteeManagement({ onBack, setCurrentScreen }: Mana
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {filteredUsers.map((user) => {
+                  {filteredUsers.map((user, index) => {
                     const isMember = isCommitteeMember(user.id);
                     const isAdmin = user.role === 'ADMIN';
 
                     return (
                       <div
-                        key={user.id}
+                        key={user.id || `committee-user-${index}`}
                         className={`flex items-center justify-between p-4 bg-card rounded-lg border ${
                           isMember 
                             ? 'border-purple-400 dark:border-purple-500 bg-purple-50/50 dark:bg-purple-950/20' 

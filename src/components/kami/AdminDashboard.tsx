@@ -576,8 +576,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
               <CardContent>
                 <ScrollArea className="h-[400px] pr-4">
                   <div className="space-y-4">
-                    {users.map((user) => (
-                      <Card key={user.id} className="border-border">
+                    {users.map((user, index) => (
+                      <Card key={user.id || `admin-user-${index}`} className="border-border">
                         <CardContent className="p-4">
                           <div className="flex items-start justify-between mb-3">
                             <div className="space-y-1">
@@ -733,8 +733,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
                         <p className="text-muted-foreground">Aucun paiement récent</p>
                       </div>
                     ) : (
-                      recentPayments.map((payment) => (
-                        <Card key={payment.id} className="border-border">
+                      recentPayments.map((payment, index) => (
+                        <Card key={payment.id || `recent-pay-${index}`} className="border-border">
                           <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                               <div className="space-y-1">

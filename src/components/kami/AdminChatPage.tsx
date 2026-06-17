@@ -235,9 +235,9 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen }: AdminChatPage
                   Aucun utilisateur trouvé
                 </div>
               ) : (
-                filteredUsers.map((user) => (
+                filteredUsers.map((user, index) => (
                   <Card
-                    key={user.id}
+                    key={user.id || `chat-user-${index}`}
                     className="cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 transition-colors"
                     onClick={() => {
                       setSelectedUser(user);
@@ -301,12 +301,12 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen }: AdminChatPage
                   </p>
                 </div>
               ) : (
-                messages.map((message) => {
+                messages.map((message, index) => {
                   const isMyMessage = message.senderId === adminId;
 
                   return (
                     <div
-                      key={message.id}
+                      key={message.id || `admin-chat-msg-${index}`}
                       className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}
                     >
                       <div

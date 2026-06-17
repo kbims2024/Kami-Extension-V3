@@ -505,7 +505,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, setCu
                         
                         return (
                           <motion.div
-                            key={reservation.id}
+                            key={reservation.id || `user-res-${index}`}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 * index, duration: 0.3 }}
@@ -592,7 +592,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, setCu
                     <motion.div className="space-y-4">
                       {payments.map((payment, index) => (
                         <motion.div
-                          key={payment.id}
+                          key={payment.id || `user-pay-${index}`}
                           initial={{ opacity: 0, x: -30 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.1 * index, duration: 0.3 }}

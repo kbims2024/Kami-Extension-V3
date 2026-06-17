@@ -146,13 +146,13 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen }: ChatPageProps) {
             </p>
           </div>
         ) : (
-          messages.map((message) => {
+          messages.map((message, index) => {
             const isAdmin = message.senderId === 'ADMIN';
             const isMyMessage = message.senderId === currentUser?.id;
 
             return (
               <div
-                key={message.id}
+                key={message.id || `page-chat-msg-${index}`}
                 className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}
               >
                 <div

@@ -681,7 +681,7 @@ export function FlashInfoAdmin({ onBack }: FlashInfoAdminProps) {
                     style={{ animation: 'scroll ' + settingsData.scrollSpeed + 's linear infinite' }}
                   >
                     {data?.items.slice(0, 3).map((item, idx) => (
-                      <div key={idx} className="flex items-center gap-2 flex-shrink-0 whitespace-nowrap">
+                      <div key={`preview-${item.id}-${idx}`} className="flex items-center gap-2 flex-shrink-0 whitespace-nowrap">
                         <span style={{ color: '#fbbf24' }}>
                           {iconOptions.find(o => o.value === item.icon)?.label.split(' ')[0] || '⚠️'}
                         </span>
@@ -1037,7 +1037,7 @@ export function FlashInfoAdmin({ onBack }: FlashInfoAdminProps) {
             <div className="space-y-3">
               {data?.items.map((item, index) => (
                 <div
-                  key={item.id}
+                  key={item.id || `item-${index}`}
                   className="flex items-center gap-3 p-4 border rounded-lg"
                   style={{ backgroundColor: item.bgColor }}
                 >
@@ -1119,8 +1119,8 @@ export function FlashInfoAdmin({ onBack }: FlashInfoAdminProps) {
                   className="flex items-center gap-12"
                   style={{ animation: 'scroll 30s linear infinite' }}
                 >
-                  {data.items.map((item) => (
-                    <div key={item.id} className="flex items-center gap-2 flex-shrink-0 whitespace-nowrap">
+                  {data.items.map((item, index) => (
+                    <div key={item.id || `marquee-${index}`} className="flex items-center gap-2 flex-shrink-0 whitespace-nowrap">
                       {item.urgent && (
                         <span className="inline-flex items-center bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                           URGENT

@@ -141,9 +141,9 @@ export function ChatScreen({ currentUser, setCurrentScreen, setIsMenuOpen }: Cha
             </CardContent>
           </Card>
         ) : (
-          messages.map((message) => (
+          messages.map((message, index) => (
             <div
-              key={message.id}
+              key={message.id || `chat-msg-${index}`}
               className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <Card

@@ -830,7 +830,7 @@ function DashboardScreen({ myReservations, setCurrentScreen, setIsMenuOpen }: an
             const remaining = reservation.totalPrice - reservation.paidAmount;
 
             return (
-              <Card key={reservation.id} className="bg-card rounded-2xl shadow-sm border border-border mb-4">
+              <Card key={reservation.id || `res-${reservation.lotId}`} className="bg-card rounded-2xl shadow-sm border border-border mb-4">
                 <CardContent className="p-4">
                   <div className="flex justify-between items-center mb-3">
                     <h3 className="font-bold text-foreground">Lot {reservation.lotName}</h3>
@@ -1489,7 +1489,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
                 const isPaid = payment.paidAmount >= payment.totalPrice;
 
                 return (
-                  <Card key={payment.id} className="bg-card rounded-xl shadow-sm border border-border">
+                  <Card key={payment.id || `pay-${payment.lotId}`} className="bg-card rounded-xl shadow-sm border border-border">
                     <CardContent className="p-4">
                       <div className="flex justify-between items-start mb-3">
                         <div>
@@ -1571,8 +1571,8 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
             </Card>
           ) : (
             <div className="space-y-4">
-              {users.map((user: any) => (
-                <Card key={user.id} className="bg-card rounded-xl shadow-sm border border-border">
+              {users.map((user: any, index: number) => (
+                <Card key={user.id || `user-${index}`} className="bg-card rounded-xl shadow-sm border border-border">
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
