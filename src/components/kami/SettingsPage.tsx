@@ -1,8 +1,10 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { Switch } from '@/components/ui/switch';
 import { ArrowLeft, Settings, Zap, Shield, Palette } from 'lucide-react';
 
 interface SettingsPageProps {
@@ -10,6 +12,45 @@ interface SettingsPageProps {
 }
 
 export function SettingsPage({ onBack }: SettingsPageProps) {
+  // Performance settings
+  const [animationsEnabled, setAnimationsEnabled] = useState(true);
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
+
+  // Security settings
+  const [secureConnection, setSecureConnection] = useState(true);
+  const [adminMode, setAdminMode] = useState(false);
+
+  // Load settings from localStorage on mount
+  useEffect(() => {
+    const savedAnimations = localStorage.getItem('settings-animations');
+    const savedAutoRefresh = localStorage.getItem('settings-autorefresh');
+    const savedSecure = localStorage.getItem('settings-secure');
+    const savedAdmin = localStorage.getItem('settings-admin');
+
+    if (savedAnimations !== null) setAnimationsEnabled(savedAnimations === 'true');
+    if (savedAutoRefresh !== null) setAutoRefreshEnabled(savedAutoRefresh === 'true');
+    if (savedSecure !== null) setSecureConnection(savedSecure === 'true');
+    if (savedAdmin !== null) setAdminMode(savedAdmin === 'true');
+  }, []);
+
+  // Save settings to localStorage when changed
+  useEffect(() => {
+    localStorage.setItem('settings-animations', animationsEnabled.toString());
+    document.body.classList.toggle('no-animations', !animationsEnabled);
+  }, [animationsEnabled]);
+
+  useEffect(() => {
+    localStorage.setItem('settings-autorefresh', autoRefreshEnabled.toString());
+  }, [autoRefreshEnabled]);
+
+  useEffect(() => {
+    localStorage.setItem('settings-secure', secureConnection.toString());
+  }, [secureConnection]);
+
+  useEffect(() => {
+    localStorage.setItem('settings-admin', adminMode.toString());
+  }, [adminMode]);
+
   return (
     <div className="flex-1 flex flex-col bg-card p-6 pt-16 animate-fade-in-up">
       <Button
@@ -61,19 +102,27 @@ export function SettingsPage({ onBack }: SettingsPageProps) {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between py-2">
               <div>
                 <p className="font-medium">Animations fluides</p>
                 <p className="text-sm text-muted-foreground">Transitions animées entre les pages</p>
               </div>
-              <span className="text-sm text-green-600 dark:text-green-400 font-medium">Activé</span>
+              <Switch
+                checked={animationsEnabled}
+                onCheckedChange={setAnimationsEnabled}
+                className="data-[state=checked]:bg-yellow-500"
+              />
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between py-2">
               <div>
                 <p className="font-medium">Auto-rafraîchissement</p>
                 <p className="text-sm text-muted-foreground">Mise à jour automatique des données</p>
               </div>
-              <span className="text-sm text-green-600 dark:text-green-400 font-medium">Activé</span>
+              <Switch
+                checked={autoRefreshEnabled}
+                onCheckedChange={setAutoRefreshEnabled}
+                className="data-[state=checked]:bg-yellow-500"
+              />
             </div>
           </CardContent>
         </Card>
@@ -90,33 +139,28 @@ export function SettingsPage({ onBack }: SettingsPageProps) {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between py-2">
               <div>
                 <p className="font-medium">Connexion sécurisée</p>
                 <p className="text-sm text-muted-foreground">Communication cryptée avec le serveur</p>
               </div>
-              <span className="text-sm text-green-600 dark:text-green-400 font-medium">Activé</span>
+              <Switch
+                checked={secureConnection}
+                onCheckedChange={setSecureConnection}
+                className="data-[state=checked]:bg-red-500"
+              />
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between py-2">
               <div>
                 <p className="font-medium">Mode admin</p>
                 <p className="text-sm text-muted-foreground">Accès aux fonctionnalités d'administration</p>
               </div>
-              <span className="text-sm text-muted-foreground">Disponible pour les admins</span>
+              <Switch
+                checked={adminMode}
+                onCheckedChange={setAdminMode}
+                className="data-[state=checked]:bg-red-500"
+              />
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Informations supplémentaires */}
-        <Card className="border-2 border-dashed border-muted bg-muted/30">
-          <CardContent className="p-6 text-center">
-            <p className="text-sm text-muted-foreground mb-2">
-              <Shield className="inline h-4 w-4 mr-1" />
-              Les autres paramètres sont gérés par l'administrateur
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Contactez votre administrateur pour modifier les Flash Infos, l'image de fond ou le logo
-            </p>
           </CardContent>
         </Card>
       </div>
