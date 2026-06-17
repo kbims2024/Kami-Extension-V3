@@ -2,7 +2,8 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, LogIn, UserPlus, Building2, Menu } from 'lucide-react';
+import { ArrowLeft, LogIn, UserPlus, Menu } from 'lucide-react';
+import { LogoDisplay } from '@/components/kami/LogoDisplay';
 
 interface AuthChoiceScreenProps {
   onLoginClick: () => void;
@@ -27,7 +28,7 @@ export function AuthChoiceScreen({ onLoginClick, onRegisterClick, onBack, setIsM
           </Button>
           <div>
             <h1 className="text-sm font-bold text-foreground leading-tight">Bienvenue</h1>
-            <p className="text-[9px] text-muted-foreground">KAMI-EXTENSION</p>
+            <LogoDisplay size="sm" showBackground={false} className="text-[9px] text-muted-foreground" />
           </div>
         </div>
         {setIsMenuOpen && (
@@ -47,8 +48,8 @@ export function AuthChoiceScreen({ onLoginClick, onRegisterClick, onBack, setIsM
         <div className="max-w-lg mx-auto w-full flex flex-col">
           {/* Logo - very compact */}
           <div className="text-center mb-3 pt-1 shrink-0">
-            <div className="w-12 h-12 bg-gradient-to-br from-brand-blue to-blue-700 rounded-lg flex items-center justify-center mx-auto mb-2 shadow-lg shadow-brand-blue/30">
-              <Building2 className="h-6 w-6 text-brand-yellow" />
+            <div className="mb-2">
+              <LogoDisplay size="xl" showBackground={true} />
             </div>
             <h2 className="text-base font-bold text-foreground mb-0.5">
               Réservez votre terrain

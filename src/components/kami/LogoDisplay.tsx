@@ -79,7 +79,7 @@ export function LogoDisplay({ size = 'md', showBackground = true, className = ''
         className={`inline-flex items-center justify-center p-2 rounded-lg ${className}`}
         style={{ backgroundColor: logo.backgroundColor }}
       >
-        <span style={{ color: logo.textColor }}>{content}</span>
+        {content}
       </div>
     );
   }

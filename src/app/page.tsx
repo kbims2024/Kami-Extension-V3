@@ -32,6 +32,7 @@ import { AdminChatPage } from '@/components/kami/AdminChatPage';
 import { PlanPage } from '@/components/kami/PlanPage';
 import { ManagementCommitteeManagement } from '@/components/kami/ManagementCommitteeManagement';
 import { PageTransition } from '@/components/ui/page-transition';
+import { LogoDisplay } from '@/components/kami/LogoDisplay';
 
 export default function KamiExtensionPage() {
   const [mounted, setMounted] = useState(false);
@@ -550,10 +551,9 @@ function OldLoginScreen({
   return (
     <div className="flex-1 flex flex-col items-center justify-center bg-card p-6 pt-16">
       <div className="flex flex-col items-center mb-10">
-        <div className="w-24 h-24 rounded-full bg-[#8B5E3C] flex items-center justify-center mb-4 shadow-lg">
-          <Building2 className="text-white h-10 w-10" />
+        <div className="mb-4">
+          <LogoDisplay size="xl" showBackground={true} />
         </div>
-        <h1 className="text-3xl font-extrabold text-[#8B5E3C]">KAMI-EXTENSION</h1>
       </div>
 
       <div className="w-full max-w-md space-y-4">
@@ -623,7 +623,7 @@ function HomeScreen({ setCurrentScreen, setIsMenuOpen }: any) {
   return (
     <div className="flex-1 flex flex-col bg-card">
       <header className="flex justify-between items-center p-4 bg-card sticky top-0 z-10 shadow-sm">
-        <h1 className="text-xl font-extrabold text-[#8B5E3C]">KAMI-EXTENSION</h1>
+        <LogoDisplay size="xl" className="text-[#8B5E3C]" />
         <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(true)}>
           <Menu className="h-6 w-6 text-foreground" />
         </Button>

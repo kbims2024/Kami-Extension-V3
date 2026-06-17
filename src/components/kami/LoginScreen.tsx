@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, LogIn, Building2, Menu, Eye, EyeOff, Lock, Mail, Phone } from 'lucide-react';
+import { ArrowLeft, LogIn, Menu, Eye, EyeOff, Lock, Mail, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 import { PasswordResetDialog } from './PasswordResetDialog';
+import { LogoDisplay } from '@/components/kami/LogoDisplay';
 
 interface LoginScreenProps {
   onLogin: (name: string, phone: string, password?: string) => void;
@@ -96,7 +97,7 @@ export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps
           </Button>
           <div>
             <h1 className="text-lg font-bold text-foreground leading-tight">Se connecter</h1>
-            <p className="text-xs text-muted-foreground">KAMI-EXTENSION</p>
+            <LogoDisplay size="sm" showBackground={false} className="text-xs text-muted-foreground" />
           </div>
         </div>
         {setIsMenuOpen && (
@@ -116,8 +117,8 @@ export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps
         <div className="max-w-lg mx-auto">
           {/* Logo */}
           <div className="text-center mb-8 pt-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-brand-blue to-blue-700 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-blue/30">
-              <Building2 className="h-8 w-8 text-brand-yellow" />
+            <div className="mb-4">
+              <LogoDisplay size="xl" showBackground={true} />
             </div>
             <h2 className="text-xl font-bold text-foreground mb-2">
               Bon retour !
