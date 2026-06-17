@@ -52,20 +52,22 @@ export function SettingsPage({ onBack }: SettingsPageProps) {
   }, [adminMode]);
 
   return (
-    <div className="flex-1 flex flex-col bg-card p-6 pt-16 animate-fade-in-up">
-      <Button
-        variant="ghost"
-        size="icon"
-        className="absolute top-4 left-4"
-        onClick={onBack}
-      >
-        <ArrowLeft className="h-5 w-5 text-muted-foreground" />
-      </Button>
+    <div className="flex-1 flex flex-col bg-background p-6 pt-16 animate-fade-in-up">
+      <div className="relative w-full">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-0 left-0 -ml-2"
+          onClick={onBack}
+        >
+          <ArrowLeft className="h-5 w-5 text-muted-foreground" />
+        </Button>
 
-      <h2 className="text-2xl font-bold text-center text-foreground mb-6 flex items-center justify-center">
-        <Settings className="mr-2 h-6 w-6" />
-        Paramètres de l'Application
-      </h2>
+        <h2 className="text-2xl font-bold text-center text-foreground mb-6 flex items-center justify-center">
+          <Settings className="mr-2 h-6 w-6" />
+          Paramètres de l'Application
+        </h2>
+      </div>
 
       <div className="space-y-4 max-w-2xl mx-auto">
         {/* Apparence */}
