@@ -645,7 +645,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
-              Utilisateurs ({users.length})
+              Gérer utilisateur ({users.length})
             </TabsTrigger>
             <TabsTrigger value="lots" className="flex items-center gap-2">
               <Building2 className="h-4 w-4" />

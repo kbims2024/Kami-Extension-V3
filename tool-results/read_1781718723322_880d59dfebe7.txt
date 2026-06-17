@@ -1,0 +1,981 @@
+     1→'use client'
+     2→
+     3→import React, { useState, useEffect } from 'react'
+     4→import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+     5→import { Button } from '@/components/ui/button'
+     6→import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+     7→import { Badge } from '@/components/ui/badge'
+     8→import { ScrollArea } from '@/components/ui/scroll-area'
+     9→import {
+    10→  Building2,
+    11→  Wallet,
+    12→  TrendingUp,
+    13→  Users,
+    14→  Calendar,
+    15→  CheckCircle2,
+    16→  Clock,
+    17→  DollarSign,
+    18→  AlertCircle,
+    19→  ArrowUpRight,
+    20→  ArrowDownRight,
+    21→  BarChart3,
+    22→  Activity,
+    23→  MapPin,
+    24→  ShoppingCart,
+    25→  UserCheck,
+    26→  UserPlus,
+    27→  MessageSquare,
+    28→  Ban,
+    29→  ShieldAlert,
+    30→  Trash2,
+    31→  ArrowUpDown,
+    32→  ChevronUp,
+    33→  ChevronDown
+    34→} from 'lucide-react'
+    35→import { toast } from 'sonner'
+    36→import { 
+    37→  BarChart, 
+    38→  Bar, 
+    39→  XAxis, 
+    40→  YAxis, 
+    41→  CartesianGrid, 
+    42→  Tooltip, 
+    43→  ResponsiveContainer,
+    44→  LineChart,
+    45→  Line,
+    46→  PieChart as RechartsPieChart,
+    47→  Pie,
+    48→  Cell,
+    49→  Legend
+    50→} from 'recharts'
+    51→
+    52→// Types pour les données administratives
+    53→interface AdminStats {
+    54→  totalLots: number
+    55→  availableLots: number
+    56→  reservedLots: number
+    57→  paidLots: number
+    58→  totalUsers: number
+    59→  activeUsers: number
+    60→  totalRevenue: number
+    61→  pendingPayments: number
+    62→  reservationsThisMonth: number
+    63→  paymentsThisMonth: number
+    64→  averagePaymentPerUser: number
+    65→  occupancyRate: number
+    66→}
+    67→
+    68→interface User {
+    69→  id: string
+    70→  name: string
+    71→  phone: string
+    72→  isResident: boolean
+    73→  referralCode: string
+    74→  status: string
+    75→  reservationCount: number
+    76→  totalPaid: number
+    77→  createdAt: string
+    78→  kycVerified?: boolean
+    79→}
+    80→
+    81→interface Lot {
+    82→  id: string
+    83→  name: string
+    84→  block: string
+    85→  surface: string
+    86→  priceRes: number
+    87→  priceNon: number
+    88→  status: string
+    89→  description?: string
+    90→}
+    91→
+    92→interface RecentPayment {
+    93→  id: string
+    94→  userName: string
+    95→  lotName: string
+    96→  amount: number
+    97→  status: string
+    98→  type: string
+    99→  createdAt: string
+   100→}
+   101→
+   102→// Composant de carte de statistique
+   103→interface StatCardProps {
+   104→  title: string
+   105→  value: string | number
+   106→  change?: string
+   107→  changePositive?: boolean
+   108→  icon: React.ReactNode
+   109→  description?: string
+   110→  trend?: number
+   111→}
+   112→
+   113→const StatCard: React.FC<StatCardProps> = ({
+   114→  title,
+   115→  value,
+   116→  change,
+   117→  changePositive = true,
+   118→  icon,
+   119→  description,
+   120→  trend
+   121→}) => (
+   122→  <Card>
+   123→    <CardHeader className="flex flex-row items-center justify-between pb-2">
+   124→      <CardTitle className="text-sm font-medium text-muted-foreground">
+   125→        {title}
+   126→      </CardTitle>
+   127→      <div className="p-2 bg-primary/10 rounded-lg">
+   128→        {icon}
+   129→      </div>
+   130→    </CardHeader>
+   131→    <CardContent>
+   132→      <div className="text-3xl font-bold text-foreground">
+   133→        {typeof value === 'number' ? value.toLocaleString() : value}
+   134→      </div>
+   135→      {description && (
+   136→        <p className="text-xs text-muted-foreground mt-1">{description}</p>
+   137→      )}
+   138→      {(change || trend !== undefined) && (
+   139→        <div className={`flex items-center text-xs mt-2 ${changePositive ? 'text-emerald-500 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
+   140→          {changePositive ? <ArrowUpRight className="h-3 w-3 mr-1" /> : <ArrowDownRight className="h-3 w-3 mr-1" />}
+   141→          <span>{change || `${trend?.toFixed(1)}%`}</span>
+   142→        </div>
+   143→      )}
+   144→    </CardContent>
+   145→  </Card>
+   146→)
+   147→
+   148→// Composant principal du tableau de bord administrateur
+   149→interface AdminDashboardProps {
+   150→  onBack?: () => void
+   151→  setCurrentScreen?: (screen: string) => void
+   152→}
+   153→
+   154→const COLORS = ['#10B981', '#F59E0B', '#EF4444', '#8B5E3C', '#3B82F6']
+   155→
+   156→export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurrentScreen }) => {
+   157→  const [loading, setLoading] = useState(true)
+   158→  const [stats, setStats] = useState<AdminStats | null>(null)
+   159→  const [users, setUsers] = useState<User[]>([])
+   160→  const [lots, setLots] = useState<Lot[]>([])
+   161→  const [recentPayments, setRecentPayments] = useState<RecentPayment[]>([])
+   162→
+   163→  // États de filtrage pour les utilisateurs
+   164→  const [userFilter, setUserFilter] = useState<string>('')
+   165→  const [sortField, setSortField] = useState<string>('createdAt')
+   166→  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
+   167→
+   168→  useEffect(() => {
+   169→    const loadDashboardData = async () => {
+   170→      setLoading(true)
+   171→      try {
+   172→        // Fetch admin statistics
+   173→        const statsResponse = await fetch('/api/admin/dashboard-stats')
+   174→        if (statsResponse.ok) {
+   175→          const statsData = await statsResponse.json()
+   176→          setStats(statsData)
+   177→        }
+   178→
+   179→        // Fetch users
+   180→        const usersResponse = await fetch('/api/admin/users')
+   181→        if (usersResponse.ok) {
+   182→          const usersData = await usersResponse.json()
+   183→          setUsers(usersData)
+   184→        }
+   185→
+   186→        // Fetch lots
+   187→        const lotsResponse = await fetch('/api/lots')
+   188→        if (lotsResponse.ok) {
+   189→          const lotsData = await lotsResponse.json()
+   190→          setLots(lotsData)
+   191→        }
+   192→
+   193→        // Fetch payments
+   194→        const paymentsResponse = await fetch('/api/admin/payments-list')
+   195→        if (paymentsResponse.ok) {
+   196→          const paymentsData = await paymentsResponse.json()
+   197→          setRecentPayments(paymentsData.slice(0, 10)) // Last 10 payments
+   198→        }
+   199→      } catch (error) {
+   200→        console.error('Error loading admin dashboard data:', error)
+   201→      } finally {
+   202→        setLoading(false)
+   203→      }
+   204→    }
+   205→
+   206→    loadDashboardData()
+   207→  }, [])
+   208→
+   209→  if (loading) {
+   210→    return (
+   211→      <div className="flex items-center justify-center min-h-[400px]">
+   212→        <div className="text-center">
+   213→          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+   214→          <p className="text-muted-foreground">Chargement du tableau de bord administrateur...</p>
+   215→        </div>
+   216→      </div>
+   217→    )
+   218→  }
+   219→
+   220→  const formatCurrency = (amount: number) => {
+   221→    return `${amount.toLocaleString()} FCFA`
+   222→  }
+   223→
+   224→  // Fonction de tri des utilisateurs
+   225→  const handleSort = (field: string) => {
+   226→    if (sortField === field) {
+   227→      // Inverser la direction si on clique sur le même champ
+   228→      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+   229→    } else {
+   230→      // Nouveau champ, trier par défaut desc pour la date, asc sinon
+   231→      setSortField(field)
+   232→      setSortDirection(field === 'createdAt' ? 'desc' : 'asc')
+   233→    }
+   234→  }
+   235→
+   236→  // Fonction de filtrage des utilisateurs
+   237→  const filteredUsers = users.filter(user => {
+   238→    if (!userFilter) return true
+   239→    const filter = userFilter.toLowerCase()
+   240→
+   241→    switch (userFilter) {
+   242→      case 'active':
+   243→        return user.status === 'ACTIVE'
+   244→      case 'blocked':
+   245→        return user.status === 'BLOCKED'
+   246→      case 'resident':
+   247→        return user.isResident
+   248→      case 'non-resident':
+   249→        return !user.isResident
+   250→      case 'kyc-verified':
+   251→        return user.kycVerified === true
+   252→      case 'kyc-pending':
+   253→        return user.kycVerified !== true
+   254→      default:
+   255→        return user.name.toLowerCase().includes(filter) ||
+   256→               user.phone.includes(filter) ||
+   257→               user.referralCode.toLowerCase().includes(filter)
+   258→    }
+   259→  })
+   260→
+   261→  // Fonction de tri des utilisateurs filtrés
+   262→  const sortedUsers = [...filteredUsers].sort((a, b) => {
+   263→    let comparison = 0
+   264→
+   265→    switch (sortField) {
+   266→      case 'name':
+   267→        comparison = a.name.localeCompare(b.name)
+   268→        break
+   269→      case 'type':
+   270→        comparison = a.isResident === b.isResident ? 0 : a.isResident ? -1 : 1
+   271→        break
+   272→      case 'status':
+   273→        comparison = a.status.localeCompare(b.status)
+   274→        break
+   275→      case 'kyc':
+   276→        const aKyc = a.kycVerified ? 1 : 0
+   277→        const bKyc = b.kycVerified ? 1 : 0
+   278→        comparison = aKyc - bKyc
+   279→        break
+   280→      case 'createdAt':
+   281→        comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+   282→        break
+   283→      default:
+   284→        comparison = 0
+   285→    }
+   286→
+   287→    return sortDirection === 'asc' ? comparison : -comparison
+   288→  })
+   289→
+   290→  const formatSortIcon = (field: string) => {
+   291→    if (sortField !== field) {
+   292→      return <ArrowUpDown className="h-3 w-3 ml-1 opacity-50" />
+   293→    }
+   294→    return sortDirection === 'asc'
+   295→      ? <ChevronUp className="h-3 w-3 ml-1" />
+   296→      : <ChevronDown className="h-3 w-3 ml-1" />
+   297→  }
+   298→
+   299→  const handleUserFilterClick = (filter: string) => {
+   300→    if (userFilter === filter) {
+   301→      setUserFilter('')
+   302→    } else {
+   303→      setUserFilter(filter)
+   304→    }
+   305→  }
+   306→
+   307→  // Gestion des utilisateurs
+   308→  const handleBlockUser = async (userId: string, userName: string) => {
+   309→    if (!confirm(`Voulez-vous vraiment bloquer l'utilisateur ${userName} ?`)) return;
+   310→
+   311→    try {
+   312→      const response = await fetch(`/api/admin/users/${encodeURIComponent(userId)}/status`, {
+   313→        method: 'PUT',
+   314→        headers: { 'Content-Type': 'application/json' },
+   315→        body: JSON.stringify({ status: 'BLOCKED' }),
+   316→      });
+   317→
+   318→      if (response.ok) {
+   319→        toast.success('Utilisateur bloqué avec succès !');
+   320→        // Recharger la liste des utilisateurs
+   321→        const usersResponse = await fetch('/api/admin/users');
+   322→        if (usersResponse.ok) {
+   323→          setUsers(await usersResponse.json());
+   324→        }
+   325→      } else {
+   326→        toast.error('Erreur lors du blocage de l\'utilisateur');
+   327→      }
+   328→    } catch (error) {
+   329→      toast.error('Erreur lors du blocage de l\'utilisateur');
+   330→    }
+   331→  }
+   332→
+   333→  const handleUnblockUser = async (userId: string, userName: string) => {
+   334→    if (!confirm(`Voulez-vous vraiment débloquer l'utilisateur ${userName} ?`)) return;
+   335→
+   336→    try {
+   337→      const response = await fetch(`/api/admin/users/${encodeURIComponent(userId)}/status`, {
+   338→        method: 'PUT',
+   339→        headers: { 'Content-Type': 'application/json' },
+   340→        body: JSON.stringify({ status: 'ACTIVE' }),
+   341→      });
+   342→
+   343→      if (response.ok) {
+   344→        toast.success('Utilisateur débloqué avec succès !');
+   345→        // Recharger la liste des utilisateurs
+   346→        const usersResponse = await fetch('/api/admin/users');
+   347→        if (usersResponse.ok) {
+   348→          setUsers(await usersResponse.json());
+   349→        }
+   350→      } else {
+   351→        toast.error('Erreur lors du déblocage de l\'utilisateur');
+   352→      }
+   353→    } catch (error) {
+   354→      toast.error('Erreur lors du déblocage de l\'utilisateur');
+   355→    }
+   356→  }
+   357→
+   358→  const handleDeleteUser = async (userId: string, userName: string) => {
+   359→    if (!confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur ${userName} ? Cette action est irréversible.`)) return;
+   360→
+   361→    try {
+   362→      const response = await fetch(`/api/admin/users?id=${encodeURIComponent(userId)}`, {
+   363→        method: 'DELETE',
+   364→      });
+   365→
+   366→      if (response.ok) {
+   367→        toast.success('Utilisateur supprimé avec succès !');
+   368→        // Recharger la liste des utilisateurs
+   369→        const usersResponse = await fetch('/api/admin/users');
+   370→        if (usersResponse.ok) {
+   371→          setUsers(await usersResponse.json());
+   372→        }
+   373→      } else {
+   374→        toast.error('Erreur lors de la suppression de l\'utilisateur');
+   375→      }
+   376→    } catch (error) {
+   377→      toast.error('Erreur lors de la suppression de l\'utilisateur');
+   378→    }
+   379→  }
+   380→
+   381→  // Données pour les graphiques
+   382→  const lotStatusData = [
+   383→    { name: 'Disponible', value: stats?.availableLots || 0, color: '#10B981' },
+   384→    { name: 'Réservé', value: stats?.reservedLots || 0, color: '#F59E0B' },
+   385→    { name: 'Payé', value: stats?.paidLots || 0, color: '#EF4444' }
+   386→  ]
+   387→
+   388→  const blockDistribution = lots.reduce((acc, lot) => {
+   389→    const block = lot.block
+   390→    if (!acc[block]) {
+   391→      acc[block] = { block, available: 0, reserved: 0, paid: 0 }
+   392→    }
+   393→    if (lot.status === 'AVAILABLE') acc[block].available++
+   394→    else if (lot.status === 'RESERVED') acc[block].reserved++
+   395→    else if (lot.status === 'PAID') acc[block].paid++
+   396→    return acc
+   397→  }, {} as Record<string, any>)
+   398→
+   399→  const blockData = Object.values(blockDistribution)
+   400→
+   401→  const userStatsData = [
+   402→    { name: 'Résidents', value: users.filter(u => u.isResident).length, color: '#8B5E3C' },
+   403→    { name: 'Non-Résidents', value: users.filter(u => !u.isResident).length, color: '#3B82F6' }
+   404→  ]
+   405→
+   406→  const revenueData = recentPayments.slice(0, 7).reverse().map((payment, index) => ({
+   407→    name: new Date(payment.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
+   408→    montant: payment.amount,
+   409→    lot: payment.lotName
+   410→  }))
+   411→
+   412→  return (
+   413→    <div className="min-h-screen flex flex-col bg-background pb-20">
+   414→      {/* Header */}
+   415→      <header className="bg-card p-4 shadow-sm flex items-center justify-between sticky top-0 z-10">
+   416→        <div className="flex items-center gap-4">
+   417→          <Button variant="ghost" size="icon" onClick={onBack}>
+   418→            <ArrowUpRight className="h-5 w-5 text-foreground rotate-180" />
+   419→          </Button>
+   420→          <div>
+   421→            <h1 className="text-xl font-bold text-foreground">Tableau de Bord Admin</h1>
+   422→            <p className="text-xs text-muted-foreground">Vue d'ensemble de la plateforme</p>
+   423→          </div>
+   424→        </div>
+   425→        <div className="flex items-center gap-3">
+   426→          <Badge className="bg-[#8B5E3C]">Administration</Badge>
+   427→          <Button
+   428→            variant="ghost"
+   429→            size="icon"
+   430→            onClick={() => setCurrentScreen?.('admin-chat')}
+   431→            className="hover:bg-blue-50 dark:hover:bg-blue-950"
+   432→          >
+   433→            <MessageSquare className="h-5 w-5 text-foreground" />
+   434→          </Button>
+   435→        </div>
+   436→      </header>
+   437→
+   438→      <div className="flex-1 p-4 space-y-6">
+   439→        {/* Cartes de statistiques principales */}
+   440→        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+   441→          <StatCard
+   442→            title="Total Lots"
+   443→            value={stats?.totalLots || 0}
+   444→            icon={<Building2 className="h-5 w-5 text-primary" />}
+   445→            description="Lots dans le système"
+   446→            trend={stats?.occupancyRate}
+   447→          />
+   448→          <StatCard
+   449→            title="Utilisateurs"
+   450→            value={stats?.totalUsers || 0}
+   451→            icon={<Users className="h-5 w-5 text-blue-500 dark:text-blue-400" />}
+   452→            description="Utilisateurs inscrits"
+   453→            change={stats?.activeUsers ? `${stats.activeUsers} actifs` : undefined}
+   454→          />
+   455→          <StatCard
+   456→            title="Revenus Totaux"
+   457→            value={`${(stats?.totalRevenue || 0).toLocaleString()} FCFA`}
+   458→            icon={<DollarSign className="h-5 w-5 text-emerald-500 dark:text-emerald-400" />}
+   459→            description="Cumul des paiements"
+   460→          />
+   461→          <StatCard
+   462→            title="Paiements en attente"
+   463→            value={stats?.pendingPayments || 0}
+   464→            icon={<AlertCircle className="h-5 w-5 text-orange-500 dark:text-orange-400" />}
+   465→            description="À valider"
+   466→            changePositive={false}
+   467→          />
+   468→        </div>
+   469→
+   470→        {/* Graphiques principaux */}
+   471→        <div className="grid gap-4 md:grid-cols-2">
+   472→          {/* Distribution des lots par statut */}
+   473→          <Card>
+   474→            <CardHeader>
+   475→              <CardTitle className="flex items-center gap-2">
+   476→                <Activity className="h-5 w-5 text-primary" />
+   477→                Distribution des Lots
+   478→              </CardTitle>
+   479→              <CardDescription>
+   480→                Répartition par statut
+   481→              </CardDescription>
+   482→            </CardHeader>
+   483→            <CardContent>
+   484→              <ResponsiveContainer width="100%" height={300}>
+   485→                <RechartsPieChart>
+   486→                  <Pie
+   487→                    data={lotStatusData}
+   488→                    cx="50%"
+   489→                    cy="50%"
+   490→                    labelLine={false}
+   491→                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+   492→                    outerRadius={80}
+   493→                    fill="#8884d8"
+   494→                    dataKey="value"
+   495→                  >
+   496→                    {lotStatusData.map((entry, index) => (
+   497→                      <Cell key={`cell-${index}`} fill={entry.color} />
+   498→                    ))}
+   499→                  </Pie>
+   500→                  <Tooltip formatter={(value: number) => value.toLocaleString()} />
+   501→                  <Legend />
+   502→                </RechartsPieChart>
+   503→              </ResponsiveContainer>
+   504→            </CardContent>
+   505→          </Card>
+   506→
+   507→          {/* Répartition par îlots */}
+   508→          <Card>
+   509→            <CardHeader>
+   510→              <CardTitle className="flex items-center gap-2">
+   511→                <BarChart3 className="h-5 w-5 text-primary" />
+   512→                Répartition par Îlots
+   513→              </CardTitle>
+   514→              <CardDescription>
+   515→                Distribution des lots par bloc
+   516→              </CardDescription>
+   517→            </CardHeader>
+   518→            <CardContent>
+   519→              <ResponsiveContainer width="100%" height={300}>
+   520→                <BarChart data={blockData}>
+   521→                  <CartesianGrid strokeDasharray="3 3" />
+   522→                  <XAxis dataKey="block" />
+   523→                  <YAxis />
+   524→                  <Tooltip formatter={(value: number) => value.toLocaleString()} />
+   525→                  <Legend />
+   526→                  <Bar dataKey="available" stackId="a" fill="#10B981" name="Disponible" />
+   527→                  <Bar dataKey="reserved" stackId="a" fill="#F59E0B" name="Réservé" />
+   528→                  <Bar dataKey="paid" stackId="a" fill="#EF4444" name="Payé" />
+   529→                </BarChart>
+   530→              </ResponsiveContainer>
+   531→            </CardContent>
+   532→          </Card>
+   533→        </div>
+   534→
+   535→        {/* Statistiques utilisateurs et revenus */}
+   536→        <div className="grid gap-4 md:grid-cols-2">
+   537→          {/* Types d'utilisateurs */}
+   538→          <Card>
+   539→            <CardHeader>
+   540→              <CardTitle className="flex items-center gap-2">
+   541→                <UserCheck className="h-5 w-5 text-primary" />
+   542→                Types d'Utilisateurs
+   543→              </CardTitle>
+   544→              <CardDescription>
+   545→                Résidents vs Non-Résidents
+   546→              </CardDescription>
+   547→            </CardHeader>
+   548→            <CardContent>
+   549→              <ResponsiveContainer width="100%" height={250}>
+   550→                <RechartsPieChart>
+   551→                  <Pie
+   552→                    data={userStatsData}
+   553→                    cx="50%"
+   554→                    cy="50%"
+   555→                    labelLine={false}
+   556→                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+   557→                    outerRadius={80}
+   558→                    fill="#8884d8"
+   559→                    dataKey="value"
+   560→                  >
+   561→                    {userStatsData.map((entry, index) => (
+   562→                      <Cell key={`cell-${index}`} fill={entry.color} />
+   563→                    ))}
+   564→                  </Pie>
+   565→                  <Tooltip formatter={(value: number) => value.toLocaleString()} />
+   566→                  <Legend />
+   567→                </RechartsPieChart>
+   568→              </ResponsiveContainer>
+   569→              <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t">
+   570→                <div className="text-center">
+   571→                  <p className="text-sm text-muted-foreground">Résidents</p>
+   572→                  <p className="text-2xl font-bold text-[#8B5E3C] dark:text-[#A5785C]">
+   573→                    {users.filter(u => u.isResident).length}
+   574→                  </p>
+   575→                </div>
+   576→                <div className="text-center">
+   577→                  <p className="text-sm text-muted-foreground">Non-Résidents</p>
+   578→                  <p className="text-2xl font-bold text-blue-500 dark:text-blue-400">
+   579→                    {users.filter(u => !u.isResident).length}
+   580→                  </p>
+   581→                </div>
+   582→              </div>
+   583→            </CardContent>
+   584→          </Card>
+   585→
+   586→          {/* Historique des revenus récents */}
+   587→          <Card>
+   588→            <CardHeader>
+   589→              <CardTitle className="flex items-center gap-2">
+   590→                <Activity className="h-5 w-5 text-primary" />
+   591→                Revenus Récents
+   592→              </CardTitle>
+   593→              <CardDescription>
+   594→                Derniers paiements (7 derniers)
+   595→              </CardDescription>
+   596→            </CardHeader>
+   597→            <CardContent>
+   598→              <ResponsiveContainer width="100%" height={250}>
+   599→                <LineChart data={revenueData}>
+   600→                  <CartesianGrid strokeDasharray="3 3" />
+   601→                  <XAxis dataKey="name" />
+   602→                  <YAxis />
+   603→                  <Tooltip 
+   604→                    formatter={(value: number) => [formatCurrency(value), 'Montant']}
+   605→                    labelFormatter={(label) => `Date: ${label}`}
+   606→                  />
+   607→                  <Legend />
+   608→                  <Line 
+   609→                    type="monotone" 
+   610→                    dataKey="montant" 
+   611→                    stroke="#10B981" 
+   612→                    strokeWidth={2}
+   613→                    name="Montant"
+   614→                  />
+   615→                </LineChart>
+   616→              </ResponsiveContainer>
+   617→            </CardContent>
+   618→          </Card>
+   619→        </div>
+   620→
+   621→        {/* Statistiques détaillées */}
+   622→        <div className="grid gap-4 md:grid-cols-3">
+   623→          <StatCard
+   624→            title="Réservations ce mois"
+   625→            value={stats?.reservationsThisMonth || 0}
+   626→            icon={<ShoppingCart className="h-5 w-5 text-purple-500 dark:text-purple-400" />}
+   627→            description="Nouvelles réservations"
+   628→          />
+   629→          <StatCard
+   630→            title="Paiements ce mois"
+   631→            value={stats?.paymentsThisMonth || 0}
+   632→            icon={<Wallet className="h-5 w-5 text-cyan-500 dark:text-cyan-400" />}
+   633→            description="Transactions validées"
+   634→          />
+   635→          <StatCard
+   636→            title="Moyenne par utilisateur"
+   637→            value={formatCurrency(stats?.averagePaymentPerUser || 0)}
+   638→            icon={<TrendingUp className="h-5 w-5 text-rose-500 dark:text-rose-400" />}
+   639→            description="Investissement moyen"
+   640→          />
+   641→        </div>
+   642→
+   643→        {/* Détails avec onglets */}
+   644→        <Tabs defaultValue="users" className="space-y-4">
+   645→          <TabsList className="grid w-full grid-cols-3">
+   646→            <TabsTrigger value="users" className="flex items-center gap-2">
+   647→              <Users className="h-4 w-4" />
+   648→              Utilisateurs ({users.length})
+   649→            </TabsTrigger>
+   650→            <TabsTrigger value="lots" className="flex items-center gap-2">
+   651→              <Building2 className="h-4 w-4" />
+   652→              Lots ({lots.length})
+   653→            </TabsTrigger>
+   654→            <TabsTrigger value="payments" className="flex items-center gap-2">
+   655→              <DollarSign className="h-4 w-4" />
+   656→              Paiements ({recentPayments.length})
+   657→            </TabsTrigger>
+   658→          </TabsList>
+   659→
+   660→          <TabsContent value="users" className="space-y-4">
+   661→            <Card>
+   662→              <CardHeader>
+   663→                <CardTitle>Liste des Utilisateurs</CardTitle>
+   664→                <CardDescription>
+   665→                  {sortedUsers.length} utilisateur{sortedUsers.length > 1 ? 's' : ''} affiché{sortedUsers.length > 1 ? 's' : ''}
+   666→                  {userFilter && ` • Filtre actif: ${userFilter}`}
+   667→                </CardDescription>
+   668→              </CardHeader>
+   669→              <CardContent>
+   670→                <div className="overflow-x-auto">
+   671→                  <table className="w-full">
+   672→                    <thead>
+   673→                      <tr className="border-b border-border">
+   674→                        <th
+   675→                          className="text-left py-3 px-4 font-semibold text-foreground cursor-pointer hover:bg-muted/50 transition-colors"
+   676→                          onClick={() => handleSort('name')}
+   677→                        >
+   678→                          <div className="flex items-center">
+   679→                            Utilisateur
+   680→                            {formatSortIcon('name')}
+   681→                          </div>
+   682→                        </th>
+   683→                        <th
+   684→                          className="text-left py-3 px-4 font-semibold text-foreground cursor-pointer hover:bg-muted/50 transition-colors"
+   685→                          onClick={() => handleUserFilterClick(userFilter === 'resident' ? '' : 'resident')}
+   686→                        >
+   687→                          <div className="flex items-center gap-2">
+   688→                            Type
+   689→                            {userFilter === 'resident' && (
+   690→                              <Badge variant="secondary" className="text-xs">
+   691→                                {sortedUsers.filter(u => u.isResident).length}
+   692→                              </Badge>
+   693→                            )}
+   694→                            {userFilter === 'non-resident' && (
+   695→                              <Badge variant="secondary" className="text-xs">
+   696→                                {sortedUsers.filter(u => !u.isResident).length}
+   697→                              </Badge>
+   698→                            )}
+   699→                          </div>
+   700→                        </th>
+   701→                        <th
+   702→                          className="text-left py-3 px-4 font-semibold text-foreground cursor-pointer hover:bg-muted/50 transition-colors"
+   703→                          onClick={() => handleUserFilterClick(userFilter === 'active' ? '' : 'active')}
+   704→                        >
+   705→                          <div className="flex items-center gap-2">
+   706→                            Statut
+   707→                            {userFilter === 'active' && (
+   708→                              <Badge variant="secondary" className="text-xs">
+   709→                                {sortedUsers.filter(u => u.status === 'ACTIVE').length}
+   710→                              </Badge>
+   711→                            )}
+   712→                            {userFilter === 'blocked' && (
+   713→                              <Badge variant="secondary" className="text-xs">
+   714→                                {sortedUsers.filter(u => u.status === 'BLOCKED').length}
+   715→                              </Badge>
+   716→                            )}
+   717→                          </div>
+   718→                        </th>
+   719→                        <th
+   720→                          className="text-left py-3 px-4 font-semibold text-foreground cursor-pointer hover:bg-muted/50 transition-colors"
+   721→                          onClick={() => handleUserFilterClick(userFilter === 'kyc-verified' ? '' : 'kyc-verified')}
+   722→                        >
+   723→                          <div className="flex items-center gap-2">
+   724→                            KYC
+   725→                            {userFilter === 'kyc-verified' && (
+   726→                              <Badge variant="secondary" className="text-xs">
+   727→                                {sortedUsers.filter(u => u.kycVerified).length}
+   728→                              </Badge>
+   729→                            )}
+   730→                            {userFilter === 'kyc-pending' && (
+   731→                              <Badge variant="secondary" className="text-xs">
+   732→                                {sortedUsers.filter(u => !u.kycVerified).length}
+   733→                              </Badge>
+   734→                            )}
+   735→                          </div>
+   736→                        </th>
+   737→                        <th
+   738→                          className="text-left py-3 px-4 font-semibold text-foreground cursor-pointer hover:bg-muted/50 transition-colors"
+   739→                          onClick={() => handleSort('createdAt')}
+   740→                        >
+   741→                          <div className="flex items-center">
+   742→                            Date
+   743→                            {formatSortIcon('createdAt')}
+   744→                          </div>
+   745→                        </th>
+   746→                        <th className="text-left py-3 px-4 font-semibold text-foreground">
+   747→                          Actions
+   748→                        </th>
+   749→                      </tr>
+   750→                    </thead>
+   751→                    <tbody>
+   752→                      {sortedUsers.map((user, index) => (
+   753→                        <tr key={user.id || `admin-user-${index}`} className="border-b border-border hover:bg-muted/30 transition-colors">
+   754→                          <td className="py-3 px-4">
+   755→                            <div>
+   756→                              <p className="font-medium text-foreground">{user.name}</p>
+   757→                              <p className="text-xs text-muted-foreground">{user.phone}</p>
+   758→                            </div>
+   759→                          </td>
+   760→                          <td className="py-3 px-4">
+   761→                            <Badge
+   762→                              variant="secondary"
+   763→                              className={user.isResident ? 'bg-[#8B5E3C]/10 text-[#8B5E3C] dark:text-[#A5785C]' : 'bg-blue-500/10 text-blue-500 dark:text-blue-400'}
+   764→                            >
+   765→                              {user.isResident ? 'Résident' : 'Non-Résident'}
+   766→                            </Badge>
+   767→                          </td>
+   768→                          <td className="py-3 px-4">
+   769→                            <Badge
+   770→                              variant={user.status === 'ACTIVE' ? 'default' : 'secondary'}
+   771→                              className={user.status === 'ACTIVE' ? 'bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500' : ''}
+   772→                            >
+   773→                              {user.status === 'ACTIVE' ? 'Actif' : 'Bloqué'}
+   774→                            </Badge>
+   775→                          </td>
+   776→                          <td className="py-3 px-4">
+   777→                            <Badge
+   778→                              variant={user.kycVerified ? 'default' : 'secondary'}
+   779→                              className={user.kycVerified ? 'bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500' : 'bg-orange-500/10 text-orange-500 dark:text-orange-400'}
+   780→                            >
+   781→                              {user.kycVerified ? 'Vérifié' : 'En attente'}
+   782→                            </Badge>
+   783→                          </td>
+   784→                          <td className="py-3 px-4">
+   785→                            <div>
+   786→                              <p className="text-sm text-foreground">
+   787→                                {new Date(user.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+   788→                              </p>
+   789→                              <p className="text-xs text-muted-foreground">
+   790→                                {new Date(user.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+   791→                              </p>
+   792→                            </div>
+   793→                          </td>
+   794→                          <td className="py-3 px-4">
+   795→                            <div className="flex gap-1">
+   796→                              {user.status === 'ACTIVE' ? (
+   797→                                <Button
+   798→                                  variant="outline"
+   799→                                  size="sm"
+   800→                                  onClick={() => handleBlockUser(user.id, user.name)}
+   801→                                  className="text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/30"
+   802→                                >
+   803→                                  <Ban className="h-3 w-3" />
+   804→                                </Button>
+   805→                              ) : (
+   806→                                <Button
+   807→                                  variant="outline"
+   808→                                  size="sm"
+   809→                                  onClick={() => handleUnblockUser(user.id, user.name)}
+   810→                                  className="text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+   811→                                >
+   812→                                  <ShieldAlert className="h-3 w-3" />
+   813→                                </Button>
+   814→                              )}
+   815→                              <Button
+   816→                                variant="outline"
+   817→                                size="sm"
+   818→                                onClick={() => handleDeleteUser(user.id, user.name)}
+   819→                                className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
+   820→                              >
+   821→                                <Trash2 className="h-3 w-3" />
+   822→                              </Button>
+   823→                            </div>
+   824→                          </td>
+   825→                        </tr>
+   826→                      ))}
+   827→                    </tbody>
+   828→                  </table>
+   829→                </div>
+   830→
+   831→                {sortedUsers.length === 0 && (
+   832→                  <div className="text-center py-12 text-muted-foreground">
+   833→                    <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+   834→                    <p>Aucun utilisateur trouvé</p>
+   835→                    {userFilter && (
+   836→                      <Button
+   837→                        variant="outline"
+   838→                        onClick={() => setUserFilter('')}
+   839→                        className="mt-4"
+   840→                      >
+   841→                        Effacer le filtre
+   842→                      </Button>
+   843→                    )}
+   844→                  </div>
+   845→                )}
+   846→              </CardContent>
+   847→            </Card>
+   848→          </TabsContent>
+   849→
+   850→          <TabsContent value="lots" className="space-y-4">
+   851→            <Card>
+   852→              <CardHeader>
+   853→                <CardTitle>Liste des Lots</CardTitle>
+   854→                <CardDescription>
+   855→                  Tous les lots de la plateforme
+   856→                </CardDescription>
+   857→              </CardHeader>
+   858→              <CardContent>
+   859→                <ScrollArea className="h-[400px] pr-4">
+   860→                  <div className="space-y-4">
+   861→                    {lots.map((lot) => {
+   862→                      const getStatusBadge = () => {
+   863→                        switch (lot.status) {
+   864→                          case 'AVAILABLE':
+   865→                            return <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">DISPONIBLE</Badge>
+   866→                          case 'RESERVED':
+   867→                            return <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">RÉSERVÉ</Badge>
+   868→                          case 'PAID':
+   869→                            return <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">SOLDÉ</Badge>
+   870→                        }
+   871→                      }
+   872→                      
+   873→                      return (
+   874→                        <Card key={lot.id} className="border-border">
+   875→                          <CardContent className="p-4">
+   876→                            <div className="flex items-start justify-between mb-3">
+   877→                              <div className="space-y-1">
+   878→                                <div className="flex items-center gap-2">
+   879→                                  <h4 className="font-semibold text-foreground">{lot.name}</h4>
+   880→                                  {getStatusBadge()}
+   881→                                </div>
+   882→                                <p className="text-sm text-muted-foreground">
+   883→                                  Îlot {lot.block} • {lot.surface}
+   884→                                </p>
+   885→                              </div>
+   886→                              <MapPin className="h-4 w-4 text-muted-foreground" />
+   887→                            </div>
+   888→                            <div className="space-y-2">
+   889→                              <div className="flex justify-between text-sm">
+   890→                                <span className="text-muted-foreground">Prix Résident</span>
+   891→                                <span className="font-medium text-[#8B5E3C] dark:text-[#A5785C]">
+   892→                                  {formatCurrency(lot.priceRes)}
+   893→                                </span>
+   894→                              </div>
+   895→                              <div className="flex justify-between text-sm">
+   896→                                <span className="text-muted-foreground">Prix Non-Résident</span>
+   897→                                <span className="font-medium text-blue-500 dark:text-blue-400">
+   898→                                  {formatCurrency(lot.priceNon)}
+   899→                                </span>
+   900→                              </div>
+   901→                            </div>
+   902→                          </CardContent>
+   903→                        </Card>
+   904→                      )
+   905→                    })}
+   906→                  </div>
+   907→                </ScrollArea>
+   908→              </CardContent>
+   909→            </Card>
+   910→          </TabsContent>
+   911→
+   912→          <TabsContent value="payments" className="space-y-4">
+   913→            <Card>
+   914→              <CardHeader>
+   915→                <CardTitle>Paiements Récents</CardTitle>
+   916→                <CardDescription>
+   917→                  Derniers paiements effectués
+   918→                </CardDescription>
+   919→              </CardHeader>
+   920→              <CardContent>
+   921→                <ScrollArea className="h-[400px] pr-4">
+   922→                  <div className="space-y-4">
+   923→                    {recentPayments.length === 0 ? (
+   924→                      <div className="flex flex-col items-center justify-center py-12 text-center">
+   925→                        <DollarSign className="h-12 w-12 text-muted-foreground/50 mb-4" />
+   926→                        <p className="text-muted-foreground">Aucun paiement récent</p>
+   927→                      </div>
+   928→                    ) : (
+   929→                      recentPayments.map((payment, index) => (
+   930→                        <Card key={payment.id || `recent-pay-${index}`} className="border-border">
+   931→                          <CardContent className="p-4">
+   932→                            <div className="flex items-center justify-between">
+   933→                              <div className="space-y-1">
+   934→                                <div className="flex items-center gap-2">
+   935→                                  <h4 className="font-semibold text-foreground">{payment.userName}</h4>
+   936→                                  <Badge
+   937→                                    variant={payment.status === 'VALIDATED' ? 'default' : 'secondary'}
+   938→                                    className={
+   939→                                      payment.status === 'VALIDATED'
+   940→                                        ? 'bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500'
+   941→                                        : 'bg-orange-500/10 text-orange-500 dark:text-orange-400'
+   942→                                    }
+   943→                                  >
+   944→                                    {payment.status === 'VALIDATED' ? 'Validé' : 'En attente'}
+   945→                                  </Badge>
+   946→                                </div>
+   947→                                <p className="text-sm text-muted-foreground">
+   948→                                  Lot {payment.lotName} • {payment.type === 'FULL' ? 'Paiement complet' : 'Paiement partiel'}
+   949→                                </p>
+   950→                                <p className="text-xs text-muted-foreground">
+   951→                                  {new Date(payment.createdAt).toLocaleDateString('fr-FR', {
+   952→                                    day: 'numeric',
+   953→                                    month: 'long',
+   954→                                    year: 'numeric',
+   955→                                    hour: '2-digit',
+   956→                                    minute: '2-digit'
+   957→                                  })}
+   958→                                </p>
+   959→                              </div>
+   960→                              <div className="text-right">
+   961→                                <p className="text-2xl font-bold text-foreground">
+   962→                                  {formatCurrency(payment.amount)}
+   963→                                </p>
+   964→                              </div>
+   965→                            </div>
+   966→                          </CardContent>
+   967→                        </Card>
+   968→                      ))
+   969→                    )}
+   970→                  </div>
+   971→                </ScrollArea>
+   972→              </CardContent>
+   973→            </Card>
+   974→          </TabsContent>
+   975→        </Tabs>
+   976→      </div>
+   977→    </div>
+   978→  )
+   979→}
+   980→
+   981→export default AdminDashboard
