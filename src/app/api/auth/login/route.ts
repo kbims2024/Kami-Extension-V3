@@ -2,15 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { hashPassword, verifyPassword } from '@/lib/password';
 
-// POST /api/auth/login - Connexion ou inscription
+// POST /api/auth/login - Connexion
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, phone, email, isResident, password } = body;
+    const { phone, email, password, name, isResident } = body;
 
     // Valider qu'au moins un identifiant est fourni (email ou téléphone)
-    if (!name || (!phone && !email)) {
-      return NextResponse.json({ error: 'Nom et au moins un identifiant (téléphone ou email) sont requis' }, { status: 400 });
+    if (!phone && !email) {
+      return NextResponse.json({ error: 'Numéro de téléphone ou email requis' }, { status: 400 });
     }
 
     // Vérifier le mot de passe est fourni
@@ -31,29 +31,17 @@ export async function POST(request: NextRequest) {
     }
 
     if (!user) {
-      // Créer un nouvel utilisateur
-      const referralCode = `${name.substring(0, 3).toUpperCase()}${Math.floor(Math.random() * 900 + 100)}`;
-      user = await db.user.create({
-        data: {
-          name,
-          phone: phone || null,
-          email: email || null,
-          isResident: isResident !== undefined ? isResident : true,
-          referralCode,
-          status: 'ACTIVE',
-          password: password ? hashPassword(password) : null,
-        },
-      });
-    } else {
-      // Vérifier le mot de passe si l'utilisateur en a un
-      if (user.password && password) {
-        const isPasswordValid = verifyPassword(password, user.password);
-        if (!isPasswordValid) {
-          return NextResponse.json({ error: 'Mot de passe incorrect' }, { status: 401 });
-        }
-      } else if (user.password && !password) {
-        return NextResponse.json({ error: 'Mot de passe requis' }, { status: 401 });
+      return NextResponse.json({ error: 'Utilisateur non trouvé. Veuillez vous inscrire d\'abord.' }, { status: 404 });
+    }
+
+    // Vérifier le mot de passe
+    if (user.password && password) {
+      const isPasswordValid = verifyPassword(password, user.password);
+      if (!isPasswordValid) {
+        return NextResponse.json({ error: 'Mot de passe incorrect' }, { status: 401 });
       }
+    } else {
+      return NextResponse.json({ error: 'Mot de passe requis' }, { status: 401 });
     }
 
     return NextResponse.json(user);

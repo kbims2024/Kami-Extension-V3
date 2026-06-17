@@ -20,7 +20,6 @@ type LoginMethod = 'phone' | 'email';
 export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps) {
   const [loginMethod, setLoginMethod] = useState<LoginMethod>('phone');
   const [formData, setFormData] = useState({
-    name: '',
     phone: '',
     email: '',
     password: '',
@@ -30,8 +29,8 @@ export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async () => {
-    if (!formData.name || !formData.password) {
-      toast.error('Veuillez remplir tous les champs');
+    if (!formData.password) {
+      toast.error('Veuillez entrer votre mot de passe');
       return;
     }
 
@@ -61,7 +60,6 @@ export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: formData.name,
           phone: loginMethod === 'phone' ? formData.phone : undefined,
           email: loginMethod === 'email' ? formData.email : undefined,
           password: formData.password,
@@ -125,7 +123,7 @@ export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps
               Bon retour !
             </h2>
             <p className="text-foreground text-sm">
-              Entrez vos informations pour vous connecter
+              Entrez vos identifiants pour vous connecter
             </p>
           </div>
 
@@ -152,20 +150,6 @@ export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps
                   <Mail className="h-4 w-4 mr-2" />
                   Email
                 </Button>
-              </div>
-
-              <div>
-                <Label htmlFor="name" className="text-sm font-semibold text-foreground mb-2 block">
-                  Nom complet
-                </Label>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="Ex: Jean Koné"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="h-11 text-base border-border focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400"
-                />
               </div>
 
               {loginMethod === 'phone' ? (

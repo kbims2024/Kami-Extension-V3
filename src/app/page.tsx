@@ -228,7 +228,7 @@ export default function KamiExtensionPage() {
 
   const handleRegistrationComplete = async (userData: { name: string; phone: string; isResident: boolean; password: string }) => {
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
