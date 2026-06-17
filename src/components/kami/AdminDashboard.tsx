@@ -27,7 +27,10 @@ import {
   MessageSquare,
   Ban,
   ShieldAlert,
-  Trash2
+  Trash2,
+  ArrowUpDown,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { 
@@ -72,6 +75,7 @@ interface User {
   reservationCount: number
   totalPaid: number
   createdAt: string
+  kycVerified?: boolean
 }
 
 interface Lot {
@@ -156,6 +160,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
   const [lots, setLots] = useState<Lot[]>([])
   const [recentPayments, setRecentPayments] = useState<RecentPayment[]>([])
 
+  // États de filtrage pour les utilisateurs
+  const [userFilter, setUserFilter] = useState<string>('')
+  const [sortField, setSortField] = useState<string>('createdAt')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
+
   useEffect(() => {
     const loadDashboardData = async () => {
       setLoading(true)
@@ -210,6 +219,89 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
 
   const formatCurrency = (amount: number) => {
     return `${amount.toLocaleString()} FCFA`
+  }
+
+  // Fonction de tri des utilisateurs
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      // Inverser la direction si on clique sur le même champ
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      // Nouveau champ, trier par défaut desc pour la date, asc sinon
+      setSortField(field)
+      setSortDirection(field === 'createdAt' ? 'desc' : 'asc')
+    }
+  }
+
+  // Fonction de filtrage des utilisateurs
+  const filteredUsers = users.filter(user => {
+    if (!userFilter) return true
+    const filter = userFilter.toLowerCase()
+
+    switch (userFilter) {
+      case 'active':
+        return user.status === 'ACTIVE'
+      case 'blocked':
+        return user.status === 'BLOCKED'
+      case 'resident':
+        return user.isResident
+      case 'non-resident':
+        return !user.isResident
+      case 'kyc-verified':
+        return user.kycVerified === true
+      case 'kyc-pending':
+        return user.kycVerified !== true
+      default:
+        return user.name.toLowerCase().includes(filter) ||
+               user.phone.includes(filter) ||
+               user.referralCode.toLowerCase().includes(filter)
+    }
+  })
+
+  // Fonction de tri des utilisateurs filtrés
+  const sortedUsers = [...filteredUsers].sort((a, b) => {
+    let comparison = 0
+
+    switch (sortField) {
+      case 'name':
+        comparison = a.name.localeCompare(b.name)
+        break
+      case 'type':
+        comparison = a.isResident === b.isResident ? 0 : a.isResident ? -1 : 1
+        break
+      case 'status':
+        comparison = a.status.localeCompare(b.status)
+        break
+      case 'kyc':
+        const aKyc = a.kycVerified ? 1 : 0
+        const bKyc = b.kycVerified ? 1 : 0
+        comparison = aKyc - bKyc
+        break
+      case 'createdAt':
+        comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        break
+      default:
+        comparison = 0
+    }
+
+    return sortDirection === 'asc' ? comparison : -comparison
+  })
+
+  const formatSortIcon = (field: string) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="h-3 w-3 ml-1 opacity-50" />
+    }
+    return sortDirection === 'asc'
+      ? <ChevronUp className="h-3 w-3 ml-1" />
+      : <ChevronDown className="h-3 w-3 ml-1" />
+  }
+
+  const handleUserFilterClick = (filter: string) => {
+    if (userFilter === filter) {
+      setUserFilter('')
+    } else {
+      setUserFilter(filter)
+    }
   }
 
   // Gestion des utilisateurs
@@ -570,86 +662,187 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
               <CardHeader>
                 <CardTitle>Liste des Utilisateurs</CardTitle>
                 <CardDescription>
-                  Tous les utilisateurs inscrits
+                  {sortedUsers.length} utilisateur{sortedUsers.length > 1 ? 's' : ''} affiché{sortedUsers.length > 1 ? 's' : ''}
+                  {userFilter && ` • Filtre actif: ${userFilter}`}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-[400px] pr-4">
-                  <div className="space-y-4">
-                    {users.map((user, index) => (
-                      <Card key={user.id || `admin-user-${index}`} className="border-border">
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-2">
-                                <h4 className="font-semibold text-foreground">{user.name}</h4>
-                                <Badge
-                                  variant={user.status === 'ACTIVE' ? 'default' : 'secondary'}
-                                  className={user.status === 'ACTIVE' ? 'bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500' : ''}
-                                >
-                                  {user.status === 'ACTIVE' ? 'Actif' : 'Bloqué'}
-                                </Badge>
-                                <Badge
-                                  variant="secondary"
-                                  className={user.isResident ? 'bg-[#8B5E3C]/10 text-[#8B5E3C] dark:text-[#A5785C]' : 'bg-blue-500/10 text-blue-500 dark:text-blue-400'}
-                                >
-                                  {user.isResident ? 'Résident' : 'Non-Résident'}
-                                </Badge>
-                              </div>
-                              <p className="text-sm text-muted-foreground">
-                                {user.phone} • Code: {user.referralCode}
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th
+                          className="text-left py-3 px-4 font-semibold text-foreground cursor-pointer hover:bg-muted/50 transition-colors"
+                          onClick={() => handleSort('name')}
+                        >
+                          <div className="flex items-center">
+                            Utilisateur
+                            {formatSortIcon('name')}
+                          </div>
+                        </th>
+                        <th
+                          className="text-left py-3 px-4 font-semibold text-foreground cursor-pointer hover:bg-muted/50 transition-colors"
+                          onClick={() => handleUserFilterClick(userFilter === 'resident' ? '' : 'resident')}
+                        >
+                          <div className="flex items-center gap-2">
+                            Type
+                            {userFilter === 'resident' && (
+                              <Badge variant="secondary" className="text-xs">
+                                {sortedUsers.filter(u => u.isResident).length}
+                              </Badge>
+                            )}
+                            {userFilter === 'non-resident' && (
+                              <Badge variant="secondary" className="text-xs">
+                                {sortedUsers.filter(u => !u.isResident).length}
+                              </Badge>
+                            )}
+                          </div>
+                        </th>
+                        <th
+                          className="text-left py-3 px-4 font-semibold text-foreground cursor-pointer hover:bg-muted/50 transition-colors"
+                          onClick={() => handleUserFilterClick(userFilter === 'active' ? '' : 'active')}
+                        >
+                          <div className="flex items-center gap-2">
+                            Statut
+                            {userFilter === 'active' && (
+                              <Badge variant="secondary" className="text-xs">
+                                {sortedUsers.filter(u => u.status === 'ACTIVE').length}
+                              </Badge>
+                            )}
+                            {userFilter === 'blocked' && (
+                              <Badge variant="secondary" className="text-xs">
+                                {sortedUsers.filter(u => u.status === 'BLOCKED').length}
+                              </Badge>
+                            )}
+                          </div>
+                        </th>
+                        <th
+                          className="text-left py-3 px-4 font-semibold text-foreground cursor-pointer hover:bg-muted/50 transition-colors"
+                          onClick={() => handleUserFilterClick(userFilter === 'kyc-verified' ? '' : 'kyc-verified')}
+                        >
+                          <div className="flex items-center gap-2">
+                            KYC
+                            {userFilter === 'kyc-verified' && (
+                              <Badge variant="secondary" className="text-xs">
+                                {sortedUsers.filter(u => u.kycVerified).length}
+                              </Badge>
+                            )}
+                            {userFilter === 'kyc-pending' && (
+                              <Badge variant="secondary" className="text-xs">
+                                {sortedUsers.filter(u => !u.kycVerified).length}
+                              </Badge>
+                            )}
+                          </div>
+                        </th>
+                        <th
+                          className="text-left py-3 px-4 font-semibold text-foreground cursor-pointer hover:bg-muted/50 transition-colors"
+                          onClick={() => handleSort('createdAt')}
+                        >
+                          <div className="flex items-center">
+                            Date
+                            {formatSortIcon('createdAt')}
+                          </div>
+                        </th>
+                        <th className="text-left py-3 px-4 font-semibold text-foreground">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sortedUsers.map((user, index) => (
+                        <tr key={user.id || `admin-user-${index}`} className="border-b border-border hover:bg-muted/30 transition-colors">
+                          <td className="py-3 px-4">
+                            <div>
+                              <p className="font-medium text-foreground">{user.name}</p>
+                              <p className="text-xs text-muted-foreground">{user.phone}</p>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <Badge
+                              variant="secondary"
+                              className={user.isResident ? 'bg-[#8B5E3C]/10 text-[#8B5E3C] dark:text-[#A5785C]' : 'bg-blue-500/10 text-blue-500 dark:text-blue-400'}
+                            >
+                              {user.isResident ? 'Résident' : 'Non-Résident'}
+                            </Badge>
+                          </td>
+                          <td className="py-3 px-4">
+                            <Badge
+                              variant={user.status === 'ACTIVE' ? 'default' : 'secondary'}
+                              className={user.status === 'ACTIVE' ? 'bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500' : ''}
+                            >
+                              {user.status === 'ACTIVE' ? 'Actif' : 'Bloqué'}
+                            </Badge>
+                          </td>
+                          <td className="py-3 px-4">
+                            <Badge
+                              variant={user.kycVerified ? 'default' : 'secondary'}
+                              className={user.kycVerified ? 'bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500' : 'bg-orange-500/10 text-orange-500 dark:text-orange-400'}
+                            >
+                              {user.kycVerified ? 'Vérifié' : 'En attente'}
+                            </Badge>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div>
+                              <p className="text-sm text-foreground">
+                                {new Date(user.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(user.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                               </p>
                             </div>
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
-                          </div>
-                          <div className="space-y-2">
-                            <div className="flex justify-between text-sm">
-                              <span className="text-muted-foreground">Réservations</span>
-                              <span className="font-medium text-foreground">{user.reservationCount}</span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span className="text-muted-foreground">Total Payé</span>
-                              <span className="font-medium text-emerald-500 dark:text-emerald-400">
-                                {formatCurrency(user.totalPaid)}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex gap-2 mt-3 pt-3 border-t border-border">
-                            {user.status === 'ACTIVE' ? (
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex gap-1">
+                              {user.status === 'ACTIVE' ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleBlockUser(user.id, user.name)}
+                                  className="text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/30"
+                                >
+                                  <Ban className="h-3 w-3" />
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleUnblockUser(user.id, user.name)}
+                                  className="text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+                                >
+                                  <ShieldAlert className="h-3 w-3" />
+                                </Button>
+                              )}
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleBlockUser(user.id, user.name)}
-                                className="flex-1 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/30"
+                                onClick={() => handleDeleteUser(user.id, user.name)}
+                                className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
                               >
-                                <Ban className="h-4 w-4 mr-1" />
-                                Bloquer
+                                <Trash2 className="h-3 w-3" />
                               </Button>
-                            ) : (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleUnblockUser(user.id, user.name)}
-                                className="flex-1 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
-                              >
-                                <ShieldAlert className="h-4 w-4 mr-1" />
-                                Débloquer
-                              </Button>
-                            )}
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDeleteUser(user.id, user.name)}
-                              className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {sortedUsers.length === 0 && (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Aucun utilisateur trouvé</p>
+                    {userFilter && (
+                      <Button
+                        variant="outline"
+                        onClick={() => setUserFilter('')}
+                        className="mt-4"
+                      >
+                        Effacer le filtre
+                      </Button>
+                    )}
                   </div>
-                </ScrollArea>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
