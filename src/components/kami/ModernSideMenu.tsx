@@ -29,6 +29,7 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
       {/* Overlay */}
       {isOpen && (
         <motion.div
+          key="overlay"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -40,6 +41,7 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
 
       {/* Menu */}
       <motion.div
+        key="menu"
         initial={{ x: '-100%' }}
         animate={{ x: isOpen ? '0%' : '-100%' }}
         exit={{ x: '-100%' }}
@@ -100,9 +102,10 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
             </div>
           </motion.div>
 
-          <AnimatePresence>
+          <AnimatePresence mode="wait">
             {currentUser ? (
               <motion.div
+                key="user-info"
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: -20, opacity: 0 }}
@@ -117,6 +120,7 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
               </motion.div>
             ) : (
               <motion.div
+                key="login-prompt"
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: -20, opacity: 0 }}
