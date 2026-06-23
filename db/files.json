@@ -5,5 +5,12 @@
     "mimeType": "application/pdf",
     "size": 35969,
     "updatedAt": "2026-05-28T16:57:02.440Z"
+  },
+  "HERO": {
+    "filename": "HERO_1780084574158_1000036270.jpg",
+    "path": "/uploads/HERO_1780084574158_1000036270.jpg",
+    "mimeType": "image/jpeg",
+    "size": 1783683,
+    "updatedAt": "2026-05-29T19:56:14.158Z"
   }
 }

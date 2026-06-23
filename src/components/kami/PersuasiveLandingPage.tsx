@@ -27,6 +27,7 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
   const [animatedNumbers, setAnimatedNumbers] = useState({ available: 0, reservedRate: 0, purchasedRate: 0 });
   const [isServicesModalOpen, setIsServicesModalOpen] = useState(false);
   const [heroBackground, setHeroBackground] = useState<string | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
   const handleViewPlan = () => {
     window.location.href = '/view-plan';
@@ -57,6 +58,22 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
 
     return () => clearInterval(interval);
   }, [availableCount, reservedRate, purchasedRate]);
+
+  // Charger le logo depuis la base
+  useEffect(() => {
+    const loadLogo = async () => {
+      try {
+        const response = await fetch('/api/logo');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.imageUrl) setLogoUrl(data.imageUrl);
+        }
+      } catch (error) {
+        console.error('Erreur chargement logo:', error);
+      }
+    };
+    loadLogo();
+  }, []);
 
   // Charger l'image de fond HERO depuis les paramètres
   useEffect(() => {
@@ -120,9 +137,17 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
         <div className="container mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-brand-blue to-blue-700 rounded-xl flex items-center justify-center shadow-lg shadow-brand-blue/30">
-                <Building2 className="text-white h-5 w-5" />
-              </div>
+              {logoUrl ? (
+                <img
+                  src={logoUrl}
+                  alt="KAMI-EXTENSION"
+                  className="h-10 w-auto object-contain rounded-xl"
+                />
+              ) : (
+                <div className="w-10 h-10 bg-gradient-to-br from-brand-blue to-blue-700 rounded-xl flex items-center justify-center shadow-lg shadow-brand-blue/30">
+                  <Building2 className="text-white h-5 w-5" />
+                </div>
+              )}
               <div>
                 <h1 className="text-lg font-bold text-foreground leading-tight">KAMI-EXTENSION</h1>
                 <p className="text-xs text-muted-foreground">Devenez propriétaire</p>
