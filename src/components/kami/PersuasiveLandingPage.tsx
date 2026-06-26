@@ -187,82 +187,92 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
       </div>
 
       {/* Hero Section */}
-      <section
-        className="relative flex flex-col justify-center text-white overflow-hidden"
-        style={{
-          minHeight: 'calc(100vh - 73px)',
-          backgroundImage: heroBackground ? `url(${heroBackground})` : undefined,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-        }}
+      <section className="relative flex flex-col justify-center text-white overflow-hidden bg-gradient-to-br from-brand-blue via-blue-700 to-brand-blue"
+        style={{ minHeight: 'calc(100vh - 73px)' }}
       >
-        {/* Gradient overlay pour la lisibilité du texte */}
-        <div className={`absolute inset-0 ${heroBackground ? 'bg-gradient-to-br from-brand-blue/90 via-blue-700/90 to-brand-blue/90' : 'bg-gradient-to-br from-brand-blue via-blue-700 to-brand-blue'}`} />
         {/* Animated Background Elements */}
-        <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-10 left-5 w-48 h-48 bg-yellow-400/10 rounded-full blur-3xl animate-pulse" />
           <div className="absolute bottom-10 right-5 w-64 h-64 bg-blue-400/10 rounded-full blur-3xl animate-pulse delay-1000" />
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto px-4 md:px-6 relative z-10 flex-1 flex flex-col justify-center">
-          <div className="max-w-4xl mx-auto text-center">
-            {/* Badge */}
-            <div className="inline-flex items-center bg-yellow-400/10 border border-yellow-400/30 px-4 md:px-4 py-2 rounded-full mb-5 md:mb-6">
-              <div className="w-2 h-2 md:w-2 md:h-2 bg-yellow-400 rounded-full mr-2 animate-pulse" />
-              <span className="text-sm md:text-sm font-medium text-yellow-300">
-                Opportunité unique à KAMI
-              </span>
-            </div>
+          <div className="max-w-4xl mx-auto text-center w-full">
 
-            {/* Main Heading */}
-            <h1 className="text-4xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 md:mb-6 leading-tight">
-              Construisez Votre
-              <span className="text-yellow-400 block">Avenir à KAMI</span>
-            </h1>
+            {/* ===== Contenu avec image de fond : du badge aux boutons ===== */}
+            <div
+              className="relative rounded-2xl overflow-hidden"
+              style={heroBackground ? {
+                backgroundImage: `url(${heroBackground})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+              } : undefined}
+            >
+              {/* Overlay semi-transparent sur l'image */}
+              {heroBackground && (
+                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/85 via-blue-700/85 to-brand-blue/85" />
+              )}
 
-            {/* Subtitle - separated */}
-            <div className="text-base md:text-xl lg:text-2xl text-blue-100 mb-2 leading-relaxed max-w-2xl mx-auto">
-              Le nouveau village moderne.
-            </div>
-            <div className="text-base md:text-xl lg:text-2xl text-blue-100 pb-2 leading-relaxed max-w-2xl mx-auto">
-              Réservez votre terrain.
-            </div>
+              <div className="relative z-10 py-8 md:py-14 px-4 md:px-10">
+                {/* Badge */}
+                <div className="inline-flex items-center bg-yellow-400/10 border border-yellow-400/30 px-4 md:px-4 py-2 rounded-full mb-5 md:mb-6">
+                  <div className="w-2 h-2 md:w-2 md:h-2 bg-yellow-400 rounded-full mr-2 animate-pulse" />
+                  <span className="text-sm md:text-sm font-medium text-yellow-300">
+                    Opportunité unique à KAMI
+                  </span>
+                </div>
 
-            {/* Stats */}
-            <div className="flex flex-row gap-2 md:gap-8 justify-center mb-5 md:mb-8">
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl md:rounded-2xl px-3 md:px-8 py-2 md:py-6 border border-white/20 flex-1">
-                <p className="text-xl md:text-4xl font-bold text-yellow-400">{animatedNumbers.available}</p>
-                <p className="text-[10px] md:text-sm text-blue-200 mt-1">Disponibles</p>
+                {/* Main Heading */}
+                <h1 className="text-4xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 md:mb-6 leading-tight">
+                  Construisez Votre
+                  <span className="text-yellow-400 block">Avenir à KAMI</span>
+                </h1>
+
+                {/* Subtitle */}
+                <div className="text-base md:text-xl lg:text-2xl text-blue-100 mb-2 leading-relaxed max-w-2xl mx-auto">
+                  Le nouveau village moderne.
+                </div>
+                <div className="text-base md:text-xl lg:text-2xl text-blue-100 pb-2 leading-relaxed max-w-2xl mx-auto">
+                  Réservez votre terrain.
+                </div>
+
+                {/* Stats */}
+                <div className="flex flex-row gap-2 md:gap-8 justify-center mb-5 md:mb-8">
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl md:rounded-2xl px-3 md:px-8 py-2 md:py-6 border border-white/20 flex-1">
+                    <p className="text-xl md:text-4xl font-bold text-yellow-400">{animatedNumbers.available}</p>
+                    <p className="text-[10px] md:text-sm text-blue-200 mt-1">Disponibles</p>
+                  </div>
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl md:rounded-2xl px-3 md:px-8 py-2 md:py-6 border border-white/20 flex-1">
+                    <p className="text-xl md:text-4xl font-bold text-yellow-400">{animatedNumbers.reservedRate}%</p>
+                    <p className="text-[10px] md:text-sm text-blue-200 mt-1">Réservés</p>
+                  </div>
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl md:rounded-2xl px-3 md:px-8 py-2 md:py-6 border border-white/20 flex-1">
+                    <p className="text-xl md:text-4xl font-bold text-yellow-400">{animatedNumbers.purchasedRate}%</p>
+                    <p className="text-[10px] md:text-sm text-blue-200 mt-1">Achetés</p>
+                  </div>
+                </div>
+
+                {/* CTA Buttons */}
+                <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
+                  <Button
+                    onClick={onReserveClick}
+                    className="bg-yellow-400 dark:bg-yellow-500 hover:bg-yellow-500 dark:hover:bg-yellow-600 text-gray-900 dark:text-gray-900 font-bold py-3 md:py-4 px-8 md:px-10 rounded-lg md:rounded-xl text-base md:text-lg shadow-2xl shadow-yellow-400/40 dark:shadow-yellow-400/30 transition-all hover:scale-105 hover:shadow-yellow-400/50"
+                  >
+                    Réserver mon terrain
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                  <Button
+                    onClick={handleViewPlan}
+                    variant="outline"
+                    className="bg-white/10 hover:bg-white/20 text-white border-2 border-white/30 font-semibold py-3 md:py-4 px-8 md:px-10 rounded-lg md:rounded-xl text-base md:text-lg backdrop-blur-sm transition-all hover:scale-105"
+                  >
+                    <Map className="mr-2 h-5 w-5" />
+                    Voir le plan
+                  </Button>
+                </div>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl md:rounded-2xl px-3 md:px-8 py-2 md:py-6 border border-white/20 flex-1">
-                <p className="text-xl md:text-4xl font-bold text-yellow-400">{animatedNumbers.reservedRate}%</p>
-                <p className="text-[10px] md:text-sm text-blue-200 mt-1">Réservés</p>
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl md:rounded-2xl px-3 md:px-8 py-2 md:py-6 border border-white/20 flex-1">
-                <p className="text-xl md:text-4xl font-bold text-yellow-400">{animatedNumbers.purchasedRate}%</p>
-                <p className="text-[10px] md:text-sm text-blue-200 mt-1">Achetés</p>
-              </div>
-            </div>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
-              <Button
-                onClick={onReserveClick}
-                className="bg-yellow-400 dark:bg-yellow-500 hover:bg-yellow-500 dark:hover:bg-yellow-600 text-gray-900 dark:text-gray-900 font-bold py-3 md:py-4 px-8 md:px-10 rounded-lg md:rounded-xl text-base md:text-lg shadow-2xl shadow-yellow-400/40 dark:shadow-yellow-400/30 transition-all hover:scale-105 hover:shadow-yellow-400/50"
-              >
-                Réserver mon terrain
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-              <Button
-                onClick={handleViewPlan}
-                variant="outline"
-                className="bg-white/10 hover:bg-white/20 text-white border-2 border-white/30 font-semibold py-3 md:py-4 px-8 md:px-10 rounded-lg md:rounded-xl text-base md:text-lg backdrop-blur-sm transition-all hover:scale-105"
-              >
-                <Map className="mr-2 h-5 w-5" />
-                Voir le plan
-              </Button>
             </div>
 
             {/* Scroll Indicator - only on desktop */}
