@@ -200,7 +200,15 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
         <div className="container mx-auto px-4 md:px-6 relative z-10 flex-1 flex flex-col justify-center">
           <div className="max-w-4xl mx-auto text-center w-full">
 
-            {/* ===== Contenu avec image de fond : du badge aux boutons ===== */}
+            {/* Badge — HORS de l'image de fond */}
+            <div className="inline-flex items-center bg-yellow-400/10 border border-yellow-400/30 px-4 md:px-4 py-2 rounded-full mb-5 md:mb-6">
+              <div className="w-2 h-2 md:w-2 md:h-2 bg-yellow-400 rounded-full mr-2 animate-pulse" />
+              <span className="text-sm md:text-sm font-medium text-yellow-300">
+                Opportunité unique à KAMI
+              </span>
+            </div>
+
+            {/* ===== Image de fond : juste en-dessous du badge, jusqu'aux boutons ===== */}
             <div
               className="relative rounded-2xl overflow-hidden"
               style={heroBackground ? {
@@ -210,20 +218,11 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
                 backgroundRepeat: 'no-repeat',
               } : undefined}
             >
-              {/* Overlay semi-transparent sur l'image */}
               {heroBackground && (
-                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/85 via-blue-700/85 to-brand-blue/85" />
+                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/70 via-blue-700/70 to-brand-blue/70" />
               )}
 
-              <div className="relative z-10 py-8 md:py-14 px-4 md:px-10">
-                {/* Badge */}
-                <div className="inline-flex items-center bg-yellow-400/10 border border-yellow-400/30 px-4 md:px-4 py-2 rounded-full mb-5 md:mb-6">
-                  <div className="w-2 h-2 md:w-2 md:h-2 bg-yellow-400 rounded-full mr-2 animate-pulse" />
-                  <span className="text-sm md:text-sm font-medium text-yellow-300">
-                    Opportunité unique à KAMI
-                  </span>
-                </div>
-
+              <div className="relative z-10 py-8 md:py-12 px-4 md:px-10">
                 {/* Main Heading */}
                 <h1 className="text-4xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 md:mb-6 leading-tight">
                   Construisez Votre

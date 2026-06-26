@@ -1,0 +1,515 @@
+     1→'use client';
+     2→
+     3→import { Button } from '@/components/ui/button';
+     4→import { Card, CardContent } from '@/components/ui/card';
+     5→import { ThemeToggle } from '@/components/theme-toggle';
+     6→import { FlashInfoBand } from '@/components/flash-info-band';
+     7→import { Dialog, DialogContent } from '@/components/ui/dialog';
+     8→import { Menu, Map, CheckCircle, Home, Zap, Droplet, ShieldCheck, Users, TrendingUp, Clock, Award, Wrench, Building2, ArrowRight, ChevronRight, X } from 'lucide-react';
+     9→import { useState, useEffect } from 'react';
+    10→import { useTheme } from 'next-themes';
+    11→
+    12→interface PersuasiveLandingPageProps {
+    13→  onReserveClick: () => void;
+    14→  lots: any[];
+    15→  setIsMenuOpen: (open: boolean) => void;
+    16→  setCurrentScreen: (screen: string) => void;
+    17→}
+    18→
+    19→export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, setCurrentScreen }: PersuasiveLandingPageProps) {
+    20→  const { theme } = useTheme();
+    21→  const availableCount = lots.filter((l) => l.status === 'AVAILABLE').length;
+    22→  const reservedCount = lots.filter((l) => l.status === 'RESERVED').length;
+    23→  const paidCount = lots.filter((l) => l.status === 'PAID').length;
+    24→  const totalCount = lots.length;
+    25→  const reservedRate = totalCount > 0 ? Math.round((reservedCount / totalCount) * 100) : 0;
+    26→  const purchasedRate = totalCount > 0 ? Math.round((paidCount / totalCount) * 100) : 0;
+    27→  const [animatedNumbers, setAnimatedNumbers] = useState({ available: 0, reservedRate: 0, purchasedRate: 0 });
+    28→  const [isServicesModalOpen, setIsServicesModalOpen] = useState(false);
+    29→  const [heroBackground, setHeroBackground] = useState<string | null>(null);
+    30→
+    31→  const handleViewPlan = () => {
+    32→    window.location.href = '/view-plan';
+    33→  };
+    34→
+    35→  // Animation des nombres
+    36→  useEffect(() => {
+    37→    const duration = 2000;
+    38→    const steps = 60;
+    39→    const stepDuration = duration / steps;
+    40→    let currentStep = 0;
+    41→
+    42→    const interval = setInterval(() => {
+    43→      currentStep++;
+    44→      const progress = currentStep / steps;
+    45→      const easeOut = 1 - Math.pow(1 - progress, 3);
+    46→
+    47→      setAnimatedNumbers({
+    48→        available: Math.floor(availableCount * easeOut),
+    49→        reservedRate: Math.floor(reservedRate * easeOut),
+    50→        purchasedRate: Math.floor(purchasedRate * easeOut),
+    51→      });
+    52→
+    53→      if (currentStep >= steps) {
+    54→        clearInterval(interval);
+    55→      }
+    56→    }, stepDuration);
+    57→
+    58→    return () => clearInterval(interval);
+    59→  }, [availableCount, reservedRate, purchasedRate]);
+    60→
+    61→  // Charger l'image de fond HERO depuis les paramètres
+    62→  useEffect(() => {
+    63→    const loadHeroImage = async () => {
+    64→      try {
+    65→        const response = await fetch('/api/admin-files?type=HERO');
+    66→        if (response.ok) {
+    67→          const data = await response.json();
+    68→          if (data.file && data.file.path) {
+    69→            setHeroBackground(data.file.path);
+    70→          }
+    71→        }
+    72→      } catch (error) {
+    73→        console.error('Erreur lors du chargement de l\'image de fond:', error);
+    74→      }
+    75→    };
+    76→    loadHeroImage();
+    77→  }, []);
+    78→
+    79→  const advantages = [
+    80→    { icon: Home, title: "Terrain Constructible", desc: "Terrain viabilisé prêt à bâtir" },
+    81→    { icon: Zap, title: "Électricité", desc: "Réseau moderne installé" },
+    82→    { icon: Droplet, title: "Eau Potable", desc: "Adduction garantie" },
+    83→    { icon: ShieldCheck, title: "Sécurité", desc: "Quartier surveillé 24h/24" },
+    84→    { icon: Wrench, title: "Routes Pavées", desc: "Voies goudronnées" },
+    85→    { icon: Users, title: "Communauté", desc: "Voisinage unie" },
+    86→  ];
+    87→
+    88→  const essentialServices = [
+    89→    {
+    90→      icon: Zap,
+    91→      title: "Électricité",
+    92→      desc: "Réseau électrique moderne et fiable, alimenté par SODECI. Transformateurs installés avec capacité suffisante pour tous les lots.",
+    93→      features: ["Alimentation continue", "Compteurs individuels", "Normes de sécurité", "Maintenance incluse"]
+    94→    },
+    95→    {
+    96→      icon: Droplet,
+    97→      title: "Eau Potable",
+    98→      desc: "Adduction d'eau potable via SODECI. Chaque lot dispose d'un branchement individuel avec compteur.",
+    99→      features: ["Eau potable 24h/24", "Branchement individuel", "Normes sanitaires", "Système de purification"]
+   100→    },
+   101→    {
+   102→      icon: ShieldCheck,
+   103→      title: "Sécurité",
+   104→      desc: "Quartier surveillé 24h/24 par une équipe de sécurité professionnelle et un système de surveillance moderne.",
+   105→      features: ["Gardiennage 24h/24", "Caméras de surveillance", "Éclairage public", "Contrôle d'accès"]
+   106→    }
+   107→  ];
+   108→
+   109→  const features = [
+   110→    { number: "01", title: "Inscription Gratuite", desc: "Créez votre compte en quelques secondes sans frais" },
+   111→    { number: "02", title: "Choisissez Votre Lot", desc: "Sélectionnez parmi les terrains disponibles" },
+   112→    { number: "03", title: "Paiement Flexible", desc: "Payez selon vos possibilités, dès 10 000 FCFA" },
+   113→    { number: "04", title: "Devenez Propriétaire", desc: "Obtenez votre titre foncier et construisez" },
+   114→  ];
+   115→
+   116→  return (
+   117→    <div className="flex-1 flex flex-col bg-background overflow-x-hidden">
+   118→      {/* Header */}
+   119→      <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 dark:bg-background/90 backdrop-blur-md border-b border-border transition-all duration-300">
+   120→        <div className="container mx-auto px-4 md:px-6 py-3 md:py-4">
+   121→          <div className="flex justify-between items-center">
+   122→            <div className="flex items-center gap-2 md:gap-3">
+   123→              <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-brand-blue to-blue-700 rounded-xl flex items-center justify-center shadow-lg shadow-brand-blue/30 flex-shrink-0">
+   124→                <Building2 className="text-white h-4 w-4 md:h-5 md:w-5" />
+   125→              </div>
+   126→              <div className="min-w-0">
+   127→                <h1 className="text-sm md:text-base lg:text-lg font-bold text-foreground leading-tight truncate">KAMI-EXTENSION</h1>
+   128→                <p className="text-[9px] md:text-xs text-muted-foreground truncate hidden sm:block">Devenez propriétaire</p>
+   129→              </div>
+   130→            </div>
+   131→            <div className="flex items-center gap-2 md:gap-4">
+   132→              <ThemeToggle />
+   133→              <Button
+   134→                variant="ghost"
+   135→                onClick={() => setIsMenuOpen(true)}
+   136→                className="hover:bg-blue-50 dark:hover:bg-blue-950 text-foreground hidden md:flex px-3"
+   137→              >
+   138→                Menu
+   139→              </Button>
+   140→              <Button
+   141→                variant="ghost"
+   142→                size="icon"
+   143→                onClick={() => setIsMenuOpen(true)}
+   144→                className="hover:bg-blue-50 dark:hover:bg-blue-950 md:hidden w-8 h-8"
+   145→              >
+   146→                <Menu className="h-5 w-5" />
+   147→              </Button>
+   148→              <Button
+   149→                onClick={onReserveClick}
+   150→                className="bg-brand-yellow hover:bg-brand-yellow-hover text-gray-900 font-semibold px-3 md:px-6 py-2 rounded-xl shadow-lg hidden lg:flex transition-all hover:scale-105 text-sm"
+   151→              >
+   152→                Réserver
+   153→              </Button>
+   154→            </div>
+   155→          </div>
+   156→        </div>
+   157→      </header>
+   158→
+   159→      {/* Flash Info Band - Under header */}
+   160→      <div className="fixed top-[65px] md:top-[73px] left-0 right-0 z-40">
+   161→        <FlashInfoBand />
+   162→      </div>
+   163→
+   164→      {/* Hero Section */}
+   165→      <section
+   166→        className="relative flex flex-col justify-center text-white overflow-hidden"
+   167→        style={{
+   168→          minHeight: 'calc(100vh - 73px)',
+   169→        }}
+   170→      >
+   171→        {/* Gradient overlay pour la lisibilité du texte */}
+   172→        <div className={`absolute inset-0 bg-gradient-to-br from-brand-blue via-blue-700 to-brand-blue`} />
+   173→
+   174→        <div className="container mx-auto px-4 md:px-6 relative z-10 flex-1 flex flex-col justify-center">
+   175→          <div className="max-w-4xl mx-auto text-center">
+   176→            {/* Badge */}
+   177→            <div className="inline-flex items-center bg-yellow-400/10 border border-yellow-400/30 px-2 md:px-4 py-1.5 md:py-2 rounded-full mb-4 md:mb-6">
+   178→              <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-yellow-400 rounded-full mr-1 md:mr-2 animate-pulse" />
+   179→              <span className="text-[10px] md:text-sm font-medium text-yellow-300">
+   180→                Opportunité unique à KAMI
+   181→              </span>
+   182→            </div>
+   183→
+   184→            {/* Zone avec image de fond - entre badge et "Réservez votre terrain" */}
+   185→            <div
+   186→              className="relative left-1/2 -translate-x-1/2 w-screen mb-8 px-4"
+   187→              style={{
+   188→                backgroundImage: heroBackground ? `url(${heroBackground})` : undefined,
+   189→                backgroundSize: 'cover',
+   190→                backgroundPosition: 'center',
+   191→                backgroundRepeat: 'no-repeat',
+   192→              }}
+   193→            >
+   194→              {/* Gradient overlay pour la lisibilité du texte */}
+   195→              <div className={`absolute inset-0 ${heroBackground ? 'bg-gradient-to-br from-brand-blue/60 via-blue-700/60 to-brand-blue/60' : ''}`} />
+   196→
+   197→              <div className="relative z-10 max-w-2xl mx-auto">
+   198→                {/* Main Heading */}
+   199→                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold mb-3 md:mb-4 lg:mb-6 leading-tight">
+   200→                  Construisez Votre
+   201→                  <span className="text-yellow-400 block">Avenir à KAMI</span>
+   202→                </h1>
+   203→
+   204→                {/* Subtitle - separated */}
+   205→                <div className="text-sm md:text-lg lg:text-2xl text-blue-100 mb-1 md:mb-2 leading-relaxed">
+   206→                  Le nouveau village moderne.
+   207→                </div>
+   208→                <div className="text-sm md:text-lg lg:text-2xl text-blue-100 leading-relaxed">
+   209→                  Réservez votre terrain.
+   210→                </div>
+   211→              </div>
+   212→            </div>
+   213→
+   214→            {/* Stats */}
+   215→            <div className="flex flex-row gap-2 md:gap-4 lg:gap-8 justify-center mb-4 md:mb-6 lg:mb-8 px-2">
+   216→              <div className="bg-white/10 backdrop-blur-sm rounded-xl md:rounded-2xl px-2 md:px-4 lg:px-8 py-2 md:py-6 border border-white/20 flex-1 min-w-0">
+   217→                <p className="text-lg md:text-2xl lg:text-4xl font-bold text-yellow-400 truncate">{animatedNumbers.available}</p>
+   218→                <p className="text-[9px] md:text-xs lg:text-sm text-blue-200 mt-1 truncate">Disponibles</p>
+   219→              </div>
+   220→              <div className="bg-white/10 backdrop-blur-sm rounded-xl md:rounded-2xl px-2 md:px-4 lg:px-8 py-2 md:py-6 border border-white/20 flex-1 min-w-0">
+   221→                <p className="text-lg md:text-2xl lg:text-4xl font-bold text-yellow-400 truncate">{animatedNumbers.reservedRate}%</p>
+   222→                <p className="text-[9px] md:text-xs lg:text-sm text-blue-200 mt-1 truncate">Réservés</p>
+   223→              </div>
+   224→              <div className="bg-white/10 backdrop-blur-sm rounded-xl md:rounded-2xl px-2 md:px-4 lg:px-8 py-2 md:py-6 border border-white/20 flex-1 min-w-0">
+   225→                <p className="text-lg md:text-2xl lg:text-4xl font-bold text-yellow-400 truncate">{animatedNumbers.purchasedRate}%</p>
+   226→                <p className="text-[9px] md:text-xs lg:text-sm text-blue-200 mt-1 truncate">Achetés</p>
+   227→              </div>
+   228→            </div>
+   229→
+   230→            {/* CTA Buttons */}
+   231→            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center px-4">
+   232→              <Button
+   233→                onClick={onReserveClick}
+   234→                className="bg-yellow-400 dark:bg-yellow-500 hover:bg-yellow-500 dark:hover:bg-yellow-600 text-gray-900 dark:text-gray-900 font-bold py-3 md:py-4 px-6 md:px-10 rounded-lg md:rounded-xl text-sm md:text-lg shadow-2xl shadow-yellow-400/40 dark:shadow-yellow-400/30 transition-all hover:scale-105 hover:shadow-yellow-400/50 w-full sm:w-auto"
+   235→              >
+   236→                <span className="truncate">Réserver mon terrain</span>
+   237→                <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5 flex-shrink-0" />
+   238→              </Button>
+   239→              <Button
+   240→                onClick={handleViewPlan}
+   241→                variant="outline"
+   242→                className="bg-white/10 hover:bg-white/20 text-white border-2 border-white/30 font-semibold py-3 md:py-4 px-6 md:px-10 rounded-lg md:rounded-xl text-sm md:text-lg backdrop-blur-sm transition-all hover:scale-105 w-full sm:w-auto"
+   243→              >
+   244→                <Map className="mr-2 h-4 w-4 md:h-5 md:w-5 flex-shrink-0" />
+   245→                <span className="truncate">Voir le plan</span>
+   246→              </Button>
+   247→            </div>
+   248→
+   249→            {/* Scroll Indicator - only on desktop */}
+   250→            <div className="hidden md:block absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce">
+   251→              <ChevronRight className="h-6 w-6 text-blue-300 rotate-90" />
+   252→            </div>
+   253→          </div>
+   254→        </div>
+   255→
+   256→        {/* Wave Bottom */}
+   257→        <div className="hidden md:block absolute bottom-0 left-0 right-0 -mt-4">
+   258→          <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-8 md:h-12">
+   259→            <path d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" className="fill-background dark:fill-background"/>
+   260→          </svg>
+   261→        </div>
+   262→      </section>
+   263→
+   264→      {/* Features Section */}
+   265→      <section className="py-12 md:py-20 bg-background">
+   266→        <div className="container mx-auto px-4 md:px-6">
+   267→          <div className="text-center mb-10 md:mb-16">
+   268→            <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold text-foreground mb-3 md:mb-4">
+   269→              Comment ça marche ?
+   270→            </h2>
+   271→            <p className="text-base md:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
+   272→              Un processus simple et transparent pour devenir propriétaire
+   273→            </p>
+   274→          </div>
+   275→
+   276→          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+   277→            {features.map((feature, index) => (
+   278→              <div key={index} className="group animate-fade-in-up" style={{ animationDelay: `${index * 150}ms` }}>
+   279→                <Card className="border-0 bg-card shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 rounded-2xl overflow-hidden">
+   280→                  <div className="bg-gradient-to-br from-brand-blue to-blue-700 p-4 md:p-6">
+   281→                    <span className="text-4xl md:text-5xl font-bold text-brand-yellow opacity-50">{feature.number}</span>
+   282→                  </div>
+   283→                  <CardContent className="p-4 md:p-6">
+   284→                    <h3 className="text-base md:text-xl font-bold text-foreground mb-2 md:mb-3 group-hover:text-brand-blue transition-colors">
+   285→                      {feature.title}
+   286→                    </h3>
+   287→                    <p className="text-sm md:text-base text-muted-foreground">
+   288→                      {feature.desc}
+   289→                    </p>
+   290→                  </CardContent>
+   291→                </Card>
+   292→              </div>
+   293→            ))}
+   294→          </div>
+   295→        </div>
+   296→      </section>
+   297→
+   298→      {/* Advantages Section */}
+   299→      <section className="py-12 md:py-20 bg-gradient-to-br from-blue-50/50 to-background dark:from-blue-950/30 dark:to-background">
+   300→        <div className="container mx-auto px-4 md:px-6">
+   301→          <div className="text-center mb-10 md:mb-16">
+   302→            <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold text-foreground mb-3 md:mb-4">
+   303→              Tout est inclus
+   304→            </h2>
+   305→            <p className="text-base md:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
+   306→              Votre terrain est livré avec tous les services essentiels
+   307→            </p>
+   308→          </div>
+   309→
+   310→          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 max-w-5xl mx-auto mb-8">
+   311→            {advantages.map((advantage, index) => {
+   312→              const Icon = advantage.icon;
+   313→              return (
+   314→                <Card
+   315→                  key={index}
+   316→                  className="border-0 bg-card shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 rounded-2xl group"
+   317→                >
+   318→                  <CardContent className="p-6 md:p-8 text-center">
+   319→                    <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-brand-blue to-blue-700 rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-brand-blue/30">
+   320→                      <Icon className="h-6 w-6 md:h-8 md:w-8 text-brand-yellow" />
+   321→                    </div>
+   322→                    <h3 className="text-base md:text-xl font-bold text-foreground mb-2">{advantage.title}</h3>
+   323→                    <p className="text-sm md:text-base text-muted-foreground">{advantage.desc}</p>
+   324→                  </CardContent>
+   325→                </Card>
+   326→              );
+   327→            })}
+   328→          </div>
+   329→
+   330→          {/* Bouton intelligent Électricité, Eau et Sécurité */}
+   331→          <div className="max-w-2xl mx-auto mt-12 px-4">
+   332→            <Button
+   333→              onClick={() => setIsServicesModalOpen(true)}
+   334→              className="w-full bg-gradient-to-r from-blue-500 via-cyan-500 to-purple-500 dark:from-blue-600 dark:via-cyan-600 dark:to-purple-600 hover:from-blue-600 hover:via-cyan-600 hover:to-purple-600 dark:hover:from-blue-700 dark:hover:via-cyan-700 dark:hover:to-purple-700 text-white font-bold py-4 md:py-6 px-4 md:px-8 rounded-2xl text-sm md:text-lg shadow-2xl transition-all hover:scale-105 hover:shadow-lg"
+   335→            >
+   336→              <div className="flex items-center justify-center gap-2 md:gap-3 flex-wrap">
+   337→                <div className="flex items-center gap-1 md:gap-2">
+   338→                  <Zap className="h-4 w-4 md:h-5 md:w-5 flex-shrink-0" />
+   339→                  <span className="text-xs md:text-base">Électricité</span>
+   340→                </div>
+   341→                <span className="text-white/50">•</span>
+   342→                <div className="flex items-center gap-1 md:gap-2">
+   343→                  <Droplet className="h-4 w-4 md:h-5 md:w-5 flex-shrink-0" />
+   344→                  <span className="text-xs md:text-base">Eau</span>
+   345→                </div>
+   346→                <span className="text-white/50">•</span>
+   347→                <div className="flex items-center gap-1 md:gap-2">
+   348→                  <ShieldCheck className="h-4 w-4 md:h-5 md:w-5 flex-shrink-0" />
+   349→                  <span className="text-xs md:text-base">Sécurité</span>
+   350→                </div>
+   351→                <ChevronRight className="h-4 w-4 md:h-5 md:w-5 ml-1 md:ml-2 flex-shrink-0" />
+   352→              </div>
+   353→            </Button>
+   354→            <p className="text-center text-xs md:text-sm text-muted-foreground mt-3">
+   355→              Cliquez pour voir les détails des services essentiels inclus
+   356→            </p>
+   357→          </div>
+   358→        </div>
+   359→      </section>
+   360→
+   361→
+   362→      {/* Why Choose Us */}
+   363→      <section className="py-12 md:py-20 bg-gradient-to-br from-brand-blue via-blue-700 to-brand-blue text-white relative overflow-hidden">
+   364→        <div className="absolute inset-0">
+   365→          <div className="absolute top-10 right-10 md:top-20 md:right-20 w-48 h-48 md:w-72 md:h-72 bg-yellow-400/10 rounded-full blur-3xl animate-pulse" />
+   366→          <div className="absolute bottom-10 left-10 md:bottom-20 md:left-20 w-64 h-64 md:w-96 md:h-96 bg-blue-400/10 rounded-full blur-3xl animate-pulse delay-1000" />
+   367→        </div>
+   368→
+   369→        <div className="container mx-auto px-4 md:px-6 relative z-10">
+   370→          <div className="text-center mb-10 md:mb-16">
+   371→            <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4">
+   372→              Pourquoi choisir KAMI-EXTENSION ?
+   373→            </h2>
+   374→            <p className="text-base md:text-xl text-blue-200 max-w-2xl mx-auto px-4">
+   375→              Une opportunité d'investissement unique
+   376→            </p>
+   377→          </div>
+   378→
+   379→          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-5xl mx-auto">
+   380→            {[
+   381→              { icon: TrendingUp, title: "Valorisation rapide", desc: "Votre terrain prend de la valeur rapidement avec le développement du quartier" },
+   382→              { icon: Award, title: "Titre foncier garanti", desc: "Documentation légale complète et sécurisée pour votre tranquillité" },
+   383→              { icon: Clock, title: "Disponibilité immédiate", desc: "Aucune attente, votre terrain est prêt à être construit" },
+   384→            ].map((item, index) => {
+   385→              const Icon = item.icon;
+   386→              return (
+   387→                <Card key={index} className="bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300">
+   388→                  <CardContent className="p-6 md:p-8 text-center">
+   389→                    <div className="w-12 h-12 md:w-16 md:h-16 bg-yellow-400/20 rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6">
+   390→                      <Icon className="h-6 w-6 md:h-8 md:w-8 text-yellow-400" />
+   391→                    </div>
+   392→                    <h3 className="text-base md:text-xl font-bold mb-2 md:mb-3">{item.title}</h3>
+   393→                    <p className="text-sm md:text-base text-blue-200">{item.desc}</p>
+   394→                  </CardContent>
+   395→                </Card>
+   396→              );
+   397→            })}
+   398→          </div>
+   399→        </div>
+   400→      </section>
+   401→
+   402→      {/* Final CTA */}
+   403→      <section className="py-12 md:py-20 bg-gradient-to-br from-brand-yellow to-yellow-500 text-gray-900 relative overflow-hidden">
+   404→        <div className="absolute inset-0">
+   405→          <div className="absolute top-8 left-8 md:top-10 md:left-10 w-48 h-48 md:w-64 md:h-64 bg-white/20 rounded-full blur-3xl" />
+   406→          <div className="absolute bottom-8 right-8 md:bottom-10 md:right-10 w-64 h-64 md:w-80 md:h-80 bg-white/10 rounded-full blur-3xl" />
+   407→        </div>
+   408→
+   409→        <div className="container mx-auto px-4 md:px-6 relative z-10">
+   410→          <div className="max-w-4xl mx-auto text-center">
+   411→            <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold mb-4 md:mb-6">
+   412→              Prêt à devenir propriétaire ?
+   413→            </h2>
+   414→            <p className="text-base md:text-xl mb-6 md:mb-8 text-gray-800 dark:text-gray-900">
+   415→              Ne manquez pas cette opportunité unique. Rejoignez les futurs résidents de KAMI-EXTENSION.
+   416→            </p>
+   417→            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center px-4">
+   418→              <Button
+   419→                onClick={onReserveClick}
+   420→                size="lg"
+   421→                className="bg-gray-900 hover:bg-black text-white font-bold py-4 md:py-5 px-6 md:px-12 rounded-lg md:rounded-xl text-base md:text-xl shadow-2xl transition-all hover:scale-105 w-full sm:w-auto"
+   422→              >
+   423→                <span className="truncate">Réserver maintenant</span>
+   424→                <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5 flex-shrink-0" />
+   425→              </Button>
+   426→              <Button
+   427→                onClick={() => setIsMenuOpen(true)}
+   428→                variant="outline"
+   429→                className="bg-white/20 hover:bg-white/30 text-gray-900 border-2 border-white/40 font-bold py-4 md:py-5 px-6 md:px-12 rounded-lg md:rounded-xl text-base md:text-xl backdrop-blur-sm transition-all hover:scale-105 w-full sm:w-auto"
+   430→              >
+   431→                En savoir plus
+   432→              </Button>
+   433→            </div>
+   434→            </div>
+   435→          </div>
+   436→        </div>
+   437→      </section>
+   438→
+   439→      {/* Services Modal - Électricité, Eau et Sécurité */}
+   440→      <Dialog open={isServicesModalOpen} onOpenChange={setIsServicesModalOpen}>
+   441→        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto m-auto rounded-2xl border-2 shadow-2xl">
+   442→          <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-border z-10 pb-4 mb-6">
+   443→            <div className="flex items-center justify-between">
+   444→              <h2 className="text-2xl md:text-3xl font-bold text-foreground">
+   445→                Services Essentiels Inclus
+   446→              </h2>
+   447→              <Button
+   448→                variant="ghost"
+   449→                size="icon"
+   450→                onClick={() => setIsServicesModalOpen(false)}
+   451→                className="h-10 w-10"
+   452→              >
+   453→                <X className="h-6 w-6" />
+   454→              </Button>
+   455→            </div>
+   456→            <p className="text-muted-foreground mt-2">
+   457→              Tous les services essentiels sont déjà installés et inclus dans votre terrain
+   458→            </p>
+   459→          </div>
+   460→
+   461→          <div className="space-y-6">
+   462→            {essentialServices.map((service, index) => {
+   463→              const Icon = service.icon;
+   464→              const colors = [
+   465→                'from-yellow-500 to-orange-500 dark:from-yellow-600 dark:to-orange-600',
+   466→                'from-blue-500 to-cyan-500 dark:from-blue-600 dark:to-cyan-600',
+   467→                'from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600'
+   468→              ];
+   469→              const bgColor = [
+   470→                'bg-yellow-50 dark:bg-yellow-950/30',
+   471→                'bg-blue-50 dark:bg-blue-950/30',
+   472→                'bg-purple-50 dark:bg-purple-950/30'
+   473→              ];
+   474→
+   475→              return (
+   476→                <Card key={index} className={`border-0 shadow-lg ${bgColor[index]}`}>
+   477→                  <CardContent className="p-6">
+   478→                    <div className="flex items-start gap-4">
+   479→                      <div className={`w-16 h-16 bg-gradient-to-br ${colors[index]} rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0`}>
+   480→                        <Icon className="h-8 w-8 text-white" />
+   481→                      </div>
+   482→                      <div className="flex-1">
+   483→                        <h3 className="text-xl font-bold text-foreground mb-2">
+   484→                          {service.title}
+   485→                        </h3>
+   486→                        <p className="text-muted-foreground mb-4">
+   487→                          {service.desc}
+   488→                        </p>
+   489→                        <div className="grid grid-cols-2 gap-2">
+   490→                          {service.features.map((feature, featureIndex) => (
+   491→                            <div key={featureIndex} className="flex items-center gap-2">
+   492→                              <CheckCircle className="h-4 w-4 text-emerald-500 dark:text-emerald-400 flex-shrink-0" />
+   493→                              <span className="text-sm text-foreground">{feature}</span>
+   494→                            </div>
+   495→                          ))}
+   496→                        </div>
+   497→                      </div>
+   498→                    </div>
+   499→                  </CardContent>
+   500→                </Card>
+   501→              );
+   502→            })}
+   503→          </div>
+   504→
+   505→          <div className="mt-6 pt-4 border-t border-border">
+   506→            <p className="text-sm text-muted-foreground text-center">
+   507→              ✓ Tous ces services sont inclus dans le prix de votre terrain sans frais supplémentaires
+   508→            </p>
+   509→          </div>
+   510→        </DialogContent>
+   511→      </Dialog>
+   512→    </div>
+   513→  );
+   514→}
+   515→
