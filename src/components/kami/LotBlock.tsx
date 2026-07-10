@@ -15,7 +15,7 @@ interface Lot {
 interface LotBlockProps {
   blockName: string;
   lots: Lot[];
-  onReserve: (lotId: string) => void;
+  onReserve: (lot: Lot) => void;
 }
 
 export function LotBlock({ blockName, lots, onReserve }: LotBlockProps) {
@@ -48,7 +48,7 @@ export function LotBlock({ blockName, lots, onReserve }: LotBlockProps) {
               priceRes={lot.priceRes}
               priceNon={lot.priceNon}
               status={lot.status}
-              onReserve={() => onReserve(lot.id)}
+              onReserve={() => onReserve(lot)}
             />
           ))}
         </div>
