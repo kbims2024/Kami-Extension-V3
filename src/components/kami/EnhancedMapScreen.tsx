@@ -13,6 +13,7 @@ interface Lot {
   priceRes: number;
   priceNon: number;
   status: 'AVAILABLE' | 'RESERVED' | 'PAID';
+  reservedBy?: string | null;
 }
 
 interface EnhancedMapScreenProps {

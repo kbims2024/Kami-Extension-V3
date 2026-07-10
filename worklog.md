@@ -467,3 +467,22 @@ Stage Summary:
 - Inscription non-résident : pas de champ quartier ✅
 - Lots réservés/vendus : nom du réservataire affiché sur la carte du lot ✅
 - Fix bug LotBlock : onReserve passait lot.id au lieu de l'objet lot complet
+---
+Task ID: fix-pseudo-display
+Agent: Main Agent
+Task: Fix pseudo (public name) not displaying on lot cards + improve User interface
+
+Work Log:
+- Diagnosed root cause: `EnhancedMapScreen.tsx` Lot interface was missing `reservedBy` field, causing TypeScript to strip it from the data flow
+- Added `reservedBy?: string | null` to Lot interface in `EnhancedMapScreen.tsx`
+- Updated `User` interface in `useAppStore.ts` to include `email`, `quartier`, `role`, `status` fields
+- Improved LotCard pseudo display: increased text size from 11px to xs, changed from muted-foreground to foreground/80, added bg-muted/60 pill background, increased icon size
+- Verified via browser: all 4 reserved/sold lots now show the reserver's name (koffi brou, Jean Koné, Marie Yapo, Jean Koné)
+- Verified no runtime errors in dev.log
+- Registration was already working (POST /api/auth/register 200 in dev.log)
+- Profile editing (nom + quartier) was already implemented in ProfileScreen
+
+Stage Summary:
+- Root cause: TypeScript interface mismatch - `reservedBy` was returned by API but stripped by `EnhancedMapScreen` interface
+- Files modified: `EnhancedMapScreen.tsx` (added reservedBy to Lot interface), `useAppStore.ts` (expanded User interface), `LotCard.tsx` (improved pseudo visibility)
+- All reserved/sold lots now display the public pseudo of the reserver

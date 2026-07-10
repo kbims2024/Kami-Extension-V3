@@ -5,17 +5,23 @@ interface User {
   id?: string;
   name: string;
   phone: string;
+  email?: string | null;
   isResident: boolean;
+  quartier?: string | null;
   referralCode?: string;
+  role?: string;
+  status?: string;
 }
 
 interface Lot {
   id: string;
   name: string;
+  block?: string;
   surface: string;
   priceRes: number;
   priceNon: number;
   status: 'AVAILABLE' | 'RESERVED' | 'PAID';
+  reservedBy?: string | null;
 }
 
 interface Reservation {

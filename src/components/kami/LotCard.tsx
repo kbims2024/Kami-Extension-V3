@@ -75,9 +75,9 @@ export function LotCard({ name, surface, priceRes, priceNon, status, reservedBy,
           <h4 className="font-bold text-foreground text-sm">Lot {name}</h4>
           <p className="text-xs text-muted-foreground">{surface}</p>
           {reservedBy && (
-            <div className="flex items-center gap-1 mt-1">
-              <User className="h-3 w-3 text-muted-foreground" />
-              <span className="text-[11px] text-muted-foreground font-medium truncate">{reservedBy}</span>
+            <div className="flex items-center gap-1.5 mt-2 bg-muted/60 rounded-lg px-2 py-1">
+              <User className="h-3.5 w-3.5 text-foreground/70 flex-shrink-0" />
+              <span className="text-xs text-foreground/80 font-semibold truncate">{reservedBy}</span>
             </div>
           )}
         </div>
