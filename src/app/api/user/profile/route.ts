@@ -1,126 +1,92 @@
 import { NextRequest, NextResponse } from 'next/server';
-import connectDB from '@/lib/mongodb';
-import User from '@/lib/models/User';
-import { writeFile } from 'fs/promises';
-import path from 'path';
+import { db } from '@/lib/db';
 
-// GET - Récupérer le profil d'un utilisateur
+// GET /api/user/profile?userId=xxx
 export async function GET(request: NextRequest) {
   try {
-    await connectDB();
-    const searchParams = request.nextUrl.searchParams;
-    const userId = searchParams.get('userId');
-
+    const userId = request.nextUrl.searchParams.get('userId');
     if (!userId) {
       return NextResponse.json({ error: 'userId requis' }, { status: 400 });
     }
 
-    const user = await User.findById(userId).lean();
-
+    const user = await db.user.findUnique({ where: { id: userId } });
     if (!user) {
       return NextResponse.json({ error: 'Utilisateur non trouvé' }, { status: 404 });
     }
 
-    const userData = {
-      id: user._id.toString(),
-      firstName: user.firstName,
-      lastName: user.lastName,
+    return NextResponse.json({
+      id: user.id,
+      name: user.name,
       phone: user.phone,
       email: user.email,
       isResident: user.isResident,
+      quartier: user.quartier,
       referralCode: user.referralCode,
-      profileImage: user.profileImage,
-      idCard: user.idCard,
-      selfie: user.selfie,
       status: user.status,
-    };
-
-    return NextResponse.json(userData);
+      role: user.role,
+    });
   } catch (error) {
-    console.error('Erreur lors de la récupération du profil:', error);
+    console.error('Erreur profil GET:', error);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
 
-// PUT - Mettre à jour le profil d'un utilisateur
+// PUT /api/user/profile - Mettre à jour le profil
 export async function PUT(request: NextRequest) {
   try {
-    await connectDB();
-    const formData = await request.formData();
-    const userId = formData.get('userId') as string;
-    const firstName = formData.get('firstName') as string;
-    const lastName = formData.get('lastName') as string;
-    const phone = formData.get('phone') as string;
-    const email = formData.get('email') as string;
-    const profileImage = formData.get('profileImage') as File | null;
-    const idCard = formData.get('idCard') as File | null;
-    const selfie = formData.get('selfie') as File | null;
+    const body = await request.json();
+    const { userId, name, phone, email, quartier } = body;
 
     if (!userId) {
       return NextResponse.json({ error: 'userId requis' }, { status: 400 });
     }
 
-    // Vérifier si l'utilisateur existe
-    const existingUser = await User.findById(userId);
-
+    const existingUser = await db.user.findUnique({ where: { id: userId } });
     if (!existingUser) {
       return NextResponse.json({ error: 'Utilisateur non trouvé' }, { status: 404 });
     }
 
-    // Helper pour gérer l'upload de fichiers
-    const handleFileUpload = async (file: File | null, oldPath: string | null, type: 'profile' | 'idcard' | 'selfie') => {
-      if (file && file.size > 0) {
-        const fileExtension = file.name.split('.').pop() || 'jpg';
-        const fileName = `${type}-${userId}-${Date.now()}.${fileExtension}`;
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads', type === 'profile' ? 'profiles' : type + 's');
-        const filePath = path.join(uploadDir, fileName);
-        await writeFile(filePath, Buffer.from(await file.arrayBuffer()));
-        return `/uploads/${type === 'profile' ? 'profiles' : type + 's'}/${fileName}`;
-      }
-      return oldPath;
-    };
+    // Validation
+    if (name && name.trim().length < 2) {
+      return NextResponse.json({ error: 'Le nom doit contenir au moins 2 caractères' }, { status: 400 });
+    }
 
-    // Traiter les fichiers si fournis
-    const profileImagePath = await handleFileUpload(profileImage, existingUser.profileImage, 'profile');
-    const idCardPath = await handleFileUpload(idCard, existingUser.idCard, 'idcard');
-    const selfiePath = await handleFileUpload(selfie, existingUser.selfie, 'selfie');
+    if (quartier && !existingUser.isResident) {
+      return NextResponse.json({ error: 'Le quartier est réservé aux résidents KAMI' }, { status: 400 });
+    }
 
-    // Préparer les données de mise à jour
-    const updateData: any = {
-      profileImage: profileImagePath,
-      idCard: idCardPath,
-      selfie: selfiePath,
-    };
+    const validQuartiers = ['ASSAKLA', "N'GLOH", "N'ZOKLOH", "N'GUOUAH"];
+    if (quartier && existingUser.isResident && !validQuartiers.includes(quartier)) {
+      return NextResponse.json({ error: 'Quartier invalide' }, { status: 400 });
+    }
 
-    if (firstName) updateData.firstName = firstName.trim();
-    if (lastName) updateData.lastName = lastName.trim();
-    if (phone) updateData.phone = phone.trim();
-    if (email) updateData.email = email.trim();
+    // Construction des données de mise à jour
+    const updateData: Record<string, any> = {};
+    if (name !== undefined) updateData.name = name.trim();
+    if (phone !== undefined) updateData.phone = phone.trim();
+    if (email !== undefined) updateData.email = email.trim() || null;
+    if (existingUser.isResident && quartier !== undefined) {
+      updateData.quartier = quartier || null;
+    }
 
-    // Mettre à jour l'utilisateur
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      updateData,
-      { new: true }
-    ).lean();
+    const updatedUser = await db.user.update({
+      where: { id: userId },
+      data: updateData,
+    });
 
-    const userData = {
-      id: updatedUser!._id.toString(),
-      firstName: updatedUser!.firstName,
-      lastName: updatedUser!.lastName,
-      phone: updatedUser!.phone,
-      email: updatedUser!.email,
-      isResident: updatedUser!.isResident,
-      referralCode: updatedUser!.referralCode,
-      profileImage: updatedUser!.profileImage,
-      idCard: updatedUser!.idCard,
-      selfie: updatedUser!.selfie,
-      status: updatedUser!.status,
-    };
-
-    return NextResponse.json(userData);
+    return NextResponse.json({
+      id: updatedUser.id,
+      name: updatedUser.name,
+      phone: updatedUser.phone,
+      email: updatedUser.email,
+      isResident: updatedUser.isResident,
+      quartier: updatedUser.quartier,
+      referralCode: updatedUser.referralCode,
+      status: updatedUser.status,
+      role: updatedUser.role,
+    });
   } catch (error) {
-    console.error('Erreur lors de la mise à jour du profil:', error);
+    console.error('Erreur profil PUT:', error);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }

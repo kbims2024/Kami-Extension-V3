@@ -9,11 +9,12 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { Building2, Map, Home, Wallet, Users, User, Shield, ArrowLeft, Menu, LogOut, LogIn, CheckCircle, XCircle, AlertCircle, ChartLine, CreditCard, UserPlus, PlusCircle, Wrench, Zap, Droplet, ShieldCheck, FileText, Copy, ClipboardCheck, Upload } from 'lucide-react';
+import { Building2, Map, Home, Wallet, Users, User, Shield, ArrowLeft, Menu, LogOut, LogIn, CheckCircle, XCircle, AlertCircle, ChartLine, CreditCard, UserPlus, PlusCircle, Wrench, Zap, Droplet, ShieldCheck, FileText, Copy, ClipboardCheck, Upload, Phone } from 'lucide-react';
 import { EnhancedMapScreen } from '@/components/kami/EnhancedMapScreen';
 import { PersuasiveLandingPage } from '@/components/kami/PersuasiveLandingPage';
 import { TwoStepRegistration } from '@/components/kami/TwoStepRegistration';
@@ -366,6 +367,7 @@ export default function KamiExtensionPage() {
         <PageTransition>
           <ProfileScreen
             currentUser={currentUser}
+            setCurrentUser={setCurrentUser}
             copyReferralLink={copyReferralLink}
             setCurrentScreen={setCurrentScreen}
             setIsMenuOpen={setIsMenuOpen}
@@ -898,90 +900,283 @@ function DashboardScreen({ myReservations, setCurrentScreen, setIsMenuOpen }: an
 }
 
 // Profile Screen Component
-function ProfileScreen({ currentUser, copyReferralLink, setCurrentScreen, setIsMenuOpen }: any) {
+function ProfileScreen({ currentUser, setCurrentUser, copyReferralLink, setCurrentScreen, setIsMenuOpen }: any) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [form, setForm] = useState({
+    name: currentUser?.name || '',
+    phone: currentUser?.phone || '',
+    email: currentUser?.email || '',
+    quartier: currentUser?.quartier || '',
+  });
+
+  const quartiersKami = ['ASSAKLA', "N'GLOH", "N'ZOKLOH", "N'GUOUAH"];
+
+  const handleSave = async () => {
+    if (!form.name.trim()) {
+      toast.error('Le nom est obligatoire');
+      return;
+    }
+    if (currentUser?.isResident && !form.quartier) {
+      toast.error('Le quartier est obligatoire pour les résidents KAMI');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: currentUser.id,
+          name: form.name,
+          phone: form.phone,
+          email: form.email,
+          quartier: currentUser.isResident ? form.quartier : undefined,
+        }),
+      });
+
+      if (response.ok) {
+        const updatedUser = await response.json();
+        setCurrentUser({ ...currentUser, ...updatedUser });
+        toast.success('Profil mis à jour avec succès');
+        setIsEditing(false);
+      } else {
+        const data = await response.json();
+        toast.error(data.error || 'Erreur lors de la mise à jour');
+      }
+    } catch (error) {
+      toast.error('Erreur serveur');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setForm({
+      name: currentUser?.name || '',
+      phone: currentUser?.phone || '',
+      email: currentUser?.email || '',
+      quartier: currentUser?.quartier || '',
+    });
+    setIsEditing(false);
+  };
+
   return (
-    <div className="flex-1 flex flex-col bg-card p-6 pt-16">
-      <Button
-        variant="ghost"
-        size="icon"
-        className="absolute top-4 left-4"
-        onClick={() => { setIsMenuOpen(true); setCurrentScreen('home'); }}
-      >
-        <ArrowLeft className="h-5 w-5 text-muted-foreground" />
-      </Button>
-
-      <h2 className="text-2xl font-bold text-center text-[#8B5E3C] mb-6">Mon Profil</h2>
-
-      <div className="flex flex-col items-center mb-8">
-        <div className="w-24 h-24 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
-          <User className="h-10 w-10 text-[#10B981]" />
-        </div>
-        <h2 className="text-2xl font-bold text-foreground">{currentUser?.name || 'Non connecté'}</h2>
-        <p className="text-muted-foreground">{currentUser?.phone || ''}</p>
-      </div>
-
-      <div className="space-y-4">
-        <Card className="bg-card border-border">
-          <CardContent className="p-4 flex justify-between items-center">
-            <div>
-              <p className="text-sm text-muted-foreground">Nom complet</p>
-              <p className="font-bold text-foreground">{currentUser?.name || '-'}</p>
-            </div>
-            <User className="h-5 w-5 text-[#8B5E3C]" />
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card border-border">
-          <CardContent className="p-4 flex justify-between items-center">
-            <div>
-              <p className="text-sm text-muted-foreground">Téléphone</p>
-              <p className="font-bold text-foreground">{currentUser?.phone || '-'}</p>
-            </div>
-            <User className="h-5 w-5 text-[#8B5E3C]" />
-          </CardContent>
-        </Card>
-
-        <Card
-          className={
-            currentUser?.isResident
-              ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800'
-              : 'bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800'
-          }
+    <div className="flex-1 flex flex-col bg-background p-6 pt-16 pb-20">
+      <div className="flex justify-between items-center mb-6">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => { setIsMenuOpen(true); setCurrentScreen('home'); }}
         >
-          <CardContent className="p-4 flex justify-between items-center">
-            <div>
-              <p className="text-sm text-muted-foreground">Statut de résidence</p>
-              <p className={`font-bold ${currentUser?.isResident ? 'text-emerald-700 dark:text-emerald-400' : 'text-orange-700 dark:text-orange-400'}`}>
-                {currentUser?.isResident ? 'Résident KAMI (100 000 F)' : 'Non-Résident (150 000 F)'}
-              </p>
-            </div>
-            <Home className={`h-5 w-5 ${currentUser?.isResident ? 'text-emerald-600 dark:text-emerald-400' : 'text-orange-600 dark:text-orange-400'}`} />
-          </CardContent>
-        </Card>
-
-        {currentUser?.referralCode && (
-          <Card className="bg-card border-border">
-            <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground mb-2">Partager</p>
-              <div className="flex items-center bg-card border rounded-lg p-2">
-                <input
-                  type="text"
-                  value={`kami.app/ref/${currentUser.referralCode}`}
-                  readOnly
-                  className="flex-1 text-sm outline-none text-foreground font-semibold bg-transparent"
-                />
-                <Button
-                  onClick={copyReferralLink}
-                  size="sm"
-                  className="bg-[#8B5E3C] hover:bg-[#6B472C] text-white"
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <ArrowLeft className="h-5 w-5 text-foreground" />
+        </Button>
+        <h2 className="text-lg font-bold text-foreground">Mon Profil</h2>
+        {!isEditing ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsEditing(true)}
+            className="text-brand-blue font-semibold"
+          >
+            Modifier
+          </Button>
+        ) : (
+          <div className="w-9" />
         )}
       </div>
+
+      {/* Avatar + Statut */}
+      <div className="flex flex-col items-center mb-6">
+        <div className="w-20 h-20 rounded-full bg-brand-blue/10 dark:bg-brand-blue/20 flex items-center justify-center mb-3">
+          <User className="h-9 w-9 text-brand-blue" />
+        </div>
+        {!isEditing && (
+          <>
+            <h3 className="text-xl font-bold text-foreground">{currentUser?.name || 'Non connecté'}</h3>
+            <p className="text-sm text-muted-foreground">{currentUser?.phone || ''}</p>
+          </>
+        )}
+      </div>
+
+      {isEditing ? (
+        <div className="space-y-4 max-w-lg mx-auto w-full">
+          {/* Nom */}
+          <Card className="border-border">
+            <CardContent className="p-4 space-y-2">
+              <Label className="text-sm font-semibold text-foreground">
+                Nom complet <span className="text-red-500">*</span>
+              </Label>
+              <p className="text-xs text-muted-foreground">Ce nom sera visible par tous sur la plateforme</p>
+              <Input
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="Votre nom complet"
+                className="h-10"
+              />
+            </CardContent>
+          </Card>
+
+          {/* Téléphone */}
+          <Card className="border-border">
+            <CardContent className="p-4 space-y-2">
+              <Label className="text-sm font-semibold text-foreground">Téléphone</Label>
+              <Input
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                placeholder="Numéro de téléphone"
+                className="h-10"
+              />
+            </CardContent>
+          </Card>
+
+          {/* Email */}
+          <Card className="border-border">
+            <CardContent className="p-4 space-y-2">
+              <Label className="text-sm font-semibold text-foreground">Email (optionnel)</Label>
+              <Input
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                placeholder="votre@email.com"
+                className="h-10"
+              />
+            </CardContent>
+          </Card>
+
+          {/* Quartier (résidents uniquement) */}
+          {currentUser?.isResident && (
+            <Card className="border-border">
+              <CardContent className="p-4 space-y-2">
+                <Label className="text-sm font-semibold text-foreground">
+                  Quartier <span className="text-red-500">*</span>
+                </Label>
+                <Select value={form.quartier} onValueChange={(v) => setForm({ ...form, quartier: v })}>
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="Sélectionnez votre quartier" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {quartiersKami.map((q) => (
+                      <SelectItem key={q} value={q}>{q}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Boutons */}
+          <div className="flex gap-3 pt-2">
+            <Button
+              variant="outline"
+              className="flex-1 h-11 font-semibold"
+              onClick={handleCancel}
+              disabled={isLoading}
+            >
+              Annuler
+            </Button>
+            <Button
+              className="flex-1 h-11 bg-brand-blue hover:bg-blue-700 text-white font-semibold"
+              onClick={handleSave}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Enregistrement...' : 'Enregistrer'}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-3 max-w-lg mx-auto w-full">
+          {/* Nom */}
+          <Card className="border-border">
+            <CardContent className="p-4 flex justify-between items-center">
+              <div>
+                <p className="text-sm text-muted-foreground">Nom complet</p>
+                <p className="font-bold text-foreground">{currentUser?.name || '-'}</p>
+              </div>
+              <User className="h-5 w-5 text-brand-blue" />
+            </CardContent>
+          </Card>
+
+          {/* Téléphone */}
+          <Card className="border-border">
+            <CardContent className="p-4 flex justify-between items-center">
+              <div>
+                <p className="text-sm text-muted-foreground">Téléphone</p>
+                <p className="font-bold text-foreground">{currentUser?.phone || '-'}</p>
+              </div>
+              <Phone className="h-5 w-5 text-brand-blue" />
+            </CardContent>
+          </Card>
+
+          {/* Email */}
+          <Card className="border-border">
+            <CardContent className="p-4 flex justify-between items-center">
+              <div>
+                <p className="text-sm text-muted-foreground">Email</p>
+                <p className="font-bold text-foreground">{currentUser?.email || 'Non renseigné'}</p>
+              </div>
+              <CreditCard className="h-5 w-5 text-brand-blue" />
+            </CardContent>
+          </Card>
+
+          {/* Quartier (résidents) */}
+          {currentUser?.isResident && (
+            <Card className="border-border">
+              <CardContent className="p-4 flex justify-between items-center">
+                <div>
+                  <p className="text-sm text-muted-foreground">Quartier</p>
+                  <p className="font-bold text-foreground">{currentUser?.quartier || 'Non renseigné'}</p>
+                </div>
+                <Home className="h-5 w-5 text-brand-blue" />
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Statut résidence */}
+          <Card
+            className={
+              currentUser?.isResident
+                ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800'
+                : 'bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800'
+            }
+          >
+            <CardContent className="p-4 flex justify-between items-center">
+              <div>
+                <p className="text-sm text-muted-foreground">Statut de résidence</p>
+                <p className={`font-bold ${currentUser?.isResident ? 'text-emerald-700 dark:text-emerald-400' : 'text-orange-700 dark:text-orange-400'}`}>
+                  {currentUser?.isResident ? 'Résident KAMI (100 000 F)' : 'Non-Résident (150 000 F)'}
+                </p>
+              </div>
+              <Home className={`h-5 w-5 ${currentUser?.isResident ? 'text-emerald-600 dark:text-emerald-400' : 'text-orange-600 dark:text-orange-400'}`} />
+            </CardContent>
+          </Card>
+
+          {/* Parrainage */}
+          {currentUser?.referralCode && (
+            <Card className="border-border">
+              <CardContent className="p-4">
+                <p className="text-sm text-muted-foreground mb-2">Code de parrainage</p>
+                <div className="flex items-center bg-background border rounded-lg p-2">
+                  <input
+                    type="text"
+                    value={`kami.app/ref/${currentUser.referralCode}`}
+                    readOnly
+                    className="flex-1 text-sm outline-none text-foreground font-semibold bg-transparent"
+                  />
+                  <Button
+                    onClick={copyReferralLink}
+                    size="sm"
+                    className="bg-brand-blue hover:bg-blue-700 text-white"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
     </div>
   );
 }
