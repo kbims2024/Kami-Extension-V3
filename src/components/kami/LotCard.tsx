@@ -1,7 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Home } from 'lucide-react';
+import { Home, User } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
 
 interface LotCardProps {
@@ -11,10 +11,11 @@ interface LotCardProps {
   priceRes: number;
   priceNon: number;
   status: 'AVAILABLE' | 'RESERVED' | 'PAID';
+  reservedBy?: string | null;
   onReserve: () => void;
 }
 
-export function LotCard({ name, surface, priceRes, priceNon, status, onReserve }: LotCardProps) {
+export function LotCard({ name, surface, priceRes, priceNon, status, reservedBy, onReserve }: LotCardProps) {
   const isAvailable = status === 'AVAILABLE';
   const isReserved = status === 'RESERVED';
   const isPaid = status === 'PAID';
@@ -73,6 +74,12 @@ export function LotCard({ name, surface, priceRes, priceNon, status, onReserve }
           </div>
           <h4 className="font-bold text-foreground text-sm">Lot {name}</h4>
           <p className="text-xs text-muted-foreground">{surface}</p>
+          {reservedBy && (
+            <div className="flex items-center gap-1 mt-1">
+              <User className="h-3 w-3 text-muted-foreground" />
+              <span className="text-[11px] text-muted-foreground font-medium truncate">{reservedBy}</span>
+            </div>
+          )}
         </div>
         <div>
           <p className="font-extrabold text-brand-blue dark:text-brand-blue text-sm">

@@ -6,7 +6,7 @@ import { hashPassword } from '@/lib/password';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, phone, email, password, isResident } = body;
+    const { name, phone, email, password, isResident, quartier } = body;
 
     // Validation des champs
     if (!name || !password) {
@@ -15,6 +15,11 @@ export async function POST(request: NextRequest) {
 
     if (!phone && !email) {
       return NextResponse.json({ error: 'Numéro de téléphone ou email requis' }, { status: 400 });
+    }
+
+    // Validation pour les résidents KAMI
+    if (isResident && !quartier) {
+      return NextResponse.json({ error: 'Le quartier est requis pour les résidents KAMI' }, { status: 400 });
     }
 
     // Vérifier si l'utilisateur existe déjà
@@ -42,6 +47,7 @@ export async function POST(request: NextRequest) {
         phone: phone || null,
         email: email || null,
         isResident: isResident !== undefined ? isResident : true,
+        quartier: isResident ? quartier : null,
         referralCode,
         status: 'ACTIVE',
         password: password ? hashPassword(password) : null,

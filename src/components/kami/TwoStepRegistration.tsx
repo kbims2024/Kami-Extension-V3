@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, ArrowRight, CheckCircle, Home, Users, Shield, Eye, EyeOff, Menu } from 'lucide-react';
 
 interface TwoStepRegistrationProps {
-  onComplete: (userData: { name: string; phone: string; isResident: boolean; password: string }) => void;
+  onComplete: (userData: { name: string; phone: string; isResident: boolean; password: string; quartier?: string }) => void;
   onBack: () => void;
   setIsMenuOpen?: (open: boolean) => void;
 }
@@ -18,12 +19,15 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
   const [isResident, setIsResident] = useState<boolean | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [quartier, setQuartier] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     password: '',
     confirmPassword: '',
   });
+
+  const quartiersKami = ['ASSAKLA', "N'GLOH", "N'ZOKLOH", "N'GUOUAH"];
 
   const residentBenefits = [
     { icon: Home, text: "Prix : 100 000 FCFA" },
@@ -49,6 +53,11 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
       return;
     }
 
+    if (isResident && !quartier) {
+      alert('Veuillez sélectionner votre quartier');
+      return;
+    }
+
     if (formData.phone.length < 8) {
       alert('Veuillez entrer un numéro de téléphone valide');
       return;
@@ -69,6 +78,7 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
       phone: formData.phone,
       isResident: isResident!,
       password: formData.password,
+      quartier: isResident ? quartier : undefined,
     });
   };
 
@@ -278,8 +288,9 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
                 <CardContent className="p-6 space-y-5">
                   <div>
                     <Label htmlFor="name" className="text-sm font-semibold text-foreground mb-2 block">
-                      Nom complet
+                      Nom complet <span className="text-red-500">*</span>
                     </Label>
+                    <p className="text-xs text-muted-foreground mb-2">Ce nom sera visible par tous sur la plateforme (réservations, etc.)</p>
                     <Input
                       id="name"
                       type="text"
@@ -303,6 +314,24 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
                       className="h-11 text-base border-border focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400"
                     />
                   </div>
+
+                  {isResident && (
+                    <div>
+                      <Label className="text-sm font-semibold text-foreground mb-2 block">
+                        Quartier <span className="text-red-500">*</span>
+                      </Label>
+                      <Select value={quartier} onValueChange={setQuartier}>
+                        <SelectTrigger className="h-11 text-base border-border focus:border-blue-500 focus:ring-blue-500">
+                          <SelectValue placeholder="Sélectionnez votre quartier" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {quartiersKami.map((q) => (
+                            <SelectItem key={q} value={q}>{q}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
 
                   <div>
                     <Label htmlFor="password" className="text-sm font-semibold text-foreground mb-2 block">

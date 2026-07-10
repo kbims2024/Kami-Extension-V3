@@ -445,3 +445,25 @@ Stage Summary:
 - L'image de fond héros est maintenant strictement limitée entre le badge et les boutons CTA
 - L'opacité de l'overlay réduite à 55% pour mieux voir l'image
 - Toutes les corrections précédentes (AnimatePresence keys, HERO entry, logo) sont intactes
+
+---
+Task ID: registration-name-quartier
+Agent: Main Agent
+Task: Ajouter nom obligatoire visible + champ quartier pour résidents lors de l'inscription
+
+Work Log:
+- Ajouté le champ `quartier` (String?) au modèle User dans le schéma Prisma
+- Push du schéma vers la base SQLite
+- Mis à jour l'API /api/auth/register pour accepter et valider le quartier (obligatoire si résident)
+- Mis à jour TwoStepRegistration.tsx : import Select, état quartier, liste des 4 quartiers, validation, affichage conditionnel
+- Ajouté la mention "Ce nom sera visible par tous sur la plateforme" sous le champ nom
+- Mis à jour page.tsx handleRegistrationComplete pour passer quartier
+- Mis à jour /api/lots pour inclure reservedBy (nom du réservataire) pour chaque lot
+- Mis à jour LotBlock et LotCard pour afficher le nom du réservataire avec icône User
+
+Stage Summary:
+- Inscription : nom obligatoire avec mention de visibilité publique ✅
+- Inscription résident : liste déroulante quartier (ASSAKLA, N'GLOH, N'ZOKLOH, N'GUOUAH) obligatoire ✅
+- Inscription non-résident : pas de champ quartier ✅
+- Lots réservés/vendus : nom du réservataire affiché sur la carte du lot ✅
+- Fix bug LotBlock : onReserve passait lot.id au lieu de l'objet lot complet

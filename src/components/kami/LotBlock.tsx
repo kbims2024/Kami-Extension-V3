@@ -10,6 +10,7 @@ interface Lot {
   priceRes: number;
   priceNon: number;
   status: 'AVAILABLE' | 'RESERVED' | 'PAID';
+  reservedBy?: string | null;
 }
 
 interface LotBlockProps {
@@ -48,6 +49,7 @@ export function LotBlock({ blockName, lots, onReserve }: LotBlockProps) {
               priceRes={lot.priceRes}
               priceNon={lot.priceNon}
               status={lot.status}
+              reservedBy={lot.reservedBy}
               onReserve={() => onReserve(lot)}
             />
           ))}

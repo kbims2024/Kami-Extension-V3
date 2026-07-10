@@ -228,7 +228,7 @@ export default function KamiExtensionPage() {
     toast.success('Lien copié !');
   };
 
-  const handleRegistrationComplete = async (userData: { name: string; phone: string; isResident: boolean; password: string }) => {
+  const handleRegistrationComplete = async (userData: { name: string; phone: string; isResident: boolean; password: string; quartier?: string }) => {
     try {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
@@ -238,6 +238,7 @@ export default function KamiExtensionPage() {
           phone: userData.phone,
           isResident: userData.isResident,
           password: userData.password,
+          quartier: userData.quartier,
         }),
       });
 

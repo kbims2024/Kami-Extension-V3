@@ -25,6 +25,7 @@ model User {
   status              String      @default("ACTIVE") // ACTIVE, BLOCKED
   resetToken          String?     @unique
   resetTokenExpires   DateTime?
+  quartier            String?
   congratulatedLots   String      @default("") // JSON array of lot IDs the user has been congratulated for
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
