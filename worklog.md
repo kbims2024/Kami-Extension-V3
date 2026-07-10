@@ -428,3 +428,20 @@ Soumission à `/api/auth/login` (lignes 60-69) :
 **Note technique**: La vérification a été effectuée par analyse du code source et validation de la logique implémentée. Le composant LoginScreen contient toute la logique nécessaire pour gérer les deux méthodes de connexion de manière robuste et sécurisée.
 
 **Impact**: Les utilisateurs peuvent maintenant se connecter soit avec leur numéro de téléphone soit avec leur adresse email, offrant plus de flexibilité et d'accessibilité à la plateforme KAMI-EXTENSION.
+
+---
+Task ID: hero-bg-final-adjust
+Agent: Main Agent
+Task: Limiter l'image de fond juste sous "Réservez votre terrain" et réduire l'opacité
+
+Work Log:
+- Lu l'état actuel de PersuasiveLandingPage.tsx (badge déjà en dehors du fond, AnimatePresence keys OK, HERO dans files.json)
+- Réduit le padding bas du conteneur de l'image de fond de `py-8/py-12` à `pt-6 pb-3/pt-10 pb-3`
+- Réduit l'opacité de l'overlay de `brand-blue/70` à `brand-blue/55`
+- Vérifié via agent-browser: background div se termine à 594px, boutons à 582px (12px de marge = pb-3)
+- Aucune erreur console détectée
+
+Stage Summary:
+- L'image de fond héros est maintenant strictement limitée entre le badge et les boutons CTA
+- L'opacité de l'overlay réduite à 55% pour mieux voir l'image
+- Toutes les corrections précédentes (AnimatePresence keys, HERO entry, logo) sont intactes

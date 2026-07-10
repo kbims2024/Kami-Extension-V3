@@ -219,10 +219,10 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
               } : undefined}
             >
               {heroBackground && (
-                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/70 via-blue-700/70 to-brand-blue/70" />
+                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/55 via-blue-700/55 to-brand-blue/55" />
               )}
 
-              <div className="relative z-10 py-8 md:py-12 px-4 md:px-10">
+              <div className="relative z-10 pt-6 pb-3 md:pt-10 md:pb-3 px-4 md:px-10">
                 {/* Main Heading */}
                 <h1 className="text-4xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 md:mb-6 leading-tight">
                   Construisez Votre
