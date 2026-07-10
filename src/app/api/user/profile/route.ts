@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       id: user.id,
       name: user.name,
+      pseudo: user.pseudo,
       phone: user.phone,
       email: user.email,
       isResident: user.isResident,
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, name, phone, email, quartier } = body;
+    const { userId, name, pseudo, phone, email, quartier } = body;
 
     if (!userId) {
       return NextResponse.json({ error: 'userId requis' }, { status: 400 });
@@ -51,6 +52,10 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Le nom doit contenir au moins 2 caractères' }, { status: 400 });
     }
 
+    if (pseudo !== undefined && pseudo.trim().length < 2) {
+      return NextResponse.json({ error: 'Le pseudo doit contenir au moins 2 caractères' }, { status: 400 });
+    }
+
     if (quartier && !existingUser.isResident) {
       return NextResponse.json({ error: 'Le quartier est réservé aux résidents KAMI' }, { status: 400 });
     }
@@ -63,6 +68,7 @@ export async function PUT(request: NextRequest) {
     // Construction des données de mise à jour
     const updateData: Record<string, any> = {};
     if (name !== undefined) updateData.name = name.trim();
+    if (pseudo !== undefined) updateData.pseudo = pseudo.trim();
     if (phone !== undefined) updateData.phone = phone.trim();
     if (email !== undefined) updateData.email = email.trim() || null;
     if (existingUser.isResident && quartier !== undefined) {
@@ -77,6 +83,7 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({
       id: updatedUser.id,
       name: updatedUser.name,
+      pseudo: updatedUser.pseudo,
       phone: updatedUser.phone,
       email: updatedUser.email,
       isResident: updatedUser.isResident,

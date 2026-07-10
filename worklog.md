@@ -486,3 +486,24 @@ Stage Summary:
 - Root cause: TypeScript interface mismatch - `reservedBy` was returned by API but stripped by `EnhancedMapScreen` interface
 - Files modified: `EnhancedMapScreen.tsx` (added reservedBy to Lot interface), `useAppStore.ts` (expanded User interface), `LotCard.tsx` (improved pseudo visibility)
 - All reserved/sold lots now display the public pseudo of the reserver
+---
+Task ID: add-pseudo-field
+Agent: Main Agent
+Task: Ajouter un champ "pseudo" obligatoire séparé du "nom complet" lors de l'inscription
+
+Work Log:
+- Ajouté le champ `pseudo String?` au modèle User dans prisma/schema.prisma
+- Push du schéma et régénération du client Prisma
+- Mis à jour l'API /api/auth/register : validation pseudo obligatoire, sauvegarde dans DB
+- Mis à jour TwoStepRegistration.tsx : ajout du champ "Pseudo" obligatoire après "Nom complet", avec mention "Ce pseudo sera visible par tous sur la plateforme (réservations, etc.)"
+- Mis à jour /api/lots : `reservedBy` utilise maintenant `user.pseudo || user.name` (fallback vers nom si pas de pseudo)
+- Mis à jour useAppStore : ajout de `pseudo?: string | null` à l'interface User
+- Mis à jour /api/user/profile (GET + PUT) : inclut pseudo dans les réponses et permet la mise à jour
+- Mis à jour ProfileScreen dans page.tsx : affichage du pseudo (avec badge "public") et édition du pseudo
+- Vérifié via dev.log : `SELECT User.pseudo, User.name` dans les requêtes SQL, `GET /api/lots 200`
+
+Stage Summary:
+- Champ "Nom complet" = nom réel (privé)
+- Champ "Pseudo" = nom public affiché sur les lots réservés
+- Les anciens utilisateurs sans pseudo voient leur nom complet comme fallback
+- Fichiers modifiés : prisma/schema.prisma, register/route.ts, TwoStepRegistration.tsx, lots/route.ts, user/profile/route.ts, useAppStore.ts, page.tsx

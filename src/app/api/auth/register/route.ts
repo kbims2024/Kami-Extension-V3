@@ -6,11 +6,11 @@ import { hashPassword } from '@/lib/password';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, phone, email, password, isResident, quartier } = body;
+    const { name, pseudo, phone, email, password, isResident, quartier } = body;
 
     // Validation des champs
-    if (!name || !password) {
-      return NextResponse.json({ error: 'Nom et mot de passe sont requis' }, { status: 400 });
+    if (!name || !pseudo || !password) {
+      return NextResponse.json({ error: 'Nom, pseudo et mot de passe sont requis' }, { status: 400 });
     }
 
     if (!phone && !email) {
@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
     const newUser = await db.user.create({
       data: {
         name,
+        pseudo,
         phone: phone || null,
         email: email || null,
         isResident: isResident !== undefined ? isResident : true,

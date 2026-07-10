@@ -8,17 +8,17 @@ export async function GET() {
       orderBy: { name: 'asc' },
     });
 
-    // Récupérer les réservations actives avec le nom de l'utilisateur
+    // Récupérer les réservations actives avec le pseudo de l'utilisateur
     const reservations = await db.reservation.findMany({
       where: { status: { in: ['RESERVED', 'PAID'] } },
-      include: { user: { select: { name: true } } },
+      include: { user: { select: { pseudo: true, name: true } } },
     });
 
-    // Map lotId -> userName
+    // Map lotId -> userPseudo (fallback to name si pas de pseudo)
     const reservedByMap: Record<string, string> = {};
     for (const r of reservations) {
       if (!reservedByMap[r.lotId]) {
-        reservedByMap[r.lotId] = r.user.name;
+        reservedByMap[r.lotId] = r.user.pseudo || r.user.name;
       }
     }
 

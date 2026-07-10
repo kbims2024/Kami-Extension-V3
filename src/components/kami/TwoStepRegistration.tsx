@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowLeft, ArrowRight, CheckCircle, Home, Users, Shield, Eye, EyeOff, Menu } from 'lucide-react';
 
 interface TwoStepRegistrationProps {
-  onComplete: (userData: { name: string; phone: string; isResident: boolean; password: string; quartier?: string }) => void;
+  onComplete: (userData: { name: string; pseudo: string; phone: string; isResident: boolean; password: string; quartier?: string }) => void;
   onBack: () => void;
   setIsMenuOpen?: (open: boolean) => void;
 }
@@ -22,6 +22,7 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
   const [quartier, setQuartier] = useState('');
   const [formData, setFormData] = useState({
     name: '',
+    pseudo: '',
     phone: '',
     password: '',
     confirmPassword: '',
@@ -48,8 +49,13 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
   };
 
   const handleStep2Submit = () => {
-    if (!formData.name || !formData.phone || !formData.password) {
+    if (!formData.name || !formData.pseudo || !formData.phone || !formData.password) {
       alert('Veuillez remplir tous les champs');
+      return;
+    }
+
+    if (formData.pseudo.trim().length < 2) {
+      alert('Le pseudo doit contenir au moins 2 caractères');
       return;
     }
 
@@ -75,6 +81,7 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
 
     onComplete({
       name: formData.name,
+      pseudo: formData.pseudo.trim(),
       phone: formData.phone,
       isResident: isResident!,
       password: formData.password,
@@ -290,13 +297,27 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
                     <Label htmlFor="name" className="text-sm font-semibold text-foreground mb-2 block">
                       Nom complet <span className="text-red-500">*</span>
                     </Label>
-                    <p className="text-xs text-muted-foreground mb-2">Ce nom sera visible par tous sur la plateforme (réservations, etc.)</p>
                     <Input
                       id="name"
                       type="text"
                       placeholder="Ex: Jean Koné"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="h-11 text-base border-border focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="pseudo" className="text-sm font-semibold text-foreground mb-2 block">
+                      Pseudo <span className="text-red-500">*</span>
+                    </Label>
+                    <p className="text-xs text-muted-foreground mb-2">Ce pseudo sera visible par tous sur la plateforme (réservations, etc.)</p>
+                    <Input
+                      id="pseudo"
+                      type="text"
+                      placeholder="Ex: JeanK"
+                      value={formData.pseudo}
+                      onChange={(e) => setFormData({ ...formData, pseudo: e.target.value })}
                       className="h-11 text-base border-border focus:border-blue-500 focus:ring-blue-500"
                     />
                   </div>

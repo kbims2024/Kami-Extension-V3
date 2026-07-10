@@ -229,13 +229,14 @@ export default function KamiExtensionPage() {
     toast.success('Lien copié !');
   };
 
-  const handleRegistrationComplete = async (userData: { name: string; phone: string; isResident: boolean; password: string; quartier?: string }) => {
+  const handleRegistrationComplete = async (userData: { name: string; pseudo: string; phone: string; isResident: boolean; password: string; quartier?: string }) => {
     try {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: userData.name,
+          pseudo: userData.pseudo,
           phone: userData.phone,
           isResident: userData.isResident,
           password: userData.password,
@@ -246,7 +247,7 @@ export default function KamiExtensionPage() {
       if (response.ok) {
         const user = await response.json();
         setCurrentUser(user);
-        toast.success(`Bienvenue ${user.name} ! Votre compte est créé.`);
+        toast.success(`Bienvenue ${user.pseudo || user.name} ! Votre compte est créé.`);
         setCurrentScreen('map');
       } else {
         const data = await response.json();
@@ -905,6 +906,7 @@ function ProfileScreen({ currentUser, setCurrentUser, copyReferralLink, setCurre
   const [isLoading, setIsLoading] = useState(false);
   const [form, setForm] = useState({
     name: currentUser?.name || '',
+    pseudo: currentUser?.pseudo || '',
     phone: currentUser?.phone || '',
     email: currentUser?.email || '',
     quartier: currentUser?.quartier || '',
@@ -915,6 +917,10 @@ function ProfileScreen({ currentUser, setCurrentUser, copyReferralLink, setCurre
   const handleSave = async () => {
     if (!form.name.trim()) {
       toast.error('Le nom est obligatoire');
+      return;
+    }
+    if (!form.pseudo.trim()) {
+      toast.error('Le pseudo est obligatoire');
       return;
     }
     if (currentUser?.isResident && !form.quartier) {
@@ -930,6 +936,7 @@ function ProfileScreen({ currentUser, setCurrentUser, copyReferralLink, setCurre
         body: JSON.stringify({
           userId: currentUser.id,
           name: form.name,
+          pseudo: form.pseudo.trim(),
           phone: form.phone,
           email: form.email,
           quartier: currentUser.isResident ? form.quartier : undefined,
@@ -955,6 +962,7 @@ function ProfileScreen({ currentUser, setCurrentUser, copyReferralLink, setCurre
   const handleCancel = () => {
     setForm({
       name: currentUser?.name || '',
+      pseudo: currentUser?.pseudo || '',
       phone: currentUser?.phone || '',
       email: currentUser?.email || '',
       quartier: currentUser?.quartier || '',
@@ -1008,11 +1016,26 @@ function ProfileScreen({ currentUser, setCurrentUser, copyReferralLink, setCurre
               <Label className="text-sm font-semibold text-foreground">
                 Nom complet <span className="text-red-500">*</span>
               </Label>
-              <p className="text-xs text-muted-foreground">Ce nom sera visible par tous sur la plateforme</p>
               <Input
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 placeholder="Votre nom complet"
+                className="h-10"
+              />
+            </CardContent>
+          </Card>
+
+          {/* Pseudo */}
+          <Card className="border-border">
+            <CardContent className="p-4 space-y-2">
+              <Label className="text-sm font-semibold text-foreground">
+                Pseudo <span className="text-red-500">*</span>
+              </Label>
+              <p className="text-xs text-muted-foreground">Ce pseudo sera visible par tous sur la plateforme (réservations, etc.)</p>
+              <Input
+                value={form.pseudo}
+                onChange={(e) => setForm({ ...form, pseudo: e.target.value })}
+                placeholder="Votre pseudo public"
                 className="h-10"
               />
             </CardContent>
@@ -1093,6 +1116,17 @@ function ProfileScreen({ currentUser, setCurrentUser, copyReferralLink, setCurre
               <div>
                 <p className="text-sm text-muted-foreground">Nom complet</p>
                 <p className="font-bold text-foreground">{currentUser?.name || '-'}</p>
+              </div>
+              <User className="h-5 w-5 text-brand-blue" />
+            </CardContent>
+          </Card>
+
+          {/* Pseudo */}
+          <Card className="border-border bg-brand-blue/5 dark:bg-brand-blue/10">
+            <CardContent className="p-4 flex justify-between items-center">
+              <div>
+                <p className="text-sm text-muted-foreground">Pseudo <span className="text-[10px] text-brand-blue font-medium">(public)</span></p>
+                <p className="font-bold text-brand-blue">{currentUser?.pseudo || 'Non défini'}</p>
               </div>
               <User className="h-5 w-5 text-brand-blue" />
             </CardContent>
