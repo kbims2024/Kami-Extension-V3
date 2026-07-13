@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +35,7 @@ import { PlanPage } from '@/components/kami/PlanPage';
 import { ManagementCommitteeManagement } from '@/components/kami/ManagementCommitteeManagement';
 import { PageTransition } from '@/components/ui/page-transition';
 import { LogoDisplay } from '@/components/kami/LogoDisplay';
+import { AdminLoginDialog } from '@/components/kami/AdminLoginDialog';
 
 export default function KamiExtensionPage() {
   const [mounted, setMounted] = useState(false);
@@ -68,6 +69,9 @@ export default function KamiExtensionPage() {
   const [paymentAmount, setPaymentAmount] = useState('');
   const [agreeRules, setAgreeRules] = useState(false);
   const [adminView, setAdminView] = useState<string | null>(null);
+  const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
+  const footerTapCountRef = useRef(0);
+  const footerTapTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const loadLots = async () => {
     try {
@@ -396,7 +400,7 @@ export default function KamiExtensionPage() {
         </PageTransition>
       )}
 
-      {currentScreen === 'admin' && (
+      {currentScreen === 'admin' && currentUser?.role === 'ADMIN' && (
         <PageTransition>
           <AdminScreen
             adminView={adminView}
@@ -408,7 +412,7 @@ export default function KamiExtensionPage() {
         </PageTransition>
       )}
 
-      {currentScreen === 'admin-flash-infos' && (
+      {currentScreen === 'admin-flash-infos' && currentUser?.role === 'ADMIN' && (
         <PageTransition>
           <FlashInfoAdmin onBack={() => setCurrentScreen('home')} />
         </PageTransition>
@@ -438,7 +442,7 @@ export default function KamiExtensionPage() {
         </PageTransition>
       )}
 
-      {currentScreen === 'admin-chat' && (
+      {currentScreen === 'admin-chat' && currentUser?.role === 'ADMIN' && (
         <PageTransition>
           <AdminChatPage
             setCurrentScreen={setCurrentScreen}
@@ -532,10 +536,36 @@ export default function KamiExtensionPage() {
       </Dialog>
 
 
-      {/* Footer */}
+      {/* Footer avec déclencheur caché admin (5 appuis) */}
       <footer className="mt-auto bg-card border-t border-border py-4 px-6 text-center text-sm text-muted-foreground">
-        <p>© 2024 KAMI-EXTENSION - Tous droits réservés</p>
+        <p
+          onClick={() => {
+            if (footerTapTimerRef.current) clearTimeout(footerTapTimerRef.current);
+            footerTapCountRef.current += 1;
+            if (footerTapCountRef.current >= 5) {
+              footerTapCountRef.current = 0;
+              setIsAdminLoginOpen(true);
+            } else {
+              footerTapTimerRef.current = setTimeout(() => {
+                footerTapCountRef.current = 0;
+              }, 2000);
+            }
+          }}
+          className="cursor-default select-none"
+        >
+          © 2024 KAMI-EXTENSION - Tous droits réservés
+        </p>
       </footer>
+
+      {/* Admin Login Dialog (déclenché par 5 appuis sur le footer) */}
+      <AdminLoginDialog
+        open={isAdminLoginOpen}
+        onOpenChange={setIsAdminLoginOpen}
+        onAdminLoginSuccess={(user) => {
+          setCurrentUser(user);
+          setCurrentScreen('admin');
+        }}
+      />
 
       {/* Congratulation Notification */}
       <CongratulationNotification />

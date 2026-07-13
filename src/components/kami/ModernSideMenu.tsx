@@ -212,34 +212,36 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
               </motion.div>
             </motion.div>
 
-            <motion.div
-              initial={{ x: -50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 1.15, duration: 0.3 }}
-            >
+            {currentUser?.role === 'ADMIN' && (
               <motion.div
-                whileHover={{ scale: 1.02, x: 4 }}
-                whileTap={{ scale: 0.98 }}
+                initial={{ x: -50, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 1.15, duration: 0.3 }}
               >
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start px-4 py-3 h-auto text-foreground hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-600 dark:hover:text-red-400 rounded-xl transition-all group"
-                  onClick={() => {
-                    onNavigate('admin');
-                    onClose();
-                  }}
+                <motion.div
+                  whileHover={{ scale: 1.02, x: 4 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  <motion.div
-                    whileHover={{ rotate: 5 }}
-                    transition={{ type: 'spring', stiffness: 300 }}
-                    className="mr-3"
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start px-4 py-3 h-auto text-foreground hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-600 dark:hover:text-red-400 rounded-xl transition-all group"
+                    onClick={() => {
+                      onNavigate('admin');
+                      onClose();
+                    }}
                   >
-                    <Shield className="mr-3 h-5 w-5 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors" />
-                  </motion.div>
-                  <span className="font-medium">Administration</span>
-                </Button>
+                    <motion.div
+                      whileHover={{ rotate: 5 }}
+                      transition={{ type: 'spring', stiffness: 300 }}
+                      className="mr-3"
+                    >
+                      <Shield className="mr-3 h-5 w-5 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors" />
+                    </motion.div>
+                    <span className="font-medium">Administration</span>
+                  </Button>
+                </motion.div>
               </motion.div>
-            </motion.div>
+            )}
 
             <motion.div
               initial={{ x: -50, opacity: 0 }}
