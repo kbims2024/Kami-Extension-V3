@@ -277,6 +277,13 @@ function createModelWrapper<T extends PopulatedDoc>(model: any) {
       const createData = { ...data };
       if (createData.id) delete createData.id;
 
+      // Remove null/undefined values so sparse unique indexes don't conflict
+      for (const key of Object.keys(createData)) {
+        if (createData[key] === null || createData[key] === undefined) {
+          delete createData[key];
+        }
+      }
+
       const doc = await model.create(createData);
       return toPlain<T>(doc)!;
     },
@@ -286,15 +293,29 @@ function createModelWrapper<T extends PopulatedDoc>(model: any) {
       const { where, data, select } = args;
 
       const updateData = { ...data };
-      // Remove fields that shouldn't be in $set
       if (updateData.id) delete updateData.id;
+
+      // Separate null values (use $unset) from real values (use $set)
+      const setData: Record<string, any> = {};
+      const unsetData: Record<string, any> = {};
+      for (const [key, val] of Object.entries(updateData)) {
+        if (val === null || val === undefined) {
+          unsetData[key] = 1;
+        } else {
+          setData[key] = val;
+        }
+      }
+
+      const updateOp: Record<string, any> = {};
+      if (Object.keys(setData).length > 0) updateOp.$set = setData;
+      if (Object.keys(unsetData).length > 0) updateOp.$unset = unsetData;
 
       let query: any;
       if (where.id) {
-        query = model.findByIdAndUpdate(where.id, { $set: updateData }, { new: true, runValidators: true });
+        query = model.findByIdAndUpdate(where.id, updateOp, { new: true, runValidators: true });
       } else {
         const filter = buildMongoWhere(where);
-        query = model.findOneAndUpdate(filter, { $set: updateData }, { new: true, runValidators: true });
+        query = model.findOneAndUpdate(filter, updateOp, { new: true, runValidators: true });
       }
 
       if (select) {
