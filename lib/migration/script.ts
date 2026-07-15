@@ -8,11 +8,11 @@
  */
 
 import mongoose from 'mongoose';
-import connectDB from '@/lib/mongodb';
-import User from '@/lib/models/User';
-import Lot from '@/lib/models/Lot';
-import Reservation from '@/lib/models/Reservation';
-import Payment from '@/lib/models/Payment';
+import { connectDB } from '@/lib/mongodb';
+import { User } from '@/lib/models/User';
+import { Lot } from '@/lib/models/Lot';
+import { Reservation } from '@/lib/models/Reservation';
+import { Payment } from '@/lib/models/Payment';
 
 export async function migrateData() {
   console.log('🚀 Début de la migration...\n');
