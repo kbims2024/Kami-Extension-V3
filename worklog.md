@@ -507,3 +507,26 @@ Stage Summary:
 - Champ "Pseudo" = nom public affiché sur les lots réservés
 - Les anciens utilisateurs sans pseudo voient leur nom complet comme fallback
 - Fichiers modifiés : prisma/schema.prisma, register/route.ts, TwoStepRegistration.tsx, lots/route.ts, user/profile/route.ts, useAppStore.ts, page.tsx
+
+---
+Task ID: mongodb-migration-finalize
+Agent: Main Agent
+Task: Configure MongoDB URI, seed database, verify page rendering
+
+Work Log:
+- Updated .env with MongoDB Atlas URI (KamiExtension database on cluster0)
+- Removed old DATABASE_URL (SQLite), added MONGODB_URI + ADMIN_SECRET_CODE
+- Created lib/seed-mongodb.ts - comprehensive seed script with 28 lots, 3 users, 4 reservations/payments
+- Fixed model import paths (named exports, not default)
+- Added dotenv/config for .env loading in seed script
+- Updated package.json db:seed command to use new MongoDB seed script
+- Verified all APIs return 200 (lots, logo, flash-info, admin-files, reservations)
+- Verified via agent-browser + VLM: page renders correctly with blue/white/yellow theme
+- Stats confirmed: 24 Disponibles, 7% Réservés, 7% Achetés
+
+Stage Summary:
+- MongoDB Atlas connection working perfectly with KamiExtension database
+- 28 lots seeded across 5 blocks (A-E) with varied prices and statuses
+- 3 test users (Jean Koné, Marie Yapo, Koffi Brou) with reservations/payments
+- All API routes working with MongoDB via Prisma-compatible wrapper
+- Page renders correctly - confirmed NOT black, displays colorful blue/white/yellow landing page
