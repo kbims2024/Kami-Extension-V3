@@ -36,6 +36,7 @@ import { ManagementCommitteeManagement } from '@/components/kami/ManagementCommi
 import { PageTransition } from '@/components/ui/page-transition';
 import { LogoDisplay } from '@/components/kami/LogoDisplay';
 import { AdminLoginDialog } from '@/components/kami/AdminLoginDialog';
+import { PaymentMethodScreen } from '@/components/kami/PaymentMethodScreen';
 
 export default function KamiExtensionPage() {
   const [mounted, setMounted] = useState(false);
@@ -166,9 +167,7 @@ export default function KamiExtensionPage() {
       return;
     }
     setSelectedLot(lot);
-    setPaymentAmount('');
-    setAgreeRules(false);
-    setIsReservationModalOpen(true);
+    setCurrentScreen('payment-method');
   };
 
   const handleReservation = async () => {
@@ -364,6 +363,14 @@ export default function KamiExtensionPage() {
             currentUser={currentUser}
             setCurrentScreen={setCurrentScreen}
             setIsMenuOpen={setIsMenuOpen}
+            onPayLot={(reservation: any) => {
+              // Find the lot from the lots list
+              const lot = lots.find((l: any) => l.name === reservation.lotName);
+              if (lot) {
+                setSelectedLot({ ...lot, paidAmount: reservation.paidAmount });
+                setCurrentScreen('payment-method');
+              }
+            }}
           />
         </PageTransition>
       )}
@@ -454,6 +461,25 @@ export default function KamiExtensionPage() {
       {currentScreen === 'management-committee' && (
         <PageTransition>
           <ManagementCommitteeManagement onBack={() => setCurrentScreen('home')} setCurrentScreen={setCurrentScreen} />
+        </PageTransition>
+      )}
+
+      {/* Payment Method Screen */}
+      {currentScreen === 'payment-method' && selectedLot && currentUser && (
+        <PageTransition>
+          <PaymentMethodScreen
+            lot={selectedLot}
+            user={currentUser}
+            onBack={() => {
+              setCurrentScreen(currentUser ? 'map' : 'home');
+            }}
+            onPaymentComplete={() => {
+              loadLots();
+              loadMyReservations();
+              setCurrentScreen('dashboard');
+              toast.success('Paiement enregistré !');
+            }}
+          />
         </PageTransition>
       )}
 

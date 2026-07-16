@@ -17,7 +17,7 @@ export async function GET() {
     // Map lotId -> userPseudo (fallback to name si pas de pseudo)
     const reservedByMap: Record<string, string> = {};
     for (const r of reservations) {
-      if (!reservedByMap[r.lotId]) {
+      if (!reservedByMap[r.lotId] && r.user) {
         reservedByMap[r.lotId] = r.user.pseudo || r.user.name;
       }
     }

@@ -24,7 +24,8 @@ import {
   Menu,
   Home,
   Map,
-  MessageSquare
+  MessageSquare,
+  CreditCard
 } from 'lucide-react'
 
 // Types pour les données utilisateur
@@ -174,9 +175,10 @@ interface UserDashboardProps {
   currentUser?: any
   setCurrentScreen?: (screen: string) => void
   setIsMenuOpen?: (open: boolean) => void
+  onPayLot?: (reservation: Reservation) => void
 }
 
-export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, setCurrentScreen, setIsMenuOpen }) => {
+export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, setCurrentScreen, setIsMenuOpen, onPayLot }) => {
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState<UserStats | null>(null)
   const [reservations, setReservations] = useState<Reservation[]>([])
@@ -529,7 +531,16 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, setCu
                                       Îlot {reservation.block} • {reservation.surface} m²
                                     </p>
                                   </div>
-                                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                                  {!isPaid && onPayLot && (
+                                    <Button
+                                      size="sm"
+                                      className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold"
+                                      onClick={(e) => { e.stopPropagation(); onPayLot(reservation); }}
+                                    >
+                                      <CreditCard className="h-3.5 w-3.5 mr-1" />
+                                      Payer
+                                    </Button>
+                                  )}
                                 </div>
                                 <div className="space-y-2">
                                   <div className="flex justify-between text-sm">

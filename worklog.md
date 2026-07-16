@@ -530,3 +530,48 @@ Stage Summary:
 - 3 test users (Jean Koné, Marie Yapo, Koffi Brou) with reservations/payments
 - All API routes working with MongoDB via Prisma-compatible wrapper
 - Page renders correctly - confirmed NOT black, displays colorful blue/white/yellow landing page
+
+---
+Task ID: gen-payment-logos
+Agent: Main Agent
+Task: Generate 4 mobile money logo images (120x120 PNG, transparent background) for African payment services
+
+Work Log:
+- Created target directory /home/z/my-project/public/images/
+- Used Python PIL/Pillow to programmatically generate clean vector-style logos at exact 120x120 with RGBA transparent backgrounds
+- Generated wave.png: 3 stylized sine-wave curves in #1DC3E0 on a subtle circular tint background
+- Generated orange-money.png: Solid #FF6600 orange circle with white "OM" text (shadow + bold)
+- Generated moov-money.png: #0066CC blue circle with white bold "M" and orange (#F26522) swoosh accent line
+- Generated mtn-money.png: #FFCC00 yellow rounded rectangle with black "MTN" text
+- Verified all 4 files: 120x120, RGBA mode, transparent corners (0,0,0,0), correct center colors
+
+Stage Summary:
+- 4 payment provider logos generated as clean, centered, 120x120 transparent PNGs
+- Files: wave.png (1.5KB), orange-money.png (2.7KB), moov-money.png (1.5KB), mtn-money.png (1.4KB)
+- Saved to /home/z/my-project/public/images/
+- No external dependencies required (PIL with DejaVu Sans Bold font)
+
+---
+Task ID: payment-method-screen
+Agent: Main Agent
+Task: Create payment method selection screen with 4 mobile money providers
+
+Work Log:
+- Generated 4 payment provider logos (Wave, Orange Money, Moov Money, MTN Money) using Python PIL
+- Created PaymentMethodScreen.tsx with 3-step flow:
+  1. Payment method selection (4 providers with logos and brand colors)
+  2. Amount entry (total/paid/remaining display + manual input + "Tout payer" button + real-time preview)
+  3. Validation with "en cours de développement" message
+- Integrated into page.tsx: new 'payment-method' screen, replaced old reservation modal flow
+- Added onPayLot prop to UserDashboard for paying on existing reservations (with "Payer" button)
+- Added CreditCard import to UserDashboard
+- Fixed /api/lots null safety check for r.user (r.user.pseudo could crash if user is null)
+- Created /api/upload/route.ts (was missing, caused logo upload errors)
+
+Stage Summary:
+- New files: PaymentMethodScreen.tsx, /api/upload/route.ts, 4 logo PNGs in public/images/
+- Modified files: page.tsx, UserDashboard.tsx, /api/lots/route.ts
+- Full 3-step payment flow tested and verified via agent-browser:
+  Step 1: 4 mobile money cards (Wave, OM, Moov, MTN) with logos
+  Step 2: Amount summary + manual input + "Tout payer" + real-time preview
+  Step 3: "Paiement automatique en cours de développement" message
