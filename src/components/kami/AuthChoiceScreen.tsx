@@ -26,10 +26,7 @@ export function AuthChoiceScreen({ onLoginClick, onRegisterClick, onBack, setIsM
           >
             <ArrowLeft className="h-4 w-4 text-foreground" />
           </Button>
-          <div>
-            <h1 className="text-sm font-bold text-foreground leading-tight">Bienvenue</h1>
-            <LogoDisplay size="sm" showBackground={false} className="text-[9px] text-muted-foreground" />
-          </div>
+          <h1 className="text-sm font-bold text-foreground leading-tight">Bienvenue</h1>
         </div>
         {setIsMenuOpen && (
           <Button
@@ -72,10 +69,10 @@ export function AuthChoiceScreen({ onLoginClick, onRegisterClick, onBack, setIsM
                     <LogIn className="h-5 w-5 text-blue-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-bold text-foreground mb-0.5 truncate">
+                    <h3 className="text-base font-bold text-foreground mb-0.5 truncate">
                       Se connecter
                     </h3>
-                    <p className="text-[11px] text-foreground truncate">
+                    <p className="text-xs text-foreground truncate">
                       Vous avez déjà un compte ?
                     </p>
                   </div>
@@ -97,11 +94,11 @@ export function AuthChoiceScreen({ onLoginClick, onRegisterClick, onBack, setIsM
                     <UserPlus className="h-5 w-5 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-bold text-foreground mb-0.5 truncate">
+                    <h3 className="text-base font-bold text-foreground mb-0.5 truncate">
                       Créer un compte
                     </h3>
-                    <p className="text-[11px] text-foreground truncate">
-                      Nouveau à KAMI-EXTENSION ?
+                    <p className="text-xs text-foreground truncate">
+                      Nouveau ici ? Créez votre compte
                     </p>
                   </div>
                   <div className="w-6 h-6 bg-brand-blue/10 rounded-full flex items-center justify-center shrink-0">
