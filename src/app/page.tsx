@@ -37,6 +37,7 @@ import { PageTransition } from '@/components/ui/page-transition';
 import { LogoDisplay } from '@/components/kami/LogoDisplay';
 import { AdminLoginDialog } from '@/components/kami/AdminLoginDialog';
 import { PaymentMethodScreen } from '@/components/kami/PaymentMethodScreen';
+import { ServiceApresVenteScreen } from '@/components/kami/ServiceApresVenteScreen';
 
 export default function KamiExtensionPage() {
   const [mounted, setMounted] = useState(false);
@@ -317,6 +318,7 @@ export default function KamiExtensionPage() {
           <AuthChoiceScreen
             onLoginClick={() => setCurrentScreen('login-screen')}
             onRegisterClick={() => setCurrentScreen('register')}
+            onServiceApresVenteClick={() => setCurrentScreen('sav')}
             onBack={() => setCurrentScreen('home')}
             setIsMenuOpen={setIsMenuOpen}
           />
@@ -340,6 +342,7 @@ export default function KamiExtensionPage() {
           <AuthChoiceScreen
             onLoginClick={() => setCurrentScreen('login-screen')}
             onRegisterClick={() => setCurrentScreen('register')}
+            onServiceApresVenteClick={() => setCurrentScreen('sav')}
             onBack={() => setCurrentScreen('home')}
             setIsMenuOpen={setIsMenuOpen}
           />
@@ -403,6 +406,17 @@ export default function KamiExtensionPage() {
           <RulesScreen
             setCurrentScreen={setCurrentScreen}
             setIsMenuOpen={setIsMenuOpen}
+          />
+        </PageTransition>
+      )}
+
+      {/* Écran Service Après-Vente */}
+      {currentScreen === 'sav' && (
+        <PageTransition>
+          <ServiceApresVenteScreen
+            onBack={() => setCurrentScreen(currentUser ? 'home' : 'auth-choice')}
+            setIsMenuOpen={setIsMenuOpen}
+            onLoginClick={() => setCurrentScreen('login-screen')}
           />
         </PageTransition>
       )}

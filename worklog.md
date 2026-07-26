@@ -595,3 +595,44 @@ Stage Summary:
 - Le code du flux de paiement est COMPLET et déjà intégré : 4 moyens (Wave/Orange/Moov/MTN) avec logos, affichage total+déjà payé+reste, saisie manuelle de l'avance, bouton "Tout payer" (remplit le reste), case règlement intérieur, et sur validation → message "Le processus de paiement automatique est encore en cours de développement"
 - BLOCAGE : les credentials MongoDB Atlas sont invalides (bad auth). Impossible de tester le flux E2E (login et chargement des lots échouent). L'utilisateur doit fournir des credentials MongoDB valides ou mettre à jour le mot de passe dans Atlas pour pouvoir tester le paiement de bout en bout
 - Le serveur dev doit être lancé sans le pipe `tee` pour rester stable : `npx next dev -p 3000 > dev.log 2>&1 &`
+
+---
+Task ID: sav-button
+Agent: Z.ai Code (main)
+Task: Ajouter un troisième bouton "Service après-vente" sur l'écran de choix d'authentification (AuthChoiceScreen), avec un écran SAV dédié accessible aux visiteurs non connectés.
+
+Work Log:
+- Création du composant `src/components/kami/ServiceApresVenteScreen.tsx` (370 lignes) — écran complet avec :
+  - Header (retour + titre "Service après-vente" + icône Headset + bouton menu)
+  - Hero "Besoin d'aide ?" (fond dégradé émeraude)
+  - 3 cartes de contact : Appeler (tel:), WhatsApp (wa.me), Écrire (mailto:) — liens réels cliquables
+  - 4 cartes "Nos services" : Suivi des paiements, Documents & attestations, Réclamations & litiges, Assistance technique
+  - Tableau "Horaires d'ouverture" (Lun-Ven 08h-18h, Sam 09h-13h, Dim fermé)
+  - FAQ accordéon avec 5 questions (état ouvert/fermé géré par useState)
+  - CTA "Déjà client ?" avec bouton vert "Se connecter à mon espace" (route vers login-screen)
+  - Footer "KAMI-EXTENSION · Service après-vente à votre service"
+  - Couleur dominante : émeraude (#10B981) pour se distinguer du bleu (login) et du brand-blue (register)
+  - Support dark mode via classes dark: et variables bg-background/text-foreground
+- Modification de `src/components/kami/AuthChoiceScreen.tsx` :
+  - Ajout de l'icône `Headset` à l'import lucide-react
+  - Ajout de la prop `onServiceApresVenteClick: () => void` à l'interface
+  - Ajout d'une 3e carte (border-emerald, bg-gradient emerald) avec icône Headset, titre "Service après-vente", sous-titre "Une question ? Contactez notre équipe"
+- Modification de `src/app/page.tsx` :
+  - Import de `ServiceApresVenteScreen`
+  - Ajout de `onServiceApresVenteClick={() => setCurrentScreen('sav')}` sur les 2 instances de AuthChoiceScreen (auth-choice + login legacy)
+  - Ajout du bloc de rendu `{currentScreen === 'sav' && ...}` avec onBack intelligent (retourne à home si connecté, sinon à auth-choice)
+- Modification de `src/components/kami/ModernSideMenu.tsx` :
+  - Ajout de l'icône `Headset` à l'import
+  - Ajout de l'entrée menu `{ icon: Headset, label: 'Service après-vente', screen: 'sav' }` (accessible à tous, connecté ou non)
+- Lint : 0 erreur sur les 4 fichiers modifiés/créés (les erreurs préexistantes dans SettingsPage/mongodb/test-db ne sont pas touchées)
+- Vérification E2E avec agent-browser + VLM :
+  1. Page d'accueil → clic "Réserver" → écran auth-choice affiche bien 3 cartes (Se connecter, Créer un compte, Service après-vente — verte avec casque)
+  2. Clic sur la carte SAV → écran SAV rendu correctement
+  3. VLM confirme toutes les sections visibles : header, hero "Besoin d'aide ?", 3 contacts (téléphone/WhatsApp/email), 4 services, horaires, FAQ 5 questions (accordéon fonctionnel), CTA "Déjà client ?", footer
+  4. Aucune erreur runtime, aucun écran noir
+
+Stage Summary:
+- 3e bouton "Service après-vente" ajouté avec succès sur l'écran de choix d'authentification (carte verte distincte des 2 autres)
+- Écran SAV complet et fonctionnel créé, accessible depuis : (a) le 3e bouton sur AuthChoiceScreen, (b) le menu latéral pour tous les utilisateurs
+- Le SAV est accessible SANS connexion (visiteurs non authentifiés), avec un CTA pour les inviter à se connecter
+- Coordonnées de contact utilisées (placeholders éditables) : +225 27 22 49 00 00 / WhatsApp +225 07 58 42 10 00 / sav@kami-extension.com — l'administrateur devra ajuster ces valeurs avec les coordonnées réelles

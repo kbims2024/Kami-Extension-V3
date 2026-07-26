@@ -2,17 +2,18 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, LogIn, UserPlus, Menu } from 'lucide-react';
+import { ArrowLeft, LogIn, UserPlus, Menu, Headset } from 'lucide-react';
 import { LogoDisplay } from '@/components/kami/LogoDisplay';
 
 interface AuthChoiceScreenProps {
   onLoginClick: () => void;
   onRegisterClick: () => void;
+  onServiceApresVenteClick: () => void;
   onBack: () => void;
   setIsMenuOpen?: (open: boolean) => void;
 }
 
-export function AuthChoiceScreen({ onLoginClick, onRegisterClick, onBack, setIsMenuOpen }: AuthChoiceScreenProps) {
+export function AuthChoiceScreen({ onLoginClick, onRegisterClick, onServiceApresVenteClick, onBack, setIsMenuOpen }: AuthChoiceScreenProps) {
   return (
     <div className="flex-1 flex flex-col bg-card h-screen">
       {/* Header */}
@@ -103,6 +104,31 @@ export function AuthChoiceScreen({ onLoginClick, onRegisterClick, onBack, setIsM
                   </div>
                   <div className="w-6 h-6 bg-brand-blue/10 rounded-full flex items-center justify-center shrink-0">
                     <ArrowLeft className="h-3 w-3 text-brand-blue rotate-180" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Service Après-Vente Card - 3ème bouton */}
+            <Card
+              className="border-2 border-emerald-200 dark:border-emerald-900/50 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/20 dark:to-card cursor-pointer transition-all hover:shadow-lg hover:-translate-y-0.5 hover:border-emerald-500"
+              onClick={onServiceApresVenteClick}
+            >
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg shadow-emerald-600/30">
+                    <Headset className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-base font-bold text-foreground mb-0.5 truncate">
+                      Service après-vente
+                    </h3>
+                    <p className="text-xs text-foreground truncate">
+                      Une question ? Contactez notre équipe
+                    </p>
+                  </div>
+                  <div className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/40 rounded-full flex items-center justify-center shrink-0">
+                    <ArrowLeft className="h-3 w-3 text-emerald-600 rotate-180" />
                   </div>
                 </div>
               </CardContent>

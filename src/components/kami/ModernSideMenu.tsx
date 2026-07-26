@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Home, Map, FileText, Wallet, User, Shield, LogOut, LogIn, Building2, X, Settings, MessageSquare, Users } from 'lucide-react';
+import { Home, Map, FileText, Wallet, User, Shield, LogOut, LogIn, Building2, X, Settings, MessageSquare, Users, Headset } from 'lucide-react';
 
 interface ModernSideMenuProps {
   isOpen: boolean;
@@ -22,6 +22,7 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
     { icon: Users, label: 'Comité de Gestion des Lots', screen: 'management-committee', requireAuth: true, isAdminOnly: true },
     { icon: User, label: 'Mon profil', screen: 'profile', requireAuth: true },
     { icon: FileText, label: 'Règlement intérieur', screen: 'rules' },
+    { icon: Headset, label: 'Service après-vente', screen: 'sav' },
   ];
 
   return (
