@@ -575,3 +575,23 @@ Stage Summary:
   Step 1: 4 mobile money cards (Wave, OM, Moov, MTN) with logos
   Step 2: Amount summary + manual input + "Tout payer" + real-time preview
   Step 3: "Paiement automatique en cours de développement" message
+
+---
+
+Task ID: payment-verify
+Agent: Z.ai Code (main)
+Task: Vérifier l'état du flux de paiement (4 moyens mobile money + montant total/avance/reste + saisie manuelle + bouton "Tout payer" + message "en cours de développement" sur validation)
+
+Work Log:
+- Lecture du composant `src/components/kami/PaymentMethodScreen.tsx` (460 lignes) — déjà entièrement implémenté
+- Vérification de la présence des 4 logos dans `/public/images/` : wave.png, orange-money.png, moov-money.png, mtn-money.png — tous présents
+- Vérification de l'intégration dans `src/app/page.tsx` : 2 flux d'entrée vers `payment-method` (depuis la carte via `handleOpenReservation`, et depuis le dashboard via `onPayLot`)
+- Vérification de l'endpoint `/api/user/payments/route.ts` — existe et retourne les paiements validés
+- Diagnostic du serveur dev : le pipe `tee` dans le script `dev` tuait le processus via SIGPIPE à la fin de la commande bash → résolu en lançant `npx next dev -p 3000` directement (sans tee) en arrière-plan
+- Découverte d'un blocage infrastructure : `MongoServerError: bad auth : authentication failed` — les identifiants MongoDB Atlas dans `.env` (ArtisanChapChap / Kbims.com2026MB) sont INVALIDES. Tous les appels API (/api/lots, /api/reservations, /api/logo, /api/user/payments, /api/auth/login) retournent HTTP 500
+- Vérification visuelle via agent-browser + VLM : la page / se rend correctement (HTTP 200, 28KB HTML, titre "KAMI-EXTENSION - Réservation de Lots"), header/hero/flash-info/cartes stats affichés, aucun écran noir ni erreur runtime côté client. Les statistiques affichent 0 car la DB est injoignable
+
+Stage Summary:
+- Le code du flux de paiement est COMPLET et déjà intégré : 4 moyens (Wave/Orange/Moov/MTN) avec logos, affichage total+déjà payé+reste, saisie manuelle de l'avance, bouton "Tout payer" (remplit le reste), case règlement intérieur, et sur validation → message "Le processus de paiement automatique est encore en cours de développement"
+- BLOCAGE : les credentials MongoDB Atlas sont invalides (bad auth). Impossible de tester le flux E2E (login et chargement des lots échouent). L'utilisateur doit fournir des credentials MongoDB valides ou mettre à jour le mot de passe dans Atlas pour pouvoir tester le paiement de bout en bout
+- Le serveur dev doit être lancé sans le pipe `tee` pour rester stable : `npx next dev -p 3000 > dev.log 2>&1 &`
