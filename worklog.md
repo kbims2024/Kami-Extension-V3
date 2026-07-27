@@ -636,3 +636,24 @@ Stage Summary:
 - Écran SAV complet et fonctionnel créé, accessible depuis : (a) le 3e bouton sur AuthChoiceScreen, (b) le menu latéral pour tous les utilisateurs
 - Le SAV est accessible SANS connexion (visiteurs non authentifiés), avec un CTA pour les inviter à se connecter
 - Coordonnées de contact utilisées (placeholders éditables) : +225 27 22 49 00 00 / WhatsApp +225 07 58 42 10 00 / sav@kami-extension.com — l'administrateur devra ajuster ces valeurs avec les coordonnées réelles
+
+---
+Task ID: sav-button-landing
+Agent: Z.ai Code (main)
+Task: L'utilisateur ne voit pas le bouton "Service après-vente" — il est sur la landing page (PersuasiveLandingPage) qui n'a que "Réserver mon terrain" et "Voir le plan". Le 3e bouton SAV n'était ajouté que sur AuthChoiceScreen (l'écran suivant). Ajouter le bouton SAV directement sur la landing page.
+
+Work Log:
+- Lecture de `src/components/kami/PersuasiveLandingPage.tsx` : identifié la section CTA (lignes 258-275) avec les 2 boutons "Réserver mon terrain" (jaune) et "Voir le plan" (blanc/transparent)
+- Ajout de l'icône `Headset` à l'import lucide-react (ligne 8)
+- Ajout d'un 3e bouton "Service après-vente" (vert émeraude `bg-emerald-500`) juste après "Voir le plan", avec `onClick={() => setCurrentScreen('sav')}` pour naviguer directement vers l'écran SAV
+- Lint : 0 erreur sur PersuasiveLandingPage.tsx
+- Vérification DOM via agent-browser eval : les 3 boutons sont présents et visibles (offsetParent !== null) :
+  - "Réserver mon terrain" [visible=true]
+  - "Voir le plan" [visible=true]
+  - "Service après-vente" [visible=true]
+- Le bouton SAV apparaît SOUS les statistiques (0 Disponibles / 0% Réservés / 0% Achetés), il faut faire défiler la page vers le bas pour le voir
+
+Stage Summary:
+- 3e bouton "Service après-vente" (vert émeraude avec icône casque) ajouté directement sur la landing page, à côté de "Réserver mon terrain" et "Voir le plan"
+- Clic → navigation directe vers l'écran SAV (sans passer par l'écran de connexion)
+- Le bouton est situé dans la section CTA, sous les statistiques — accessible en scrollant vers le bas sur la page d'accueil

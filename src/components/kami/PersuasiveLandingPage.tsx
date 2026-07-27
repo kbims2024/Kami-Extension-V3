@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { FlashInfoBand } from '@/components/flash-info-band';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Menu, Map, CheckCircle, Home, Zap, Droplet, ShieldCheck, Users, TrendingUp, Clock, Award, Wrench, Building2, ArrowRight, ChevronRight, X } from 'lucide-react';
+import { Menu, Map, CheckCircle, Home, Zap, Droplet, ShieldCheck, Users, TrendingUp, Clock, Award, Wrench, Building2, ArrowRight, ChevronRight, X, Headset } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
 
@@ -271,6 +271,13 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
               >
                 <Map className="mr-2 h-5 w-5" />
                 Voir le plan
+              </Button>
+              <Button
+                onClick={() => setCurrentScreen('sav')}
+                className="bg-emerald-500 dark:bg-emerald-600 hover:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-bold py-3 md:py-4 px-8 md:px-10 rounded-lg md:rounded-xl text-base md:text-lg shadow-2xl shadow-emerald-500/40 dark:shadow-emerald-500/30 transition-all hover:scale-105"
+              >
+                <Headset className="mr-2 h-5 w-5" />
+                Service après-vente
               </Button>
             </div>
 
