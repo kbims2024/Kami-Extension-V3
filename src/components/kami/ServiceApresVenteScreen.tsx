@@ -234,7 +234,7 @@ export function ServiceApresVenteScreen({
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-2xl mx-auto w-full p-4 space-y-5">
+        <div className="max-w-2xl mx-auto w-full px-4 pt-3 pb-4 space-y-3.5">
           {/* Hero — Besoin d'aide ? */}
           <motion.div
             whileHover={{ scale: 1.01 }}
@@ -244,9 +244,9 @@ export function ServiceApresVenteScreen({
               className="border-emerald-200 dark:border-emerald-900/50 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/30 dark:to-card overflow-hidden cursor-pointer"
               onClick={() => setShowHelpDialog(true)}
             >
-              <CardContent className="p-5 text-center">
+              <CardContent className="p-4 text-center">
                 <motion.div
-                  className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/40 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-emerald-200/50 dark:shadow-emerald-900/30"
+                  className="w-14 h-14 bg-emerald-100 dark:bg-emerald-900/40 rounded-2xl flex items-center justify-center mx-auto mb-2 shadow-lg shadow-emerald-200/50 dark:shadow-emerald-900/30"
                   animate={{
                     boxShadow: [
                       '0 10px 15px -3px rgba(16,185,129,0.2)',
@@ -258,22 +258,22 @@ export function ServiceApresVenteScreen({
                 >
                   <Headset className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
                 </motion.div>
-                <h2 className="text-lg font-bold text-foreground mb-1">
+                <h2 className="text-base font-bold text-foreground mb-0.5">
                   Besoin d&apos;aide ?
                 </h2>
-                <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
+                <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
                   Notre équipe vous accompagne pour vos paiements, vos documents
                   et toutes vos questions concernant votre lot.
                 </p>
                 <motion.div
-                  className="mt-3"
-                  animate={{ scale: [1, 1.04, 1] }}
+                  className="mt-2.5"
+                  animate={{ scale: [1, 1.03, 1] }}
                   transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                 >
                   <Button
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-500/25"
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-lg shadow-emerald-500/25 h-10"
                   >
-                    <Headset className="h-4 w-4 mr-2" />
+                    <Headset className="h-4 w-4 mr-1.5" />
                     Obtenir de l&apos;aide maintenant
                   </Button>
                 </motion.div>
@@ -462,22 +462,19 @@ export function ServiceApresVenteScreen({
 
           {/* Méthodes de contact rapides */}
           <div>
-            <h3 className="text-sm font-bold text-foreground mb-2.5 px-1">
+            <h3 className="text-sm font-bold text-foreground mb-2 px-1">
               Contactez-nous
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <div className="grid grid-cols-3 gap-2">
               {/* Téléphone */}
-              <a
-                href={SAV_CONTACTS.phoneHref}
-                className="block group"
-              >
-                <Card className="border-2 border-border cursor-pointer transition-all hover:shadow-lg hover:-translate-y-0.5 hover:border-emerald-400 h-full">
-                  <CardContent className="p-3.5 flex flex-col items-center text-center gap-1.5">
-                    <div className="w-11 h-11 bg-emerald-100 dark:bg-emerald-900/40 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Phone className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              <a href={SAV_CONTACTS.phoneHref} className="block group">
+                <Card className="border border-border cursor-pointer transition-all hover:shadow-md hover:border-emerald-400 h-full">
+                  <CardContent className="p-2.5 flex flex-col items-center text-center gap-1">
+                    <div className="w-9 h-9 bg-emerald-100 dark:bg-emerald-900/40 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Phone className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                     </div>
-                    <p className="text-xs font-bold text-foreground">Appeler</p>
-                    <p className="text-[10px] text-muted-foreground leading-tight break-all">
+                    <p className="text-[11px] font-bold text-foreground">Appeler</p>
+                    <p className="text-[9px] text-muted-foreground leading-tight">
                       {SAV_CONTACTS.phone}
                     </p>
                   </CardContent>
@@ -485,19 +482,14 @@ export function ServiceApresVenteScreen({
               </a>
 
               {/* WhatsApp */}
-              <a
-                href={SAV_CONTACTS.whatsappHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block group"
-              >
-                <Card className="border-2 border-border cursor-pointer transition-all hover:shadow-lg hover:-translate-y-0.5 hover:border-green-500 h-full">
-                  <CardContent className="p-3.5 flex flex-col items-center text-center gap-1.5">
-                    <div className="w-11 h-11 bg-green-100 dark:bg-green-900/40 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <MessageCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+              <a href={SAV_CONTACTS.whatsappHref} target="_blank" rel="noopener noreferrer" className="block group">
+                <Card className="border border-border cursor-pointer transition-all hover:shadow-md hover:border-green-500 h-full">
+                  <CardContent className="p-2.5 flex flex-col items-center text-center gap-1">
+                    <div className="w-9 h-9 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <MessageCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
                     </div>
-                    <p className="text-xs font-bold text-foreground">WhatsApp</p>
-                    <p className="text-[10px] text-muted-foreground leading-tight break-all">
+                    <p className="text-[11px] font-bold text-foreground">WhatsApp</p>
+                    <p className="text-[9px] text-muted-foreground leading-tight">
                       {SAV_CONTACTS.whatsapp}
                     </p>
                   </CardContent>
@@ -505,17 +497,14 @@ export function ServiceApresVenteScreen({
               </a>
 
               {/* Email */}
-              <a
-                href={SAV_CONTACTS.emailHref}
-                className="block group"
-              >
-                <Card className="border-2 border-border cursor-pointer transition-all hover:shadow-lg hover:-translate-y-0.5 hover:border-blue-400 h-full">
-                  <CardContent className="p-3.5 flex flex-col items-center text-center gap-1.5">
-                    <div className="w-11 h-11 bg-blue-100 dark:bg-blue-900/40 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <a href={SAV_CONTACTS.emailHref} className="block group">
+                <Card className="border border-border cursor-pointer transition-all hover:shadow-md hover:border-blue-400 h-full">
+                  <CardContent className="p-2.5 flex flex-col items-center text-center gap-1">
+                    <div className="w-9 h-9 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Mail className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     </div>
-                    <p className="text-xs font-bold text-foreground">Écrire</p>
-                    <p className="text-[10px] text-muted-foreground leading-tight break-all">
+                    <p className="text-[11px] font-bold text-foreground">Écrire</p>
+                    <p className="text-[9px] text-muted-foreground leading-tight">
                       {SAV_CONTACTS.email}
                     </p>
                   </CardContent>
@@ -526,32 +515,30 @@ export function ServiceApresVenteScreen({
 
           {/* Nos services */}
           <div>
-            <h3 className="text-sm font-bold text-foreground mb-2.5 px-1">
+            <h3 className="text-sm font-bold text-foreground mb-2 px-1">
               Nos services
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-2 gap-2">
               {SAV_SERVICES.map((service) => {
                 const Icon = service.icon;
                 return (
                   <Card key={service.title} className="border-border">
-                    <CardContent className="p-3.5 flex items-start gap-3">
+                    <CardContent className="p-2.5 flex flex-col items-center text-center gap-1.5">
                       <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                        style={{ backgroundColor: `${service.color}1A` }}
+                        className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+                        style={{ backgroundColor: `${service.color}20` }}
                       >
                         <Icon
-                          className="h-5 w-5"
+                          className="h-4.5 w-4.5"
                           style={{ color: service.color }}
                         />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-foreground mb-0.5">
-                          {service.title}
-                        </p>
-                        <p className="text-xs text-muted-foreground leading-snug">
-                          {service.description}
-                        </p>
-                      </div>
+                      <p className="text-[11px] font-bold text-foreground">
+                        {service.title}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground leading-snug">
+                        {service.description}
+                      </p>
                     </CardContent>
                   </Card>
                 );
@@ -561,20 +548,20 @@ export function ServiceApresVenteScreen({
 
           {/* Besoin d’un expert pour votre projet ? */}
           <Card className="border-amber-200 dark:border-amber-900/50 bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/20 dark:to-card overflow-hidden">
-            <CardContent className="p-4 text-center">
-              <div className="w-14 h-14 bg-amber-100 dark:bg-amber-900/40 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-amber-200/50 dark:shadow-amber-900/30">
-                <HardHat className="h-7 w-7 text-amber-600 dark:text-amber-400" />
+            <CardContent className="p-3.5 text-center">
+              <div className="w-11 h-11 bg-amber-100 dark:bg-amber-900/40 rounded-xl flex items-center justify-center mx-auto mb-2 shadow-md shadow-amber-200/50 dark:shadow-amber-900/30">
+                <HardHat className="h-5 w-5 text-amber-600 dark:text-amber-400" />
               </div>
-              <h3 className="text-sm font-bold text-foreground mb-1">
+              <h3 className="text-xs font-bold text-foreground mb-0.5">
                 Besoin d&apos;un expert pour votre projet ?
               </h3>
-              <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed mb-3">
+              <p className="text-[10px] text-muted-foreground max-w-xs mx-auto leading-relaxed mb-2.5">
                 Choisissez l&apos;un de nos partenaires qualifiés et nous vous
                 mettrons en relation rapidement.
               </p>
               <Button
                 onClick={() => setShowExperts(!showExperts)}
-                className="relative overflow-hidden bg-amber-500 hover:bg-amber-600 text-white font-bold w-full shadow-lg shadow-amber-500/25 transition-all hover:scale-[1.02]"
+                className="relative overflow-hidden bg-amber-500 hover:bg-amber-600 text-white font-bold w-full text-xs shadow-md shadow-amber-500/25 transition-all hover:scale-[1.02] h-10"
               >
                 {!showExperts && (
                   <motion.span
@@ -758,14 +745,14 @@ export function ServiceApresVenteScreen({
 
           {/* Horaires */}
           <Card className="border-border">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
+            <CardContent className="p-3.5">
+              <div className="flex items-center gap-2 mb-2">
                 <Clock className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                 <h3 className="text-sm font-bold text-foreground">
                   Horaires d&apos;ouverture
                 </h3>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {SAV_HORAIRES.map((h) => (
                   <div
                     key={h.day}
@@ -791,13 +778,13 @@ export function ServiceApresVenteScreen({
 
           {/* FAQ */}
           <div>
-            <div className="flex items-center gap-2 mb-2.5 px-1">
+            <div className="flex items-center gap-2 mb-2 px-1">
               <HelpCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
               <h3 className="text-sm font-bold text-foreground">
                 Questions fréquentes
               </h3>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {SAV_FAQ.map((item, index) => {
                 const isOpen = openFaq === index;
                 return (
@@ -810,7 +797,7 @@ export function ServiceApresVenteScreen({
                     <button
                       type="button"
                       onClick={() => setOpenFaq(isOpen ? null : index)}
-                      className="w-full text-left p-3.5 flex items-center justify-between gap-3"
+                      className="w-full text-left p-3 flex items-center justify-between gap-3"
                       aria-expanded={isOpen}
                     >
                       <span className="text-sm font-bold text-foreground flex-1">
@@ -823,8 +810,8 @@ export function ServiceApresVenteScreen({
                       />
                     </button>
                     {isOpen && (
-                      <div className="px-3.5 pb-3.5 -mt-1">
-                        <p className="text-xs text-muted-foreground leading-relaxed">
+                      <div className="px-3 pb-3 -mt-1">
+                        <p className="text-[11px] text-muted-foreground leading-relaxed">
                           {item.answer}
                         </p>
                       </div>
@@ -838,17 +825,17 @@ export function ServiceApresVenteScreen({
           {/* CTA : se connecter pour suivre sa demande */}
           {onLoginClick && (
             <Card className="border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/20">
-              <CardContent className="p-4 text-center">
-                <p className="text-sm font-bold text-foreground mb-1">
+              <CardContent className="p-3.5 text-center">
+                <p className="text-sm font-bold text-foreground mb-0.5">
                   Déjà client ?
                 </p>
-                <p className="text-xs text-muted-foreground mb-3">
+                <p className="text-[11px] text-muted-foreground mb-2.5">
                   Connectez-vous pour suivre vos demandes et l&apos;avancée de
                   vos paiements en temps réel.
                 </p>
                 <Button
                   onClick={onLoginClick}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold w-full"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold w-full h-10 text-xs"
                 >
                   Se connecter à mon espace
                 </Button>
@@ -857,7 +844,7 @@ export function ServiceApresVenteScreen({
           )}
 
           {/* Note de bas de page */}
-          <div className="text-center pb-2 pt-1">
+          <div className="text-center pb-1 pt-0">
             <p className="text-[11px] text-muted-foreground">
               KAMI-EXTENSION · Service après-vente à votre service
             </p>

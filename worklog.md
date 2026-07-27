@@ -689,3 +689,36 @@ Stage Summary:
 - Ouvre un Dialog avec formulaire de demande d'aide + contact rapide
 - Validation, animations, et flux de succès intégrés
 - Testé et vérifié avec agent-browser
+
+---
+
+Task ID: 2
+Agent: Main Agent
+Task: Corriger l'affichage du service après-vente (SAV)
+
+Work Log:
+- Analysé 3 screenshots (top, middle, bottom) avec VLM pour identifier les problèmes visuels
+- Problèmes identifiés par VLM :
+  1. Espacement entre sections trop grand (space-y-5)
+  2. Hero card trop grand (padding p-5, icône w-16)
+  3. Contact cards : padding trop grand, numéros coupés, grille mal alignée
+  4. Service cards : icônes trop petites/low contrast, layout horizontal vs grille
+  5. Section expert : trop d'espace blanc, icône trop grande
+  6. Horaires/FAQ : padding excessif
+  7. CTA "Déjà client" : padding trop grand
+- Corrections appliquées :
+  - space-y-5 → space-y-3.5 (plus compact)
+  - Hero : p-5→p-4, w-16→w-14, mb-3→mb-2, bouton h-10 text-xs
+  - Contact : grid-cols-3 (toujours 3 colonnes), p-3.5→p-2.5, w-11→w-9, font 9px pour numéros
+  - Services : grid-cols-2 (centrés verticalement), w-10→w-9, p-3.5→p-2.5
+  - Expert amber : w-14→w-11, mb-3→mb-2, bouton h-10 text-xs
+  - Horaires : p-4→p-3.5, mb-3→mb-2, space-y-2→space-y-1.5
+  - FAQ : mb-2.5→mb-2, space-y-2→space-y-1.5, p-3.5→p-3
+  - CTA "Déjà client" : p-4→p-3.5, mb-1→mb-0.5
+  - Footer : pb-2→pb-1
+- Re-vérifié avec VLM : top 8/10, middle 9/10
+
+Stage Summary:
+- Affichage SAV considérablement amélioré : plus compact, aligné, et professionnel
+- Tous les padding/espacements réduits pour un rendu mobile optimal
+- Vérifié avec VLM : scores passés de ~5/10 à 8-9/10
