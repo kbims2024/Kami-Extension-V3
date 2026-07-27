@@ -4,6 +4,13 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import {
   ArrowLeft,
   Menu,
   Headset,
@@ -13,6 +20,8 @@ import {
   Clock,
   ChevronDown,
   HelpCircle,
+  Send,
+  CheckCircle2,
   Wrench,
   FileText,
   Wallet,
@@ -174,6 +183,10 @@ export function ServiceApresVenteScreen({
 }: ServiceApresVenteScreenProps) {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [showExperts, setShowExperts] = useState(false);
+  const [showHelpDialog, setShowHelpDialog] = useState(false);
+  const [helpSubject, setHelpSubject] = useState('');
+  const [helpMessage, setHelpMessage] = useState('');
+  const [helpSubmitted, setHelpSubmitted] = useState(false);
 
   const handleRequestExpert = (expertTitle: string) => {
     toast.info(
@@ -222,21 +235,230 @@ export function ServiceApresVenteScreen({
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-2xl mx-auto w-full p-4 space-y-5">
-          {/* Hero */}
-          <Card className="border-emerald-200 dark:border-emerald-900/50 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/30 dark:to-card overflow-hidden">
-            <CardContent className="p-5 text-center">
-              <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/40 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-emerald-200/50 dark:shadow-emerald-900/30">
-                <Headset className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+          {/* Hero — Besoin d'aide ? */}
+          <motion.div
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+          >
+            <Card
+              className="border-emerald-200 dark:border-emerald-900/50 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/30 dark:to-card overflow-hidden cursor-pointer"
+              onClick={() => setShowHelpDialog(true)}
+            >
+              <CardContent className="p-5 text-center">
+                <motion.div
+                  className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/40 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-emerald-200/50 dark:shadow-emerald-900/30"
+                  animate={{
+                    boxShadow: [
+                      '0 10px 15px -3px rgba(16,185,129,0.2)',
+                      '0 10px 25px -3px rgba(16,185,129,0.4)',
+                      '0 10px 15px -3px rgba(16,185,129,0.2)',
+                    ],
+                  }}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  <Headset className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+                </motion.div>
+                <h2 className="text-lg font-bold text-foreground mb-1">
+                  Besoin d&apos;aide ?
+                </h2>
+                <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
+                  Notre équipe vous accompagne pour vos paiements, vos documents
+                  et toutes vos questions concernant votre lot.
+                </p>
+                <motion.div
+                  className="mt-3"
+                  animate={{ scale: [1, 1.04, 1] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  <Button
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-500/25"
+                  >
+                    <Headset className="h-4 w-4 mr-2" />
+                    Obtenir de l&apos;aide maintenant
+                  </Button>
+                </motion.div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* ── Dialog : Besoin d'aide ? ── */}
+          <Dialog open={showHelpDialog} onOpenChange={setShowHelpDialog}>
+            <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden rounded-2xl">
+              {/* En-tête vert */}
+              <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 px-5 pt-5 pb-6 text-center relative overflow-hidden">
+                <div className="absolute inset-0 opacity-10">
+                  <div className="absolute -top-4 -right-4 w-24 h-24 bg-white rounded-full" />
+                  <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-white rounded-full" />
+                </div>
+                <motion.div
+                  className="relative z-10"
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                >
+                  <div className="w-14 h-14 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <Headset className="h-7 w-7 text-white" />
+                  </div>
+                  <DialogTitle className="text-white text-lg font-bold">
+                    Comment pouvons-nous vous aider ?
+                  </DialogTitle>
+                  <p className="text-emerald-100 text-xs mt-1">
+                    Décrivez votre besoin et nous vous répondrons rapidement.
+                  </p>
+                </motion.div>
               </div>
-              <h2 className="text-lg font-bold text-foreground mb-1">
-                Besoin d&apos;aide ?
-              </h2>
-              <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
-                Notre équipe vous accompagne pour vos paiements, vos documents
-                et toutes vos questions concernant votre lot.
-              </p>
-            </CardContent>
-          </Card>
+
+              <AnimatePresence mode="wait">
+                {!helpSubmitted ? (
+                  <motion.div
+                    key="form"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="p-5 space-y-4"
+                  >
+                    {/* Contact rapide en bandeau */}
+                    <div className="flex gap-2">
+                      <a href={SAV_CONTACTS.phoneHref} className="flex-1">
+                        <Button
+                          variant="outline"
+                          className="w-full h-11 text-xs font-bold border-emerald-200 hover:bg-emerald-50 hover:border-emerald-400"
+                        >
+                          <Phone className="h-3.5 w-3.5 mr-1.5 text-emerald-600" />
+                          Appeler
+                        </Button>
+                      </a>
+                      <a href={SAV_CONTACTS.whatsappHref} target="_blank" rel="noopener noreferrer" className="flex-1">
+                        <Button
+                          variant="outline"
+                          className="w-full h-11 text-xs font-bold border-green-200 hover:bg-green-50 hover:border-green-400"
+                        >
+                          <MessageCircle className="h-3.5 w-3.5 mr-1.5 text-green-600" />
+                          WhatsApp
+                        </Button>
+                      </a>
+                      <a href={SAV_CONTACTS.emailHref} className="flex-1">
+                        <Button
+                          variant="outline"
+                          className="w-full h-11 text-xs font-bold border-blue-200 hover:bg-blue-50 hover:border-blue-400"
+                        >
+                          <Mail className="h-3.5 w-3.5 mr-1.5 text-blue-600" />
+                          Écrire
+                        </Button>
+                      </a>
+                    </div>
+
+                    {/* Formulaire */}
+                    <div>
+                      <label className="text-xs font-bold text-foreground mb-1.5 block">
+                        Sujet de votre demande
+                      </label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {[
+                          'Paiement',
+                          'Documents',
+                          'Visite de lot',
+                          'Litige',
+                          'Question générale',
+                        ].map((subject) => (
+                          <button
+                            key={subject}
+                            type="button"
+                            onClick={() => setHelpSubject(subject)}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all border ${
+                              helpSubject === subject
+                                ? 'bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 text-emerald-700 dark:text-emerald-300 shadow-sm'
+                                : 'bg-muted/50 border-border text-muted-foreground hover:border-emerald-300 hover:text-foreground'
+                            }`}
+                          >
+                            {subject}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-foreground mb-1.5 block">
+                        Décrivez votre besoin
+                      </label>
+                      <Textarea
+                        value={helpMessage}
+                        onChange={(e) => setHelpMessage(e.target.value)}
+                        placeholder="Ex : J'ai un problème avec mon paiement de janvier, la référence est..."
+                        className="min-h-[100px] text-sm resize-none"
+                      />
+                    </div>
+
+                    <Button
+                      className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-500/20 transition-all"
+                      onClick={() => {
+                        if (!helpSubject || !helpMessage.trim()) {
+                          toast.error(
+                            'Veuillez choisir un sujet et décrire votre besoin.',
+                          );
+                          return;
+                        }
+                        setHelpSubmitted(true);
+                        toast.success(
+                          `Votre demande a été envoyée avec succès. Nous vous recontacterons sous 24h.`,
+                          { duration: 5000 },
+                        );
+                      }}
+                    >
+                      <Send className="h-4 w-4 mr-2" />
+                      Envoyer ma demande
+                    </Button>
+
+                    <p className="text-[10px] text-muted-foreground text-center">
+                      En envoyant ce formulaire, vous acceptez que notre SAV
+                      vous recontacte par téléphone ou email.
+                    </p>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="success"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="p-8 text-center"
+                  >
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 200, damping: 12, delay: 0.1 }}
+                    >
+                      <CheckCircle2 className="h-16 w-16 text-emerald-500 mx-auto mb-4" />
+                    </motion.div>
+                    <h3 className="text-lg font-bold text-foreground mb-1">
+                      Demande envoyée !
+                    </h3>
+                    <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-4">
+                      Notre service après-vente a bien reçu votre demande concernant «&nbsp;{helpSubject}&nbsp;». Nous vous recontacterons sous <strong className="text-foreground">24h ouvrées</strong>.
+                    </p>
+                    <div className="flex gap-2 justify-center">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setHelpSubject('');
+                          setHelpMessage('');
+                          setHelpSubmitted(false);
+                        }}
+                        className="text-xs font-bold"
+                      >
+                        Nouvelle demande
+                      </Button>
+                      <Button
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold"
+                        onClick={() => setShowHelpDialog(false)}
+                      >
+                        Fermer
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </DialogContent>
+          </Dialog>
 
           {/* Méthodes de contact rapides */}
           <div>

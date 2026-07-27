@@ -1,0 +1,648 @@
+     1→'use client';
+     2→
+     3→import { useState } from 'react';
+     4→import { Button } from '@/components/ui/button';
+     5→import { Card, CardContent } from '@/components/ui/card';
+     6→import {
+     7→  ArrowLeft,
+     8→  Menu,
+     9→  Headset,
+    10→  Phone,
+    11→  Mail,
+    12→  MessageCircle,
+    13→  Clock,
+    14→  ChevronDown,
+    15→  HelpCircle,
+    16→  Wrench,
+    17→  FileText,
+    18→  Wallet,
+    19→  AlertCircle,
+    20→  Zap,
+    21→  Droplets,
+    22→  Hammer,
+    23→  Paintbrush,
+    24→  Grid3X3,
+    25→  PaintBucket,
+    26→  HardHat,
+    27→  ChevronUp,
+    28→  UserCheck,
+    29→} from 'lucide-react';
+    30→import { toast } from 'sonner';
+    31→import { motion, AnimatePresence } from 'framer-motion';
+    32→
+    33→interface ServiceApresVenteScreenProps {
+    34→  onBack: () => void;
+    35→  setIsMenuOpen?: (open: boolean) => void;
+    36→  onLoginClick?: () => void;
+    37→}
+    38→
+    39→// Informations de contact du service après-vente
+    40→// (à ajuster par l'administrateur selon les coordonnées réelles)
+    41→const SAV_CONTACTS = {
+    42→  phone: '+225 27 22 49 00 00',
+    43→  phoneHref: 'tel:+2252722490000',
+    44→  whatsapp: '+225 07 58 42 10 00',
+    45→  whatsappHref: 'https://wa.me/2250758421000',
+    46→  email: 'sav@kami-extension.com',
+    47→  emailHref: 'mailto:sav@kami-extension.com',
+    48→};
+    49→
+    50→const SAV_HORAIRES = [
+    51→  { day: 'Lundi - Vendredi', hours: '08h00 - 18h00' },
+    52→  { day: 'Samedi', hours: '09h00 - 13h00' },
+    53→  { day: 'Dimanche & jours fériés', hours: 'Fermé' },
+    54→];
+    55→
+    56→const SAV_FAQ = [
+    57→  {
+    58→    question: 'Comment suivre l\'avancée de mon paiement ?',
+    59→    answer:
+    60→      'Connectez-vous à votre compte, puis rendez-vous dans « Mes réservations ». Vous y verrez le montant total, les paiements déjà validés et le reste à payer pour chaque lot.',
+    61→  },
+    62→  {
+    63→    question: 'Quels sont les moyens de paiement acceptés ?',
+    64→    answer:
+    65→      'Nous acceptons Wave, Orange Money, Moov Money et MTN Money. Le paiement automatique en ligne est en cours de déploiement ; en attendant, contactez le service après-vente pour valider votre paiement manuellement.',
+    66→  },
+    67→  {
+    68→    question: 'Puis-je visiter mon lot avant de payer ?',
+    69→    answer:
+    70→      'Oui. Contactez le service après-vente pour convenir d\'une visite guidée du site avec un de nos conseillers.',
+    71→  },
+    72→  {
+    73→    question: 'Quand recevrai-je mes documents de propriété ?',
+    74→    answer:
+    75→      'Après le paiement intégral du lot, les documents sont préparés sous 15 à 30 jours. Vous serez notifié par message dès qu\'ils seront disponibles au retrait.',
+    76→  },
+    77→  {
+    78→    question: 'Que faire si j\'ai un litige ou une réclamation ?',
+    79→    answer:
+    80→      'Adressez votre réclamation par email au service après-vente ou via WhatsApp. Un conseiller vous recontactera sous 48h ouvrées avec un accusé de réception et un numéro de ticket.',
+    81→  },
+    82→];
+    83→
+    84→const SAV_EXPERTS = [
+    85→  {
+    86→    id: 'electricien',
+    87→    title: 'Électricien',
+    88→    subtitle: 'Réalise l\'installation électrique complète de votre habitation, la mise aux normes NFC et le dépannage en cas de panne.',
+    89→    icon: Zap,
+    90→    color: '#F59E0B',
+    91→  },
+    92→  {
+    93→    id: 'plombier',
+    94→    title: 'Plombier',
+    95→    subtitle: 'Prend en charge l\'alimentation en eau, l\'installation sanitaire, les évacuations et la réparation de fuites.',
+    96→    icon: Droplets,
+    97→    color: '#3B82F6',
+    98→  },
+    99→  {
+   100→    id: 'macon',
+   101→    title: 'Maçon',
+   102→    subtitle: 'Construit les fondations, élève les murs, réalise la dalle et tous les travaux en gros œuvre de votre maison.',
+   103→    icon: Hammer,
+   104→    color: '#EF4444',
+   105→  },
+   106→  {
+   107→    id: 'menuisier',
+   108→    title: 'Menuisier',
+   109→    subtitle: 'Fabrique et pose les portes, fenêtres, volets, placards et tout agencement sur mesure en bois ou dérivé.',
+   110→    icon: Paintbrush,
+   111→    color: '#8B5E3C',
+   112→  },
+   113→  {
+   114→    id: 'carreleur',
+   115→    title: 'Carreleur',
+   116→    subtitle: 'Pose le carrelage au sol et la faïence murale dans vos pièces, salles de bain et cuisines avec une finition soignée.',
+   117→    icon: Grid3X3,
+   118→    color: '#6366F1',
+   119→  },
+   120→  {
+   121→    id: 'peintre',
+   122→    title: 'Peintre',
+   123→    subtitle: 'Assure la peinture intérieure et extérieure de votre habitation : préparation des supports, finitions et décoration.',
+   124→    icon: PaintBucket,
+   125→    color: '#10B981',
+   126→  },
+   127→  {
+   128→    id: 'conducteur_travaux',
+   129→    title: 'Conducteur de travaux',
+   130→    subtitle: 'Supervise et coordonne l\'ensemble de votre chantier de A à Z en respectant le budget et les délais convenus.',
+   131→    icon: HardHat,
+   132→    color: '#0EA5E9',
+   133→  },
+   134→  {
+   135→    id: 'geometre',
+   136→    title: 'Géomètre',
+   137→    subtitle: 'Réalise le bornage, la topographie et la délimitation précise de votre terrain pour sécuriser votre propriété.',
+   138→    icon: UserCheck,
+   139→    color: '#D946EF',
+   140→  },
+   141→];
+   142→
+   143→const SAV_SERVICES = [
+   144→  {
+   145→    icon: Wallet,
+   146→    title: 'Suivi des paiements',
+   147→    description: 'Consultez vos versements et solde restant à payer.',
+   148→    color: '#10B981',
+   149→  },
+   150→  {
+   151→    icon: FileText,
+   152→    title: 'Documents & attestations',
+   153→    description: 'Retrait de reçus, attestations de paiement et titres.',
+   154→    color: '#3B82F6',
+   155→  },
+   156→  {
+   157→    icon: Wrench,
+   158→    title: 'Réclamations & litiges',
+   159→    description: 'Signalez un problème, nous ouvrons un ticket suivi.',
+   160→    color: '#F59E0B',
+   161→  },
+   162→  {
+   163→    icon: AlertCircle,
+   164→    title: 'Assistance technique',
+   165→    description: 'Questions sur votre lot, bornage, raccordements.',
+   166→    color: '#EF4444',
+   167→  },
+   168→];
+   169→
+   170→export function ServiceApresVenteScreen({
+   171→  onBack,
+   172→  setIsMenuOpen,
+   173→  onLoginClick,
+   174→}: ServiceApresVenteScreenProps) {
+   175→  const [openFaq, setOpenFaq] = useState<number | null>(0);
+   176→  const [showExperts, setShowExperts] = useState(false);
+   177→
+   178→  const handleRequestExpert = (expertTitle: string) => {
+   179→    toast.info(
+   180→      `Votre demande de mise en relation avec un ${expertTitle} a été envoyée. Notre service après-vente vous contactera sous 24h.`,
+   181→      { duration: 5000 }
+   182→    );
+   183→  };
+   184→
+   185→  return (
+   186→    <div className="flex-1 flex flex-col bg-background min-h-screen">
+   187→      {/* Header */}
+   188→      <header className="flex items-center gap-2 px-3 py-2 bg-card border-b border-border shrink-0">
+   189→        <Button
+   190→          variant="ghost"
+   191→          size="icon"
+   192→          onClick={onBack}
+   193→          className="hover:bg-emerald-50 dark:hover:bg-emerald-950/30 h-9 w-9"
+   194→        >
+   195→          <ArrowLeft className="h-5 w-5 text-foreground" />
+   196→        </Button>
+   197→        <div className="flex items-center gap-2 flex-1 min-w-0">
+   198→          <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/40 rounded-lg flex items-center justify-center shrink-0">
+   199→            <Headset className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+   200→          </div>
+   201→          <div className="min-w-0">
+   202→            <h1 className="text-base font-bold text-foreground leading-tight truncate">
+   203→              Service après-vente
+   204→            </h1>
+   205→            <p className="text-[11px] text-muted-foreground leading-tight">
+   206→              Nous sommes à votre écoute
+   207→            </p>
+   208→          </div>
+   209→        </div>
+   210→        {setIsMenuOpen && (
+   211→          <Button
+   212→            variant="ghost"
+   213→            size="icon"
+   214→            onClick={() => setIsMenuOpen(true)}
+   215→            className="hover:bg-emerald-50 dark:hover:bg-emerald-950/30 h-9 w-9"
+   216→          >
+   217→            <Menu className="h-5 w-5 text-foreground" />
+   218→          </Button>
+   219→        )}
+   220→      </header>
+   221→
+   222→      {/* Content */}
+   223→      <div className="flex-1 overflow-y-auto">
+   224→        <div className="max-w-2xl mx-auto w-full p-4 space-y-5">
+   225→          {/* Hero */}
+   226→          <Card className="border-emerald-200 dark:border-emerald-900/50 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/30 dark:to-card overflow-hidden">
+   227→            <CardContent className="p-5 text-center">
+   228→              <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/40 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-emerald-200/50 dark:shadow-emerald-900/30">
+   229→                <Headset className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+   230→              </div>
+   231→              <h2 className="text-lg font-bold text-foreground mb-1">
+   232→                Besoin d&apos;aide ?
+   233→              </h2>
+   234→              <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
+   235→                Notre équipe vous accompagne pour vos paiements, vos documents
+   236→                et toutes vos questions concernant votre lot.
+   237→              </p>
+   238→            </CardContent>
+   239→          </Card>
+   240→
+   241→          {/* Méthodes de contact rapides */}
+   242→          <div>
+   243→            <h3 className="text-sm font-bold text-foreground mb-2.5 px-1">
+   244→              Contactez-nous
+   245→            </h3>
+   246→            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+   247→              {/* Téléphone */}
+   248→              <a
+   249→                href={SAV_CONTACTS.phoneHref}
+   250→                className="block group"
+   251→              >
+   252→                <Card className="border-2 border-border cursor-pointer transition-all hover:shadow-lg hover:-translate-y-0.5 hover:border-emerald-400 h-full">
+   253→                  <CardContent className="p-3.5 flex flex-col items-center text-center gap-1.5">
+   254→                    <div className="w-11 h-11 bg-emerald-100 dark:bg-emerald-900/40 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+   255→                      <Phone className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+   256→                    </div>
+   257→                    <p className="text-xs font-bold text-foreground">Appeler</p>
+   258→                    <p className="text-[10px] text-muted-foreground leading-tight break-all">
+   259→                      {SAV_CONTACTS.phone}
+   260→                    </p>
+   261→                  </CardContent>
+   262→                </Card>
+   263→              </a>
+   264→
+   265→              {/* WhatsApp */}
+   266→              <a
+   267→                href={SAV_CONTACTS.whatsappHref}
+   268→                target="_blank"
+   269→                rel="noopener noreferrer"
+   270→                className="block group"
+   271→              >
+   272→                <Card className="border-2 border-border cursor-pointer transition-all hover:shadow-lg hover:-translate-y-0.5 hover:border-green-500 h-full">
+   273→                  <CardContent className="p-3.5 flex flex-col items-center text-center gap-1.5">
+   274→                    <div className="w-11 h-11 bg-green-100 dark:bg-green-900/40 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+   275→                      <MessageCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+   276→                    </div>
+   277→                    <p className="text-xs font-bold text-foreground">WhatsApp</p>
+   278→                    <p className="text-[10px] text-muted-foreground leading-tight break-all">
+   279→                      {SAV_CONTACTS.whatsapp}
+   280→                    </p>
+   281→                  </CardContent>
+   282→                </Card>
+   283→              </a>
+   284→
+   285→              {/* Email */}
+   286→              <a
+   287→                href={SAV_CONTACTS.emailHref}
+   288→                className="block group"
+   289→              >
+   290→                <Card className="border-2 border-border cursor-pointer transition-all hover:shadow-lg hover:-translate-y-0.5 hover:border-blue-400 h-full">
+   291→                  <CardContent className="p-3.5 flex flex-col items-center text-center gap-1.5">
+   292→                    <div className="w-11 h-11 bg-blue-100 dark:bg-blue-900/40 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+   293→                      <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+   294→                    </div>
+   295→                    <p className="text-xs font-bold text-foreground">Écrire</p>
+   296→                    <p className="text-[10px] text-muted-foreground leading-tight break-all">
+   297→                      {SAV_CONTACTS.email}
+   298→                    </p>
+   299→                  </CardContent>
+   300→                </Card>
+   301→              </a>
+   302→            </div>
+   303→          </div>
+   304→
+   305→          {/* Nos services */}
+   306→          <div>
+   307→            <h3 className="text-sm font-bold text-foreground mb-2.5 px-1">
+   308→              Nos services
+   309→            </h3>
+   310→            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+   311→              {SAV_SERVICES.map((service) => {
+   312→                const Icon = service.icon;
+   313→                return (
+   314→                  <Card key={service.title} className="border-border">
+   315→                    <CardContent className="p-3.5 flex items-start gap-3">
+   316→                      <div
+   317→                        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+   318→                        style={{ backgroundColor: `${service.color}1A` }}
+   319→                      >
+   320→                        <Icon
+   321→                          className="h-5 w-5"
+   322→                          style={{ color: service.color }}
+   323→                        />
+   324→                      </div>
+   325→                      <div className="flex-1 min-w-0">
+   326→                        <p className="text-sm font-bold text-foreground mb-0.5">
+   327→                          {service.title}
+   328→                        </p>
+   329→                        <p className="text-xs text-muted-foreground leading-snug">
+   330→                          {service.description}
+   331→                        </p>
+   332→                      </div>
+   333→                    </CardContent>
+   334→                  </Card>
+   335→                );
+   336→              })}
+   337→            </div>
+   338→          </div>
+   339→
+   340→          {/* Besoin d’un expert pour votre projet ? */}
+   341→          <Card className="border-amber-200 dark:border-amber-900/50 bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/20 dark:to-card overflow-hidden">
+   342→            <CardContent className="p-4 text-center">
+   343→              <div className="w-14 h-14 bg-amber-100 dark:bg-amber-900/40 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-amber-200/50 dark:shadow-amber-900/30">
+   344→                <HardHat className="h-7 w-7 text-amber-600 dark:text-amber-400" />
+   345→              </div>
+   346→              <h3 className="text-sm font-bold text-foreground mb-1">
+   347→                Besoin d&apos;un expert pour votre projet ?
+   348→              </h3>
+   349→              <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed mb-3">
+   350→                Choisissez l&apos;un de nos partenaires qualifiés et nous vous
+   351→                mettrons en relation rapidement.
+   352→              </p>
+   353→              <Button
+   354→                onClick={() => setShowExperts(!showExperts)}
+   355→                className="relative overflow-hidden bg-amber-500 hover:bg-amber-600 text-white font-bold w-full shadow-lg shadow-amber-500/25 transition-all hover:scale-[1.02]"
+   356→              >
+   357→                {!showExperts && (
+   358→                  <motion.span
+   359→                    className="absolute inset-0"
+   360→                    animate={{
+   361→                      background: ['rgba(255,255,255,0)', 'rgba(255,255,255,0.15)', 'rgba(255,255,255,0)'],
+   362→                    }}
+   363→                    transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+   364→                  />
+   365→                )}
+   366→                {showExperts ? (
+   367→                  <>
+   368→                    <ChevronUp className="h-4 w-4 mr-2" />
+   369→                    Masquer les experts
+   370→                  </>
+   371→                ) : (
+   372→                  <>
+   373→                    <ChevronDown className="h-4 w-4 mr-2" />
+   374→                    <motion.span
+   375→                      animate={{ scale: [1, 1.03, 1] }}
+   376→                      transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+   377→                    >
+   378→                      Voir nos experts disponibles
+   379→                    </motion.span>
+   380→                  </>
+   381→                )}
+   382→              </Button>
+   383→            </CardContent>
+   384→          </Card>
+   385→
+   386→          {/* Grille des experts — très animée */}
+   387→          <AnimatePresence>
+   388→            {showExperts && (
+   389→              <motion.div
+   390→                key="experts-grid"
+   391→                initial="hidden"
+   392→                animate="visible"
+   393→                exit="exit"
+   394→                variants={{
+   395→                  hidden: {},
+   396→                  visible: {
+   397→                    transition: { staggerChildren: 0.08 },
+   398→                  },
+   399→                  exit: {
+   400→                    transition: { staggerChildren: 0.04, staggerDirection: -1 },
+   401→                  },
+   402→                }}
+   403→                className="space-y-2.5"
+   404→              >
+   405→                {/* Titre de section animé */}
+   406→                <motion.div
+   407→                  variants={{
+   408→                    hidden: { opacity: 0, x: -20 },
+   409→                    visible: { opacity: 1, x: 0, transition: { duration: 0.4, ease: 'easeOut' } },
+   410→                    exit: { opacity: 0, x: -10, transition: { duration: 0.2 } },
+   411→                  }}
+   412→                  className="flex items-center gap-2 px-1"
+   413→                >
+   414→                  <motion.div
+   415→                    animate={{ rotate: [0, 15, -15, 0] }}
+   416→                    transition={{ duration: 0.6, delay: 0.2, ease: 'easeInOut' }}
+   417→                  >
+   418→                    <HardHat className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+   419→                  </motion.div>
+   420→                  <h3 className="text-sm font-bold text-foreground">
+   421→                    Nos partenaires qualifiés
+   422→                  </h3>
+   423→                  <motion.div
+   424→                    className="flex-1 h-px bg-gradient-to-r from-amber-300 to-transparent"
+   425→                    initial={{ scaleX: 0, originX: 0 }}
+   426→                    animate={{ scaleX: 1 }}
+   427→                    transition={{ duration: 0.6, delay: 0.3 }}
+   428→                  />
+   429→                </motion.div>
+   430→
+   431→                {/* Cartes en cascade */}
+   432→                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+   433→                  {SAV_EXPERTS.map((expert) => {
+   434→                    const Icon = expert.icon;
+   435→                    return (
+   436→                      <motion.div
+   437→                        key={expert.id}
+   438→                        variants={{
+   439→                          hidden: { opacity: 0, y: 30, scale: 0.85, rotateX: -10 },
+   440→                          visible: {
+   441→                            opacity: 1,
+   442→                            y: 0,
+   443→                            scale: 1,
+   444→                            rotateX: 0,
+   445→                            transition: {
+   446→                              type: 'spring',
+   447→                              stiffness: 260,
+   448→                              damping: 18,
+   449→                              bounce: 0.4,
+   450→                            },
+   451→                          },
+   452→                          exit: {
+   453→                            opacity: 0,
+   454→                            y: -15,
+   455→                            scale: 0.9,
+   456→                            transition: { duration: 0.2 },
+   457→                          },
+   458→                        }}
+   459→                        whileHover={{
+   460→                          scale: 1.04,
+   461→                          y: -4,
+   462→                          boxShadow: `0 12px 30px ${expert.color}30`,
+   463→                          borderColor: expert.color,
+   464→                        }}
+   465→                        whileTap={{ scale: 0.97 }}
+   466→                      >
+   467→                        <Card
+   468→                          className="border-2 border-border cursor-pointer group"
+   469→                          onClick={() => handleRequestExpert(expert.title)}
+   470→                        >
+   471→                          <CardContent className="p-3.5">
+   472→                            <div className="flex items-center gap-3">
+   473→                              <motion.div
+   474→                                className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+   475→                                style={{ backgroundColor: `${expert.color}18` }}
+   476→                                whileHover={{ scale: 1.2, rotate: [0, -10, 10, 0] }}
+   477→                                transition={{ duration: 0.4 }}
+   478→                              >
+   479→                                <Icon
+   480→                                  className="h-5 w-5"
+   481→                                  style={{ color: expert.color }}
+   482→                                />
+   483→                              </motion.div>
+   484→                              <div className="flex-1 min-w-0">
+   485→                                <p
+   486→                                  className="text-sm font-bold leading-tight"
+   487→                                  style={{ color: expert.color }}
+   488→                                >
+   489→                                  Je sollicite un {expert.title.toLowerCase()}
+   490→                                </p>
+   491→                                <motion.p
+   492→                                  className="text-[10px] text-muted-foreground leading-snug mt-0.5"
+   493→                                  initial={{ opacity: 0 }}
+   494→                                  animate={{ opacity: 1 }}
+   495→                                  transition={{ delay: 0.35, duration: 0.4 }}
+   496→                                >
+   497→                                  {expert.subtitle}
+   498→                                </motion.p>
+   499→                              </div>
+   500→                            </div>
+   501→                          </CardContent>
+   502→                        </Card>
+   503→                      </motion.div>
+   504→                    );
+   505→                  })}
+   506→                </div>
+   507→
+   508→                {/* Bandeau info animé */}
+   509→                <motion.div
+   510→                  variants={{
+   511→                    hidden: { opacity: 0, x: -40 },
+   512→                    visible: {
+   513→                      opacity: 1,
+   514→                      x: 0,
+   515→                      transition: { type: 'spring', stiffness: 200, damping: 20, delay: 0.6 },
+   516→                    },
+   517→                    exit: { opacity: 0, x: 20, transition: { duration: 0.15 } },
+   518→                  }}
+   519→                  className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50"
+   520→                >
+   521→                  <motion.div
+   522→                    animate={{ rotate: [0, 10, -10, 0] }}
+   523→                    transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+   524→                  >
+   525→                    <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+   526→                  </motion.div>
+   527→                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+   528→                    Délai de mise en relation : <strong className="text-foreground">sous 24h</strong> ouvrées.
+   529→                    Nos partenaires sont sélectionnés pour leur professionnalisme et leur expérience
+   530→                    dans la construction en Côte d&apos;Ivoire.
+   531→                  </p>
+   532→                </motion.div>
+   533→              </motion.div>
+   534→            )}
+   535→          </AnimatePresence>
+   536→
+   537→          {/* Horaires */}
+   538→          <Card className="border-border">
+   539→            <CardContent className="p-4">
+   540→              <div className="flex items-center gap-2 mb-3">
+   541→                <Clock className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+   542→                <h3 className="text-sm font-bold text-foreground">
+   543→                  Horaires d&apos;ouverture
+   544→                </h3>
+   545→              </div>
+   546→              <div className="space-y-2">
+   547→                {SAV_HORAIRES.map((h) => (
+   548→                  <div
+   549→                    key={h.day}
+   550→                    className="flex justify-between items-center text-xs py-1.5 border-b border-border last:border-0"
+   551→                  >
+   552→                    <span className="text-muted-foreground font-medium">
+   553→                      {h.day}
+   554→                    </span>
+   555→                    <span
+   556→                      className={
+   557→                        h.hours === 'Fermé'
+   558→                          ? 'text-red-500 font-bold'
+   559→                          : 'text-foreground font-bold'
+   560→                      }
+   561→                    >
+   562→                      {h.hours}
+   563→                    </span>
+   564→                  </div>
+   565→                ))}
+   566→              </div>
+   567→            </CardContent>
+   568→          </Card>
+   569→
+   570→          {/* FAQ */}
+   571→          <div>
+   572→            <div className="flex items-center gap-2 mb-2.5 px-1">
+   573→              <HelpCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+   574→              <h3 className="text-sm font-bold text-foreground">
+   575→                Questions fréquentes
+   576→              </h3>
+   577→            </div>
+   578→            <div className="space-y-2">
+   579→              {SAV_FAQ.map((item, index) => {
+   580→                const isOpen = openFaq === index;
+   581→                return (
+   582→                  <Card
+   583→                    key={index}
+   584→                    className={`border-border transition-all ${
+   585→                      isOpen ? 'border-emerald-300 dark:border-emerald-800' : ''
+   586→                    }`}
+   587→                  >
+   588→                    <button
+   589→                      type="button"
+   590→                      onClick={() => setOpenFaq(isOpen ? null : index)}
+   591→                      className="w-full text-left p-3.5 flex items-center justify-between gap-3"
+   592→                      aria-expanded={isOpen}
+   593→                    >
+   594→                      <span className="text-sm font-bold text-foreground flex-1">
+   595→                        {item.question}
+   596→                      </span>
+   597→                      <ChevronDown
+   598→                        className={`h-4 w-4 text-muted-foreground shrink-0 transition-transform ${
+   599→                          isOpen ? 'rotate-180' : ''
+   600→                        }`}
+   601→                      />
+   602→                    </button>
+   603→                    {isOpen && (
+   604→                      <div className="px-3.5 pb-3.5 -mt-1">
+   605→                        <p className="text-xs text-muted-foreground leading-relaxed">
+   606→                          {item.answer}
+   607→                        </p>
+   608→                      </div>
+   609→                    )}
+   610→                  </Card>
+   611→                );
+   612→              })}
+   613→            </div>
+   614→          </div>
+   615→
+   616→          {/* CTA : se connecter pour suivre sa demande */}
+   617→          {onLoginClick && (
+   618→            <Card className="border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/20">
+   619→              <CardContent className="p-4 text-center">
+   620→                <p className="text-sm font-bold text-foreground mb-1">
+   621→                  Déjà client ?
+   622→                </p>
+   623→                <p className="text-xs text-muted-foreground mb-3">
+   624→                  Connectez-vous pour suivre vos demandes et l&apos;avancée de
+   625→                  vos paiements en temps réel.
+   626→                </p>
+   627→                <Button
+   628→                  onClick={onLoginClick}
+   629→                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold w-full"
+   630→                >
+   631→                  Se connecter à mon espace
+   632→                </Button>
+   633→              </CardContent>
+   634→            </Card>
+   635→          )}
+   636→
+   637→          {/* Note de bas de page */}
+   638→          <div className="text-center pb-2 pt-1">
+   639→            <p className="text-[11px] text-muted-foreground">
+   640→              KAMI-EXTENSION · Service après-vente à votre service
+   641→            </p>
+   642→          </div>
+   643→        </div>
+   644→      </div>
+   645→    </div>
+   646→  );
+   647→}
+   648→

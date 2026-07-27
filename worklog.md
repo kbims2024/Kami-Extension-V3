@@ -657,3 +657,35 @@ Stage Summary:
 - 3e bouton "Service après-vente" (vert émeraude avec icône casque) ajouté directement sur la landing page, à côté de "Réserver mon terrain" et "Voir le plan"
 - Clic → navigation directe vers l'écran SAV (sans passer par l'écran de connexion)
 - Le bouton est situé dans la section CTA, sous les statistiques — accessible en scrollant vers le bas sur la page d'accueil
+
+---
+
+Task ID: 1
+Agent: Main Agent
+Task: Configurer le bouton "Besoin d'aide ?" dans le service après-vente
+
+Work Log:
+- Analysé le code existant : le card "Besoin d'aide ?" était purement décoratif (aucune action au clic)
+- Ajouté les imports nécessaires : Dialog, DialogContent, DialogHeader, DialogTitle, Textarea, Send, CheckCircle2
+- Ajouté les états : showHelpDialog, helpSubject, helpMessage, helpSubmitted
+- Transformé le card hero en card cliquable avec animation pulsante (whileHover, whileTap, shimmer)
+- Ajouté un bouton "Obtenir de l'aide maintenant" animé (scale bounce)
+- Créé un Dialog complet avec :
+  - En-tête dégradé vert émeraude avec icône Headset animée et cercles décoratifs
+  - 3 boutons de contact rapide : Appeler, WhatsApp, Écrire (liens externes)
+  - 5 chips de sujet cliquables : Paiement, Documents, Visite de lot, Litige, Question générale
+  - Textarea pour décrire le besoin
+  - Validation : sujet ET message obligatoires (toast d'erreur si incomplet)
+  - Écran de succès animé avec CheckCircle2, texte de confirmation, boutons "Nouvelle demande" et "Fermer"
+- Vérifié avec agent-browser : le flux complet fonctionne
+  - Clic sur "Obtenir de l'aide maintenant" → Dialog s'ouvre
+  - Sélection du sujet "Paiement" → chip active en vert
+  - Remplissage du textarea → OK
+  - Clic sur "Envoyer ma demande" → toast de confirmation + écran succès animé
+  - Toast affiché : "Votre demande a été envoyée avec succès. Nous vous recontacterons sous 24h."
+
+Stage Summary:
+- Le bouton "Besoin d'aide ?" est maintenant entièrement fonctionnel
+- Ouvre un Dialog avec formulaire de demande d'aide + contact rapide
+- Validation, animations, et flux de succès intégrés
+- Testé et vérifié avec agent-browser
