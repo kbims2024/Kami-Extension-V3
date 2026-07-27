@@ -17,7 +17,17 @@ import {
   FileText,
   Wallet,
   AlertCircle,
+  Zap,
+  Droplets,
+  Hammer,
+  Paintbrush,
+  Grid3X3,
+  PaintBucket,
+  HardHat,
+  ChevronUp,
+  UserCheck,
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface ServiceApresVenteScreenProps {
   onBack: () => void;
@@ -70,6 +80,65 @@ const SAV_FAQ = [
   },
 ];
 
+const SAV_EXPERTS = [
+  {
+    id: 'electricien',
+    title: 'Électricien',
+    subtitle: 'Installation, mise aux normes, dépannage',
+    icon: Zap,
+    color: '#F59E0B',
+  },
+  {
+    id: 'plombier',
+    title: 'Plombier',
+    subtitle: 'Tuyauterie, sanitaires, fuites',
+    icon: Droplets,
+    color: '#3B82F6',
+  },
+  {
+    id: 'macon',
+    title: 'Maçon',
+    subtitle: 'Construction, fondations, murs',
+    icon: Hammer,
+    color: '#EF4444',
+  },
+  {
+    id: 'menuisier',
+    title: 'Menuisier',
+    subtitle: 'Portes, fenêtres, agencement bois',
+    icon: Paintbrush,
+    color: '#8B5E3C',
+  },
+  {
+    id: 'carreleur',
+    title: 'Carreleur',
+    subtitle: 'Carrelage, faïence, revêtements',
+    icon: Grid3X3,
+    color: '#6366F1',
+  },
+  {
+    id: 'peintre',
+    title: 'Peintre',
+    subtitle: 'Peinture intérieure & extérieure',
+    icon: PaintBucket,
+    color: '#10B981',
+  },
+  {
+    id: 'conducteur_travaux',
+    title: 'Conducteur de travaux',
+    subtitle: 'Suivi de chantier, coordination',
+    icon: HardHat,
+    color: '#0EA5E9',
+  },
+  {
+    id: 'geometre',
+    title: 'Géomètre',
+    subtitle: 'Bornage, topographie, délimitation',
+    icon: UserCheck,
+    color: '#D946EF',
+  },
+];
+
 const SAV_SERVICES = [
   {
     icon: Wallet,
@@ -103,6 +172,14 @@ export function ServiceApresVenteScreen({
   onLoginClick,
 }: ServiceApresVenteScreenProps) {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [showExperts, setShowExperts] = useState(false);
+
+  const handleRequestExpert = (expertTitle: string) => {
+    toast.info(
+      `Votre demande de mise en relation avec un ${expertTitle} a été envoyée. Notre service après-vente vous contactera sous 24h.`,
+      { duration: 5000 }
+    );
+  };
 
   return (
     <div className="flex-1 flex flex-col bg-background min-h-screen">
@@ -258,6 +335,100 @@ export function ServiceApresVenteScreen({
               })}
             </div>
           </div>
+
+          {/* Besoin d’un expert pour votre projet ? */}
+          <Card className="border-amber-200 dark:border-amber-900/50 bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/20 dark:to-card overflow-hidden">
+            <CardContent className="p-4 text-center">
+              <div className="w-14 h-14 bg-amber-100 dark:bg-amber-900/40 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-amber-200/50 dark:shadow-amber-900/30">
+                <HardHat className="h-7 w-7 text-amber-600 dark:text-amber-400" />
+              </div>
+              <h3 className="text-sm font-bold text-foreground mb-1">
+                Besoin d&apos;un expert pour votre projet ?
+              </h3>
+              <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed mb-3">
+                Choisissez l&apos;un de nos partenaires qualifiés et nous vous
+                mettrons en relation rapidement.
+              </p>
+              <Button
+                onClick={() => setShowExperts(!showExperts)}
+                className="bg-amber-500 hover:bg-amber-600 text-white font-bold w-full shadow-lg shadow-amber-500/25 transition-all hover:scale-[1.02]"
+              >
+                {showExperts ? (
+                  <>
+                    <ChevronUp className="h-4 w-4 mr-2" />
+                    Masquer les experts
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="h-4 w-4 mr-2" />
+                    Voir nos experts disponibles
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Grille des experts */}
+          {showExperts && (
+            <div className="space-y-2.5">
+              <div className="flex items-center gap-2 px-1">
+                <HardHat className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                <h3 className="text-sm font-bold text-foreground">
+                  Nos partenaires qualifiés
+                </h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {SAV_EXPERTS.map((expert) => {
+                  const Icon = expert.icon;
+                  return (
+                    <Card
+                      key={expert.id}
+                      className={`border-2 border-border cursor-pointer transition-all hover:shadow-lg hover:-translate-y-0.5 group`}
+                      style={{
+                        ['--hover-color' as string]: expert.color,
+                      }}
+                      onClick={() => handleRequestExpert(expert.title)}
+                    >
+                      <CardContent className="p-3.5">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform"
+                            style={{
+                              backgroundColor: `${expert.color}18`,
+                            }}
+                          >
+                            <Icon
+                              className="h-5 w-5"
+                              style={{ color: expert.color }}
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p
+                              className="text-sm font-bold leading-tight"
+                              style={{ color: expert.color }}
+                            >
+                              Je sollicite un {expert.title.toLowerCase()}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground leading-snug mt-0.5">
+                              {expert.subtitle}
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+              <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50">
+                <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Délai de mise en relation : <strong className="text-foreground">sous 24h</strong> ouvrées.
+                  Nos partenaires sont sélectionnés pour leur professionnalisme et leur expérience
+                  dans la construction en Côte d&apos;Ivoire.
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Horaires */}
           <Card className="border-border">
