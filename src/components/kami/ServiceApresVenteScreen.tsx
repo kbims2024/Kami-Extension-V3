@@ -28,6 +28,7 @@ import {
   UserCheck,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ServiceApresVenteScreenProps {
   onBack: () => void;
@@ -351,8 +352,17 @@ export function ServiceApresVenteScreen({
               </p>
               <Button
                 onClick={() => setShowExperts(!showExperts)}
-                className="bg-amber-500 hover:bg-amber-600 text-white font-bold w-full shadow-lg shadow-amber-500/25 transition-all hover:scale-[1.02]"
+                className="relative overflow-hidden bg-amber-500 hover:bg-amber-600 text-white font-bold w-full shadow-lg shadow-amber-500/25 transition-all hover:scale-[1.02]"
               >
+                {!showExperts && (
+                  <motion.span
+                    className="absolute inset-0"
+                    animate={{
+                      background: ['rgba(255,255,255,0)', 'rgba(255,255,255,0.15)', 'rgba(255,255,255,0)'],
+                    }}
+                    transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                  />
+                )}
                 {showExperts ? (
                   <>
                     <ChevronUp className="h-4 w-4 mr-2" />
@@ -361,74 +371,168 @@ export function ServiceApresVenteScreen({
                 ) : (
                   <>
                     <ChevronDown className="h-4 w-4 mr-2" />
-                    Voir nos experts disponibles
+                    <motion.span
+                      animate={{ scale: [1, 1.03, 1] }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                    >
+                      Voir nos experts disponibles
+                    </motion.span>
                   </>
                 )}
               </Button>
             </CardContent>
           </Card>
 
-          {/* Grille des experts */}
-          {showExperts && (
-            <div className="space-y-2.5">
-              <div className="flex items-center gap-2 px-1">
-                <HardHat className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                <h3 className="text-sm font-bold text-foreground">
-                  Nos partenaires qualifiés
-                </h3>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {SAV_EXPERTS.map((expert) => {
-                  const Icon = expert.icon;
-                  return (
-                    <Card
-                      key={expert.id}
-                      className={`border-2 border-border cursor-pointer transition-all hover:shadow-lg hover:-translate-y-0.5 group`}
-                      style={{
-                        ['--hover-color' as string]: expert.color,
-                      }}
-                      onClick={() => handleRequestExpert(expert.title)}
-                    >
-                      <CardContent className="p-3.5">
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform"
-                            style={{
-                              backgroundColor: `${expert.color}18`,
-                            }}
-                          >
-                            <Icon
-                              className="h-5 w-5"
-                              style={{ color: expert.color }}
-                            />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p
-                              className="text-sm font-bold leading-tight"
-                              style={{ color: expert.color }}
-                            >
-                              Je sollicite un {expert.title.toLowerCase()}
-                            </p>
-                            <p className="text-[10px] text-muted-foreground leading-snug mt-0.5">
-                              {expert.subtitle}
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-              <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50">
-                <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Délai de mise en relation : <strong className="text-foreground">sous 24h</strong> ouvrées.
-                  Nos partenaires sont sélectionnés pour leur professionnalisme et leur expérience
-                  dans la construction en Côte d&apos;Ivoire.
-                </p>
-              </div>
-            </div>
-          )}
+          {/* Grille des experts — très animée */}
+          <AnimatePresence>
+            {showExperts && (
+              <motion.div
+                key="experts-grid"
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                variants={{
+                  hidden: {},
+                  visible: {
+                    transition: { staggerChildren: 0.08 },
+                  },
+                  exit: {
+                    transition: { staggerChildren: 0.04, staggerDirection: -1 },
+                  },
+                }}
+                className="space-y-2.5"
+              >
+                {/* Titre de section animé */}
+                <motion.div
+                  variants={{
+                    hidden: { opacity: 0, x: -20 },
+                    visible: { opacity: 1, x: 0, transition: { duration: 0.4, ease: 'easeOut' } },
+                    exit: { opacity: 0, x: -10, transition: { duration: 0.2 } },
+                  }}
+                  className="flex items-center gap-2 px-1"
+                >
+                  <motion.div
+                    animate={{ rotate: [0, 15, -15, 0] }}
+                    transition={{ duration: 0.6, delay: 0.2, ease: 'easeInOut' }}
+                  >
+                    <HardHat className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                  </motion.div>
+                  <h3 className="text-sm font-bold text-foreground">
+                    Nos partenaires qualifiés
+                  </h3>
+                  <motion.div
+                    className="flex-1 h-px bg-gradient-to-r from-amber-300 to-transparent"
+                    initial={{ scaleX: 0, originX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ duration: 0.6, delay: 0.3 }}
+                  />
+                </motion.div>
+
+                {/* Cartes en cascade */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {SAV_EXPERTS.map((expert) => {
+                    const Icon = expert.icon;
+                    return (
+                      <motion.div
+                        key={expert.id}
+                        variants={{
+                          hidden: { opacity: 0, y: 30, scale: 0.85, rotateX: -10 },
+                          visible: {
+                            opacity: 1,
+                            y: 0,
+                            scale: 1,
+                            rotateX: 0,
+                            transition: {
+                              type: 'spring',
+                              stiffness: 260,
+                              damping: 18,
+                              bounce: 0.4,
+                            },
+                          },
+                          exit: {
+                            opacity: 0,
+                            y: -15,
+                            scale: 0.9,
+                            transition: { duration: 0.2 },
+                          },
+                        }}
+                        whileHover={{
+                          scale: 1.04,
+                          y: -4,
+                          boxShadow: `0 12px 30px ${expert.color}30`,
+                          borderColor: expert.color,
+                        }}
+                        whileTap={{ scale: 0.97 }}
+                      >
+                        <Card
+                          className="border-2 border-border cursor-pointer group"
+                          onClick={() => handleRequestExpert(expert.title)}
+                        >
+                          <CardContent className="p-3.5">
+                            <div className="flex items-center gap-3">
+                              <motion.div
+                                className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+                                style={{ backgroundColor: `${expert.color}18` }}
+                                whileHover={{ scale: 1.2, rotate: [0, -10, 10, 0] }}
+                                transition={{ duration: 0.4 }}
+                              >
+                                <Icon
+                                  className="h-5 w-5"
+                                  style={{ color: expert.color }}
+                                />
+                              </motion.div>
+                              <div className="flex-1 min-w-0">
+                                <p
+                                  className="text-sm font-bold leading-tight"
+                                  style={{ color: expert.color }}
+                                >
+                                  Je sollicite un {expert.title.toLowerCase()}
+                                </p>
+                                <motion.p
+                                  className="text-[10px] text-muted-foreground leading-snug mt-0.5"
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 1 }}
+                                  transition={{ delay: 0.35, duration: 0.4 }}
+                                >
+                                  {expert.subtitle}
+                                </motion.p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+
+                {/* Bandeau info animé */}
+                <motion.div
+                  variants={{
+                    hidden: { opacity: 0, x: -40 },
+                    visible: {
+                      opacity: 1,
+                      x: 0,
+                      transition: { type: 'spring', stiffness: 200, damping: 20, delay: 0.6 },
+                    },
+                    exit: { opacity: 0, x: 20, transition: { duration: 0.15 } },
+                  }}
+                  className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50"
+                >
+                  <motion.div
+                    animate={{ rotate: [0, 10, -10, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                  >
+                    <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                  </motion.div>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Délai de mise en relation : <strong className="text-foreground">sous 24h</strong> ouvrées.
+                    Nos partenaires sont sélectionnés pour leur professionnalisme et leur expérience
+                    dans la construction en Côte d&apos;Ivoire.
+                  </p>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Horaires */}
           <Card className="border-border">
