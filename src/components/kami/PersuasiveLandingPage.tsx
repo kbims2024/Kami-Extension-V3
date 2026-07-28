@@ -4,8 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { FlashInfoBand } from '@/components/flash-info-band';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Menu, Map, CheckCircle, Home, Zap, Droplet, ShieldCheck, Users, TrendingUp, Clock, Award, Wrench, Building2, ArrowRight, ChevronRight, X, Headset } from 'lucide-react';
+import { Menu, Map, TrendingUp, Clock, Award, ArrowRight, ChevronRight, Headset, Building2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
 
@@ -25,7 +24,6 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
   const reservedRate = totalCount > 0 ? Math.round((reservedCount / totalCount) * 100) : 0;
   const purchasedRate = totalCount > 0 ? Math.round((paidCount / totalCount) * 100) : 0;
   const [animatedNumbers, setAnimatedNumbers] = useState({ available: 0, reservedRate: 0, purchasedRate: 0 });
-  const [isServicesModalOpen, setIsServicesModalOpen] = useState(false);
   const [heroBackground, setHeroBackground] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
@@ -92,36 +90,6 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
     };
     loadHeroImage();
   }, []);
-
-  const advantages = [
-    { icon: Home, title: "Terrain Constructible", desc: "Terrain viabilisé prêt à bâtir" },
-    { icon: Zap, title: "Électricité", desc: "Réseau moderne installé" },
-    { icon: Droplet, title: "Eau Potable", desc: "Adduction garantie" },
-    { icon: ShieldCheck, title: "Sécurité", desc: "Quartier surveillé 24h/24" },
-    { icon: Wrench, title: "Routes Pavées", desc: "Voies goudronnées" },
-    { icon: Users, title: "Communauté", desc: "Voisinage unie" },
-  ];
-
-  const essentialServices = [
-    {
-      icon: Zap,
-      title: "Électricité",
-      desc: "Réseau électrique moderne et fiable, alimenté par SODECI. Transformateurs installés avec capacité suffisante pour tous les lots.",
-      features: ["Alimentation continue", "Compteurs individuels", "Normes de sécurité", "Maintenance incluse"]
-    },
-    {
-      icon: Droplet,
-      title: "Eau Potable",
-      desc: "Adduction d'eau potable via SODECI. Chaque lot dispose d'un branchement individuel avec compteur.",
-      features: ["Eau potable 24h/24", "Branchement individuel", "Normes sanitaires", "Système de purification"]
-    },
-    {
-      icon: ShieldCheck,
-      title: "Sécurité",
-      desc: "Quartier surveillé 24h/24 par une équipe de sécurité professionnelle et un système de surveillance moderne.",
-      features: ["Gardiennage 24h/24", "Caméras de surveillance", "Éclairage public", "Contrôle d'accès"]
-    }
-  ];
 
   const features = [
     { number: "01", title: "Inscription Gratuite", desc: "Créez votre compte en quelques secondes sans frais" },
@@ -330,70 +298,6 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
         </div>
       </section>
 
-      {/* Advantages Section */}
-      <section className="py-20 bg-gradient-to-br from-blue-50/50 to-background dark:from-blue-950/30 dark:to-background">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Tout est inclus
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Votre terrain est livré avec tous les services essentiels
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto mb-8">
-            {advantages.map((advantage, index) => {
-              const Icon = advantage.icon;
-              return (
-                <Card
-                  key={index}
-                  className="border-0 bg-card shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 rounded-2xl group"
-                >
-                  <CardContent className="p-8 text-center">
-                    <div className="w-16 h-16 bg-gradient-to-br from-brand-blue to-blue-700 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-brand-blue/30">
-                      <Icon className="h-8 w-8 text-brand-yellow" />
-                    </div>
-                    <h3 className="text-xl font-bold text-foreground mb-2">{advantage.title}</h3>
-                    <p className="text-muted-foreground">{advantage.desc}</p>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-
-          {/* Bouton intelligent Électricité, Eau et Sécurité */}
-          <div className="max-w-2xl mx-auto mt-12">
-            <Button
-              onClick={() => setIsServicesModalOpen(true)}
-              className="w-full bg-gradient-to-r from-blue-500 via-cyan-500 to-purple-500 dark:from-blue-600 dark:via-cyan-600 dark:to-purple-600 hover:from-blue-600 hover:via-cyan-600 hover:to-purple-600 dark:hover:from-blue-700 dark:hover:via-cyan-700 dark:hover:to-purple-700 text-white font-bold py-6 px-8 rounded-2xl text-lg shadow-2xl transition-all hover:scale-105 hover:shadow-lg"
-            >
-              <div className="flex items-center justify-center gap-3">
-                <div className="flex items-center gap-2">
-                  <Zap className="h-5 w-5" />
-                  <span>Électricité</span>
-                </div>
-                <span className="text-white/50">•</span>
-                <div className="flex items-center gap-2">
-                  <Droplet className="h-5 w-5" />
-                  <span>Eau</span>
-                </div>
-                <span className="text-white/50">•</span>
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-5 w-5" />
-                  <span>Sécurité</span>
-                </div>
-                <ChevronRight className="h-5 w-5 ml-2" />
-              </div>
-            </Button>
-            <p className="text-center text-sm text-muted-foreground mt-3">
-              Cliquez pour voir les détails des services essentiels inclus
-            </p>
-          </div>
-        </div>
-      </section>
-
-
       {/* Why Choose Us */}
       <section className="py-20 bg-gradient-to-br from-brand-blue via-blue-700 to-brand-blue text-white relative overflow-hidden">
         <div className="absolute inset-0">
@@ -470,79 +374,6 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
         </div>
       </section>
 
-      {/* Services Modal - Électricité, Eau et Sécurité */}
-      <Dialog open={isServicesModalOpen} onOpenChange={setIsServicesModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto m-auto rounded-2xl border-2 shadow-2xl">
-          <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-border z-10 pb-4 mb-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-                Services Essentiels Inclus
-              </h2>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsServicesModalOpen(false)}
-                className="h-10 w-10"
-              >
-                <X className="h-6 w-6" />
-              </Button>
-            </div>
-            <p className="text-muted-foreground mt-2">
-              Tous les services essentiels sont déjà installés et inclus dans votre terrain
-            </p>
-          </div>
-
-          <div className="space-y-6">
-            {essentialServices.map((service, index) => {
-              const Icon = service.icon;
-              const colors = [
-                'from-yellow-500 to-orange-500 dark:from-yellow-600 dark:to-orange-600',
-                'from-blue-500 to-cyan-500 dark:from-blue-600 dark:to-cyan-600',
-                'from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600'
-              ];
-              const bgColor = [
-                'bg-yellow-50 dark:bg-yellow-950/30',
-                'bg-blue-50 dark:bg-blue-950/30',
-                'bg-purple-50 dark:bg-purple-950/30'
-              ];
-
-              return (
-                <Card key={index} className={`border-0 shadow-lg ${bgColor[index]}`}>
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                      <div className={`w-16 h-16 bg-gradient-to-br ${colors[index]} rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0`}>
-                        <Icon className="h-8 w-8 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-xl font-bold text-foreground mb-2">
-                          {service.title}
-                        </h3>
-                        <p className="text-muted-foreground mb-4">
-                          {service.desc}
-                        </p>
-                        <div className="grid grid-cols-2 gap-2">
-                          {service.features.map((feature, featureIndex) => (
-                            <div key={featureIndex} className="flex items-center gap-2">
-                              <CheckCircle className="h-4 w-4 text-emerald-500 dark:text-emerald-400 flex-shrink-0" />
-                              <span className="text-sm text-foreground">{feature}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-
-          <div className="mt-6 pt-4 border-t border-border">
-            <p className="text-sm text-muted-foreground text-center">
-              ✓ Tous ces services sont inclus dans le prix de votre terrain sans frais supplémentaires
-            </p>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
