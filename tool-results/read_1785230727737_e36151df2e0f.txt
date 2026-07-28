@@ -1,0 +1,889 @@
+     1→'use client';
+     2→
+     3→import { useState } from 'react';
+     4→import { Button } from '@/components/ui/button';
+     5→import { Card, CardContent } from '@/components/ui/card';
+     6→import { Badge } from '@/components/ui/badge';
+     7→import { motion, AnimatePresence } from 'framer-motion';
+     8→import {
+     9→  ArrowLeft,
+    10→  Phone,
+    11→  MessageCircle,
+    12→  Star,
+    13→  MapPin,
+    14→  Clock,
+    15→  Award,
+    16→  CheckCircle2,
+    17→  ChevronRight,
+    18→  Users,
+    19→  ShieldCheck,
+    20→  Briefcase,
+    21→  GraduationCap,
+    22→} from 'lucide-react';
+    23→import { toast } from 'sonner';
+    24→
+    25→// ── Types ──
+    26→interface Expert {
+    27→  id: string;
+    28→  name: string;
+    29→  specialty: string;
+    30→  experience: string;
+    31→  rating: number;
+    32→  reviewCount: number;
+    33→  phone: string;
+    34→  whatsapp: string;
+    35→  image: string;
+    36→  bio: string;
+    37→  location: string;
+    38→  certifications: string[];
+    39→  availability: string;
+    40→  projects: number;
+    41→}
+    42→
+    43→interface ExpertCategory {
+    44→  id: string;
+    45→  title: string;
+    46→  icon: string;
+    47→  color: string;
+    48→  description: string;
+    49→  experts: Expert[];
+    50→}
+    51→
+    52→// ── Expert data ──
+    53→export const EXPERT_CATEGORIES: ExpertCategory[] = [
+    54→  {
+    55→    id: 'electricien',
+    56→    title: 'Électriciens',
+    57→    icon: '⚡',
+    58→    color: '#F59E0B',
+    59→    description: 'Installation électrique, mise aux normes NFC 15-100, dépannage.',
+    60→    experts: [
+    61→      {
+    62→        id: 'electricien-1',
+    63→        name: 'Kouassi Yao',
+    64→        specialty: 'Installation électrique résidentielle',
+    65→        experience: '12 ans',
+    66→        rating: 4.8,
+    67→        reviewCount: 47,
+    68→        phone: '+225 07 12 34 56 78',
+    69→        whatsapp: 'https://wa.me/2250712345678',
+    70→        image: '/experts/electricien-1.png',
+    71→        bio: 'Électricien certifié avec 12 ans d\'expérience dans l\'installation résidentielle et tertiaire en Côte d\'Ivoire. Spécialiste des mises aux normes NFC 15-100.',
+    72→        location: 'Abidjan, Cocody',
+    73→        certifications: ['Certification NFC 15-100', ' habilitation électrique', 'Diplôme BTS Électrotechnique'],
+    74→        availability: 'Disponible sous 48h',
+    75→        projects: 156,
+    76→      },
+    77→      {
+    78→        id: 'electricien-2',
+    79→        name: 'Diarra Moussa',
+    80→        specialty: 'Mise aux normes & dépannage',
+    81→        experience: '8 ans',
+    82→        rating: 4.6,
+    83→        reviewCount: 32,
+    84→        phone: '+225 05 98 76 54 32',
+    85→        whatsapp: 'https://wa.me/2250598765432',
+    86→        image: '/experts/electricien-2.png',
+    87→        bio: 'Dépanneur électricien expérimenté, intervention rapide 7j/7 pour les urgences. Expert en diagnostic de défauts et remise aux normes.',
+    88→        location: 'Abidjan, Yopougon',
+    89→        certifications: ['Certification NFC 15-100', 'Habilitation B2V', 'Formé en photovoltaïque'],
+    90→        availability: 'Urgences : même jour',
+    91→        projects: 98,
+    92→      },
+    93→    ],
+    94→  },
+    95→  {
+    96→    id: 'plombier',
+    97→    title: 'Plombiers',
+    98→    icon: '🔧',
+    99→    color: '#3B82F6',
+   100→    description: 'Alimentation en eau, sanitaire, réparation de fuites.',
+   101→    experts: [
+   102→      {
+   103→        id: 'plombier-1',
+   104→        name: 'Koné Ibrahim',
+   105→        specialty: 'Plomberie sanitaire complète',
+   106→        experience: '15 ans',
+   107→        rating: 4.9,
+   108→        reviewCount: 63,
+   109→        phone: '+225 01 23 45 67 89',
+   110→        whatsapp: 'https://wa.me/2250123456789',
+   111→        image: '/experts/plombier-1.png',
+   112→        bio: 'Expert en plomberie sanitaire avec 15 ans d\'expérience. Maîtrise les installations complexes, le raccordement réseau d\'eau et la rénovation complète.',
+   113→        location: 'Abidjan, Marcory',
+   114→        certifications: ['Certification Plomberie Professionnelle', 'Technicien supérieur', 'Expert en détection de fuites'],
+   115→        availability: 'Disponible sous 24h',
+   116→        projects: 210,
+   117→      },
+   118→      {
+   119→        id: 'plombier-2',
+   120→        name: 'Traoré Amadou',
+   121→        specialty: 'Raccordement & viabilisation',
+   122→        experience: '10 ans',
+   123→        rating: 4.7,
+   124→        reviewCount: 38,
+   125→        phone: '+225 07 55 44 33 22',
+   126→        whatsapp: 'https://wa.me/2250755443322',
+   127→        image: '/experts/plombier-2.png',
+   128→        bio: 'Spécialiste du raccordement au réseau d\'eau potable et de la viabilisation de lots. Expérience confirmée dans les chantiers résidentiels.',
+   129→        location: 'Abidjan, Treichville',
+   130→        certifications: ['Certification SODECI', 'Technicien raccordement', 'Gestionnaire de chantier'],
+   131→        availability: 'Disponible sous 48h',
+   132→        projects: 134,
+   133→      },
+   134→    ],
+   135→  },
+   136→  {
+   137→    id: 'macon',
+   138→    title: 'Maçons',
+   139→    icon: '🏗️',
+   140→    color: '#EF4444',
+   141→    description: 'Fondations, murs, dalle et travaux en gros œuvre.',
+   142→    experts: [
+   143→      {
+   144→        id: 'macon-1',
+   145→        name: 'Bamba Adama',
+   146→        specialty: 'Gros œuvre & fondations',
+   147→        experience: '18 ans',
+   148→        rating: 4.8,
+   149→        reviewCount: 52,
+   150→        phone: '+225 05 11 22 33 44',
+   151→        whatsapp: 'https://wa.me/2250511223344',
+   152→        image: '/experts/macon-1.png',
+   153→        bio: 'Maçon chevronné spécialisé dans le gros œuvre. Expert en fondations, dallage et construction de murs porteurs. Travaille sur des chantiers de toutes tailles.',
+   154→        location: 'Abidjan, Plateau',
+   155→        certifications: ['Maître d\'œuvre certifié', 'BP Maçonnerie', 'Gestion de chantier niveau II'],
+   156→        availability: 'Disponible sous 72h',
+   157→        projects: 178,
+   158→      },
+   159→      {
+   160→        id: 'macon-2',
+   161→        name: 'Soro Moussa',
+   162→        specialty: 'Construction & rénovation',
+   163→        experience: '11 ans',
+   164→        rating: 4.5,
+   165→        reviewCount: 29,
+   166→        phone: '+225 07 66 77 88 99',
+   167→        whatsapp: 'https://wa.me/2250766778899',
+   168→        image: '/experts/macon-2.png',
+   169→        bio: 'Maçon polyvalent expérimenté dans les constructions neuves et les rénovations lourdes. Capacité à gérer des équipes de 5 à 15 ouvriers.',
+   170→        location: 'Bingerville',
+   171→        certifications: ['CAP Maçonnerie', 'Chef d\'équipe certifié', 'Technique de béton armé'],
+   172→        availability: 'Disponible sous 48h',
+   173→        projects: 112,
+   174→      },
+   175→    ],
+   176→  },
+   177→  {
+   178→    id: 'menuisier',
+   179→    title: 'Menuisiers',
+   180→    icon: '🪟',
+   181→    color: '#8B5E3C',
+   182→    description: 'Portes, fenêtres, volets, placards et agencement.',
+   183→    experts: [
+   184→      {
+   185→        id: 'menuisier-1',
+   186→        name: 'Cissé Alassane',
+   187→        specialty: 'Menuiserie bois & aluminium',
+   188→        experience: '14 ans',
+   189→        rating: 4.7,
+   190→        reviewCount: 41,
+   191→        phone: '+225 01 44 55 66 77',
+   192→        whatsapp: 'https://wa.me/2250144556677',
+   193→        image: '/experts/menuisier-1.png',
+   194→        bio: 'Menuisier artisan spécialisé dans les travaux sur mesure en bois et aluminium. Portes, fenêtres, volets roulants et agencement intérieur.',
+   195→        location: 'Abidjan, Adjamé',
+   196→        certifications: ['Certification Artisan Menuisier', 'Formation aluminium', 'Décorateur d\'intérieur'],
+   197→        availability: 'Disponible sous 3 jours',
+   198→        projects: 145,
+   199→      },
+   200→      {
+   201→        id: 'menuisier-2',
+   202→        name: 'Dembélé Karim',
+   203→        specialty: 'Agencement & mobilier sur mesure',
+   204→        experience: '9 ans',
+   205→        rating: 4.6,
+   206→        reviewCount: 27,
+   207→        phone: '+225 07 33 22 11 00',
+   208→        whatsapp: 'https://wa.me/2250733221100',
+   209→        image: '/experts/menuisier-2.png',
+   210→        bio: 'Menuisier créatif spécialisé en mobilier sur mesure et agencement. Cuisine, dressing, bureau — je crée des espaces fonctionnels et esthétiques.',
+   211→        location: 'Abidjan, Cocody',
+   212→        certifications: ['BTS Productique bois', 'Designer mobilier', 'Certification sécurité'],
+   213→        availability: 'Disponible sous 5 jours',
+   214→        projects: 87,
+   215→      },
+   216→    ],
+   217→  },
+   218→  {
+   219→    id: 'carreleur',
+   220→    title: 'Carreleurs',
+   221→    icon: '🔲',
+   222→    color: '#6366F1',
+   223→    description: 'Carrelage au sol et faïence murale, finitions soignées.',
+   224→    experts: [
+   225→      {
+   226→        id: 'carreleur-1',
+   227→        name: 'Ouattara Dramane',
+   228→        specialty: 'Carrelage sol & mur',
+   229→        experience: '13 ans',
+   230→        rating: 4.8,
+   231→        reviewCount: 44,
+   232→        phone: '+225 05 66 77 88 99',
+   233→        whatsapp: 'https://wa.me/2250566778899',
+   234→        image: '/experts/carreleur-1.png',
+   235→        bio: 'Carreleur expert maîtrisant toutes les techniques de pose : droit, diagonal, mosaïque, marbre. Finitions irréprochables pour un résultat professionnel.',
+   236→        location: 'Abidjan, Abobo',
+   237→        certifications: ['Certification Carreleur professionnel', 'Pose marbre & granit', 'Technique joints'],
+   238→        availability: 'Disponible sous 48h',
+   239→        projects: 162,
+   240→      },
+   241→      {
+   242→        id: 'carreleur-2',
+   243→        name: 'Konaté Seydou',
+   244→        specialty: 'Faïence & mosaïque décorative',
+   245→        experience: '10 ans',
+   246→        rating: 4.7,
+   247→        reviewCount: 33,
+   248→        phone: '+225 07 22 33 44 55',
+   249→        whatsapp: 'https://wa.me/2250722334455',
+   250→        image: '/experts/carreleur-2.png',
+   251→        bio: 'Spécialiste de la faïence murale et des créations en mosaïque. Je transforme vos salles de bain et cuisines en véritables espaces design.',
+   252→        location: 'Abidjan, Koumassi',
+   253→        certifications: ['CAP Carreleur', 'Spécialiste mosaïque', 'Pose piscine'],
+   254→        availability: 'Disponible sous 72h',
+   255→        projects: 118,
+   256→      },
+   257→    ],
+   258→  },
+   259→  {
+   260→    id: 'peintre',
+   261→    title: 'Peintres',
+   262→    icon: '🎨',
+   263→    color: '#10B981',
+   264→    description: 'Peinture intérieure et extérieure, préparation, finitions.',
+   265→    experts: [
+   266→      {
+   267→        id: 'peintre-1',
+   268→        name: 'Diallo Fatoumata',
+   269→        specialty: 'Peinture décorative & finitions',
+   270→        experience: '11 ans',
+   271→        rating: 4.9,
+   272→        reviewCount: 55,
+   273→        phone: '+225 01 77 88 99 00',
+   274→        whatsapp: 'https://wa.me/2250177889900',
+   275→        image: '/experts/peintre-1.png',
+   276→        bio: 'Peintre professionnelle spécialisée dans les finitions haut de gamme. Techniques décoratives, effets et faux finis pour un rendu exceptionnel.',
+   277→        location: 'Abidjan, Zone 4',
+   278→        certifications: ['Certification Peintre décorateur', 'Formation faux finis', 'Technique rodéo'],
+   279→        availability: 'Disponible sous 48h',
+   280→        projects: 189,
+   281→      },
+   282→      {
+   283→        id: 'peintre-2',
+   284→        name: 'Coulibaly Bakary',
+   285→        specialty: 'Peinture extérieure & ravalement',
+   286→        experience: '16 ans',
+   287→        rating: 4.6,
+   288→        reviewCount: 36,
+   289→        phone: '+225 07 11 22 33 44',
+   290→        whatsapp: 'https://wa.me/2250711223344',
+   291→        image: '/experts/peintre-2.png',
+   292→        bio: 'Expert en peinture extérieure et ravalement de façades. Travaille avec des peintures de qualité professionnelle résistant au climat tropical.',
+   293→        location: 'Abidjan, Bingerville',
+   294→        certifications: ['Certification ravalement façade', 'Peinture industrielle', 'Expert humidité'],
+   295→        availability: 'Disponible sous 3 jours',
+   296→        projects: 156,
+   297→      },
+   298→    ],
+   299→  },
+   300→  {
+   301→    id: 'conducteur_travaux',
+   302→    title: 'Conducteurs de travaux',
+   303→    icon: '👷',
+   304→    color: '#0EA5E9',
+   305→    description: 'Supervise et coordonne votre chantier de A à Z.',
+   306→    experts: [
+   307→      {
+   308→        id: 'conducteur-1',
+   309→        name: 'N\'Guessan Roland',
+   310→        specialty: 'Coordination & suivi de chantier',
+   311→        experience: '20 ans',
+   312→        rating: 4.9,
+   313→        reviewCount: 58,
+   314→        phone: '+225 05 99 88 77 66',
+   315→        whatsapp: 'https://wa.me/2250599887766',
+   316→        image: '/experts/conducteur-1.png',
+   317→        bio: 'Ingénieur en génie civil avec 20 ans d\'expérience en conduite de travaux. Gère des chantiers résidentiels et commerciaux jusqu\'à 500M FCFA.',
+   318→        location: 'Abidjan, Plateau',
+   319→        certifications: ['Ingénieur Génie Civil', 'PMP certifié', 'Expert bâtiment tropical'],
+   320→        availability: 'Disponible sous 1 semaine',
+   321→        projects: 89,
+   322→      },
+   323→      {
+   324→        id: 'conducteur-2',
+   325→        name: 'Aka Jean-Marc',
+   326→        specialty: 'Gestion de projet résidentiel',
+   327→        experience: '12 ans',
+   328→        rating: 4.7,
+   329→        reviewCount: 34,
+   330→        phone: '+225 07 44 55 66 77',
+   331→        whatsapp: 'https://wa.me/2250744556677',
+   332→        image: '/experts/conducteur-2.png',
+   333→        bio: 'Conducteur de travaux spécialisé dans les projets résidentiels. Coordination des corps de métiers, planning, budget et qualité.',
+   334→        location: 'Abidjan, Cocody',
+   335→        certifications: ['BTS Bâtiment', 'Chef de chantier certifié', 'Gestion planning MS Project'],
+   336→        availability: 'Disponible sous 72h',
+   337→        projects: 67,
+   338→      },
+   339→    ],
+   340→  },
+   341→  {
+   342→    id: 'geometre',
+   343→    title: 'Géomètres',
+   344→    icon: '📐',
+   345→    color: '#D946EF',
+   346→    description: 'Bornage, topographie et délimitation de terrain.',
+   347→    experts: [
+   348→      {
+   349→        id: 'geometre-1',
+   350→        name: 'Yao Kouamé',
+   351→        specialty: 'Bornage & topographie foncière',
+   352→        experience: '22 ans',
+   353→        rating: 4.9,
+   354→        reviewCount: 71,
+   355→        phone: '+225 01 55 66 77 88',
+   356→        whatsapp: 'https://wa.me/2250155667788',
+   357→        image: '/experts/geometre-1.png',
+   358→        bio: 'Géomètre-expert agréé avec 22 ans d\'expérience. Bornage, délimitation, implantation et topographie. Certifié par l\'Ordre des Géomètres.',
+   359→        location: 'Abidjan, Cocody',
+   360→        certifications: ['Géomètre-expert agréé', 'Ordre des Géomètres CI', 'Expert foncier certifié'],
+   361→        availability: 'Disponible sous 5 jours',
+   362→        projects: 320,
+   363→      },
+   364→      {
+   365→        id: 'geometre-2',
+   366→        name: 'Essis Emmanuel',
+   367→        specialty: 'Délimitation & plan cadastral',
+   368→        experience: '14 ans',
+   369→        rating: 4.7,
+   370→        reviewCount: 45,
+   371→        phone: '+225 07 88 99 00 11',
+   372→        whatsapp: 'https://wa.me/2250788990011',
+   373→        image: '/experts/geometre-2.png',
+   374→        bio: 'Géomètre spécialisé dans la délimitation parcellaire et l\'établissement de plans cadastraux. Intervention précise et rapide.',
+   375→        location: 'Abidjan, Treichville',
+   376→        certifications: ['Licence Géomatique', 'Géomètre agréé', 'SIG & GPS avancé'],
+   377→        availability: 'Disponible sous 3 jours',
+   378→        projects: 198,
+   379→      },
+   380→    ],
+   381→  },
+   382→];
+   383→
+   384→// ── Fallback avatar with initials ──
+   385→function ExpertAvatar({ expert, size = 'lg' }: { expert: Expert; size?: 'sm' | 'lg' }) {
+   386→  const [imgError, setImgError] = useState(false);
+   387→  const initials = expert.name
+   388→    .split(' ')
+   389→    .map((n) => n[0])
+   390→    .join('')
+   391→    .slice(0, 2)
+   392→    .toUpperCase();
+   393→
+   394→  const sizeClass = size === 'lg' ? 'w-20 h-20 text-2xl' : 'w-12 h-12 text-sm';
+   395→
+   396→  if (imgError || !expert.image) {
+   397→    return (
+   398→      <div
+   399→        className={`${sizeClass} rounded-full flex items-center justify-center font-bold text-white shrink-0 shadow-lg`}
+   400→        style={{ backgroundColor: EXPERT_CATEGORIES.find((c) => c.experts.some((e) => e.id === expert.id))?.color || '#6B7280' }}
+   401→      >
+   402→        {initials}
+   403→      </div>
+   404→    );
+   405→  }
+   406→
+   407→  return (
+   408→    <img
+   409→      src={expert.image}
+   410→      alt={expert.name}
+   411→      className={`${sizeClass} rounded-full object-cover shrink-0 shadow-lg border-2 border-white/50`}
+   412→      onError={() => setImgError(true)}
+   413→    />
+   414→  );
+   415→}
+   416→
+   417→// ── Star rating component ──
+   418→function StarRating({ rating, count }: { rating: number; count: number }) {
+   419→  return (
+   420→    <div className="flex items-center gap-1">
+   421→      <div className="flex">
+   422→        {[1, 2, 3, 4, 5].map((s) => (
+   423→          <Star
+   424→            key={s}
+   425→            className={`h-3.5 w-3.5 ${s <= Math.floor(rating) ? 'text-amber-400 fill-amber-400' : 'text-amber-400/30'}`}
+   426→          />
+   427→        ))}
+   428→      </div>
+   429→      <span className="text-[11px] font-bold text-foreground">{rating}</span>
+   430→      <span className="text-[10px] text-muted-foreground">({count} avis)</span>
+   431→    </div>
+   432→  );
+   433→}
+   434→
+   435→// ── Expert category card ──
+   436→function CategoryCard({
+   437→  category,
+   438→  onSelect,
+   439→}: {
+   440→  category: ExpertCategory;
+   441→  onSelect: (cat: ExpertCategory) => void;
+   442→}) {
+   443→  return (
+   444→    <motion.div whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}>
+   445→      <Card
+   446→        className="border-2 border-border cursor-pointer group hover:shadow-lg transition-all overflow-hidden"
+   447→        onClick={() => onSelect(category)}
+   448→      >
+   449→        <CardContent className="p-3.5">
+   450→          <div className="flex items-center gap-3">
+   451→            <div
+   452→              className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 text-xl"
+   453→              style={{ backgroundColor: `${category.color}18` }}
+   454→            >
+   455→              {category.icon}
+   456→            </div>
+   457→            <div className="flex-1 min-w-0">
+   458→              <p className="text-sm font-bold text-foreground leading-tight">{category.title}</p>
+   459→              <p className="text-[10px] text-muted-foreground leading-snug mt-0.5 line-clamp-2">
+   460→                {category.description}
+   461→              </p>
+   462→            </div>
+   463→            <div className="flex items-center gap-1 shrink-0">
+   464→              <Badge
+   465→                variant="secondary"
+   466→                className="text-[10px] font-bold px-2 py-0.5"
+   467→                style={{ backgroundColor: `${category.color}15`, color: category.color }}
+   468→              >
+   469→                {category.experts.length} dispo
+   470→              </Badge>
+   471→              <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
+   472→            </div>
+   473→          </div>
+   474→        </CardContent>
+   475→      </Card>
+   476→    </motion.div>
+   477→  );
+   478→}
+   479→
+   480→// ── Expert card in list view ──
+   481→function ExpertCard({
+   482→  expert,
+   483→  color,
+   484→  onSelect,
+   485→}: {
+   486→  expert: Expert;
+   487→  color: string;
+   488→  onSelect: (e: Expert) => void;
+   489→}) {
+   490→  return (
+   491→    <motion.div whileHover={{ scale: 1.01, y: -1 }} whileTap={{ scale: 0.99 }}>
+   492→      <Card
+   493→        className="border-border cursor-pointer group hover:shadow-md transition-all"
+   494→        onClick={() => onSelect(expert)}
+   495→      >
+   496→        <CardContent className="p-3.5">
+   497→          <div className="flex items-start gap-3">
+   498→            <ExpertAvatar expert={expert} size="sm" />
+   499→            <div className="flex-1 min-w-0">
+   500→              <div className="flex items-center justify-between gap-2">
+   501→                <p className="text-sm font-bold text-foreground truncate">{expert.name}</p>
+   502→                <span className="text-[10px] font-semibold text-muted-foreground shrink-0">{expert.experience}</span>
+   503→              </div>
+   504→              <p className="text-[11px] text-muted-foreground leading-snug mt-0.5">{expert.specialty}</p>
+   505→              <div className="mt-1.5">
+   506→                <StarRating rating={expert.rating} count={expert.reviewCount} />
+   507→              </div>
+   508→              <div className="flex items-center gap-2 mt-1.5">
+   509→                <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+   510→                  <MapPin className="h-3 w-3 shrink-0" />
+   511→                  <span className="truncate">{expert.location}</span>
+   512→                </div>
+   513→                <span className="text-muted-foreground/30">·</span>
+   514→                <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+   515→                  <Briefcase className="h-3 w-3 shrink-0" />
+   516→                  <span>{expert.projects} projets</span>
+   517→                </div>
+   518→              </div>
+   519→            </div>
+   520→          </div>
+   521→        </CardContent>
+   522→      </Card>
+   523→    </motion.div>
+   524→  );
+   525→}
+   526→
+   527→// ── Expert detail view ──
+   528→function ExpertDetailView({
+   529→  expert,
+   530→  color,
+   531→  onBack,
+   532→}: {
+   533→  expert: Expert;
+   534→  color: string;
+   535→  onBack: () => void;
+   536→}) {
+   537→  return (
+   538→    <AnimatePresence mode="wait">
+   539→      <motion.div
+   540→        key={expert.id}
+   541→        initial={{ opacity: 0, x: 30 }}
+   542→        animate={{ opacity: 1, x: 0 }}
+   543→        exit={{ opacity: 0, x: -30 }}
+   544→        transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+   545→        className="space-y-3"
+   546→      >
+   547→        {/* Back button */}
+   548→        <Button
+   549→          variant="ghost"
+   550→          size="sm"
+   551→          onClick={onBack}
+   552→          className="h-8 text-xs gap-1 text-muted-foreground hover:text-foreground px-2"
+   553→        >
+   554→          <ArrowLeft className="h-3.5 w-3.5" />
+   555→          Retour aux experts
+   556→        </Button>
+   557→
+   558→        {/* Profile header */}
+   559→        <Card className="border-border overflow-hidden">
+   560→          <div
+   561→            className="px-4 pt-5 pb-6 text-center relative"
+   562→            style={{ background: `linear-gradient(135deg, ${color}, ${color}bb)` }}
+   563→          >
+   564→            <div className="absolute inset-0 opacity-10">
+   565→              <div className="absolute -top-6 -right-6 w-28 h-28 bg-white rounded-full" />
+   566→              <div className="absolute -bottom-8 -left-8 w-36 h-36 bg-white rounded-full" />
+   567→            </div>
+   568→            <div className="relative z-10">
+   569→              <motion.div
+   570→                initial={{ scale: 0.7, opacity: 0 }}
+   571→                animate={{ scale: 1, opacity: 1 }}
+   572→                transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
+   573→              >
+   574→                <ExpertAvatar expert={expert} size="lg" />
+   575→              </motion.div>
+   576→              <motion.h3
+   577→                className="text-lg font-bold text-white mt-3"
+   578→                initial={{ opacity: 0, y: 10 }}
+   579→                animate={{ opacity: 1, y: 0 }}
+   580→                transition={{ delay: 0.2 }}
+   581→              >
+   582→                {expert.name}
+   583→              </motion.h3>
+   584→              <motion.p
+   585→                className="text-white/80 text-xs mt-0.5"
+   586→                initial={{ opacity: 0 }}
+   587→                animate={{ opacity: 1 }}
+   588→                transition={{ delay: 0.3 }}
+   589→              >
+   590→                {expert.specialty}
+   591→              </motion.p>
+   592→              <motion.div
+   593→                className="flex justify-center mt-2"
+   594→                initial={{ opacity: 0 }}
+   595→                animate={{ opacity: 1 }}
+   596→                transition={{ delay: 0.4 }}
+   597→              >
+   598→                <StarRating rating={expert.rating} count={expert.reviewCount} />
+   599→              </motion.div>
+   600→            </div>
+   601→          </div>
+   602→
+   603→          <CardContent className="p-4 space-y-4">
+   604→            {/* Bio */}
+   605→            <div>
+   606→              <div className="flex items-center gap-1.5 mb-1.5">
+   607→                <GraduationCap className="h-4 w-4" style={{ color }} />
+   608→                <h4 className="text-xs font-bold text-foreground">À propos</h4>
+   609→              </div>
+   610→              <p className="text-[11px] text-muted-foreground leading-relaxed">{expert.bio}</p>
+   611→            </div>
+   612→
+   613→            {/* Info grid */}
+   614→            <div className="grid grid-cols-2 gap-2">
+   615→              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/50 border border-border">
+   616→                <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
+   617→                <div>
+   618→                  <p className="text-[10px] text-muted-foreground">Expérience</p>
+   619→                  <p className="text-xs font-bold text-foreground">{expert.experience}</p>
+   620→                </div>
+   621→              </div>
+   622→              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/50 border border-border">
+   623→                <Briefcase className="h-4 w-4 text-muted-foreground shrink-0" />
+   624→                <div>
+   625→                  <p className="text-[10px] text-muted-foreground">Projets réalisés</p>
+   626→                  <p className="text-xs font-bold text-foreground">{expert.projects}</p>
+   627→                </div>
+   628→              </div>
+   629→              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/50 border border-border col-span-2">
+   630→                <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
+   631→                <div>
+   632→                  <p className="text-[10px] text-muted-foreground">Zone d&apos;intervention</p>
+   633→                  <p className="text-xs font-bold text-foreground">{expert.location}</p>
+   634→                </div>
+   635→              </div>
+   636→            </div>
+   637→
+   638→            {/* Availability */}
+   639→            <div
+   640→              className="flex items-center gap-2 p-2.5 rounded-lg border"
+   641→              style={{ backgroundColor: `${color}10`, borderColor: `${color}30` }}
+   642→            >
+   643→              <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color }} />
+   644→              <p className="text-[11px] font-semibold" style={{ color }}>
+   645→                {expert.availability}
+   646→              </p>
+   647→            </div>
+   648→
+   649→            {/* Certifications */}
+   650→            {expert.certifications.length > 0 && (
+   651→              <div>
+   652→                <div className="flex items-center gap-1.5 mb-2">
+   653→                  <Award className="h-4 w-4" style={{ color }} />
+   654→                  <h4 className="text-xs font-bold text-foreground">Certifications</h4>
+   655→                </div>
+   656→                <div className="space-y-1.5">
+   657→                  {expert.certifications.map((cert, i) => (
+   658→                    <motion.div
+   659→                      key={i}
+   660→                      initial={{ opacity: 0, x: 10 }}
+   661→                      animate={{ opacity: 1, x: 0 }}
+   662→                      transition={{ delay: 0.5 + i * 0.1 }}
+   663→                      className="flex items-center gap-2 text-[11px]"
+   664→                    >
+   665→                      <ShieldCheck className="h-3.5 w-3.5 shrink-0" style={{ color }} />
+   666→                      <span className="text-muted-foreground">{cert}</span>
+   667→                    </motion.div>
+   668→                  ))}
+   669→                </div>
+   670→              </div>
+   671→            )}
+   672→
+   673→            {/* Contact buttons */}
+   674→            <div className="space-y-2 pt-1">
+   675→              <a href={`tel:${expert.phone.replace(/\s/g, '')}`} className="block">
+   676→                <Button className="w-full h-11 text-xs font-bold text-white transition-all hover:scale-[1.02]" style={{ backgroundColor: color }}>
+   677→                  <Phone className="h-4 w-4 mr-2" />
+   678→                  Appeler {expert.name.split(' ')[0]}
+   679→                </Button>
+   680→              </a>
+   681→              <a href={expert.whatsapp} target="_blank" rel="noopener noreferrer" className="block">
+   682→                <Button variant="outline" className="w-full h-11 text-xs font-bold border-green-200 hover:bg-green-50 hover:border-green-400 transition-all hover:scale-[1.02]">
+   683→                  <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
+   684→                  Contacter par WhatsApp
+   685→                </Button>
+   686→              </a>
+   687→            </div>
+   688→          </CardContent>
+   689→        </Card>
+   690→      </motion.div>
+   691→    </AnimatePresence>
+   692→  );
+   693→}
+   694→
+   695→// ── Main ExpertDetailPanel component ──
+   696→interface ExpertDetailPanelProps {
+   697→  initialCategoryId?: string;
+   698→  onBack: () => void;
+   699→}
+   700→
+   701→export function ExpertDetailPanel({ initialCategoryId, onBack }: ExpertDetailPanelProps) {
+   702→  const [selectedCategory, setSelectedCategory] = useState<ExpertCategory | null>(
+   703→    initialCategoryId ? EXPERT_CATEGORIES.find((c) => c.id === initialCategoryId) || null : null
+   704→  );
+   705→  const [selectedExpert, setSelectedExpert] = useState<Expert | null>(null);
+   706→
+   707→  const handleCategorySelect = (category: ExpertCategory) => {
+   708→    setSelectedCategory(category);
+   709→    setSelectedExpert(null);
+   710→  };
+   711→
+   712→  const handleExpertSelect = (expert: Expert) => {
+   713→    setSelectedExpert(expert);
+   714→  };
+   715→
+   716→  const handleBackToCategories = () => {
+   717→    setSelectedCategory(null);
+   718→    setSelectedExpert(null);
+   719→  };
+   720→
+   721→  const handleBackToExperts = () => {
+   722→    setSelectedExpert(null);
+   723→  };
+   724→
+   725→  const currentColor = selectedCategory?.color || '#6B7280';
+   726→
+   727→  // Expert detail view
+   728→  if (selectedExpert) {
+   729→    return (
+   730→      <div className="space-y-0">
+   731→        <ExpertDetailView
+   732→          expert={selectedExpert}
+   733→          color={currentColor}
+   734→          onBack={handleBackToExperts}
+   735→        />
+   736→      </div>
+   737→    );
+   738→  }
+   739→
+   740→  // Category experts list view
+   741→  if (selectedCategory) {
+   742→    return (
+   743→      <div className="space-y-3">
+   744→        <Button
+   745→          variant="ghost"
+   746→          size="sm"
+   747→          onClick={handleBackToCategories}
+   748→          className="h-8 text-xs gap-1 text-muted-foreground hover:text-foreground px-2"
+   749→        >
+   750→          <ArrowLeft className="h-3.5 w-3.5" />
+   751→          Retour aux catégories
+   752→        </Button>
+   753→
+   754→        <div className="flex items-center gap-2">
+   755→          <div
+   756→            className="w-9 h-9 rounded-lg flex items-center justify-center text-base"
+   757→            style={{ backgroundColor: `${currentColor}18` }}
+   758→          >
+   759→            {selectedCategory.icon}
+   760→          </div>
+   761→          <div className="flex-1 min-w-0">
+   762→            <h3 className="text-sm font-bold text-foreground">{selectedCategory.title}</h3>
+   763→            <p className="text-[10px] text-muted-foreground leading-snug">{selectedCategory.description}</p>
+   764→          </div>
+   765→          <div className="flex items-center gap-1 shrink-0">
+   766→            <Users className="h-3.5 w-3.5 text-muted-foreground" />
+   767→            <span className="text-[10px] font-bold text-muted-foreground">{selectedCategory.experts.length} experts</span>
+   768→          </div>
+   769→        </div>
+   770→
+   771→        <AnimatePresence mode="wait">
+   772→          <motion.div
+   773→            key={selectedCategory.id}
+   774→            initial="hidden"
+   775→            animate="visible"
+   776→            exit="exit"
+   777→            variants={{
+   778→              hidden: {},
+   779→              visible: { transition: { staggerChildren: 0.1 } },
+   780→              exit: { transition: { staggerChildren: 0.05, staggerDirection: -1 } },
+   781→            }}
+   782→            className="space-y-2"
+   783→          >
+   784→            {selectedCategory.experts.map((expert) => (
+   785→              <motion.div
+   786→                key={expert.id}
+   787→                variants={{
+   788→                  hidden: { opacity: 0, y: 20, scale: 0.95 },
+   789→                  visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 260, damping: 20 } },
+   790→                  exit: { opacity: 0, y: -10, scale: 0.95, transition: { duration: 0.2 } },
+   791→                }}
+   792→              >
+   793→                <ExpertCard expert={expert} color={currentColor} onSelect={handleExpertSelect} />
+   794→              </motion.div>
+   795→            ))}
+   796→          </motion.div>
+   797→        </AnimatePresence>
+   798→
+   799→        {/* Trust banner */}
+   800→        <motion.div
+   801→          initial={{ opacity: 0, y: 10 }}
+   802→          animate={{ opacity: 1, y: 0 }}
+   803→          transition={{ delay: 0.5 }}
+   804→          className="flex items-start gap-2 p-3 rounded-xl border"
+   805→          style={{ backgroundColor: `${currentColor}08`, borderColor: `${currentColor}25` }}
+   806→        >
+   807→          <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" style={{ color: currentColor }} />
+   808→          <p className="text-[10px] text-muted-foreground leading-relaxed">
+   809→            Tous nos experts sont vérifiés et sélectionnés pour leur professionnalisme. KAMI-EXTENSION assure la mise en relation.
+   810→          </p>
+   811→        </motion.div>
+   812→      </div>
+   813→    );
+   814→  }
+   815→
+   816→  // Main categories list
+   817→  return (
+   818→    <div className="space-y-3">
+   819→      <div className="flex items-center gap-2">
+   820→        <Button
+   821→          variant="ghost"
+   822→          size="sm"
+   823→          onClick={onBack}
+   824→          className="h-8 text-xs gap-1 text-muted-foreground hover:text-foreground px-2"
+   825→        >
+   826→          <ArrowLeft className="h-3.5 w-3.5" />
+   827→          Retour au SAV
+   828→        </Button>
+   829→      </div>
+   830→
+   831→      <div className="text-center mb-1">
+   832→        <h3 className="text-base font-bold text-foreground">Nos experts partenaires</h3>
+   833→        <p className="text-[11px] text-muted-foreground mt-0.5 max-w-md mx-auto leading-relaxed">
+   834→          Sélectionnez un métier pour consulter nos experts disponibles et leurs profils détaillés.
+   835→        </p>
+   836→      </div>
+   837→
+   838→      <AnimatePresence mode="wait">
+   839→        <motion.div
+   840→          initial="hidden"
+   841→          animate="visible"
+   842→          variants={{
+   843→            hidden: {},
+   844→            visible: { transition: { staggerChildren: 0.06 } },
+   845→          }}
+   846→          className="space-y-2"
+   847→        >
+   848→          {EXPERT_CATEGORIES.map((category) => (
+   849→            <motion.div
+   850→              key={category.id}
+   851→              variants={{
+   852→                hidden: { opacity: 0, y: 20 },
+   853→                visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 260, damping: 20 } },
+   854→              }}
+   855→            >
+   856→              <CategoryCard category={category} onSelect={handleCategorySelect} />
+   857→            </motion.div>
+   858→          ))}
+   859→        </motion.div>
+   860→      </AnimatePresence>
+   861→
+   862→      {/* Stats bar */}
+   863→      <motion.div
+   864→        initial={{ opacity: 0 }}
+   865→        animate={{ opacity: 1 }}
+   866→        transition={{ delay: 0.6 }}
+   867→        className="flex items-center justify-around p-3 rounded-xl bg-muted/30 border border-border"
+   868→      >
+   869→        <div className="text-center">
+   870→          <p className="text-sm font-bold text-foreground">{EXPERT_CATEGORIES.length}</p>
+   871→          <p className="text-[10px] text-muted-foreground">Métiers</p>
+   872→        </div>
+   873→        <div className="w-px h-6 bg-border" />
+   874→        <div className="text-center">
+   875→          <p className="text-sm font-bold text-foreground">
+   876→            {EXPERT_CATEGORIES.reduce((acc, c) => acc + c.experts.length, 0)}
+   877→          </p>
+   878→          <p className="text-[10px] text-muted-foreground">Experts</p>
+   879→        </div>
+   880→        <div className="w-px h-6 bg-border" />
+   881→        <div className="text-center">
+   882→          <p className="text-sm font-bold text-emerald-600">Vérifiés</p>
+   883→          <p className="text-[10px] text-muted-foreground">Certifiés</p>
+   884→        </div>
+   885→      </motion.div>
+   886→    </div>
+   887→  );
+   888→}
+   889→

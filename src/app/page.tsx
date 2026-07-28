@@ -38,6 +38,7 @@ import { LogoDisplay } from '@/components/kami/LogoDisplay';
 import { AdminLoginDialog } from '@/components/kami/AdminLoginDialog';
 import { PaymentMethodScreen } from '@/components/kami/PaymentMethodScreen';
 import { ServiceApresVenteScreen } from '@/components/kami/ServiceApresVenteScreen';
+import { ExpertApplicationsAdmin } from '@/components/kami/ExpertApplicationsAdmin';
 
 export default function KamiExtensionPage() {
   const [mounted, setMounted] = useState(false);
@@ -1625,6 +1626,12 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
               <p className="text-sm font-bold">Flash Infos</p>
             </CardContent>
           </Card>
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('expert-applications')}>
+            <CardContent className="p-0 text-center">
+              <UserPlus className="text-emerald-500 dark:text-emerald-400 h-8 w-8 mx-auto mb-2" />
+              <p className="text-sm font-bold">Candidatures Experts</p>
+            </CardContent>
+          </Card>
           <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition col-span-2" onClick={() => setAdminView('files')}>
             <CardContent className="p-0 text-center py-4">
               <Upload className="text-brand-blue h-8 w-8 mx-auto mb-2" />
@@ -1872,6 +1879,12 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
 
       {adminView === 'files' && (
         <AdminFiles onBack={() => setAdminView(null)} />
+      )}
+
+      {adminView === 'expert-applications' && (
+        <div className="mt-6">
+          <ExpertApplicationsAdmin onBack={() => setAdminView(null)} />
+        </div>
       )}
     </div>
   );

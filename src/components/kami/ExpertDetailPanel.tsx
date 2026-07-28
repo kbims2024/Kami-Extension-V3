@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,8 +19,11 @@ import {
   ShieldCheck,
   Briefcase,
   GraduationCap,
+  UserPlus,
+  Send,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { PartnerExpertApplicationForm } from './PartnerExpertApplicationForm';
 
 // ── Types ──
 interface Expert {
@@ -698,34 +701,97 @@ interface ExpertDetailPanelProps {
   onBack: () => void;
 }
 
+type PanelView = 'categories' | 'categoryExperts' | 'expertDetail' | 'applicationForm';
+
 export function ExpertDetailPanel({ initialCategoryId, onBack }: ExpertDetailPanelProps) {
+  const [currentView, setCurrentView] = useState<PanelView>(
+    initialCategoryId ? 'categoryExperts' : 'categories'
+  );
   const [selectedCategory, setSelectedCategory] = useState<ExpertCategory | null>(
     initialCategoryId ? EXPERT_CATEGORIES.find((c) => c.id === initialCategoryId) || null : null
   );
   const [selectedExpert, setSelectedExpert] = useState<Expert | null>(null);
+  const [dynamicCategories, setDynamicCategories] = useState<ExpertCategory[]>([]);
+
+  // Fetch approved experts from DB and merge into categories
+  useEffect(() => {
+    async function loadApprovedExperts() {
+      try {
+        const res = await fetch('/api/approved-experts');
+        if (res.ok) {
+          const data = await res.json();
+          const approved: Expert[] = data.experts.map((e: any) => ({
+            ...e,
+            reviewCount: e.reviewCount || 0,
+            rating: e.rating || 0,
+            projects: e.projects || 0,
+            image: e.image || '',
+            whatsapp: e.whatsapp || '',
+            certifications: e.certifications || [],
+          }));
+
+          // Group by categoryId
+          const grouped = new Map<string, Expert[]>();
+          for (const expert of approved) {
+            const catId = expert.categoryId || expert.specialty?.toLowerCase() || 'other';
+            if (!grouped.has(catId)) grouped.set(catId, []);
+            grouped.get(catId)!.push(expert);
+          }
+
+          // Build dynamic categories with approved experts merged
+          const merged: ExpertCategory[] = EXPERT_CATEGORIES.map((cat) => {
+            const extraExperts = grouped.get(cat.id) || [];
+            if (extraExperts.length > 0) {
+              return { ...cat, experts: [...cat.experts, ...extraExperts] };
+            }
+            return cat;
+          });
+          setDynamicCategories(merged);
+        }
+      } catch (err) {
+        // Silently fail - we just show the static experts
+      }
+    }
+    loadApprovedExperts();
+  }, []);
+
+  // Use dynamic categories (with approved experts merged) or fall back to static
+  const displayCategories = dynamicCategories.length > 0 ? dynamicCategories : EXPERT_CATEGORIES;
 
   const handleCategorySelect = (category: ExpertCategory) => {
     setSelectedCategory(category);
     setSelectedExpert(null);
+    setCurrentView('categoryExperts');
   };
 
   const handleExpertSelect = (expert: Expert) => {
     setSelectedExpert(expert);
+    setCurrentView('expertDetail');
   };
 
   const handleBackToCategories = () => {
     setSelectedCategory(null);
     setSelectedExpert(null);
+    setCurrentView('categories');
   };
 
   const handleBackToExperts = () => {
     setSelectedExpert(null);
+    setCurrentView('categoryExperts');
+  };
+
+  const handleShowApplicationForm = () => {
+    setCurrentView('applicationForm');
+  };
+
+  const handleBackFromApplication = () => {
+    setCurrentView('categories');
   };
 
   const currentColor = selectedCategory?.color || '#6B7280';
 
   // Expert detail view
-  if (selectedExpert) {
+  if (currentView === 'expertDetail' && selectedExpert) {
     return (
       <div className="space-y-0">
         <ExpertDetailView
@@ -738,7 +804,7 @@ export function ExpertDetailPanel({ initialCategoryId, onBack }: ExpertDetailPan
   }
 
   // Category experts list view
-  if (selectedCategory) {
+  if (currentView === 'categoryExperts' && selectedCategory) {
     return (
       <div className="space-y-3">
         <Button
@@ -813,6 +879,26 @@ export function ExpertDetailPanel({ initialCategoryId, onBack }: ExpertDetailPan
     );
   }
 
+  // Application form view
+  if (currentView === 'applicationForm') {
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div
+          key="application-form"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+        >
+          <PartnerExpertApplicationForm
+            onBack={handleBackFromApplication}
+            onSubmitted={handleBackFromApplication}
+          />
+        </motion.div>
+      </AnimatePresence>
+    );
+  }
+
   // Main categories list
   return (
     <div className="space-y-3">
@@ -845,7 +931,7 @@ export function ExpertDetailPanel({ initialCategoryId, onBack }: ExpertDetailPan
           }}
           className="space-y-2"
         >
-          {EXPERT_CATEGORIES.map((category) => (
+          {displayCategories.map((category) => (
             <motion.div
               key={category.id}
               variants={{
@@ -867,13 +953,13 @@ export function ExpertDetailPanel({ initialCategoryId, onBack }: ExpertDetailPan
         className="flex items-center justify-around p-3 rounded-xl bg-muted/30 border border-border"
       >
         <div className="text-center">
-          <p className="text-sm font-bold text-foreground">{EXPERT_CATEGORIES.length}</p>
+          <p className="text-sm font-bold text-foreground">{displayCategories.length}</p>
           <p className="text-[10px] text-muted-foreground">Métiers</p>
         </div>
         <div className="w-px h-6 bg-border" />
         <div className="text-center">
           <p className="text-sm font-bold text-foreground">
-            {EXPERT_CATEGORIES.reduce((acc, c) => acc + c.experts.length, 0)}
+            {displayCategories.reduce((acc, c) => acc + c.experts.length, 0)}
           </p>
           <p className="text-[10px] text-muted-foreground">Experts</p>
         </div>
@@ -882,6 +968,57 @@ export function ExpertDetailPanel({ initialCategoryId, onBack }: ExpertDetailPan
           <p className="text-sm font-bold text-emerald-600">Vérifiés</p>
           <p className="text-[10px] text-muted-foreground">Certifiés</p>
         </div>
+      </motion.div>
+
+      {/* CTA - Je veux devenir expert partenaire */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.7 }}
+      >
+        <Card
+          className="border-2 border-dashed border-emerald-300 dark:border-emerald-700 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/20 dark:to-card overflow-hidden cursor-pointer hover:shadow-lg transition-all"
+          onClick={handleShowApplicationForm}
+        >
+          <CardContent className="p-4 text-center">
+            <motion.div
+              className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/40 rounded-xl flex items-center justify-center mx-auto mb-2.5 shadow-md"
+              animate={{
+                boxShadow: [
+                  '0 4px 6px -1px rgba(16,185,129,0.2)',
+                  '0 10px 15px -3px rgba(16,185,129,0.4)',
+                  '0 4px 6px -1px rgba(16,185,129,0.2)',
+                ],
+              }}
+              transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <UserPlus className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+            </motion.div>
+            <h3 className="text-xs font-bold text-foreground mb-0.5">
+              Je veux faire partie des experts partenaires
+            </h3>
+            <p className="text-[10px] text-muted-foreground max-w-xs mx-auto leading-relaxed mb-3">
+              Vous êtes professionnel du bâtiment ? Postulez pour rejoindre notre réseau d&apos;experts vérifiés.
+            </p>
+            <Button
+              className="relative overflow-hidden bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-500/25 transition-all hover:scale-[1.02] h-10"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleShowApplicationForm();
+              }}
+            >
+              <motion.span
+                className="absolute inset-0"
+                animate={{
+                  background: ['rgba(255,255,255,0)', 'rgba(255,255,255,0.15)', 'rgba(255,255,255,0)'],
+                }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              />
+              <Send className="h-4 w-4 mr-2" />
+              <span>Postuler maintenant</span>
+            </Button>
+          </CardContent>
+        </Card>
       </motion.div>
     </div>
   );
