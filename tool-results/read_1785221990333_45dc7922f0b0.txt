@@ -1,0 +1,402 @@
+   600→   600→   600→                      <Search className="h-4 w-4 text-emerald-600 shrink-0" />
+   601→   601→   601→                      <p className="text-[11px] text-muted-foreground leading-relaxed">
+   602→   602→   602→                        Entrez vos informations pour retrouver votre dossier de paiement.
+   603→   603→   603→                      </p>
+   604→   604→   604→                    </div>
+   605→   605→   605→                    <div>
+   606→   606→   606→                      <label className="text-xs font-bold text-foreground mb-1 block">Référence du lot <span className="text-muted-foreground font-normal">(optionnel)</span></label>
+   607→   607→   607→                      <Textarea
+   608→   608→   608→                        value={paymentRef}
+   609→   609→   609→                        onChange={(e) => setPaymentRef(e.target.value)}
+   610→   610→   610→                        placeholder="Ex : LOT-A12-003"
+   611→   611→   611→                        className="min-h-[40px] text-sm resize-none"
+   612→   612→   612→                      />
+   613→   613→   613→                    </div>
+   614→   614→   614→                    <div>
+   615→   615→   615→                      <label className="text-xs font-bold text-foreground mb-1 block">Numéro de téléphone <span className="text-red-500">*</span></label>
+   616→   616→   616→                      <Textarea
+   617→   617→   617→                        value={paymentPhone}
+   618→   618→   618→                        onChange={(e) => setPaymentPhone(e.target.value)}
+   619→   619→   619→                        placeholder="+225 07 XX XX XX XX"
+   620→   620→   620→                        className="min-h-[40px] text-sm resize-none"
+   621→   621→   621→                      />
+   622→   622→   622→                    </div>
+   623→   623→   623→                    <Button
+   624→   624→   624→                      className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-lg shadow-emerald-500/20"
+   625→   625→   625→                      onClick={handleSubmitPayment}
+   626→   626→   626→                    >
+   627→   627→   627→                      <Search className="h-4 w-4 mr-2" />
+   628→   628→   628→                      Rechercher mes paiements
+   629→   629→   629→                    </Button>
+   630→   630→   630→                    <div className="flex items-center justify-center gap-4">
+   631→   631→   631→                      <a href={SAV_CONTACTS.whatsappHref} target="_blank" rel="noopener noreferrer" className="text-[11px] text-emerald-600 font-semibold hover:underline flex items-center gap-1">
+   632→   632→   632→                        <MessageCircle className="h-3 w-3" />
+   633→   633→   633→                        Demander par WhatsApp
+   634→   634→   634→                      </a>
+   635→   635→   635→                      <a href={SAV_CONTACTS.phoneHref} className="text-[11px] text-emerald-600 font-semibold hover:underline flex items-center gap-1">
+   636→   636→   636→                        <Phone className="h-3 w-3" />
+   637→   637→   637→                        Appeler le SAV
+   638→   638→   638→                      </a>
+   639→   639→   639→                    </div>
+   640→   640→   640→                  </motion.div>
+   641→   641→   641→                ) : (
+   642→   642→   642→                  <motion.div key="success" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="p-6 text-center">
+   643→   643→   643→                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 12 }}>
+   644→   644→   644→                      <CheckCircle2 className="h-14 w-14 text-emerald-500 mx-auto mb-3" />
+   645→   645→   645→                    </motion.div>
+   646→   646→   646→                    <h3 className="text-base font-bold text-foreground mb-1">Demande enregistrée !</h3>
+   647→   647→   647→                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-300 dark:border-emerald-800 my-2">
+   648→   648→   648→                      <Ticket className="h-3.5 w-3.5 text-emerald-600" />
+   649→   649→   649→                      <span className="text-sm font-bold text-emerald-700 dark:text-emerald-300">{paymentTicket}</span>
+   650→   650→   650→                    </div>
+   651→   651→   651→                    <p className="text-xs text-muted-foreground max-w-xs mx-auto mb-4 leading-relaxed">
+   652→   652→   652→                      Votre récapitulatif de paiement sera envoyé par SMS sous <strong className="text-foreground">quelques minutes</strong>.
+   653→   653→   653→                    </p>
+   654→   654→   654→                    <Button className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold" onClick={() => setShowPaymentDialog(false)}>
+   655→   655→   655→                      Fermer
+   656→   656→   656→                    </Button>
+   657→   657→   657→                  </motion.div>
+   658→   658→   658→                )}
+   659→   659→   659→              </AnimatePresence>
+   660→   660→   660→            </DialogContent>
+   661→   661→   661→          </Dialog>
+   662→   662→   662→
+   663→   663→   663→          {/* ═══════════════════════════════════════════════
+   664→   664→   664→              DIALOG : Documents & attestations
+   665→   665→   665→              ═══════════════════════════════════════════════ */}
+   666→   666→   666→          <Dialog open={showDocsDialog} onOpenChange={setShowDocsDialog}>
+   667→   667→   667→            <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden rounded-2xl">
+   668→   668→   668→              <div className="bg-gradient-to-br from-blue-500 to-indigo-700 px-5 pt-5 pb-5 text-center relative overflow-hidden">
+   669→   669→   669→                <div className="absolute inset-0 opacity-10">
+   670→   670→   670→                  <div className="absolute -top-4 -right-4 w-24 h-24 bg-white rounded-full" />
+   671→   671→   671→                </div>
+   672→   672→   672→                <motion.div className="relative z-10" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 15 }}>
+   673→   673→   673→                  <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center mx-auto mb-2">
+   674→   674→   674→                    <FileText className="h-6 w-6 text-white" />
+   675→   675→   675→                  </div>
+   676→   676→   676→                  <DialogTitle className="text-white text-base font-bold">Documents & attestations</DialogTitle>
+   677→   677→   677→                  <p className="text-blue-100 text-[11px] mt-1">Téléchargez vos documents officiels.</p>
+   678→   678→   678→                </motion.div>
+   679→   679→   679→              </div>
+   680→   680→   680→              <div className="p-4 space-y-2.5 max-h-[60vh] overflow-y-auto">
+   681→   681→   681→                {SAV_DOCUMENTS.map((doc, i) => {
+   682→   682→   682→                  const Icon = doc.icon;
+   683→   683→   683→                  return (
+   684→   684→   684→                    <motion.div
+   685→   685→   685→                      key={doc.id}
+   686→   686→   686→                      initial={{ opacity: 0, x: 20 }}
+   687→   687→   687→                      animate={{ opacity: 1, x: 0 }}
+   688→   688→   688→                      transition={{ delay: i * 0.06, duration: 0.3 }}
+   689→   689→   689→                    >
+   690→   690→   690→                      <Card className="border-border hover:border-blue-300 dark:hover:border-blue-800 transition-all cursor-pointer group" onClick={() => {
+   691→   691→   691→                        if (doc.requiresAuth) {
+   692→   692→   692→                          toast.info(`Pour télécharger "${doc.title}", connectez-vous à votre espace client.`, { duration: 4000 });
+   693→   693→   693→                        }
+   694→   694→   694→                      }}>
+   695→   695→   695→                        <CardContent className="p-3 flex items-center gap-3">
+   696→   696→   696→                          <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${doc.color}18` }}>
+   697→   697→   697→                            <Icon className="h-4.5 w-4.5" style={{ color: doc.color }} />
+   698→   698→   698→                          </div>
+   699→   699→   699→                          <div className="flex-1 min-w-0">
+   700→   700→   700→                            <p className="text-xs font-bold text-foreground">{doc.title}</p>
+   701→   701→   701→                            <p className="text-[10px] text-muted-foreground leading-snug">{doc.description}</p>
+   702→   702→   702→                            {doc.requiresFullPayment && (
+   703→   703→   703→                              <span className="inline-flex items-center gap-1 mt-0.5 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+   704→   704→   704→                                <Lock className="h-2.5 w-2.5" />
+   705→   705→   705→                                Après paiement intégral
+   706→   706→   706→                              </span>
+   707→   707→   707→                            )}
+   708→   708→   708→                          </div>
+   709→   709→   709→                          <Download className="h-4 w-4 text-muted-foreground group-hover:text-blue-500 shrink-0 transition-colors" />
+   710→   710→   710→                        </CardContent>
+   711→   711→   711→                      </Card>
+   712→   712→   712→                    </motion.div>
+   713→   713→   713→                  );
+   714→   714→   714→                })}
+   715→   715→   715→                <div className="p-2.5 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 mt-2">
+   716→   716→   716→                  <p className="text-[11px] text-muted-foreground leading-relaxed text-center">
+   717→   717→   717→                    <strong className="text-foreground">Besoin d&apos;aide ?</strong> Contactez le SAV par{' '}
+   718→   718→   718→                    <a href={SAV_CONTACTS.whatsappHref} target="_blank" rel="noopener noreferrer" className="text-blue-600 font-semibold hover:underline">WhatsApp</a> ou{' '}
+   719→   719→   719→                    <a href={SAV_CONTACTS.phoneHref} className="text-blue-600 font-semibold hover:underline">téléphone</a>.
+   720→   720→   720→                  </p>
+   721→   721→   721→                </div>
+   722→   722→   722→              </div>
+   723→   723→   723→            </DialogContent>
+   724→   724→   724→          </Dialog>
+   725→   725→   725→
+   726→   726→   726→          {/* ═══════════════════════════════════════════════
+   727→   727→   727→              DIALOG : Réclamations & litiges
+   728→   728→   728→              ═══════════════════════════════════════════════ */}
+   729→   729→   729→          <Dialog open={showReclamationDialog} onOpenChange={(open) => {
+   730→   730→   730→            setShowReclamationDialog(open);
+   731→   731→   731→            if (!open) { setReclamationSubmitted(false); setReclamationCategory(''); setReclamationDescription(''); setReclamationName(''); setReclamationPhone(''); }
+   732→   732→   732→          }}>
+   733→   733→   733→            <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden rounded-2xl">
+   734→   734→   734→              <div className="bg-gradient-to-br from-amber-500 to-orange-600 px-5 pt-5 pb-5 text-center relative overflow-hidden">
+   735→   735→   735→                <div className="absolute inset-0 opacity-10">
+   736→   736→   736→                  <div className="absolute -top-4 -right-4 w-24 h-24 bg-white rounded-full" />
+   737→   737→   737→                </div>
+   738→   738→   738→                <motion.div className="relative z-10" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 15 }}>
+   739→   739→   739→                  <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center mx-auto mb-2">
+   740→   740→   740→                    <AlertCircle className="h-6 w-6 text-white" />
+   741→   741→   741→                  </div>
+   742→   742→   742→                  <DialogTitle className="text-white text-base font-bold">Réclamations & litiges</DialogTitle>
+   743→   743→   743→                  <p className="text-amber-100 text-[11px] mt-1">Signalez un problème, nous ouvrons un ticket suivi.</p>
+   744→   744→   744→                </motion.div>
+   745→   745→   745→              </div>
+   746→   746→   746→              <AnimatePresence mode="wait">
+   747→   747→   747→                {!reclamationSubmitted ? (
+   748→   748→   748→                  <motion.div key="form" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="p-5 space-y-4">
+   749→   749→   749→                    <div>
+   750→   750→   750→                      <label className="text-xs font-bold text-foreground mb-1 block">Votre nom <span className="text-red-500">*</span></label>
+   751→   751→   751→                      <Textarea value={reclamationName} onChange={(e) => setReclamationName(e.target.value)} placeholder="Nom complet" className="min-h-[40px] text-sm resize-none" />
+   752→   752→   752→                    </div>
+   753→   753→   753→                    <div>
+   754→   754→   754→                      <label className="text-xs font-bold text-foreground mb-1 block">Téléphone <span className="text-red-500">*</span></label>
+   755→   755→   755→                      <Textarea value={reclamationPhone} onChange={(e) => setReclamationPhone(e.target.value)} placeholder="+225 07 XX XX XX XX" className="min-h-[40px] text-sm resize-none" />
+   756→   756→   756→                    </div>
+   757→   757→   757→                    <div>
+   758→   758→   758→                      <label className="text-xs font-bold text-foreground mb-1.5 block">Catégorie de réclamation <span className="text-red-500">*</span></label>
+   759→   759→   759→                      <div className="flex flex-wrap gap-1.5">
+   760→   760→   760→                        {RECLAMATION_CATEGORIES.map((cat) => {
+   761→   761→   761→                          const Icon = cat.icon;
+   762→   762→   762→                          return (
+   763→   763→   763→                            <button
+   764→   764→   764→                              key={cat.id}
+   765→   765→   765→                              type="button"
+   766→   766→   766→                              onClick={() => setReclamationCategory(cat.id)}
+   767→   767→   767→                              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all border ${
+   768→   768→   768→                                reclamationCategory === cat.id
+   769→   769→   769→                                  ? 'border-amber-400 shadow-sm'
+   770→   770→   770→                                  : 'bg-muted/50 border-border text-muted-foreground hover:border-amber-300'
+   771→   771→   771→                              }`}
+   772→   772→   772→                              style={reclamationCategory === cat.id ? { backgroundColor: `${cat.color}18`, color: cat.color } : {}}
+   773→   773→   773→                            >
+   774→   774→   774→                              <Icon className="h-3 w-3" />
+   775→   775→   775→                              {cat.label}
+   776→   776→   776→                            </button>
+   777→   777→   777→                          );
+   778→   778→   778→                        })}
+   779→   779→   779→                      </div>
+   780→   780→   780→                    </div>
+   781→   781→   781→                    <div>
+   782→   782→   782→                      <label className="text-xs font-bold text-foreground mb-1 block">Décrivez votre réclamation <span className="text-red-500">*</span></label>
+   783→   783→   783→                      <Textarea
+   784→   784→   784→                        value={reclamationDescription}
+   785→   785→   785→                        onChange={(e) => setReclamationDescription(e.target.value)}
+   786→   786→   786→                        placeholder="Décrivez le problème en détail : date, circonstances, actions déjà entreprises..."
+   787→   787→   787→                        className="min-h-[100px] text-sm resize-none"
+   788→   788→   788→                      />
+   789→   789→   789→                    </div>
+   790→   790→   790→                    <Button
+   791→   791→   791→                      className="w-full h-11 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs shadow-lg shadow-amber-500/20"
+   792→   792→   792→                      onClick={handleSubmitReclamation}
+   793→   793→   793→                    >
+   794→   794→   794→                      <AlertCircle className="h-4 w-4 mr-2" />
+   795→   795→   795→                      Envoyer ma réclamation
+   796→   796→   796→                    </Button>
+   797→   797→   797→                    <p className="text-[10px] text-muted-foreground text-center">
+   798→   798→   798→                      Un accusé de réception avec numéro de ticket vous sera envoyé par SMS.
+   799→   799→   799→                    </p>
+   800→   800→   800→                  </motion.div>
+   801→   801→   801→                ) : (
+   802→   802→   802→                  <motion.div key="success" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="p-6 text-center">
+   803→   803→   803→                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 12 }}>
+   804→   804→   804→                      <CheckCircle2 className="h-14 w-14 text-amber-500 mx-auto mb-3" />
+   805→   805→   805→                    </motion.div>
+   806→   806→   806→                    <h3 className="text-base font-bold text-foreground mb-1">Réclamation enregistrée !</h3>
+   807→   807→   807→                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-800 my-2">
+   808→   808→   808→                      <Ticket className="h-3.5 w-3.5 text-amber-600" />
+   809→   809→   809→                      <span className="text-sm font-bold text-amber-700 dark:text-amber-300">{reclamationTicket}</span>
+   810→   810→   810→                    </div>
+   811→   811→   811→                    <p className="text-xs text-muted-foreground max-w-xs mx-auto mb-4 leading-relaxed">
+   812→   812→   812→                      Votre réclamation est prise en charge. Un conseiller vous recontactera sous <strong className="text-foreground">48h ouvrées</strong>.
+   813→   813→   813→                    </p>
+   814→   814→   814→                    <div className="flex gap-2 justify-center">
+   815→   815→   815→                      <Button variant="outline" onClick={() => { setReclamationSubmitted(false); setReclamationCategory(''); setReclamationDescription(''); }} className="text-xs font-bold">
+   816→   816→   816→                        Autre réclamation
+   817→   817→   817→                      </Button>
+   818→   818→   818→                      <Button className="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold" onClick={() => setShowReclamationDialog(false)}>
+   819→   819→   819→                        Fermer
+   820→   820→   820→                      </Button>
+   821→   821→   821→                    </div>
+   822→   822→   822→                  </motion.div>
+   823→   823→   823→                )}
+   824→   824→   824→              </AnimatePresence>
+   825→   825→   825→            </DialogContent>
+   826→   826→   826→          </Dialog>
+   827→   827→   827→
+   828→   828→   828→          {/* ═══════════════════════════════════════════════
+   829→   829→   829→              DIALOG : Assistance technique
+   830→   830→   830→              ═══════════════════════════════════════════════ */}
+   831→   831→   831→          <Dialog open={showAssistanceDialog} onOpenChange={(open) => {
+   832→   832→   832→            setShowAssistanceDialog(open);
+   833→   833→   833→            if (!open) { setAssistanceSubmitted(false); setAssistanceTopic(''); setAssistanceMessage(''); }
+   834→   834→   834→          }}>
+   835→   835→   835→            <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden rounded-2xl">
+   836→   836→   836→              <div className="bg-gradient-to-br from-red-500 to-rose-700 px-5 pt-5 pb-5 text-center relative overflow-hidden">
+   837→   837→   837→                <div className="absolute inset-0 opacity-10">
+   838→   838→   838→                  <div className="absolute -top-4 -right-4 w-24 h-24 bg-white rounded-full" />
+   839→   839→   839→                </div>
+   840→   840→   840→                <motion.div className="relative z-10" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 15 }}>
+   841→   841→   841→                  <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center mx-auto mb-2">
+   842→   842→   842→                    <Wrench className="h-6 w-6 text-white" />
+   843→   843→   843→                  </div>
+   844→   844→   844→                  <DialogTitle className="text-white text-base font-bold">Assistance technique</DialogTitle>
+   845→   845→   845→                  <p className="text-red-100 text-[11px] mt-1">Questions sur votre lot, bornage, raccordements.</p>
+   846→   846→   846→                </motion.div>
+   847→   847→   847→              </div>
+   848→   848→   848→              <AnimatePresence mode="wait">
+   849→   849→   849→                {!assistanceSubmitted ? (
+   850→   850→   850→                  <motion.div key="form" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="p-5 space-y-4">
+   851→   851→   851→                    <div>
+   852→   852→   852→                      <label className="text-xs font-bold text-foreground mb-1.5 block">Quel est votre sujet ?</label>
+   853→   853→   853→                      <div className="flex flex-wrap gap-1.5">
+   854→   854→   854→                        {ASSISTANCE_TOPICS.map((topic) => {
+   855→   855→   855→                          const Icon = topic.icon;
+   856→   856→   856→                          return (
+   857→   857→   857→                            <button
+   858→   858→   858→                              key={topic.id}
+   859→   859→   859→                              type="button"
+   860→   860→   860→                              onClick={() => setAssistanceTopic(topic.id)}
+   861→   861→   861→                              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all border ${
+   862→   862→   862→                                assistanceTopic === topic.id
+   863→   863→   863→                                  ? 'bg-red-100 dark:bg-red-900/30 border-red-400 text-red-700 dark:text-red-300 shadow-sm'
+   864→   864→   864→                                  : 'bg-muted/50 border-border text-muted-foreground hover:border-red-300 hover:text-foreground'
+   865→   865→   865→                              }`}
+   866→   866→   866→                            >
+   867→   867→   867→                              <Icon className="h-3 w-3" />
+   868→   868→   868→                              {topic.label}
+   869→   869→   869→                            </button>
+   870→   870→   870→                          );
+   871→   871→   871→                        })}
+   872→   872→   872→                      </div>
+   873→   873→   873→                    </div>
+   874→   874→   874→                    <div>
+   875→   875→   875→                      <label className="text-xs font-bold text-foreground mb-1 block">Décrivez votre besoin</label>
+   876→   876→   876→                      <Textarea
+   877→   877→   877→                        value={assistanceMessage}
+   878→   878→   878→                        onChange={(e) => setAssistanceMessage(e.target.value)}
+   879→   879→   879→                        placeholder="Ex : Je souhaite connaître les démarches pour le raccordement à l'eau de mon lot B5..."
+   880→   880→   880→                        className="min-h-[100px] text-sm resize-none"
+   881→   881→   881→                      />
+   882→   882→   882→                    </div>
+   883→   883→   883→                    <div className="flex gap-2">
+   884→   884→   884→                      <Button
+   885→   885→   885→                        className="flex-1 h-11 bg-red-500 hover:bg-red-600 text-white font-bold text-xs shadow-lg shadow-red-500/20"
+   886→   886→   886→                        onClick={handleSubmitAssistance}
+   887→   887→   887→                      >
+   888→   888→   888→                        <Send className="h-4 w-4 mr-2" />
+   889→   889→   889→                        Envoyer
+   890→   890→   890→                      </Button>
+   891→   891→   891→                    </div>
+   892→   892→   892→                    <div className="flex items-center justify-center gap-4">
+   893→   893→   893→                      <a href={SAV_CONTACTS.phoneHref} className="text-[11px] text-red-500 font-semibold hover:underline flex items-center gap-1">
+   894→   894→   894→                        <Phone className="h-3 w-3" />
+   895→   895→   895→                        Appeler le SAV
+   896→   896→   896→                      </a>
+   897→   897→   897→                      <a href={SAV_CONTACTS.whatsappHref} target="_blank" rel="noopener noreferrer" className="text-[11px] text-red-500 font-semibold hover:underline flex items-center gap-1">
+   898→   898→   898→                        <MessageCircle className="h-3 w-3" />
+   899→   899→   899→                        WhatsApp
+   900→   900→   900→                      </a>
+   901→   901→   901→                    </div>
+   902→   902→   902→                  </motion.div>
+   903→   903→   903→                ) : (
+   904→   904→   904→                  <motion.div key="success" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="p-6 text-center">
+   905→   905→   905→                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 12 }}>
+   906→   906→   906→                      <CheckCircle2 className="h-14 w-14 text-red-500 mx-auto mb-3" />
+   907→   907→   907→                    </motion.div>
+   908→   908→   908→                    <h3 className="text-base font-bold text-foreground mb-1">Demande envoyée !</h3>
+   909→   909→   909→                    <p className="text-xs text-muted-foreground max-w-xs mx-auto mb-4 leading-relaxed">
+   910→   910→   910→                      Notre équipe technique a reçu votre demande et vous recontactera sous <strong className="text-foreground">24h ouvrées</strong>.
+   911→   911→   911→                    </p>
+   912→   912→   912→                    <div className="flex gap-2 justify-center">
+   913→   913→   913→                      <Button variant="outline" onClick={() => { setAssistanceSubmitted(false); setAssistanceTopic(''); setAssistanceMessage(''); }} className="text-xs font-bold">
+   914→   914→   914→                        Autre question
+   915→   915→   915→                      </Button>
+   916→   916→   916→                      <Button className="bg-red-500 hover:bg-red-600 text-white text-xs font-bold" onClick={() => setShowAssistanceDialog(false)}>
+   917→   917→   917→                        Fermer
+   918→   918→   918→                      </Button>
+   919→   919→   919→                    </div>
+   920→   920→   920→                  </motion.div>
+   921→   921→   921→                )}
+   922→   922→   922→              </AnimatePresence>
+   923→   923→   923→            </DialogContent>
+   924→   924→   924→          </Dialog>
+   925→   925→   925→
+   926→   926→   926→          {/* ═══════════════════════════════════════════════
+   927→   927→   927→              DIALOG : Sollicitation expert
+   928→   928→   928→              ═══════════════════════════════════════════════ */}
+   929→   929→   929→          <Dialog open={showExpertDialog} onOpenChange={(open) => {
+   930→   930→   930→            setShowExpertDialog(open);
+   931→   931→   931→            if (!open) { setSelectedExpert(null); }
+   932→   932→   932→          }}>
+   933→   933→   933→            <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden rounded-2xl">
+   934→   934→   934→              {selectedExpert && (
+   935→   935→   935→                <>
+   936→   936→   936→                  <div
+   937→   937→   937→                    className="px-5 pt-5 pb-5 text-center relative overflow-hidden"
+   938→   938→   938→                    style={{ background: `linear-gradient(135deg, ${selectedExpert.color}, ${selectedExpert.color}cc)` }}
+   939→   939→   939→                  >
+   940→   940→   940→                    <div className="absolute inset-0 opacity-10">
+   941→   941→   941→                      <div className="absolute -top-4 -right-4 w-24 h-24 bg-white rounded-full" />
+   942→   942→   942→                      <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-white rounded-full" />
+   943→   943→   943→                    </div>
+   944→   944→   944→                    <motion.div className="relative z-10" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 15 }}>
+   945→   945→   945→                      <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center mx-auto mb-2">
+   946→   946→   946→                        {(() => { const EIcon = selectedExpert.icon; return <EIcon className="h-6 w-6 text-white" />; })()}
+   947→   947→   947→                      </div>
+   948→   948→   948→                      <DialogTitle className="text-white text-base font-bold">
+   949→   949→   949→                        Solliciter un {selectedExpert.title.toLowerCase()}
+   950→   950→   950→                      </DialogTitle>
+   951→   951→   951→                      <p className="text-white/70 text-[11px] mt-1">{selectedExpert.subtitle}</p>
+   952→   952→   952→                    </motion.div>
+   953→   953→   953→                  </div>
+   954→   954→   954→                  <AnimatePresence mode="wait">
+   955→   955→   955→                    {!expertSubmitted ? (
+   956→   956→   956→                      <motion.div key="form" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="p-5 space-y-4">
+   957→   957→   957→                        <div className="flex gap-2">
+   958→   958→   958→                          <a href={SAV_CONTACTS.phoneHref} className="flex-1">
+   959→   959→   959→                            <Button variant="outline" className="w-full h-10 text-[11px] font-bold" style={{ borderColor: `${selectedExpert.color}40`, hover: '' }}>
+   960→   960→   960→                              <Phone className="h-3.5 w-3.5 mr-1" style={{ color: selectedExpert.color }} />
+   961→   961→   961→                              Appeler
+   962→   962→   962→                            </Button>
+   963→   963→   963→                          </a>
+   964→   964→   964→                          <a href={SAV_CONTACTS.whatsappHref} target="_blank" rel="noopener noreferrer" className="flex-1">
+   965→   965→   965→                            <Button variant="outline" className="w-full h-10 text-[11px] font-bold" style={{ borderColor: `${selectedExpert.color}40` }}>
+   966→   966→   966→                              <MessageCircle className="h-3.5 w-3.5 mr-1" style={{ color: selectedExpert.color }} />
+   967→   967→   967→                              WhatsApp
+   968→   968→   968→                            </Button>
+   969→   969→   969→                          </a>
+   970→   970→   970→                        </div>
+   971→   971→   971→                        <div className="h-px bg-border" />
+   972→   972→   972→                        <p className="text-[11px] text-muted-foreground text-center">ou remplissez le formulaire ci-dessous :</p>
+   973→   973→   973→                        <div>
+   974→   974→   974→                          <label className="text-xs font-bold text-foreground mb-1 block">Votre nom <span className="text-red-500">*</span></label>
+   975→   975→   975→                          <Textarea value={expertName} onChange={(e) => setExpertName(e.target.value)} placeholder="Nom complet" className="min-h-[40px] text-sm resize-none" />
+   976→   976→   976→                        </div>
+   977→   977→   977→                        <div>
+   978→   978→   978→                          <label className="text-xs font-bold text-foreground mb-1 block">Téléphone <span className="text-red-500">*</span></label>
+   979→   979→   979→                          <Textarea value={expertPhone} onChange={(e) => setExpertPhone(e.target.value)} placeholder="+225 07 XX XX XX XX" className="min-h-[40px] text-sm resize-none" />
+   980→   980→   980→                        </div>
+   981→   981→   981→                        <div>
+   982→   982→   982→                          <label className="text-xs font-bold text-foreground mb-1.5 block">Niveau d&apos;urgence <span className="text-red-500">*</span></label>
+   983→   983→   983→                          <div className="flex flex-wrap gap-1.5">
+   984→   984→   984→                            {[
+   985→   985→   985→                              { id: 'normal', label: 'Normal', emoji: '🟢' },
+   986→   986→   986→                              { id: 'urgent', label: 'Urgent', emoji: '🟡' },
+   987→   987→   987→                              { id: 'tres-urgent', label: 'Très urgent', emoji: '🔴' },
+   988→   988→   988→                            ].map((u) => (
+   989→   989→   989→                              <button
+   990→   990→   990→                                key={u.id}
+   991→   991→   991→                                type="button"
+   992→   992→   992→                                onClick={() => setExpertUrgency(u.id)}
+   993→   993→   993→                                className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all border ${
+   994→   994→   994→                                  expertUrgency === u.id
+   995→   995→   995→                                    ? 'border-foreground bg-foreground/5 shadow-sm'
+   996→   996→   996→                                    : 'bg-muted/50 border-border text-muted-foreground hover:border-foreground/30'
+   997→   997→   997→                                }`}
+   998→   998→   998→                              >
+   999→   999→   999→                                <span>{u.emoji}</span>
+
+[showing lines 600-999 of 1374; use offset=1000 with limit to continue reading]

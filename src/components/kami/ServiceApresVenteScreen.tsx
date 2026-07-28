@@ -50,6 +50,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ExpertDetailPanel } from './ExpertDetailPanel';
 
 interface ServiceApresVenteScreenProps {
   onBack: () => void;
@@ -230,13 +231,42 @@ const ASSISTANCE_TOPICS = [
   { id: 'autre', label: 'Autre question', icon: MessageSquareText },
 ];
 
+// Données des 4 services du SAV
+const SAV_SERVICES = [
+  {
+    title: 'Suivi des paiements',
+    description: 'Consultez vos versements, le solde restant et obtenez vos reçus.',
+    icon: Wallet,
+    color: '#10B981',
+  },
+  {
+    title: 'Documents & attestations',
+    description: 'Téléchargez vos contrats, attestations et documents de propriété.',
+    icon: Download,
+    color: '#3B82F6',
+  },
+  {
+    title: 'Réclamations & litiges',
+    description: 'Soumettez une réclamation et suivez sa résolution.',
+    icon: MessageSquareText,
+    color: '#EF4444',
+  },
+  {
+    title: 'Assistance technique',
+    description: 'Obtenez de l\'aide pour le bornage, raccordements et viabilisation.',
+    icon: Wrench,
+    color: '#F59E0B',
+  },
+];
+
 export function ServiceApresVenteScreen({
   onBack,
   setIsMenuOpen,
   onLoginClick,
 }: ServiceApresVenteScreenProps) {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-  const [showExperts, setShowExperts] = useState(false);
+  const [showExpertPanel, setShowExpertPanel] = useState(false);
+  const [selectedExpertCategoryId, setSelectedExpertCategoryId] = useState<string | undefined>(undefined);
 
   // ── Dialog : Besoin d'aide ? ──
   const [showHelpDialog, setShowHelpDialog] = useState(false);
@@ -287,13 +317,18 @@ export function ServiceApresVenteScreen({
   // ── Handlers ──
 
   const handleRequestExpert = (expert: typeof SAV_EXPERTS[number]) => {
-    setSelectedExpert(expert);
-    setExpertName('');
-    setExpertPhone('');
-    setExpertNeed('');
-    setExpertUrgency('');
-    setExpertSubmitted(false);
-    setShowExpertDialog(true);
+    setSelectedExpertCategoryId(expert.id);
+    setShowExpertPanel(true);
+  };
+
+  const handleOpenExpertPanel = (categoryId?: string) => {
+    setSelectedExpertCategoryId(categoryId);
+    setShowExpertPanel(true);
+  };
+
+  const handleBackFromExpertPanel = () => {
+    setShowExpertPanel(false);
+    setSelectedExpertCategoryId(undefined);
   };
 
   const handleSubmitExpert = () => {
@@ -1139,157 +1174,76 @@ export function ServiceApresVenteScreen({
           </div>
 
           {/* Besoin d'un expert pour votre projet ? */}
-          <Card className="border-amber-200 dark:border-amber-900/50 bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/20 dark:to-card overflow-hidden">
-            <CardContent className="p-3.5 text-center">
-              <div className="w-11 h-11 bg-amber-100 dark:bg-amber-900/40 rounded-xl flex items-center justify-center mx-auto mb-2 shadow-md shadow-amber-200/50 dark:shadow-amber-900/30">
-                <HardHat className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-              </div>
-              <h3 className="text-xs font-bold text-foreground mb-0.5">
-                Besoin d&apos;un expert pour votre projet ?
-              </h3>
-              <p className="text-[10px] text-muted-foreground max-w-xs mx-auto leading-relaxed mb-2.5">
-                Choisissez l&apos;un de nos partenaires qualifiés et nous vous
-                mettrons en relation rapidement.
-              </p>
-              <Button
-                onClick={() => setShowExperts(!showExperts)}
-                className="relative overflow-hidden bg-amber-500 hover:bg-amber-600 text-white font-bold w-full text-xs shadow-md shadow-amber-500/25 transition-all hover:scale-[1.02] h-10"
-              >
-                {!showExperts && (
-                  <motion.span
-                    className="absolute inset-0"
-                    animate={{
-                      background: ['rgba(255,255,255,0)', 'rgba(255,255,255,0.15)', 'rgba(255,255,255,0)'],
-                    }}
-                    transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                  />
-                )}
-                {showExperts ? (
-                  <>
-                    <ChevronUp className="h-4 w-4 mr-2" />
-                    Masquer les experts
-                  </>
-                ) : (
-                  <>
-                    <ChevronDown className="h-4 w-4 mr-2" />
-                    <motion.span
-                      animate={{ scale: [1, 1.03, 1] }}
-                      transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-                    >
-                      Voir nos experts disponibles
-                    </motion.span>
-                  </>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Grille des experts — très animée */}
-          <AnimatePresence>
-            {showExperts && (
+          <AnimatePresence mode="wait">
+            {!showExpertPanel ? (
               <motion.div
-                key="experts-grid"
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                variants={{
-                  hidden: {},
-                  visible: { transition: { staggerChildren: 0.08 } },
-                  exit: { transition: { staggerChildren: 0.04, staggerDirection: -1 } },
-                }}
-                className="space-y-2.5"
+                key="expert-cta"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
               >
-                <motion.div
-                  variants={{
-                    hidden: { opacity: 0, x: -20 },
-                    visible: { opacity: 1, x: 0, transition: { duration: 0.4, ease: 'easeOut' } },
-                    exit: { opacity: 0, x: -10, transition: { duration: 0.2 } },
-                  }}
-                  className="flex items-center gap-2 px-1"
+                <Card className="border-amber-200 dark:border-amber-900/50 bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/20 dark:to-card overflow-hidden cursor-pointer"
+                  onClick={() => handleOpenExpertPanel()}
                 >
-                  <motion.div animate={{ rotate: [0, 15, -15, 0] }} transition={{ duration: 0.6, delay: 0.2, ease: 'easeInOut' }}>
-                    <HardHat className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                  </motion.div>
-                  <h3 className="text-sm font-bold text-foreground">Nos partenaires qualifiés</h3>
-                  <motion.div
-                    className="flex-1 h-px bg-gradient-to-r from-amber-300 to-transparent"
-                    initial={{ scaleX: 0, originX: 0 }}
-                    animate={{ scaleX: 1 }}
-                    transition={{ duration: 0.6, delay: 0.3 }}
-                  />
-                </motion.div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {SAV_EXPERTS.map((expert) => {
-                    const Icon = expert.icon;
-                    return (
-                      <motion.div
-                        key={expert.id}
-                        variants={{
-                          hidden: { opacity: 0, y: 30, scale: 0.85, rotateX: -10 },
-                          visible: { opacity: 1, y: 0, scale: 1, rotateX: 0, transition: { type: 'spring', stiffness: 260, damping: 18, bounce: 0.4 } },
-                          exit: { opacity: 0, y: -15, scale: 0.9, transition: { duration: 0.2 } },
+                  <CardContent className="p-3.5 text-center">
+                    <motion.div
+                      className="w-11 h-11 bg-amber-100 dark:bg-amber-900/40 rounded-xl flex items-center justify-center mx-auto mb-2 shadow-md shadow-amber-200/50 dark:shadow-amber-900/30"
+                      animate={{
+                        boxShadow: [
+                          '0 4px 6px -1px rgba(245,158,11,0.2)',
+                          '0 10px 15px -3px rgba(245,158,11,0.4)',
+                          '0 4px 6px -1px rgba(245,158,11,0.2)',
+                        ],
+                      }}
+                      transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+                    >
+                      <HardHat className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                    </motion.div>
+                    <h3 className="text-xs font-bold text-foreground mb-0.5">
+                      Besoin d&apos;un expert pour votre projet ?
+                    </h3>
+                    <p className="text-[10px] text-muted-foreground max-w-xs mx-auto leading-relaxed mb-2.5">
+                      Choisissez l&apos;un de nos partenaires qualifiés et nous vous
+                      mettrons en relation rapidement.
+                    </p>
+                    <Button
+                      className="relative overflow-hidden bg-amber-500 hover:bg-amber-600 text-white font-bold w-full text-xs shadow-md shadow-amber-500/25 transition-all hover:scale-[1.02] h-10"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenExpertPanel();
+                      }}
+                    >
+                      <motion.span
+                        className="absolute inset-0"
+                        animate={{
+                          background: ['rgba(255,255,255,0)', 'rgba(255,255,255,0.15)', 'rgba(255,255,255,0)'],
                         }}
-                        whileHover={{
-                          scale: 1.04,
-                          y: -4,
-                          boxShadow: `0 12px 30px ${expert.color}30`,
-                          borderColor: expert.color,
-                        }}
-                        whileTap={{ scale: 0.97 }}
+                        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                      />
+                      <ChevronDown className="h-4 w-4 mr-2" />
+                      <motion.span
+                        animate={{ scale: [1, 1.03, 1] }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
                       >
-                        <Card
-                          className="border-2 border-border cursor-pointer group"
-                          onClick={() => handleRequestExpert(expert)}
-                        >
-                          <CardContent className="p-3.5">
-                            <div className="flex items-center gap-3">
-                              <motion.div
-                                className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-                                style={{ backgroundColor: `${expert.color}18` }}
-                                whileHover={{ scale: 1.2, rotate: [0, -10, 10, 0] }}
-                                transition={{ duration: 0.4 }}
-                              >
-                                <Icon className="h-5 w-5" style={{ color: expert.color }} />
-                              </motion.div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold leading-tight" style={{ color: expert.color }}>
-                                  Je sollicite un {expert.title.toLowerCase()}
-                                </p>
-                                <motion.p
-                                  className="text-[10px] text-muted-foreground leading-snug mt-0.5"
-                                  initial={{ opacity: 0 }}
-                                  animate={{ opacity: 1 }}
-                                  transition={{ delay: 0.35, duration: 0.4 }}
-                                >
-                                  {expert.subtitle}
-                                </motion.p>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-
-                <motion.div
-                  variants={{
-                    hidden: { opacity: 0, x: -40 },
-                    visible: { opacity: 1, x: 0, transition: { type: 'spring', stiffness: 200, damping: 20, delay: 0.6 } },
-                    exit: { opacity: 0, x: 20, transition: { duration: 0.15 } },
-                  }}
-                  className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50"
-                >
-                  <motion.div animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}>
-                    <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                  </motion.div>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    Délai de mise en relation : <strong className="text-foreground">sous 24h</strong> ouvrées.
-                    Nos partenaires sont sélectionnés pour leur professionnalisme et leur expérience
-                    dans la construction en Côte d&apos;Ivoire.
-                  </p>
-                </motion.div>
+                        Voir nos experts disponibles
+                      </motion.span>
+                    </Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="expert-panel"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+              >
+                <ExpertDetailPanel
+                  initialCategoryId={selectedExpertCategoryId}
+                  onBack={handleBackFromExpertPanel}
+                />
               </motion.div>
             )}
           </AnimatePresence>

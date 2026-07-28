@@ -770,3 +770,37 @@ Stage Summary:
 - Chaque dialog a : en-tête coloré animé, formulaire avec validation, écran de succès, boutons de contact rapide
 - Système de tickets avec préfixes (PAY, REC, EXP)
 - Bug de navigation préexistant identifié (pas causé par les modifications)
+
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fix client-side crash, configure 4 service sub-buttons, integrate ExpertDetailPanel
+
+Work Log:
+- Analyzed the white screen error: SAV_SERVICES constant was referenced but never defined, causing a client-side crash
+- Added SAV_SERVICES constant with 4 services: Suivi des paiements, Documents & attestations, Réclamations & litiges, Assistance technique
+- Created ExpertDetailPanel.tsx component with 8 expert categories × 2 experts each (16 total)
+  - Categories: Électriciens, Plombiers, Maçons, Menuisiers, Carreleurs, Peintres, Conducteurs de travaux, Géomètres
+  - Each expert has: name, specialty, experience, rating, phone, whatsapp, bio, location, certifications, availability
+  - Three navigation levels: category list → expert list → expert detail view
+  - Fallback initials avatars for missing images
+  - Star ratings, project counts, trust banners
+- Integrated ExpertDetailPanel into ServiceApresVenteScreen.tsx
+  - Replaced old expandable expert grid with new panel navigation
+  - Added handleOpenExpertPanel, handleBackFromExpertPanel handlers
+  - handleRequestExpert now navigates to the correct expert category
+  - AnimatePresence transitions between CTA card and expert panel
+- Generated 11 missing expert portraits using AI image generation (total 16)
+- Built production bundle and verified with agent-browser:
+  - SAV screen renders correctly with all sections
+  - 4 service cards (Nos Services) open their respective dialogs
+  - Expert panel shows 8 categories with expert count badges
+  - Category drill-down shows expert cards with ratings, specialties, locations
+  - Expert detail shows profile, bio, stats, certifications, contact buttons (Appeler + WhatsApp)
+
+Stage Summary:
+- White screen fixed: SAV_SERVICES was undefined
+- 4 service sub-buttons now functional: open Payment, Documents, Reclamation, Assistance dialogs
+- ExpertDetailPanel fully integrated with 3-level navigation
+- 16 AI-generated expert portraits in /public/experts/
+- All verified via agent-browser testing
