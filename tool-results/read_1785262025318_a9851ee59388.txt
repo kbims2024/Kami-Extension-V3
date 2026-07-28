@@ -701,7 +701,7 @@
    701→  onBack: () => void;
    702→}
    703→
-   704→type PanelView = 'categories' | 'categoryExperts' | 'expertDetail' | 'applicationForm';
+   704→type PanelView = 'categories' | 'categoryExperts' | 'expertDetail';
    705→
    706→export function ExpertDetailPanel({ initialCategoryId, onBack }: ExpertDetailPanelProps) {
    707→  const [currentView, setCurrentView] = useState<PanelView>(
@@ -712,315 +712,297 @@
    712→  );
    713→  const [selectedExpert, setSelectedExpert] = useState<Expert | null>(null);
    714→  const [dynamicCategories, setDynamicCategories] = useState<ExpertCategory[]>([]);
-   715→
-   716→  // Fetch approved experts from DB and merge into categories
-   717→  useEffect(() => {
-   718→    async function loadApprovedExperts() {
-   719→      try {
-   720→        const res = await fetch('/api/approved-experts');
-   721→        if (res.ok) {
-   722→          const data = await res.json();
-   723→          const approved: Expert[] = data.experts.map((e: any) => ({
-   724→            ...e,
-   725→            reviewCount: e.reviewCount || 0,
-   726→            rating: e.rating || 0,
-   727→            projects: e.projects || 0,
-   728→            image: e.image || '',
-   729→            whatsapp: e.whatsapp || '',
-   730→            certifications: e.certifications || [],
-   731→          }));
-   732→
-   733→          // Group by categoryId
-   734→          const grouped = new Map<string, Expert[]>();
-   735→          for (const expert of approved) {
-   736→            const catId = expert.categoryId || expert.specialty?.toLowerCase() || 'other';
-   737→            if (!grouped.has(catId)) grouped.set(catId, []);
-   738→            grouped.get(catId)!.push(expert);
-   739→          }
-   740→
-   741→          // Build dynamic categories with approved experts merged
-   742→          const merged: ExpertCategory[] = EXPERT_CATEGORIES.map((cat) => {
-   743→            const extraExperts = grouped.get(cat.id) || [];
-   744→            if (extraExperts.length > 0) {
-   745→              return { ...cat, experts: [...cat.experts, ...extraExperts] };
-   746→            }
-   747→            return cat;
-   748→          });
-   749→          setDynamicCategories(merged);
-   750→        }
-   751→      } catch (err) {
-   752→        // Silently fail - we just show the static experts
-   753→      }
-   754→    }
-   755→    loadApprovedExperts();
-   756→  }, []);
-   757→
-   758→  // Use dynamic categories (with approved experts merged) or fall back to static
-   759→  const displayCategories = dynamicCategories.length > 0 ? dynamicCategories : EXPERT_CATEGORIES;
-   760→
-   761→  const handleCategorySelect = (category: ExpertCategory) => {
-   762→    setSelectedCategory(category);
-   763→    setSelectedExpert(null);
-   764→    setCurrentView('categoryExperts');
-   765→  };
-   766→
-   767→  const handleExpertSelect = (expert: Expert) => {
-   768→    setSelectedExpert(expert);
-   769→    setCurrentView('expertDetail');
-   770→  };
-   771→
-   772→  const handleBackToCategories = () => {
-   773→    setSelectedCategory(null);
-   774→    setSelectedExpert(null);
-   775→    setCurrentView('categories');
-   776→  };
-   777→
-   778→  const handleBackToExperts = () => {
-   779→    setSelectedExpert(null);
-   780→    setCurrentView('categoryExperts');
-   781→  };
-   782→
-   783→  const handleShowApplicationForm = () => {
-   784→    setCurrentView('applicationForm');
-   785→  };
-   786→
-   787→  const handleBackFromApplication = () => {
-   788→    setCurrentView('categories');
-   789→  };
-   790→
-   791→  const currentColor = selectedCategory?.color || '#6B7280';
-   792→
-   793→  // Expert detail view
-   794→  if (currentView === 'expertDetail' && selectedExpert) {
-   795→    return (
-   796→      <div className="space-y-0">
-   797→        <ExpertDetailView
-   798→          expert={selectedExpert}
-   799→          color={currentColor}
-   800→          onBack={handleBackToExperts}
-   801→        />
-   802→      </div>
-   803→    );
-   804→  }
-   805→
-   806→  // Category experts list view
-   807→  if (currentView === 'categoryExperts' && selectedCategory) {
-   808→    return (
-   809→      <div className="space-y-3">
-   810→        <Button
-   811→          variant="ghost"
-   812→          size="sm"
-   813→          onClick={handleBackToCategories}
-   814→          className="h-8 text-xs gap-1 text-muted-foreground hover:text-foreground px-2"
-   815→        >
-   816→          <ArrowLeft className="h-3.5 w-3.5" />
-   817→          Retour aux catégories
-   818→        </Button>
-   819→
-   820→        <div className="flex items-center gap-2">
-   821→          <div
-   822→            className="w-9 h-9 rounded-lg flex items-center justify-center text-base"
-   823→            style={{ backgroundColor: `${currentColor}18` }}
-   824→          >
-   825→            {selectedCategory.icon}
-   826→          </div>
-   827→          <div className="flex-1 min-w-0">
-   828→            <h3 className="text-sm font-bold text-foreground">{selectedCategory.title}</h3>
-   829→            <p className="text-[10px] text-muted-foreground leading-snug">{selectedCategory.description}</p>
-   830→          </div>
-   831→          <div className="flex items-center gap-1 shrink-0">
-   832→            <Users className="h-3.5 w-3.5 text-muted-foreground" />
-   833→            <span className="text-[10px] font-bold text-muted-foreground">{selectedCategory.experts.length} experts</span>
-   834→          </div>
-   835→        </div>
-   836→
-   837→        <AnimatePresence mode="wait">
-   838→          <motion.div
-   839→            key={selectedCategory.id}
-   840→            initial="hidden"
-   841→            animate="visible"
-   842→            exit="exit"
-   843→            variants={{
-   844→              hidden: {},
-   845→              visible: { transition: { staggerChildren: 0.1 } },
-   846→              exit: { transition: { staggerChildren: 0.05, staggerDirection: -1 } },
-   847→            }}
-   848→            className="space-y-2"
-   849→          >
-   850→            {selectedCategory.experts.map((expert) => (
-   851→              <motion.div
-   852→                key={expert.id}
-   853→                variants={{
-   854→                  hidden: { opacity: 0, y: 20, scale: 0.95 },
-   855→                  visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 260, damping: 20 } },
-   856→                  exit: { opacity: 0, y: -10, scale: 0.95, transition: { duration: 0.2 } },
-   857→                }}
-   858→              >
-   859→                <ExpertCard expert={expert} color={currentColor} onSelect={handleExpertSelect} />
-   860→              </motion.div>
-   861→            ))}
-   862→          </motion.div>
-   863→        </AnimatePresence>
-   864→
-   865→        {/* Trust banner */}
-   866→        <motion.div
-   867→          initial={{ opacity: 0, y: 10 }}
-   868→          animate={{ opacity: 1, y: 0 }}
-   869→          transition={{ delay: 0.5 }}
-   870→          className="flex items-start gap-2 p-3 rounded-xl border"
-   871→          style={{ backgroundColor: `${currentColor}08`, borderColor: `${currentColor}25` }}
-   872→        >
-   873→          <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" style={{ color: currentColor }} />
-   874→          <p className="text-[10px] text-muted-foreground leading-relaxed">
-   875→            Tous nos experts sont vérifiés et sélectionnés pour leur professionnalisme. KAMI-EXTENSION assure la mise en relation.
-   876→          </p>
-   877→        </motion.div>
-   878→      </div>
-   879→    );
-   880→  }
-   881→
-   882→  // Application form view
-   883→  if (currentView === 'applicationForm') {
-   884→    return (
-   885→      <AnimatePresence mode="wait">
-   886→        <motion.div
-   887→          key="application-form"
-   888→          initial={{ opacity: 0, x: 20 }}
-   889→          animate={{ opacity: 1, x: 0 }}
-   890→          exit={{ opacity: 0, x: -20 }}
-   891→          transition={{ type: 'spring', stiffness: 260, damping: 22 }}
-   892→        >
-   893→          <PartnerExpertApplicationForm
-   894→            onBack={handleBackFromApplication}
-   895→            onSubmitted={handleBackFromApplication}
-   896→          />
-   897→        </motion.div>
-   898→      </AnimatePresence>
-   899→    );
-   900→  }
-   901→
-   902→  // Main categories list
-   903→  return (
-   904→    <div className="space-y-3">
-   905→      <div className="flex items-center gap-2">
-   906→        <Button
-   907→          variant="ghost"
-   908→          size="sm"
-   909→          onClick={onBack}
-   910→          className="h-8 text-xs gap-1 text-muted-foreground hover:text-foreground px-2"
-   911→        >
-   912→          <ArrowLeft className="h-3.5 w-3.5" />
-   913→          Retour au SAV
-   914→        </Button>
-   915→      </div>
-   916→
-   917→      <div className="text-center mb-1">
-   918→        <h3 className="text-base font-bold text-foreground">Nos experts partenaires</h3>
-   919→        <p className="text-[11px] text-muted-foreground mt-0.5 max-w-md mx-auto leading-relaxed">
-   920→          Sélectionnez un métier pour consulter nos experts disponibles et leurs profils détaillés.
-   921→        </p>
-   922→      </div>
+   715→  const [showApplicationDialog, setShowApplicationDialog] = useState(false);
+   716→
+   717→  // Fetch approved experts from DB and merge into categories
+   718→  useEffect(() => {
+   719→    async function loadApprovedExperts() {
+   720→      try {
+   721→        const res = await fetch('/api/approved-experts');
+   722→        if (res.ok) {
+   723→          const data = await res.json();
+   724→          const approved: Expert[] = data.experts.map((e: any) => ({
+   725→            ...e,
+   726→            reviewCount: e.reviewCount || 0,
+   727→            rating: e.rating || 0,
+   728→            projects: e.projects || 0,
+   729→            image: e.image || '',
+   730→            whatsapp: e.whatsapp || '',
+   731→            certifications: e.certifications || [],
+   732→          }));
+   733→
+   734→          // Group by categoryId
+   735→          const grouped = new Map<string, Expert[]>();
+   736→          for (const expert of approved) {
+   737→            const catId = expert.categoryId || expert.specialty?.toLowerCase() || 'other';
+   738→            if (!grouped.has(catId)) grouped.set(catId, []);
+   739→            grouped.get(catId)!.push(expert);
+   740→          }
+   741→
+   742→          // Build dynamic categories with approved experts merged
+   743→          const merged: ExpertCategory[] = EXPERT_CATEGORIES.map((cat) => {
+   744→            const extraExperts = grouped.get(cat.id) || [];
+   745→            if (extraExperts.length > 0) {
+   746→              return { ...cat, experts: [...cat.experts, ...extraExperts] };
+   747→            }
+   748→            return cat;
+   749→          });
+   750→          setDynamicCategories(merged);
+   751→        }
+   752→      } catch (err) {
+   753→        // Silently fail - we just show the static experts
+   754→      }
+   755→    }
+   756→    loadApprovedExperts();
+   757→  }, []);
+   758→
+   759→  // Use dynamic categories (with approved experts merged) or fall back to static
+   760→  const displayCategories = dynamicCategories.length > 0 ? dynamicCategories : EXPERT_CATEGORIES;
+   761→
+   762→  const handleCategorySelect = (category: ExpertCategory) => {
+   763→    setSelectedCategory(category);
+   764→    setSelectedExpert(null);
+   765→    setCurrentView('categoryExperts');
+   766→  };
+   767→
+   768→  const handleExpertSelect = (expert: Expert) => {
+   769→    setSelectedExpert(expert);
+   770→    setCurrentView('expertDetail');
+   771→  };
+   772→
+   773→  const handleBackToCategories = () => {
+   774→    setSelectedCategory(null);
+   775→    setSelectedExpert(null);
+   776→    setCurrentView('categories');
+   777→  };
+   778→
+   779→  const handleBackToExperts = () => {
+   780→    setSelectedExpert(null);
+   781→    setCurrentView('categoryExperts');
+   782→  };
+   783→
+   784→
+   785→
+   786→  const currentColor = selectedCategory?.color || '#6B7280';
+   787→
+   788→  // Expert detail view
+   789→  if (currentView === 'expertDetail' && selectedExpert) {
+   790→    return (
+   791→      <div className="space-y-0">
+   792→        <ExpertDetailView
+   793→          expert={selectedExpert}
+   794→          color={currentColor}
+   795→          onBack={handleBackToExperts}
+   796→        />
+   797→      </div>
+   798→    );
+   799→  }
+   800→
+   801→  // Category experts list view
+   802→  if (currentView === 'categoryExperts' && selectedCategory) {
+   803→    return (
+   804→      <div className="space-y-3">
+   805→        <Button
+   806→          variant="ghost"
+   807→          size="sm"
+   808→          onClick={handleBackToCategories}
+   809→          className="h-8 text-xs gap-1 text-muted-foreground hover:text-foreground px-2"
+   810→        >
+   811→          <ArrowLeft className="h-3.5 w-3.5" />
+   812→          Retour aux catégories
+   813→        </Button>
+   814→
+   815→        <div className="flex items-center gap-2">
+   816→          <div
+   817→            className="w-9 h-9 rounded-lg flex items-center justify-center text-base"
+   818→            style={{ backgroundColor: `${currentColor}18` }}
+   819→          >
+   820→            {selectedCategory.icon}
+   821→          </div>
+   822→          <div className="flex-1 min-w-0">
+   823→            <h3 className="text-sm font-bold text-foreground">{selectedCategory.title}</h3>
+   824→            <p className="text-[10px] text-muted-foreground leading-snug">{selectedCategory.description}</p>
+   825→          </div>
+   826→          <div className="flex items-center gap-1 shrink-0">
+   827→            <Users className="h-3.5 w-3.5 text-muted-foreground" />
+   828→            <span className="text-[10px] font-bold text-muted-foreground">{selectedCategory.experts.length} experts</span>
+   829→          </div>
+   830→        </div>
+   831→
+   832→        <AnimatePresence mode="wait">
+   833→          <motion.div
+   834→            key={selectedCategory.id}
+   835→            initial="hidden"
+   836→            animate="visible"
+   837→            exit="exit"
+   838→            variants={{
+   839→              hidden: {},
+   840→              visible: { transition: { staggerChildren: 0.1 } },
+   841→              exit: { transition: { staggerChildren: 0.05, staggerDirection: -1 } },
+   842→            }}
+   843→            className="space-y-2"
+   844→          >
+   845→            {selectedCategory.experts.map((expert) => (
+   846→              <motion.div
+   847→                key={expert.id}
+   848→                variants={{
+   849→                  hidden: { opacity: 0, y: 20, scale: 0.95 },
+   850→                  visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 260, damping: 20 } },
+   851→                  exit: { opacity: 0, y: -10, scale: 0.95, transition: { duration: 0.2 } },
+   852→                }}
+   853→              >
+   854→                <ExpertCard expert={expert} color={currentColor} onSelect={handleExpertSelect} />
+   855→              </motion.div>
+   856→            ))}
+   857→          </motion.div>
+   858→        </AnimatePresence>
+   859→
+   860→        {/* Trust banner */}
+   861→        <motion.div
+   862→          initial={{ opacity: 0, y: 10 }}
+   863→          animate={{ opacity: 1, y: 0 }}
+   864→          transition={{ delay: 0.5 }}
+   865→          className="flex items-start gap-2 p-3 rounded-xl border"
+   866→          style={{ backgroundColor: `${currentColor}08`, borderColor: `${currentColor}25` }}
+   867→        >
+   868→          <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" style={{ color: currentColor }} />
+   869→          <p className="text-[10px] text-muted-foreground leading-relaxed">
+   870→            Tous nos experts sont vérifiés et sélectionnés pour leur professionnalisme. KAMI-EXTENSION assure la mise en relation.
+   871→          </p>
+   872→        </motion.div>
+   873→      </div>
+   874→    );
+   875→  }
+   876→
+   877→  // Main categories list
+   878→  return (
+   879→    <>
+   880→    <div className="space-y-3">
+   881→      <div className="flex items-center gap-2">
+   882→        <Button
+   883→          variant="ghost"
+   884→          size="sm"
+   885→          onClick={onBack}
+   886→          className="h-8 text-xs gap-1 text-muted-foreground hover:text-foreground px-2"
+   887→        >
+   888→          <ArrowLeft className="h-3.5 w-3.5" />
+   889→          Retour au SAV
+   890→        </Button>
+   891→      </div>
+   892→
+   893→      <div className="text-center mb-1">
+   894→        <h3 className="text-base font-bold text-foreground">Nos experts partenaires</h3>
+   895→        <p className="text-[11px] text-muted-foreground mt-0.5 max-w-md mx-auto leading-relaxed">
+   896→          Sélectionnez un métier pour consulter nos experts disponibles et leurs profils détaillés.
+   897→        </p>
+   898→      </div>
+   899→
+   900→      <AnimatePresence mode="wait">
+   901→        <motion.div
+   902→          initial="hidden"
+   903→          animate="visible"
+   904→          variants={{
+   905→            hidden: {},
+   906→            visible: { transition: { staggerChildren: 0.06 } },
+   907→          }}
+   908→          className="space-y-2"
+   909→        >
+   910→          {displayCategories.map((category) => (
+   911→            <motion.div
+   912→              key={category.id}
+   913→              variants={{
+   914→                hidden: { opacity: 0, y: 20 },
+   915→                visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 260, damping: 20 } },
+   916→              }}
+   917→            >
+   918→              <CategoryCard category={category} onSelect={handleCategorySelect} />
+   919→            </motion.div>
+   920→          ))}
+   921→        </motion.div>
+   922→      </AnimatePresence>
    923→
-   924→      <AnimatePresence mode="wait">
-   925→        <motion.div
-   926→          initial="hidden"
-   927→          animate="visible"
-   928→          variants={{
-   929→            hidden: {},
-   930→            visible: { transition: { staggerChildren: 0.06 } },
-   931→          }}
-   932→          className="space-y-2"
-   933→        >
-   934→          {displayCategories.map((category) => (
-   935→            <motion.div
-   936→              key={category.id}
-   937→              variants={{
-   938→                hidden: { opacity: 0, y: 20 },
-   939→                visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 260, damping: 20 } },
-   940→              }}
-   941→            >
-   942→              <CategoryCard category={category} onSelect={handleCategorySelect} />
-   943→            </motion.div>
-   944→          ))}
-   945→        </motion.div>
-   946→      </AnimatePresence>
-   947→
-   948→      {/* Stats bar */}
-   949→      <motion.div
-   950→        initial={{ opacity: 0 }}
-   951→        animate={{ opacity: 1 }}
-   952→        transition={{ delay: 0.6 }}
-   953→        className="flex items-center justify-around p-3 rounded-xl bg-muted/30 border border-border"
+   924→      {/* Stats bar */}
+   925→      <motion.div
+   926→        initial={{ opacity: 0 }}
+   927→        animate={{ opacity: 1 }}
+   928→        transition={{ delay: 0.6 }}
+   929→        className="flex items-center justify-around p-3 rounded-xl bg-muted/30 border border-border"
+   930→      >
+   931→        <div className="text-center">
+   932→          <p className="text-sm font-bold text-foreground">{displayCategories.length}</p>
+   933→          <p className="text-[10px] text-muted-foreground">Métiers</p>
+   934→        </div>
+   935→        <div className="w-px h-6 bg-border" />
+   936→        <div className="text-center">
+   937→          <p className="text-sm font-bold text-foreground">
+   938→            {displayCategories.reduce((acc, c) => acc + c.experts.length, 0)}
+   939→          </p>
+   940→          <p className="text-[10px] text-muted-foreground">Experts</p>
+   941→        </div>
+   942→        <div className="w-px h-6 bg-border" />
+   943→        <div className="text-center">
+   944→          <p className="text-sm font-bold text-emerald-600">Vérifiés</p>
+   945→          <p className="text-[10px] text-muted-foreground">Certifiés</p>
+   946→        </div>
+   947→      </motion.div>
+   948→
+   949→      {/* CTA - Je veux devenir expert partenaire */}
+   950→      <motion.div
+   951→        initial={{ opacity: 0, y: 15 }}
+   952→        animate={{ opacity: 1, y: 0 }}
+   953→        transition={{ delay: 0.7 }}
    954→      >
-   955→        <div className="text-center">
-   956→          <p className="text-sm font-bold text-foreground">{displayCategories.length}</p>
-   957→          <p className="text-[10px] text-muted-foreground">Métiers</p>
-   958→        </div>
-   959→        <div className="w-px h-6 bg-border" />
-   960→        <div className="text-center">
-   961→          <p className="text-sm font-bold text-foreground">
-   962→            {displayCategories.reduce((acc, c) => acc + c.experts.length, 0)}
-   963→          </p>
-   964→          <p className="text-[10px] text-muted-foreground">Experts</p>
-   965→        </div>
-   966→        <div className="w-px h-6 bg-border" />
-   967→        <div className="text-center">
-   968→          <p className="text-sm font-bold text-emerald-600">Vérifiés</p>
-   969→          <p className="text-[10px] text-muted-foreground">Certifiés</p>
-   970→        </div>
-   971→      </motion.div>
-   972→
-   973→      {/* CTA - Je veux devenir expert partenaire */}
-   974→      <motion.div
-   975→        initial={{ opacity: 0, y: 15 }}
-   976→        animate={{ opacity: 1, y: 0 }}
-   977→        transition={{ delay: 0.7 }}
-   978→      >
-   979→        <Card
-   980→          className="border-2 border-dashed border-emerald-300 dark:border-emerald-700 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/20 dark:to-card overflow-hidden cursor-pointer hover:shadow-lg transition-all"
-   981→          onClick={handleShowApplicationForm}
-   982→        >
-   983→          <CardContent className="p-4 text-center">
-   984→            <motion.div
-   985→              className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/40 rounded-xl flex items-center justify-center mx-auto mb-2.5 shadow-md"
-   986→              animate={{
-   987→                boxShadow: [
-   988→                  '0 4px 6px -1px rgba(16,185,129,0.2)',
-   989→                  '0 10px 15px -3px rgba(16,185,129,0.4)',
-   990→                  '0 4px 6px -1px rgba(16,185,129,0.2)',
-   991→                ],
-   992→              }}
-   993→              transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-   994→            >
-   995→              <UserPlus className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
-   996→            </motion.div>
-   997→            <h3 className="text-xs font-bold text-foreground mb-0.5">
-   998→              Je veux faire partie des experts partenaires
-   999→            </h3>
-  1000→            <p className="text-[10px] text-muted-foreground max-w-xs mx-auto leading-relaxed mb-3">
-  1001→              Vous êtes professionnel du bâtiment ? Postulez pour rejoindre notre réseau d&apos;experts vérifiés.
-  1002→            </p>
-  1003→            <Button
-  1004→              className="relative overflow-hidden bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-500/25 transition-all hover:scale-[1.02] h-10"
-  1005→              onClick={(e) => {
-  1006→                e.stopPropagation();
-  1007→                handleShowApplicationForm();
-  1008→              }}
-  1009→            >
-  1010→              <motion.span
-  1011→                className="absolute inset-0"
-  1012→                animate={{
-  1013→                  background: ['rgba(255,255,255,0)', 'rgba(255,255,255,0.15)', 'rgba(255,255,255,0)'],
-  1014→                }}
-  1015→                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-  1016→              />
-  1017→              <Send className="h-4 w-4 mr-2" />
-  1018→              <span>Postuler maintenant</span>
-  1019→            </Button>
-  1020→          </CardContent>
-  1021→        </Card>
-  1022→      </motion.div>
-  1023→    </div>
-  1024→  );
-  1025→}
-  1026→
+   955→        <Card
+   956→          className="border-2 border-dashed border-emerald-300 dark:border-emerald-700 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/20 dark:to-card overflow-hidden hover:shadow-lg transition-all"
+   957→        >
+   958→          <CardContent className="p-4 text-center">
+   959→            <motion.div
+   960→              className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/40 rounded-xl flex items-center justify-center mx-auto mb-2.5 shadow-md"
+   961→              animate={{
+   962→                boxShadow: [
+   963→                  '0 4px 6px -1px rgba(16,185,129,0.2)',
+   964→                  '0 10px 15px -3px rgba(16,185,129,0.4)',
+   965→                  '0 4px 6px -1px rgba(16,185,129,0.2)',
+   966→                ],
+   967→              }}
+   968→              transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+   969→            >
+   970→              <UserPlus className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+   971→            </motion.div>
+   972→            <h3 className="text-xs font-bold text-foreground mb-0.5">
+   973→              Je veux faire partie des experts partenaires
+   974→            </h3>
+   975→            <p className="text-[10px] text-muted-foreground max-w-xs mx-auto leading-relaxed mb-3">
+   976→              Vous êtes professionnel du bâtiment ? Postulez pour rejoindre notre réseau d&apos;experts vérifiés.
+   977→            </p>
+   978→            <Button
+   979→              className="relative overflow-hidden bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-500/25 transition-all hover:scale-[1.02] h-10"
+   980→              onClick={(e) => {
+   981→                e.stopPropagation();
+   982→                setShowApplicationDialog(true);
+   983→              }}
+   984→            >
+   985→              <motion.span
+   986→                className="absolute inset-0"
+   987→                animate={{
+   988→                  background: ['rgba(255,255,255,0)', 'rgba(255,255,255,0.15)', 'rgba(255,255,255,0)'],
+   989→                }}
+   990→                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+   991→              />
+   992→              <Send className="h-4 w-4 mr-2" />
+   993→              <span>Postuler maintenant</span>
+   994→            </Button>
+   995→          </CardContent>
+   996→        </Card>
+   997→      </motion.div>
+   998→    </div>
+   999→
+  1000→      {/* Application Dialog - opens as new window */}
+  1001→      <PartnerExpertApplicationForm
+  1002→        open={showApplicationDialog}
+  1003→        onOpenChange={setShowApplicationDialog}
+  1004→      />
+  1005→    </>
+  1006→  );
+  1007→}
+  1008→
