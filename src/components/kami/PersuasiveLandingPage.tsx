@@ -267,27 +267,27 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
       {/* Features Section */}
       <section className="py-20 bg-background">
         <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3">
               Comment ça marche ?
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-sm text-muted-foreground max-w-xl mx-auto">
               Un processus simple et transparent pour devenir propriétaire
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-3xl mx-auto">
             {features.map((feature, index) => (
               <div key={index} className="group animate-fade-in-up" style={{ animationDelay: `${index * 150}ms` }}>
-                <Card className="border-0 bg-card shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 rounded-2xl overflow-hidden">
-                  <div className="bg-gradient-to-br from-brand-blue to-blue-700 p-6">
-                    <span className="text-5xl font-bold text-brand-yellow opacity-50">{feature.number}</span>
+                <Card className="border-0 bg-card shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 rounded-xl overflow-hidden">
+                  <div className="bg-gradient-to-br from-brand-blue to-blue-700 p-3">
+                    <span className="text-2xl font-bold text-brand-yellow opacity-50">{feature.number}</span>
                   </div>
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-brand-blue transition-colors">
+                  <CardContent className="p-3">
+                    <h3 className="text-sm font-bold text-foreground mb-1 group-hover:text-brand-blue transition-colors">
                       {feature.title}
                     </h3>
-                    <p className="text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       {feature.desc}
                     </p>
                   </CardContent>
