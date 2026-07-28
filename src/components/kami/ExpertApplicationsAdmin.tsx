@@ -49,6 +49,7 @@ interface ExpertApplication {
   reviewedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  profileImage?: string | null;
 }
 
 interface ExpertApplicationsAdminProps {
@@ -321,12 +322,22 @@ export function ExpertApplicationsAdmin({ onBack }: ExpertApplicationsAdminProps
                       onClick={() => toggleExpand(app.id)}
                       className="w-full text-left p-3 flex items-center gap-3 hover:bg-muted/30 transition-colors"
                     >
-                      <div
-                        className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 text-base"
-                        style={{ backgroundColor: `${cat.color}15` }}
-                      >
-                        {cat.icon}
-                      </div>
+                      {/* Profile avatar */}
+                      {app.profileImage ? (
+                        <img
+                          src={app.profileImage}
+                          alt={app.fullName}
+                          className="w-10 h-10 rounded-lg object-cover shrink-0 border border-border"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                        />
+                      ) : (
+                        <div
+                          className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 text-base font-bold text-white"
+                          style={{ backgroundColor: `${cat.color}` }}
+                        >
+                          {app.fullName.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()}
+                        </div>
+                      )}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <p className="text-xs font-bold text-foreground truncate">{app.fullName}</p>
@@ -363,6 +374,32 @@ export function ExpertApplicationsAdmin({ onBack }: ExpertApplicationsAdminProps
                         >
                           <div className="px-3 pb-3">
                             <Separator className="mb-3" />
+
+                            {/* Profile photo in expanded view */}
+                            <div className="flex items-center gap-3 mb-3">
+                              {app.profileImage ? (
+                                <img
+                                  src={app.profileImage}
+                                  alt={app.fullName}
+                                  className="w-16 h-16 rounded-xl object-cover shrink-0 border-2 border-border shadow-md"
+                                />
+                              ) : (
+                                <div
+                                  className="w-16 h-16 rounded-xl flex items-center justify-center shrink-0 text-xl font-bold text-white shadow-md"
+                                  style={{ backgroundColor: `${cat.color}` }}
+                                >
+                                  {app.fullName.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()}
+                                </div>
+                              )}
+                              <div>
+                                <p className="text-sm font-bold text-foreground">{app.fullName}</p>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                  <span className="text-[10px] font-semibold" style={{ color: cat.color }}>{cat.label}</span>
+                                  <span className="text-muted-foreground/40">·</span>
+                                  <span className="text-[10px] text-muted-foreground">{app.specialty}</span>
+                                </div>
+                              </div>
+                            </div>
 
                             {/* Details grid */}
                             <div className="grid grid-cols-2 gap-2 mb-3">

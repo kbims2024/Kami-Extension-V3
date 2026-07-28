@@ -135,6 +135,7 @@ model ExpertApplication {
   certifications  String      // JSON array of cert strings
   bio             String
   availability    String      // e.g. "Disponible sous 48h"
+  profileImage    String?     // path to uploaded profile photo (mandatory for applicants)
   status          String      @default("PENDING") // PENDING, APPROVED, REJECTED
   rejectReason    String?
   reviewedBy      String?     // userId of committee member

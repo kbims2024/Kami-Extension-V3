@@ -16,11 +16,11 @@ export async function GET() {
       name: a.fullName,
       specialty: a.specialty,
       experience: a.experience,
-      rating: 0, // New approved experts start at 0 until they get reviews
+      rating: 0,
       reviewCount: 0,
       phone: a.phone,
       whatsapp: a.whatsapp ? `https://wa.me/${a.whatsapp.replace(/[^0-9]/g, '')}` : '',
-      image: '', // No image yet
+      image: a.profileImage || '',
       bio: a.bio,
       location: a.location,
       certifications: (() => {
@@ -32,7 +32,7 @@ export async function GET() {
       })(),
       availability: a.availability,
       projects: 0,
-      source: 'application', // to differentiate from static experts
+      source: 'application',
     }));
 
     return NextResponse.json({ experts });

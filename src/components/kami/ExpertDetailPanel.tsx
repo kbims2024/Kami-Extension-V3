@@ -701,7 +701,7 @@ interface ExpertDetailPanelProps {
   onBack: () => void;
 }
 
-type PanelView = 'categories' | 'categoryExperts' | 'expertDetail' | 'applicationForm';
+type PanelView = 'categories' | 'categoryExperts' | 'expertDetail';
 
 export function ExpertDetailPanel({ initialCategoryId, onBack }: ExpertDetailPanelProps) {
   const [currentView, setCurrentView] = useState<PanelView>(
@@ -712,6 +712,7 @@ export function ExpertDetailPanel({ initialCategoryId, onBack }: ExpertDetailPan
   );
   const [selectedExpert, setSelectedExpert] = useState<Expert | null>(null);
   const [dynamicCategories, setDynamicCategories] = useState<ExpertCategory[]>([]);
+  const [showApplicationDialog, setShowApplicationDialog] = useState(false);
 
   // Fetch approved experts from DB and merge into categories
   useEffect(() => {
@@ -780,13 +781,7 @@ export function ExpertDetailPanel({ initialCategoryId, onBack }: ExpertDetailPan
     setCurrentView('categoryExperts');
   };
 
-  const handleShowApplicationForm = () => {
-    setCurrentView('applicationForm');
-  };
 
-  const handleBackFromApplication = () => {
-    setCurrentView('categories');
-  };
 
   const currentColor = selectedCategory?.color || '#6B7280';
 
@@ -879,28 +874,9 @@ export function ExpertDetailPanel({ initialCategoryId, onBack }: ExpertDetailPan
     );
   }
 
-  // Application form view
-  if (currentView === 'applicationForm') {
-    return (
-      <AnimatePresence mode="wait">
-        <motion.div
-          key="application-form"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ type: 'spring', stiffness: 260, damping: 22 }}
-        >
-          <PartnerExpertApplicationForm
-            onBack={handleBackFromApplication}
-            onSubmitted={handleBackFromApplication}
-          />
-        </motion.div>
-      </AnimatePresence>
-    );
-  }
-
   // Main categories list
   return (
+    <>
     <div className="space-y-3">
       <div className="flex items-center gap-2">
         <Button
@@ -977,8 +953,7 @@ export function ExpertDetailPanel({ initialCategoryId, onBack }: ExpertDetailPan
         transition={{ delay: 0.7 }}
       >
         <Card
-          className="border-2 border-dashed border-emerald-300 dark:border-emerald-700 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/20 dark:to-card overflow-hidden cursor-pointer hover:shadow-lg transition-all"
-          onClick={handleShowApplicationForm}
+          className="border-2 border-dashed border-emerald-300 dark:border-emerald-700 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/20 dark:to-card overflow-hidden hover:shadow-lg transition-all"
         >
           <CardContent className="p-4 text-center">
             <motion.div
@@ -1004,7 +979,7 @@ export function ExpertDetailPanel({ initialCategoryId, onBack }: ExpertDetailPan
               className="relative overflow-hidden bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-500/25 transition-all hover:scale-[1.02] h-10"
               onClick={(e) => {
                 e.stopPropagation();
-                handleShowApplicationForm();
+                setShowApplicationDialog(true);
               }}
             >
               <motion.span
@@ -1021,5 +996,12 @@ export function ExpertDetailPanel({ initialCategoryId, onBack }: ExpertDetailPan
         </Card>
       </motion.div>
     </div>
+
+      {/* Application Dialog - opens as new window */}
+      <PartnerExpertApplicationForm
+        open={showApplicationDialog}
+        onOpenChange={setShowApplicationDialog}
+      />
+    </>
   );
 }

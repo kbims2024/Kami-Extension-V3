@@ -1,46 +1,64 @@
+import { writeFile, mkdir } from 'fs/promises';
+import { join } from 'path';
+import { existsSync } from 'fs';
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// POST - Submit a new expert application (public)
+// POST - Submit a new expert application with profile image (public)
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const formData = await req.formData();
+    const profileImage = formData.get('profileImage') as File | null;
 
-    const {
-      fullName,
-      phone,
-      whatsapp,
-      categoryId,
-      specialty,
-      experience,
-      location,
-      certifications, // array of strings
-      bio,
-      availability,
-    } = body;
+    const fullName = (formData.get('fullName') as string) || '';
+    const phone = (formData.get('phone') as string) || '';
+    const whatsapp = (formData.get('whatsapp') as string) || '';
+    const categoryId = (formData.get('categoryId') as string) || '';
+    const specialty = (formData.get('specialty') as string) || '';
+    const experience = (formData.get('experience') as string) || '';
+    const location = (formData.get('location') as string) || '';
+    const certificationsRaw = (formData.get('certifications') as string) || '[]';
+    const bio = (formData.get('bio') as string) || '';
+    const availability = (formData.get('availability') as string) || '';
 
-    // Validation
-    if (!fullName || typeof fullName !== 'string' || fullName.trim().length < 3) {
+    // Validation - profile image is mandatory
+    if (!profileImage || !profileImage.name || profileImage.size === 0) {
+      return NextResponse.json({ error: 'La photo de profil est obligatoire.' }, { status: 400 });
+    }
+
+    // Validate image type
+    const validImageTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!validImageTypes.includes(profileImage.type)) {
+      return NextResponse.json({ error: 'Format d\'image non supporté (JPEG, PNG, WebP ou GIF requis).' }, { status: 400 });
+    }
+
+    // Validate image size (max 5MB)
+    if (profileImage.size > 5 * 1024 * 1024) {
+      return NextResponse.json({ error: 'L\'image ne doit pas dépasser 5 Mo.' }, { status: 400 });
+    }
+
+    // Other validations
+    if (!fullName || fullName.trim().length < 3) {
       return NextResponse.json({ error: 'Le nom complet est requis (min. 3 caractères).' }, { status: 400 });
     }
-    if (!phone || typeof phone !== 'string' || phone.trim().length < 8) {
+    if (!phone || phone.trim().length < 8) {
       return NextResponse.json({ error: 'Le numéro de téléphone est requis.' }, { status: 400 });
     }
-    if (!categoryId || typeof categoryId !== 'string') {
+    if (!categoryId) {
       return NextResponse.json({ error: 'La catégorie d\'expertise est requise.' }, { status: 400 });
     }
-    if (!specialty || typeof specialty !== 'string' || specialty.trim().length < 3) {
+    if (!specialty || specialty.trim().length < 3) {
       return NextResponse.json({ error: 'La spécialité est requise.' }, { status: 400 });
     }
-    if (!experience || typeof experience !== 'string') {
+    if (!experience) {
       return NextResponse.json({ error: 'L\'expérience est requise.' }, { status: 400 });
     }
-    if (!location || typeof location !== 'string') {
+    if (!location) {
       return NextResponse.json({ error: 'La localisation est requise.' }, { status: 400 });
     }
-    if (!bio || typeof bio !== 'string' || bio.trim().length < 10) {
+    if (!bio || bio.trim().length < 10) {
       return NextResponse.json({ error: 'La biographie est requise (min. 10 caractères).' }, { status: 400 });
     }
 
@@ -58,9 +76,33 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Catégorie invalide.' }, { status: 400 });
     }
 
-    const certJson = Array.isArray(certifications)
-      ? JSON.stringify(certifications.filter((c: unknown) => typeof c === 'string' && c.trim().length > 0))
-      : '[]';
+    // Parse certifications
+    let certifications: string[] = [];
+    try {
+      const parsed = JSON.parse(certificationsRaw);
+      if (Array.isArray(parsed)) {
+        certifications = parsed.filter((c: unknown) => typeof c === 'string' && c.trim().length > 0);
+      }
+    } catch {
+      certifications = [];
+    }
+
+    // Save the profile image
+    const uploadsDir = join(process.cwd(), 'public', 'uploads', 'expert-photos');
+    if (!existsSync(uploadsDir)) {
+      await mkdir(uploadsDir, { recursive: true });
+    }
+
+    const appId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    const ext = profileImage.name.split('.').pop() || 'jpg';
+    const safeFilename = `expert_${appId}.${ext}`;
+    const filepath = join(uploadsDir, safeFilename);
+
+    const bytes = await profileImage.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    await writeFile(filepath, buffer);
+
+    const profileImagePath = `/uploads/expert-photos/${safeFilename}`;
 
     const application = await prisma.expertApplication.create({
       data: {
@@ -71,9 +113,10 @@ export async function POST(req: NextRequest) {
         specialty: specialty.trim(),
         experience: experience.trim(),
         location: location.trim(),
-        certifications: certJson,
+        certifications: JSON.stringify(certifications),
         bio: bio.trim(),
         availability: availability?.trim() || 'Disponible sous 72h',
+        profileImage: profileImagePath,
         status: 'PENDING',
       },
     });
@@ -93,7 +136,7 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const status = searchParams.get('status'); // PENDING, APPROVED, REJECTED, or null (all)
+    const status = searchParams.get('status');
 
     const where = status && status !== 'ALL' ? { status } : {};
 
@@ -102,7 +145,6 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: 'desc' },
     });
 
-    // Parse certifications JSON for each
     const parsed = applications.map((a) => ({
       ...a,
       certifications: (() => {
