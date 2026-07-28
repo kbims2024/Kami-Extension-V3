@@ -1,0 +1,857 @@
+     1→     1→'use client';
+     2→     2→
+     3→     3→import { useState } from 'react';
+     4→     4→import { Button } from '@/components/ui/button';
+     5→     5→import { Card, CardContent } from '@/components/ui/card';
+     6→     6→import {
+     7→     7→  Dialog,
+     8→     8→  DialogContent,
+     9→     9→  DialogHeader,
+    10→    10→  DialogTitle,
+    11→    11→} from '@/components/ui/dialog';
+    12→    12→import { Textarea } from '@/components/ui/textarea';
+    13→    13→import {
+    14→    14→  ArrowLeft,
+    15→    15→  Menu,
+    16→    16→  Headset,
+    17→    17→  Phone,
+    18→    18→  Mail,
+    19→    19→  MessageCircle,
+    20→    20→  Clock,
+    21→    21→  ChevronDown,
+    22→    22→  HelpCircle,
+    23→    23→  Send,
+    24→    24→  CheckCircle2,
+    25→    25→  Wrench,
+    26→    26→  FileText,
+    27→    27→  Wallet,
+    28→    28→  AlertCircle,
+    29→    29→  Zap,
+    30→    30→  Droplets,
+    31→    31→  Hammer,
+    32→    32→  Paintbrush,
+    33→    33→  Grid3X3,
+    34→    34→  PaintBucket,
+    35→    35→  HardHat,
+    36→    36→  ChevronUp,
+    37→    37→  UserCheck,
+    38→    38→} from 'lucide-react';
+    39→    39→import { toast } from 'sonner';
+    40→    40→import { motion, AnimatePresence } from 'framer-motion';
+    41→    41→
+    42→    42→interface ServiceApresVenteScreenProps {
+    43→    43→  onBack: () => void;
+    44→    44→  setIsMenuOpen?: (open: boolean) => void;
+    45→    45→  onLoginClick?: () => void;
+    46→    46→}
+    47→    47→
+    48→    48→// Informations de contact du service après-vente
+    49→    49→// (à ajuster par l'administrateur selon les coordonnées réelles)
+    50→    50→const SAV_CONTACTS = {
+    51→    51→  phone: '+225 27 22 49 00 00',
+    52→    52→  phoneHref: 'tel:+2252722490000',
+    53→    53→  whatsapp: '+225 07 58 42 10 00',
+    54→    54→  whatsappHref: 'https://wa.me/2250758421000',
+    55→    55→  email: 'sav@kami-extension.com',
+    56→    56→  emailHref: 'mailto:sav@kami-extension.com',
+    57→    57→};
+    58→    58→
+    59→    59→const SAV_HORAIRES = [
+    60→    60→  { day: 'Lundi - Vendredi', hours: '08h00 - 18h00' },
+    61→    61→  { day: 'Samedi', hours: '09h00 - 13h00' },
+    62→    62→  { day: 'Dimanche & jours fériés', hours: 'Fermé' },
+    63→    63→];
+    64→    64→
+    65→    65→const SAV_FAQ = [
+    66→    66→  {
+    67→    67→    question: 'Comment suivre l\'avancée de mon paiement ?',
+    68→    68→    answer:
+    69→    69→      'Connectez-vous à votre compte, puis rendez-vous dans « Mes réservations ». Vous y verrez le montant total, les paiements déjà validés et le reste à payer pour chaque lot.',
+    70→    70→  },
+    71→    71→  {
+    72→    72→    question: 'Quels sont les moyens de paiement acceptés ?',
+    73→    73→    answer:
+    74→    74→      'Nous acceptons Wave, Orange Money, Moov Money et MTN Money. Le paiement automatique en ligne est en cours de déploiement ; en attendant, contactez le service après-vente pour valider votre paiement manuellement.',
+    75→    75→  },
+    76→    76→  {
+    77→    77→    question: 'Puis-je visiter mon lot avant de payer ?',
+    78→    78→    answer:
+    79→    79→      'Oui. Contactez le service après-vente pour convenir d\'une visite guidée du site avec un de nos conseillers.',
+    80→    80→  },
+    81→    81→  {
+    82→    82→    question: 'Quand recevrai-je mes documents de propriété ?',
+    83→    83→    answer:
+    84→    84→      'Après le paiement intégral du lot, les documents sont préparés sous 15 à 30 jours. Vous serez notifié par message dès qu\'ils seront disponibles au retrait.',
+    85→    85→  },
+    86→    86→  {
+    87→    87→    question: 'Que faire si j\'ai un litige ou une réclamation ?',
+    88→    88→    answer:
+    89→    89→      'Adressez votre réclamation par email au service après-vente ou via WhatsApp. Un conseiller vous recontactera sous 48h ouvrées avec un accusé de réception et un numéro de ticket.',
+    90→    90→  },
+    91→    91→];
+    92→    92→
+    93→    93→const SAV_EXPERTS = [
+    94→    94→  {
+    95→    95→    id: 'electricien',
+    96→    96→    title: 'Électricien',
+    97→    97→    subtitle: 'Réalise l\'installation électrique complète de votre habitation, la mise aux normes NFC et le dépannage en cas de panne.',
+    98→    98→    icon: Zap,
+    99→    99→    color: '#F59E0B',
+   100→   100→  },
+   101→   101→  {
+   102→   102→    id: 'plombier',
+   103→   103→    title: 'Plombier',
+   104→   104→    subtitle: 'Prend en charge l\'alimentation en eau, l\'installation sanitaire, les évacuations et la réparation de fuites.',
+   105→   105→    icon: Droplets,
+   106→   106→    color: '#3B82F6',
+   107→   107→  },
+   108→   108→  {
+   109→   109→    id: 'macon',
+   110→   110→    title: 'Maçon',
+   111→   111→    subtitle: 'Construit les fondations, élève les murs, réalise la dalle et tous les travaux en gros œuvre de votre maison.',
+   112→   112→    icon: Hammer,
+   113→   113→    color: '#EF4444',
+   114→   114→  },
+   115→   115→  {
+   116→   116→    id: 'menuisier',
+   117→   117→    title: 'Menuisier',
+   118→   118→    subtitle: 'Fabrique et pose les portes, fenêtres, volets, placards et tout agencement sur mesure en bois ou dérivé.',
+   119→   119→    icon: Paintbrush,
+   120→   120→    color: '#8B5E3C',
+   121→   121→  },
+   122→   122→  {
+   123→   123→    id: 'carreleur',
+   124→   124→    title: 'Carreleur',
+   125→   125→    subtitle: 'Pose le carrelage au sol et la faïence murale dans vos pièces, salles de bain et cuisines avec une finition soignée.',
+   126→   126→    icon: Grid3X3,
+   127→   127→    color: '#6366F1',
+   128→   128→  },
+   129→   129→  {
+   130→   130→    id: 'peintre',
+   131→   131→    title: 'Peintre',
+   132→   132→    subtitle: 'Assure la peinture intérieure et extérieure de votre habitation : préparation des supports, finitions et décoration.',
+   133→   133→    icon: PaintBucket,
+   134→   134→    color: '#10B981',
+   135→   135→  },
+   136→   136→  {
+   137→   137→    id: 'conducteur_travaux',
+   138→   138→    title: 'Conducteur de travaux',
+   139→   139→    subtitle: 'Supervise et coordonne l\'ensemble de votre chantier de A à Z en respectant le budget et les délais convenus.',
+   140→   140→    icon: HardHat,
+   141→   141→    color: '#0EA5E9',
+   142→   142→  },
+   143→   143→  {
+   144→   144→    id: 'geometre',
+   145→   145→    title: 'Géomètre',
+   146→   146→    subtitle: 'Réalise le bornage, la topographie et la délimitation précise de votre terrain pour sécuriser votre propriété.',
+   147→   147→    icon: UserCheck,
+   148→   148→    color: '#D946EF',
+   149→   149→  },
+   150→   150→];
+   151→   151→
+   152→   152→const SAV_SERVICES = [
+   153→   153→  {
+   154→   154→    icon: Wallet,
+   155→   155→    title: 'Suivi des paiements',
+   156→   156→    description: 'Consultez vos versements et solde restant à payer.',
+   157→   157→    color: '#10B981',
+   158→   158→  },
+   159→   159→  {
+   160→   160→    icon: FileText,
+   161→   161→    title: 'Documents & attestations',
+   162→   162→    description: 'Retrait de reçus, attestations de paiement et titres.',
+   163→   163→    color: '#3B82F6',
+   164→   164→  },
+   165→   165→  {
+   166→   166→    icon: Wrench,
+   167→   167→    title: 'Réclamations & litiges',
+   168→   168→    description: 'Signalez un problème, nous ouvrons un ticket suivi.',
+   169→   169→    color: '#F59E0B',
+   170→   170→  },
+   171→   171→  {
+   172→   172→    icon: AlertCircle,
+   173→   173→    title: 'Assistance technique',
+   174→   174→    description: 'Questions sur votre lot, bornage, raccordements.',
+   175→   175→    color: '#EF4444',
+   176→   176→  },
+   177→   177→];
+   178→   178→
+   179→   179→export function ServiceApresVenteScreen({
+   180→   180→  onBack,
+   181→   181→  setIsMenuOpen,
+   182→   182→  onLoginClick,
+   183→   183→}: ServiceApresVenteScreenProps) {
+   184→   184→  const [openFaq, setOpenFaq] = useState<number | null>(0);
+   185→   185→  const [showExperts, setShowExperts] = useState(false);
+   186→   186→  const [showHelpDialog, setShowHelpDialog] = useState(false);
+   187→   187→  const [helpSubject, setHelpSubject] = useState('');
+   188→   188→  const [helpMessage, setHelpMessage] = useState('');
+   189→   189→  const [helpSubmitted, setHelpSubmitted] = useState(false);
+   190→   190→
+   191→   191→  const handleRequestExpert = (expertTitle: string) => {
+   192→   192→    toast.info(
+   193→   193→      `Votre demande de mise en relation avec un ${expertTitle} a été envoyée. Notre service après-vente vous contactera sous 24h.`,
+   194→   194→      { duration: 5000 }
+   195→   195→    );
+   196→   196→  };
+   197→   197→
+   198→   198→  return (
+   199→   199→    <div className="flex-1 flex flex-col bg-background min-h-screen">
+   200→   200→      {/* Header */}
+   201→   201→      <header className="flex items-center gap-2 px-3 py-2 bg-card border-b border-border shrink-0">
+   202→   202→        <Button
+   203→   203→          variant="ghost"
+   204→   204→          size="icon"
+   205→   205→          onClick={onBack}
+   206→   206→          className="hover:bg-emerald-50 dark:hover:bg-emerald-950/30 h-9 w-9"
+   207→   207→        >
+   208→   208→          <ArrowLeft className="h-5 w-5 text-foreground" />
+   209→   209→        </Button>
+   210→   210→        <div className="flex items-center gap-2 flex-1 min-w-0">
+   211→   211→          <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/40 rounded-lg flex items-center justify-center shrink-0">
+   212→   212→            <Headset className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+   213→   213→          </div>
+   214→   214→          <div className="min-w-0">
+   215→   215→            <h1 className="text-base font-bold text-foreground leading-tight truncate">
+   216→   216→              Service après-vente
+   217→   217→            </h1>
+   218→   218→            <p className="text-[11px] text-muted-foreground leading-tight">
+   219→   219→              Nous sommes à votre écoute
+   220→   220→            </p>
+   221→   221→          </div>
+   222→   222→        </div>
+   223→   223→        {setIsMenuOpen && (
+   224→   224→          <Button
+   225→   225→            variant="ghost"
+   226→   226→            size="icon"
+   227→   227→            onClick={() => setIsMenuOpen(true)}
+   228→   228→            className="hover:bg-emerald-50 dark:hover:bg-emerald-950/30 h-9 w-9"
+   229→   229→          >
+   230→   230→            <Menu className="h-5 w-5 text-foreground" />
+   231→   231→          </Button>
+   232→   232→        )}
+   233→   233→      </header>
+   234→   234→
+   235→   235→      {/* Content */}
+   236→   236→      <div className="flex-1 overflow-y-auto">
+   237→   237→        <div className="max-w-2xl mx-auto w-full px-4 pt-3 pb-4 space-y-3.5">
+   238→   238→          {/* Hero — Besoin d'aide ? */}
+   239→   239→          <motion.div
+   240→   240→            whileHover={{ scale: 1.01 }}
+   241→   241→            whileTap={{ scale: 0.99 }}
+   242→   242→          >
+   243→   243→            <Card
+   244→   244→              className="border-emerald-200 dark:border-emerald-900/50 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/30 dark:to-card overflow-hidden cursor-pointer"
+   245→   245→              onClick={() => setShowHelpDialog(true)}
+   246→   246→            >
+   247→   247→              <CardContent className="p-4 text-center">
+   248→   248→                <motion.div
+   249→   249→                  className="w-14 h-14 bg-emerald-100 dark:bg-emerald-900/40 rounded-2xl flex items-center justify-center mx-auto mb-2 shadow-lg shadow-emerald-200/50 dark:shadow-emerald-900/30"
+   250→   250→                  animate={{
+   251→   251→                    boxShadow: [
+   252→   252→                      '0 10px 15px -3px rgba(16,185,129,0.2)',
+   253→   253→                      '0 10px 25px -3px rgba(16,185,129,0.4)',
+   254→   254→                      '0 10px 15px -3px rgba(16,185,129,0.2)',
+   255→   255→                    ],
+   256→   256→                  }}
+   257→   257→                  transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+   258→   258→                >
+   259→   259→                  <Headset className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+   260→   260→                </motion.div>
+   261→   261→                <h2 className="text-base font-bold text-foreground mb-0.5">
+   262→   262→                  Besoin d&apos;aide ?
+   263→   263→                </h2>
+   264→   264→                <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
+   265→   265→                  Notre équipe vous accompagne pour vos paiements, vos documents
+   266→   266→                  et toutes vos questions concernant votre lot.
+   267→   267→                </p>
+   268→   268→                <motion.div
+   269→   269→                  className="mt-2.5"
+   270→   270→                  animate={{ scale: [1, 1.03, 1] }}
+   271→   271→                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+   272→   272→                >
+   273→   273→                  <Button
+   274→   274→                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-lg shadow-emerald-500/25 h-10"
+   275→   275→                  >
+   276→   276→                    <Headset className="h-4 w-4 mr-1.5" />
+   277→   277→                    Obtenir de l&apos;aide maintenant
+   278→   278→                  </Button>
+   279→   279→                </motion.div>
+   280→   280→              </CardContent>
+   281→   281→            </Card>
+   282→   282→          </motion.div>
+   283→   283→
+   284→   284→          {/* ── Dialog : Besoin d'aide ? ── */}
+   285→   285→          <Dialog open={showHelpDialog} onOpenChange={setShowHelpDialog}>
+   286→   286→            <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden rounded-2xl">
+   287→   287→              {/* En-tête vert */}
+   288→   288→              <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 px-5 pt-5 pb-6 text-center relative overflow-hidden">
+   289→   289→                <div className="absolute inset-0 opacity-10">
+   290→   290→                  <div className="absolute -top-4 -right-4 w-24 h-24 bg-white rounded-full" />
+   291→   291→                  <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-white rounded-full" />
+   292→   292→                </div>
+   293→   293→                <motion.div
+   294→   294→                  className="relative z-10"
+   295→   295→                  initial={{ scale: 0.8, opacity: 0 }}
+   296→   296→                  animate={{ scale: 1, opacity: 1 }}
+   297→   297→                  transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+   298→   298→                >
+   299→   299→                  <div className="w-14 h-14 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center mx-auto mb-3">
+   300→   300→                    <Headset className="h-7 w-7 text-white" />
+   301→   301→                  </div>
+   302→   302→                  <DialogTitle className="text-white text-lg font-bold">
+   303→   303→                    Comment pouvons-nous vous aider ?
+   304→   304→                  </DialogTitle>
+   305→   305→                  <p className="text-emerald-100 text-xs mt-1">
+   306→   306→                    Décrivez votre besoin et nous vous répondrons rapidement.
+   307→   307→                  </p>
+   308→   308→                </motion.div>
+   309→   309→              </div>
+   310→   310→
+   311→   311→              <AnimatePresence mode="wait">
+   312→   312→                {!helpSubmitted ? (
+   313→   313→                  <motion.div
+   314→   314→                    key="form"
+   315→   315→                    initial={{ opacity: 0, x: 20 }}
+   316→   316→                    animate={{ opacity: 1, x: 0 }}
+   317→   317→                    exit={{ opacity: 0, x: -20 }}
+   318→   318→                    className="p-5 space-y-4"
+   319→   319→                  >
+   320→   320→                    {/* Contact rapide en bandeau */}
+   321→   321→                    <div className="flex gap-2">
+   322→   322→                      <a href={SAV_CONTACTS.phoneHref} className="flex-1">
+   323→   323→                        <Button
+   324→   324→                          variant="outline"
+   325→   325→                          className="w-full h-11 text-xs font-bold border-emerald-200 hover:bg-emerald-50 hover:border-emerald-400"
+   326→   326→                        >
+   327→   327→                          <Phone className="h-3.5 w-3.5 mr-1.5 text-emerald-600" />
+   328→   328→                          Appeler
+   329→   329→                        </Button>
+   330→   330→                      </a>
+   331→   331→                      <a href={SAV_CONTACTS.whatsappHref} target="_blank" rel="noopener noreferrer" className="flex-1">
+   332→   332→                        <Button
+   333→   333→                          variant="outline"
+   334→   334→                          className="w-full h-11 text-xs font-bold border-green-200 hover:bg-green-50 hover:border-green-400"
+   335→   335→                        >
+   336→   336→                          <MessageCircle className="h-3.5 w-3.5 mr-1.5 text-green-600" />
+   337→   337→                          WhatsApp
+   338→   338→                        </Button>
+   339→   339→                      </a>
+   340→   340→                      <a href={SAV_CONTACTS.emailHref} className="flex-1">
+   341→   341→                        <Button
+   342→   342→                          variant="outline"
+   343→   343→                          className="w-full h-11 text-xs font-bold border-blue-200 hover:bg-blue-50 hover:border-blue-400"
+   344→   344→                        >
+   345→   345→                          <Mail className="h-3.5 w-3.5 mr-1.5 text-blue-600" />
+   346→   346→                          Écrire
+   347→   347→                        </Button>
+   348→   348→                      </a>
+   349→   349→                    </div>
+   350→   350→
+   351→   351→                    {/* Formulaire */}
+   352→   352→                    <div>
+   353→   353→                      <label className="text-xs font-bold text-foreground mb-1.5 block">
+   354→   354→                        Sujet de votre demande
+   355→   355→                      </label>
+   356→   356→                      <div className="flex flex-wrap gap-1.5">
+   357→   357→                        {[
+   358→   358→                          'Paiement',
+   359→   359→                          'Documents',
+   360→   360→                          'Visite de lot',
+   361→   361→                          'Litige',
+   362→   362→                          'Question générale',
+   363→   363→                        ].map((subject) => (
+   364→   364→                          <button
+   365→   365→                            key={subject}
+   366→   366→                            type="button"
+   367→   367→                            onClick={() => setHelpSubject(subject)}
+   368→   368→                            className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all border ${
+   369→   369→                              helpSubject === subject
+   370→   370→                                ? 'bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 text-emerald-700 dark:text-emerald-300 shadow-sm'
+   371→   371→                                : 'bg-muted/50 border-border text-muted-foreground hover:border-emerald-300 hover:text-foreground'
+   372→   372→                            }`}
+   373→   373→                          >
+   374→   374→                            {subject}
+   375→   375→                          </button>
+   376→   376→                        ))}
+   377→   377→                      </div>
+   378→   378→                    </div>
+   379→   379→
+   380→   380→                    <div>
+   381→   381→                      <label className="text-xs font-bold text-foreground mb-1.5 block">
+   382→   382→                        Décrivez votre besoin
+   383→   383→                      </label>
+   384→   384→                      <Textarea
+   385→   385→                        value={helpMessage}
+   386→   386→                        onChange={(e) => setHelpMessage(e.target.value)}
+   387→   387→                        placeholder="Ex : J'ai un problème avec mon paiement de janvier, la référence est..."
+   388→   388→                        className="min-h-[100px] text-sm resize-none"
+   389→   389→                      />
+   390→   390→                    </div>
+   391→   391→
+   392→   392→                    <Button
+   393→   393→                      className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-500/20 transition-all"
+   394→   394→                      onClick={() => {
+   395→   395→                        if (!helpSubject || !helpMessage.trim()) {
+   396→   396→                          toast.error(
+   397→   397→                            'Veuillez choisir un sujet et décrire votre besoin.',
+   398→   398→                          );
+   399→   399→                          return;
+   400→   400→                        }
+   401→   401→                        setHelpSubmitted(true);
+   402→   402→                        toast.success(
+   403→   403→                          `Votre demande a été envoyée avec succès. Nous vous recontacterons sous 24h.`,
+   404→   404→                          { duration: 5000 },
+   405→   405→                        );
+   406→   406→                      }}
+   407→   407→                    >
+   408→   408→                      <Send className="h-4 w-4 mr-2" />
+   409→   409→                      Envoyer ma demande
+   410→   410→                    </Button>
+   411→   411→
+   412→   412→                    <p className="text-[10px] text-muted-foreground text-center">
+   413→   413→                      En envoyant ce formulaire, vous acceptez que notre SAV
+   414→   414→                      vous recontacte par téléphone ou email.
+   415→   415→                    </p>
+   416→   416→                  </motion.div>
+   417→   417→                ) : (
+   418→   418→                  <motion.div
+   419→   419→                    key="success"
+   420→   420→                    initial={{ opacity: 0, scale: 0.9 }}
+   421→   421→                    animate={{ opacity: 1, scale: 1 }}
+   422→   422→                    exit={{ opacity: 0, scale: 0.9 }}
+   423→   423→                    className="p-8 text-center"
+   424→   424→                  >
+   425→   425→                    <motion.div
+   426→   426→                      initial={{ scale: 0 }}
+   427→   427→                      animate={{ scale: 1 }}
+   428→   428→                      transition={{ type: 'spring', stiffness: 200, damping: 12, delay: 0.1 }}
+   429→   429→                    >
+   430→   430→                      <CheckCircle2 className="h-16 w-16 text-emerald-500 mx-auto mb-4" />
+   431→   431→                    </motion.div>
+   432→   432→                    <h3 className="text-lg font-bold text-foreground mb-1">
+   433→   433→                      Demande envoyée !
+   434→   434→                    </h3>
+   435→   435→                    <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-4">
+   436→   436→                      Notre service après-vente a bien reçu votre demande concernant «&nbsp;{helpSubject}&nbsp;». Nous vous recontacterons sous <strong className="text-foreground">24h ouvrées</strong>.
+   437→   437→                    </p>
+   438→   438→                    <div className="flex gap-2 justify-center">
+   439→   439→                      <Button
+   440→   440→                        variant="outline"
+   441→   441→                        onClick={() => {
+   442→   442→                          setHelpSubject('');
+   443→   443→                          setHelpMessage('');
+   444→   444→                          setHelpSubmitted(false);
+   445→   445→                        }}
+   446→   446→                        className="text-xs font-bold"
+   447→   447→                      >
+   448→   448→                        Nouvelle demande
+   449→   449→                      </Button>
+   450→   450→                      <Button
+   451→   451→                        className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold"
+   452→   452→                        onClick={() => setShowHelpDialog(false)}
+   453→   453→                      >
+   454→   454→                        Fermer
+   455→   455→                      </Button>
+   456→   456→                    </div>
+   457→   457→                  </motion.div>
+   458→   458→                )}
+   459→   459→              </AnimatePresence>
+   460→   460→            </DialogContent>
+   461→   461→          </Dialog>
+   462→   462→
+   463→   463→          {/* Méthodes de contact rapides */}
+   464→   464→          <div>
+   465→   465→            <h3 className="text-sm font-bold text-foreground mb-2 px-1">
+   466→   466→              Contactez-nous
+   467→   467→            </h3>
+   468→   468→            <div className="grid grid-cols-3 gap-2">
+   469→   469→              {/* Téléphone */}
+   470→   470→              <a href={SAV_CONTACTS.phoneHref} className="block group">
+   471→   471→                <Card className="border border-border cursor-pointer transition-all hover:shadow-md hover:border-emerald-400 h-full">
+   472→   472→                  <CardContent className="p-2.5 flex flex-col items-center text-center gap-1">
+   473→   473→                    <div className="w-9 h-9 bg-emerald-100 dark:bg-emerald-900/40 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+   474→   474→                      <Phone className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+   475→   475→                    </div>
+   476→   476→                    <p className="text-[11px] font-bold text-foreground">Appeler</p>
+   477→   477→                    <p className="text-[9px] text-muted-foreground leading-tight">
+   478→   478→                      {SAV_CONTACTS.phone}
+   479→   479→                    </p>
+   480→   480→                  </CardContent>
+   481→   481→                </Card>
+   482→   482→              </a>
+   483→   483→
+   484→   484→              {/* WhatsApp */}
+   485→   485→              <a href={SAV_CONTACTS.whatsappHref} target="_blank" rel="noopener noreferrer" className="block group">
+   486→   486→                <Card className="border border-border cursor-pointer transition-all hover:shadow-md hover:border-green-500 h-full">
+   487→   487→                  <CardContent className="p-2.5 flex flex-col items-center text-center gap-1">
+   488→   488→                    <div className="w-9 h-9 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+   489→   489→                      <MessageCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+   490→   490→                    </div>
+   491→   491→                    <p className="text-[11px] font-bold text-foreground">WhatsApp</p>
+   492→   492→                    <p className="text-[9px] text-muted-foreground leading-tight">
+   493→   493→                      {SAV_CONTACTS.whatsapp}
+   494→   494→                    </p>
+   495→   495→                  </CardContent>
+   496→   496→                </Card>
+   497→   497→              </a>
+   498→   498→
+   499→   499→              {/* Email */}
+   500→   500→              <a href={SAV_CONTACTS.emailHref} className="block group">
+   501→   501→                <Card className="border border-border cursor-pointer transition-all hover:shadow-md hover:border-blue-400 h-full">
+   502→   502→                  <CardContent className="p-2.5 flex flex-col items-center text-center gap-1">
+   503→   503→                    <div className="w-9 h-9 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+   504→   504→                      <Mail className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+   505→   505→                    </div>
+   506→   506→                    <p className="text-[11px] font-bold text-foreground">Écrire</p>
+   507→   507→                    <p className="text-[9px] text-muted-foreground leading-tight">
+   508→   508→                      {SAV_CONTACTS.email}
+   509→   509→                    </p>
+   510→   510→                  </CardContent>
+   511→   511→                </Card>
+   512→   512→              </a>
+   513→   513→            </div>
+   514→   514→          </div>
+   515→   515→
+   516→   516→          {/* Nos services */}
+   517→   517→          <div>
+   518→   518→            <h3 className="text-sm font-bold text-foreground mb-2 px-1">
+   519→   519→              Nos services
+   520→   520→            </h3>
+   521→   521→            <div className="grid grid-cols-2 gap-2">
+   522→   522→              {SAV_SERVICES.map((service) => {
+   523→   523→                const Icon = service.icon;
+   524→   524→                return (
+   525→   525→                  <Card key={service.title} className="border-border">
+   526→   526→                    <CardContent className="p-2.5 flex flex-col items-center text-center gap-1.5">
+   527→   527→                      <div
+   528→   528→                        className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+   529→   529→                        style={{ backgroundColor: `${service.color}20` }}
+   530→   530→                      >
+   531→   531→                        <Icon
+   532→   532→                          className="h-4.5 w-4.5"
+   533→   533→                          style={{ color: service.color }}
+   534→   534→                        />
+   535→   535→                      </div>
+   536→   536→                      <p className="text-[11px] font-bold text-foreground">
+   537→   537→                        {service.title}
+   538→   538→                      </p>
+   539→   539→                      <p className="text-[10px] text-muted-foreground leading-snug">
+   540→   540→                        {service.description}
+   541→   541→                      </p>
+   542→   542→                    </CardContent>
+   543→   543→                  </Card>
+   544→   544→                );
+   545→   545→              })}
+   546→   546→            </div>
+   547→   547→          </div>
+   548→   548→
+   549→   549→          {/* Besoin d’un expert pour votre projet ? */}
+   550→   550→          <Card className="border-amber-200 dark:border-amber-900/50 bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/20 dark:to-card overflow-hidden">
+   551→   551→            <CardContent className="p-3.5 text-center">
+   552→   552→              <div className="w-11 h-11 bg-amber-100 dark:bg-amber-900/40 rounded-xl flex items-center justify-center mx-auto mb-2 shadow-md shadow-amber-200/50 dark:shadow-amber-900/30">
+   553→   553→                <HardHat className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+   554→   554→              </div>
+   555→   555→              <h3 className="text-xs font-bold text-foreground mb-0.5">
+   556→   556→                Besoin d&apos;un expert pour votre projet ?
+   557→   557→              </h3>
+   558→   558→              <p className="text-[10px] text-muted-foreground max-w-xs mx-auto leading-relaxed mb-2.5">
+   559→   559→                Choisissez l&apos;un de nos partenaires qualifiés et nous vous
+   560→   560→                mettrons en relation rapidement.
+   561→   561→              </p>
+   562→   562→              <Button
+   563→   563→                onClick={() => setShowExperts(!showExperts)}
+   564→   564→                className="relative overflow-hidden bg-amber-500 hover:bg-amber-600 text-white font-bold w-full text-xs shadow-md shadow-amber-500/25 transition-all hover:scale-[1.02] h-10"
+   565→   565→              >
+   566→   566→                {!showExperts && (
+   567→   567→                  <motion.span
+   568→   568→                    className="absolute inset-0"
+   569→   569→                    animate={{
+   570→   570→                      background: ['rgba(255,255,255,0)', 'rgba(255,255,255,0.15)', 'rgba(255,255,255,0)'],
+   571→   571→                    }}
+   572→   572→                    transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+   573→   573→                  />
+   574→   574→                )}
+   575→   575→                {showExperts ? (
+   576→   576→                  <>
+   577→   577→                    <ChevronUp className="h-4 w-4 mr-2" />
+   578→   578→                    Masquer les experts
+   579→   579→                  </>
+   580→   580→                ) : (
+   581→   581→                  <>
+   582→   582→                    <ChevronDown className="h-4 w-4 mr-2" />
+   583→   583→                    <motion.span
+   584→   584→                      animate={{ scale: [1, 1.03, 1] }}
+   585→   585→                      transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+   586→   586→                    >
+   587→   587→                      Voir nos experts disponibles
+   588→   588→                    </motion.span>
+   589→   589→                  </>
+   590→   590→                )}
+   591→   591→              </Button>
+   592→   592→            </CardContent>
+   593→   593→          </Card>
+   594→   594→
+   595→   595→          {/* Grille des experts — très animée */}
+   596→   596→          <AnimatePresence>
+   597→   597→            {showExperts && (
+   598→   598→              <motion.div
+   599→   599→                key="experts-grid"
+   600→   600→                initial="hidden"
+   601→   601→                animate="visible"
+   602→   602→                exit="exit"
+   603→   603→                variants={{
+   604→   604→                  hidden: {},
+   605→   605→                  visible: {
+   606→   606→                    transition: { staggerChildren: 0.08 },
+   607→   607→                  },
+   608→   608→                  exit: {
+   609→   609→                    transition: { staggerChildren: 0.04, staggerDirection: -1 },
+   610→   610→                  },
+   611→   611→                }}
+   612→   612→                className="space-y-2.5"
+   613→   613→              >
+   614→   614→                {/* Titre de section animé */}
+   615→   615→                <motion.div
+   616→   616→                  variants={{
+   617→   617→                    hidden: { opacity: 0, x: -20 },
+   618→   618→                    visible: { opacity: 1, x: 0, transition: { duration: 0.4, ease: 'easeOut' } },
+   619→   619→                    exit: { opacity: 0, x: -10, transition: { duration: 0.2 } },
+   620→   620→                  }}
+   621→   621→                  className="flex items-center gap-2 px-1"
+   622→   622→                >
+   623→   623→                  <motion.div
+   624→   624→                    animate={{ rotate: [0, 15, -15, 0] }}
+   625→   625→                    transition={{ duration: 0.6, delay: 0.2, ease: 'easeInOut' }}
+   626→   626→                  >
+   627→   627→                    <HardHat className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+   628→   628→                  </motion.div>
+   629→   629→                  <h3 className="text-sm font-bold text-foreground">
+   630→   630→                    Nos partenaires qualifiés
+   631→   631→                  </h3>
+   632→   632→                  <motion.div
+   633→   633→                    className="flex-1 h-px bg-gradient-to-r from-amber-300 to-transparent"
+   634→   634→                    initial={{ scaleX: 0, originX: 0 }}
+   635→   635→                    animate={{ scaleX: 1 }}
+   636→   636→                    transition={{ duration: 0.6, delay: 0.3 }}
+   637→   637→                  />
+   638→   638→                </motion.div>
+   639→   639→
+   640→   640→                {/* Cartes en cascade */}
+   641→   641→                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+   642→   642→                  {SAV_EXPERTS.map((expert) => {
+   643→   643→                    const Icon = expert.icon;
+   644→   644→                    return (
+   645→   645→                      <motion.div
+   646→   646→                        key={expert.id}
+   647→   647→                        variants={{
+   648→   648→                          hidden: { opacity: 0, y: 30, scale: 0.85, rotateX: -10 },
+   649→   649→                          visible: {
+   650→   650→                            opacity: 1,
+   651→   651→                            y: 0,
+   652→   652→                            scale: 1,
+   653→   653→                            rotateX: 0,
+   654→   654→                            transition: {
+   655→   655→                              type: 'spring',
+   656→   656→                              stiffness: 260,
+   657→   657→                              damping: 18,
+   658→   658→                              bounce: 0.4,
+   659→   659→                            },
+   660→   660→                          },
+   661→   661→                          exit: {
+   662→   662→                            opacity: 0,
+   663→   663→                            y: -15,
+   664→   664→                            scale: 0.9,
+   665→   665→                            transition: { duration: 0.2 },
+   666→   666→                          },
+   667→   667→                        }}
+   668→   668→                        whileHover={{
+   669→   669→                          scale: 1.04,
+   670→   670→                          y: -4,
+   671→   671→                          boxShadow: `0 12px 30px ${expert.color}30`,
+   672→   672→                          borderColor: expert.color,
+   673→   673→                        }}
+   674→   674→                        whileTap={{ scale: 0.97 }}
+   675→   675→                      >
+   676→   676→                        <Card
+   677→   677→                          className="border-2 border-border cursor-pointer group"
+   678→   678→                          onClick={() => handleRequestExpert(expert.title)}
+   679→   679→                        >
+   680→   680→                          <CardContent className="p-3.5">
+   681→   681→                            <div className="flex items-center gap-3">
+   682→   682→                              <motion.div
+   683→   683→                                className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+   684→   684→                                style={{ backgroundColor: `${expert.color}18` }}
+   685→   685→                                whileHover={{ scale: 1.2, rotate: [0, -10, 10, 0] }}
+   686→   686→                                transition={{ duration: 0.4 }}
+   687→   687→                              >
+   688→   688→                                <Icon
+   689→   689→                                  className="h-5 w-5"
+   690→   690→                                  style={{ color: expert.color }}
+   691→   691→                                />
+   692→   692→                              </motion.div>
+   693→   693→                              <div className="flex-1 min-w-0">
+   694→   694→                                <p
+   695→   695→                                  className="text-sm font-bold leading-tight"
+   696→   696→                                  style={{ color: expert.color }}
+   697→   697→                                >
+   698→   698→                                  Je sollicite un {expert.title.toLowerCase()}
+   699→   699→                                </p>
+   700→   700→                                <motion.p
+   701→   701→                                  className="text-[10px] text-muted-foreground leading-snug mt-0.5"
+   702→   702→                                  initial={{ opacity: 0 }}
+   703→   703→                                  animate={{ opacity: 1 }}
+   704→   704→                                  transition={{ delay: 0.35, duration: 0.4 }}
+   705→   705→                                >
+   706→   706→                                  {expert.subtitle}
+   707→   707→                                </motion.p>
+   708→   708→                              </div>
+   709→   709→                            </div>
+   710→   710→                          </CardContent>
+   711→   711→                        </Card>
+   712→   712→                      </motion.div>
+   713→   713→                    );
+   714→   714→                  })}
+   715→   715→                </div>
+   716→   716→
+   717→   717→                {/* Bandeau info animé */}
+   718→   718→                <motion.div
+   719→   719→                  variants={{
+   720→   720→                    hidden: { opacity: 0, x: -40 },
+   721→   721→                    visible: {
+   722→   722→                      opacity: 1,
+   723→   723→                      x: 0,
+   724→   724→                      transition: { type: 'spring', stiffness: 200, damping: 20, delay: 0.6 },
+   725→   725→                    },
+   726→   726→                    exit: { opacity: 0, x: 20, transition: { duration: 0.15 } },
+   727→   727→                  }}
+   728→   728→                  className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50"
+   729→   729→                >
+   730→   730→                  <motion.div
+   731→   731→                    animate={{ rotate: [0, 10, -10, 0] }}
+   732→   732→                    transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+   733→   733→                  >
+   734→   734→                    <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+   735→   735→                  </motion.div>
+   736→   736→                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+   737→   737→                    Délai de mise en relation : <strong className="text-foreground">sous 24h</strong> ouvrées.
+   738→   738→                    Nos partenaires sont sélectionnés pour leur professionnalisme et leur expérience
+   739→   739→                    dans la construction en Côte d&apos;Ivoire.
+   740→   740→                  </p>
+   741→   741→                </motion.div>
+   742→   742→              </motion.div>
+   743→   743→            )}
+   744→   744→          </AnimatePresence>
+   745→   745→
+   746→   746→          {/* Horaires */}
+   747→   747→          <Card className="border-border">
+   748→   748→            <CardContent className="p-3.5">
+   749→   749→              <div className="flex items-center gap-2 mb-2">
+   750→   750→                <Clock className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+   751→   751→                <h3 className="text-sm font-bold text-foreground">
+   752→   752→                  Horaires d&apos;ouverture
+   753→   753→                </h3>
+   754→   754→              </div>
+   755→   755→              <div className="space-y-1.5">
+   756→   756→                {SAV_HORAIRES.map((h) => (
+   757→   757→                  <div
+   758→   758→                    key={h.day}
+   759→   759→                    className="flex justify-between items-center text-xs py-1.5 border-b border-border last:border-0"
+   760→   760→                  >
+   761→   761→                    <span className="text-muted-foreground font-medium">
+   762→   762→                      {h.day}
+   763→   763→                    </span>
+   764→   764→                    <span
+   765→   765→                      className={
+   766→   766→                        h.hours === 'Fermé'
+   767→   767→                          ? 'text-red-500 font-bold'
+   768→   768→                          : 'text-foreground font-bold'
+   769→   769→                      }
+   770→   770→                    >
+   771→   771→                      {h.hours}
+   772→   772→                    </span>
+   773→   773→                  </div>
+   774→   774→                ))}
+   775→   775→              </div>
+   776→   776→            </CardContent>
+   777→   777→          </Card>
+   778→   778→
+   779→   779→          {/* FAQ */}
+   780→   780→          <div>
+   781→   781→            <div className="flex items-center gap-2 mb-2 px-1">
+   782→   782→              <HelpCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+   783→   783→              <h3 className="text-sm font-bold text-foreground">
+   784→   784→                Questions fréquentes
+   785→   785→              </h3>
+   786→   786→            </div>
+   787→   787→            <div className="space-y-1.5">
+   788→   788→              {SAV_FAQ.map((item, index) => {
+   789→   789→                const isOpen = openFaq === index;
+   790→   790→                return (
+   791→   791→                  <Card
+   792→   792→                    key={index}
+   793→   793→                    className={`border-border transition-all ${
+   794→   794→                      isOpen ? 'border-emerald-300 dark:border-emerald-800' : ''
+   795→   795→                    }`}
+   796→   796→                  >
+   797→   797→                    <button
+   798→   798→                      type="button"
+   799→   799→                      onClick={() => setOpenFaq(isOpen ? null : index)}
+   800→   800→                      className="w-full text-left p-3 flex items-center justify-between gap-3"
+   801→   801→                      aria-expanded={isOpen}
+   802→   802→                    >
+   803→   803→                      <span className="text-sm font-bold text-foreground flex-1">
+   804→   804→                        {item.question}
+   805→   805→                      </span>
+   806→   806→                      <ChevronDown
+   807→   807→                        className={`h-4 w-4 text-muted-foreground shrink-0 transition-transform ${
+   808→   808→                          isOpen ? 'rotate-180' : ''
+   809→   809→                        }`}
+   810→   810→                      />
+   811→   811→                    </button>
+   812→   812→                    {isOpen && (
+   813→   813→                      <div className="px-3 pb-3 -mt-1">
+   814→   814→                        <p className="text-[11px] text-muted-foreground leading-relaxed">
+   815→   815→                          {item.answer}
+   816→   816→                        </p>
+   817→   817→                      </div>
+   818→   818→                    )}
+   819→   819→                  </Card>
+   820→   820→                );
+   821→   821→              })}
+   822→   822→            </div>
+   823→   823→          </div>
+   824→   824→
+   825→   825→          {/* CTA : se connecter pour suivre sa demande */}
+   826→   826→          {onLoginClick && (
+   827→   827→            <Card className="border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/20">
+   828→   828→              <CardContent className="p-3.5 text-center">
+   829→   829→                <p className="text-sm font-bold text-foreground mb-0.5">
+   830→   830→                  Déjà client ?
+   831→   831→                </p>
+   832→   832→                <p className="text-[11px] text-muted-foreground mb-2.5">
+   833→   833→                  Connectez-vous pour suivre vos demandes et l&apos;avancée de
+   834→   834→                  vos paiements en temps réel.
+   835→   835→                </p>
+   836→   836→                <Button
+   837→   837→                  onClick={onLoginClick}
+   838→   838→                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold w-full h-10 text-xs"
+   839→   839→                >
+   840→   840→                  Se connecter à mon espace
+   841→   841→                </Button>
+   842→   842→              </CardContent>
+   843→   843→            </Card>
+   844→   844→          )}
+   845→   845→
+   846→   846→          {/* Note de bas de page */}
+   847→   847→          <div className="text-center pb-1 pt-0">
+   848→   848→            <p className="text-[11px] text-muted-foreground">
+   849→   849→              KAMI-EXTENSION · Service après-vente à votre service
+   850→   850→            </p>
+   851→   851→          </div>
+   852→   852→        </div>
+   853→   853→      </div>
+   854→   854→    </div>
+   855→   855→  );
+   856→   856→}
+   857→   857→

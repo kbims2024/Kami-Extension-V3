@@ -746,3 +746,27 @@ Stage Summary:
 - AudioContext singleton pour des performances optimales
 - Gestion silencieuse des erreurs (blocs try/catch) pour les navigateurs qui bloquent l'audio
 - Les sons sont courts (60-300ms) pour une UX réactive
+---
+Task ID: 6
+Agent: Main Agent
+Task: Configurer les 4 sous-boutons "Nos services" et les 8 boutons de sollicitation d'experts
+
+Work Log:
+- Configuré 4 sous-boutons "Nos services" avec des dialogs fonctionnels complets :
+  1. Suivi des paiements → Dialog avec recherche par réf lot + téléphone, génération ticket PAY-XXXXXX
+  2. Documents & attestations → Dialog avec liste de 6 documents téléchargeables (reçus, attestations, titre foncier, plan, contrat, certificat)
+  3. Réclamations & litiges → Dialog avec formulaire complet (nom, téléphone, catégorie en 6 chips, description), génération ticket REC-XXXXXX
+  4. Assistance technique → Dialog avec 8 sujets techniques (bornage, raccordements, viabilisation, etc.) + description
+- Configuré 8 boutons d'experts avec dialog de mise en relation complet :
+  - Formulaire : nom, téléphone, niveau d'urgence (Normal/Urgent/Très urgent), description du besoin
+  - Couleur dynamique du dialog selon l'expert sélectionné
+  - Boutons contact rapide (Appeler/WhatsApp) en haut du dialog
+  - Écran de confirmation avec message personnalisé
+- Supprimé l'import Input (causait des problèmes potentiels), remplacé par Textarea
+- Découvert un bug préexistant de navigation entre écrans (crash sur TOUT changement de screen, pas spécifique au SAV)
+
+Stage Summary:
+- 6 dialogs fonctionnels ajoutés (aide, paiement, documents, réclamation, assistance, expert)
+- Chaque dialog a : en-tête coloré animé, formulaire avec validation, écran de succès, boutons de contact rapide
+- Système de tickets avec préfixes (PAY, REC, EXP)
+- Bug de navigation préexistant identifié (pas causé par les modifications)
