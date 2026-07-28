@@ -306,30 +306,30 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
         </div>
 
         <div className="container mx-auto px-6 relative z-10">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl md:text-3xl font-bold mb-3">
               Pourquoi choisir KAMI-EXTENSION ?
             </h2>
-            <p className="text-xl text-blue-200 max-w-2xl mx-auto">
+            <p className="text-sm text-blue-200 max-w-xl mx-auto">
               Une opportunité d'investissement unique
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="grid grid-cols-3 gap-3 max-w-3xl mx-auto">
             {[
-              { icon: TrendingUp, title: "Valorisation rapide", desc: "Votre terrain prend de la valeur rapidement avec le développement du quartier" },
-              { icon: Award, title: "Titre foncier garanti", desc: "Documentation légale complète et sécurisée pour votre tranquillité" },
-              { icon: Clock, title: "Disponibilité immédiate", desc: "Aucune attente, votre terrain est prêt à être construit" },
+              { icon: TrendingUp, title: "Valorisation rapide", desc: "Votre terrain prend de la valeur rapidement" },
+              { icon: Award, title: "Titre foncier garanti", desc: "Documentation légale complète et sécurisée" },
+              { icon: Clock, title: "Disponibilité immédiate", desc: "Votre terrain est prêt à être construit" },
             ].map((item, index) => {
               const Icon = item.icon;
               return (
                 <Card key={index} className="bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300">
-                  <CardContent className="p-8 text-center">
-                    <div className="w-16 h-16 bg-yellow-400/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                      <Icon className="h-8 w-8 text-yellow-400" />
+                  <CardContent className="p-3 text-center">
+                    <div className="w-10 h-10 bg-yellow-400/20 rounded-xl flex items-center justify-center mx-auto mb-2">
+                      <Icon className="h-5 w-5 text-yellow-400" />
                     </div>
-                    <h3 className="text-xl font-bold mb-3">{item.title}</h3>
-                    <p className="text-blue-200">{item.desc}</p>
+                    <h3 className="text-sm font-bold mb-1">{item.title}</h3>
+                    <p className="text-xs text-blue-200">{item.desc}</p>
                   </CardContent>
                 </Card>
               );
