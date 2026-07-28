@@ -3,6 +3,7 @@
 import * as React from "react"
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu"
 import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react"
+import { playClickSound } from "@/hooks/use-click-sound"
 
 import { cn } from "@/lib/utils"
 
@@ -21,11 +22,22 @@ function DropdownMenuPortal({
 }
 
 function DropdownMenuTrigger({
+  onClick,
+  disabled,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Trigger>) {
+  const handleClick = React.useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (!disabled) playClickSound('tap');
+      onClick?.(e)
+    },
+    [onClick, disabled]
+  )
   return (
     <DropdownMenuPrimitive.Trigger
       data-slot="dropdown-menu-trigger"
+      onClick={handleClick}
+      disabled={disabled}
       {...props}
     />
   )
@@ -63,13 +75,24 @@ function DropdownMenuItem({
   className,
   inset,
   variant = "default",
+  onSelect,
+  disabled,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Item> & {
   inset?: boolean
   variant?: "default" | "destructive"
 }) {
+  const handleSelect = React.useCallback(
+    (e: Event) => {
+      if (!disabled) playClickSound('tap');
+      onSelect?.(e)
+    },
+    [onSelect, disabled]
+  )
   return (
     <DropdownMenuPrimitive.Item
+      onSelect={handleSelect}
+      disabled={disabled}
       data-slot="dropdown-menu-item"
       data-inset={inset}
       data-variant={variant}

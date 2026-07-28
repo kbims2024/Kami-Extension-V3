@@ -1,7 +1,8 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import { playClickSound, type ClickSoundType } from '@/hooks/use-click-sound';
 
 interface AnimatedCardProps {
   children: ReactNode;
@@ -9,9 +10,16 @@ interface AnimatedCardProps {
   delay?: number;
   index?: number;
   hover?: boolean;
+  onClick?: () => void;
+  sound?: ClickSoundType;
 }
 
-export function AnimatedCard({ children, className = '', delay = 0, index = 0, hover = true }: AnimatedCardProps) {
+export function AnimatedCard({ children, className = '', delay = 0, index = 0, hover = true, onClick, sound = 'soft' }: AnimatedCardProps) {
+  const handleClick = useCallback(() => {
+    playClickSound(sound);
+    onClick?.();
+  }, [onClick, sound]);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -24,6 +32,7 @@ export function AnimatedCard({ children, className = '', delay = 0, index = 0, h
       className={className}
       whileHover={hover ? { scale: 1.02, y: -4 } : {}}
       whileTap={hover ? { scale: 0.98 } : {}}
+      onClick={onClick ? handleClick : undefined}
     >
       {children}
     </motion.div>
@@ -37,9 +46,17 @@ interface AnimatedButtonProps {
   onClick?: () => void;
   disabled?: boolean;
   type?: 'button' | 'submit' | 'reset';
+  sound?: ClickSoundType;
 }
 
-export function AnimatedButton({ children, className = '', delay = 0, onClick, disabled, type = 'button' }: AnimatedButtonProps) {
+export function AnimatedButton({ children, className = '', delay = 0, onClick, disabled, type = 'button', sound = 'tap' }: AnimatedButtonProps) {
+  const handleClick = useCallback(() => {
+    if (!disabled) {
+      playClickSound(sound);
+      onClick?.();
+    }
+  }, [onClick, disabled, sound]);
+
   return (
     <motion.button
       type={type}
@@ -53,7 +70,7 @@ export function AnimatedButton({ children, className = '', delay = 0, onClick, d
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       className={className}
-      onClick={onClick}
+      onClick={handleClick}
       disabled={disabled}
     >
       {children}

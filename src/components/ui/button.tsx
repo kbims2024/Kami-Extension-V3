@@ -1,6 +1,9 @@
+'use client';
+
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
+import { playClickSound, type ClickSoundType } from "@/hooks/use-click-sound"
 
 import { cn } from "@/lib/utils"
 
@@ -35,22 +38,46 @@ const buttonVariants = cva(
   }
 )
 
+// Mapping variant → sound type
+function getSoundForVariant(variant?: string): ClickSoundType {
+  switch (variant) {
+    case 'destructive':
+      return 'error';
+    default:
+      return 'tap';
+  }
+}
+
 function Button({
   className,
   variant,
   size,
   asChild = false,
+  soundType,
+  onClick,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean
+    soundType?: ClickSoundType
   }) {
   const Comp = asChild ? Slot : "button"
+
+  const handleClick = React.useCallback(
+    (e: React.MouseEvent<HTMLButtonElement> | React.MouseEvent<HTMLAnchorElement>) => {
+      if (!props.disabled) {
+        playClickSound(soundType ?? getSoundForVariant(variant))
+      }
+      onClick?.(e)
+    },
+    [onClick, soundType, variant, props.disabled]
+  )
 
   return (
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
+      onClick={asChild ? onClick : handleClick}
       {...props}
     />
   )

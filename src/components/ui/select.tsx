@@ -3,6 +3,7 @@
 import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react"
+import { playClickSound } from "@/hooks/use-click-sound"
 
 import { cn } from "@/lib/utils"
 
@@ -28,12 +29,23 @@ function SelectTrigger({
   className,
   size = "default",
   children,
+  onClick,
+  disabled,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
   size?: "sm" | "default"
 }) {
+  const handleClick = React.useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (!disabled) playClickSound('tap');
+      onClick?.(e)
+    },
+    [onClick, disabled]
+  )
   return (
     <SelectPrimitive.Trigger
+      onClick={handleClick}
+      disabled={disabled}
       data-slot="select-trigger"
       data-size={size}
       className={cn(
@@ -101,10 +113,21 @@ function SelectLabel({
 function SelectItem({
   className,
   children,
+  onSelect,
+  disabled,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Item>) {
+  const handleSelect = React.useCallback(
+    (e: Event) => {
+      if (!disabled) playClickSound('success');
+      onSelect?.(e)
+    },
+    [onSelect, disabled]
+  )
   return (
     <SelectPrimitive.Item
+      onSelect={handleSelect}
+      disabled={disabled}
       data-slot="select-item"
       className={cn(
         "focus:bg-accent focus:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",

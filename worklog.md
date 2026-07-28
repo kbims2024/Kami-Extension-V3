@@ -722,3 +722,27 @@ Stage Summary:
 - Affichage SAV considérablement amélioré : plus compact, aligné, et professionnel
 - Tous les padding/espacements réduits pour un rendu mobile optimal
 - Vérifié avec VLM : scores passés de ~5/10 à 8-9/10
+---
+Task ID: 5
+Agent: Main Agent
+Task: Ajouter des sons au clic des boutons de l'application KAMI
+
+Work Log:
+- Créé le hook `useClickSound` dans `src/hooks/use-click-sound.ts` avec Web Audio API (aucun fichier audio externe nécessaire)
+- 5 types de sons : tap (bouton standard), success (validation double ton), error (ton descendant), navigate (clic sec), soft (action discrète)
+- Modifié le composant `Button` (`src/components/ui/button.tsx`) pour jouer automatiquement un son au clic
+- Modifié `AnimatedButton` et `AnimatedCard` dans `animated-components.tsx` pour jouer un son au clic
+- Modifié `TabsTrigger` dans `tabs.tsx` avec son 'navigate'
+- Modifié `AccordionTrigger` dans `accordion.tsx` avec son 'soft'
+- Modifié `SelectTrigger` et `SelectItem` dans `select.tsx` avec sons 'tap' et 'success'
+- Modifié `DropdownMenuTrigger` et `DropdownMenuItem` dans `dropdown-menu.tsx` avec son 'tap'
+- Créé les composants utilitaires `SoundDiv`, `SoundSpan`, `useSoundClick` dans `sound-elements.tsx`
+- Vérifié la compilation : aucun error dans les fichiers modifiés
+- Testé avec agent-browser : la page charge, les boutons répondent, la navigation fonctionne
+
+Stage Summary:
+- Son ajouté à tous les composants UI principaux (Button, Tabs, Accordion, Select, DropdownMenu, AnimatedButton, AnimatedCard)
+- Utilise la Web Audio API native du navigateur — aucun fichier audio externe requis
+- AudioContext singleton pour des performances optimales
+- Gestion silencieuse des erreurs (blocs try/catch) pour les navigateurs qui bloquent l'audio
+- Les sons sont courts (60-300ms) pour une UX réactive
