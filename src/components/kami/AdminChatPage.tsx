@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Send, User, Users, Search, Check, CheckCheck } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { CommitteeNotificationBell } from './CommitteeNotificationBell';
 
 interface Message {
   id: string;
@@ -205,14 +206,17 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen }: AdminChatPage
             <p className="text-xs text-muted-foreground">Comité de Gestion des Lots</p>
           </div>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setIsMenuOpen(true)}
-          className="hover:bg-blue-50"
-        >
-          <Users className="h-6 w-6 text-foreground" />
-        </Button>
+        <div className="flex items-center gap-2">
+          {adminId && <CommitteeNotificationBell userId={adminId} />}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsMenuOpen(true)}
+            className="hover:bg-blue-50"
+          >
+            <Users className="h-6 w-6 text-foreground" />
+          </Button>
+        </div>
       </header>
 
       <div className="flex-1 flex overflow-hidden">

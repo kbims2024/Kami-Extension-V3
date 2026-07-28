@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Users, UserPlus, UserMinus, Search, Shield, User, ArrowLeft, MessageSquare, Crown } from 'lucide-react';
+import { CommitteeNotificationBell } from './CommitteeNotificationBell';
 import { toast } from 'sonner';
 
 interface CommitteeMember {
@@ -28,9 +29,10 @@ interface AllUser {
 interface ManagementCommitteeManagementProps {
   onBack?: () => void;
   setCurrentScreen?: (screen: string) => void;
+  currentUser?: { id: string; role: string; name: string; phone: string } | null;
 }
 
-export function ManagementCommitteeManagement({ onBack, setCurrentScreen }: ManagementCommitteeManagementProps) {
+export function ManagementCommitteeManagement({ onBack, setCurrentScreen, currentUser }: ManagementCommitteeManagementProps) {
   const [committeeMembers, setCommitteeMembers] = useState<CommitteeMember[]>([]);
   const [allUsers, setAllUsers] = useState<AllUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -164,10 +166,17 @@ export function ManagementCommitteeManagement({ onBack, setCurrentScreen }: Mana
         </Button>
       )}
 
-      <h2 className="text-2xl font-bold text-center text-foreground mb-6 flex items-center justify-center">
-        <Shield className="mr-2 h-6 w-6 text-purple-600 dark:text-purple-400" />
-        Comité de Gestion des Lots
-      </h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-center text-foreground flex-1 flex items-center justify-center">
+          <Shield className="mr-2 h-6 w-6 text-purple-600 dark:text-purple-400" />
+          Comité de Gestion des Lots
+        </h2>
+        {currentUser?.id && (
+          <div className="absolute top-4 right-4">
+            <CommitteeNotificationBell userId={currentUser.id} />
+          </div>
+        )}
+      </div>
 
       <div className="space-y-6">
         {/* Liste de tous les utilisateurs */}

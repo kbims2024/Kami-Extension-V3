@@ -12,6 +12,7 @@ import { Message } from './models/Message';
 import { Settings } from './models/Settings';
 import { Logo } from './models/Logo';
 import { AdminFile } from './models/AdminFile';
+import { Notification } from './models/Notification';
 
 // Helper: ensure DB connection before any operation
 async function ensureConnection() {
@@ -390,4 +391,5 @@ export const db = {
   settings: createModelWrapper(Settings),
   logo: createModelWrapper(Logo),
   adminFile: createModelWrapper(AdminFile),
+  notification: createModelWrapper(Notification),
 };

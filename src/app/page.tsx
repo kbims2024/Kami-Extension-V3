@@ -39,6 +39,7 @@ import { AdminLoginDialog } from '@/components/kami/AdminLoginDialog';
 import { PaymentMethodScreen } from '@/components/kami/PaymentMethodScreen';
 import { ServiceApresVenteScreen } from '@/components/kami/ServiceApresVenteScreen';
 import { ExpertApplicationsAdmin } from '@/components/kami/ExpertApplicationsAdmin';
+import { CommitteeNotificationBell } from '@/components/kami/CommitteeNotificationBell';
 
 export default function KamiExtensionPage() {
   const [mounted, setMounted] = useState(false);
@@ -475,7 +476,7 @@ export default function KamiExtensionPage() {
 
       {currentScreen === 'management-committee' && (
         <PageTransition>
-          <ManagementCommitteeManagement onBack={() => setCurrentScreen('home')} setCurrentScreen={setCurrentScreen} />
+          <ManagementCommitteeManagement onBack={() => setCurrentScreen('home')} setCurrentScreen={setCurrentScreen} currentUser={currentUser} />
         </PageTransition>
       )}
 
@@ -1583,10 +1584,17 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
         <ArrowLeft className="h-5 w-5 text-muted-foreground" />
       </Button>
 
-      <h2 className="text-2xl font-bold text-center text-red-600 mb-6 flex items-center justify-center">
-        <Shield className="mr-2 h-6 w-6" />
-        Admin
-      </h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-center text-red-600 flex-1 flex items-center justify-center">
+          <Shield className="mr-2 h-6 w-6" />
+          Admin
+        </h2>
+        {currentUser?.id && (
+          <div className="absolute top-4 right-4">
+            <CommitteeNotificationBell userId={currentUser.id} />
+          </div>
+        )}
+      </div>
 
       {!adminView && (
         <div className="grid grid-cols-2 gap-4">

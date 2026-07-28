@@ -22,3 +22,6 @@ export type { ILogoDocument } from './Logo';
 
 export { AdminFile } from './AdminFile';
 export type { IAdminFileDocument } from './AdminFile';
+
+export { Notification } from './Notification';
+export type { INotificationDocument } from './Notification';

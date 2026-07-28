@@ -92,6 +92,72 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Notify all management committee members and admins about the new reservation
+    try {
+      const user = await db.user.findUnique({ where: { id: userId } });
+      const notificationType = newStatus === 'PAID' ? 'ACHAT' : 'RESERVATION';
+      const notifTitle = newStatus === 'PAID' ? '🛒 Nouvel achat de lot' : '📌 Nouvelle réservation de lot';
+      const notifMessage = newStatus === 'PAID'
+        ? `${user?.name || 'Un souscripteur'} a acheté le lot ${lot.name} (${lot.block || ''}) pour ${amount.toLocaleString('fr-FR')} F`
+        : `${user?.name || 'Un souscripteur'} a réservé le lot ${lot.name} (${lot.block || ''}) — Versement initial: ${amount.toLocaleString('fr-FR')} F / ${totalPrice.toLocaleString('fr-FR')} F`;
+
+      const extraData = JSON.stringify({
+        reservationId: reservation.id,
+        userId,
+        userName: user?.name || 'Inconnu',
+        userPhone: user?.phone || '',
+        lotId,
+        lotName: lot.name,
+        lotBlock: lot.block || '',
+        amount,
+        totalPrice,
+        status: newStatus,
+        isResident,
+      });
+
+      // Get all committee members and admins
+      const [committeeMembers, admins] = await Promise.all([
+        db.user.findMany({ where: { role: 'MANAGEMENT_COMMITTEE', status: 'ACTIVE' } }),
+        db.user.findMany({ where: { role: 'ADMIN', status: 'ACTIVE' } }),
+      ]);
+
+      const notifyTargets = [...committeeMembers, ...admins];
+
+      // Create notification for each member
+      for (const member of notifyTargets) {
+        await db.notification.create({
+          data: {
+            userId: member.id,
+            title: notifTitle,
+            message: notifMessage,
+            type: notificationType,
+            read: false,
+            data: extraData,
+          },
+        });
+      }
+
+      // Also send a chat message to the ADMIN for immediate visibility
+      try {
+        const admin = await db.user.findFirst({ where: { phone: 'ADMIN' } });
+        if (admin) {
+          await db.message.create({
+            data: {
+              content: `🔔 ${notifMessage}`,
+              senderId: userId,
+              receiverId: admin.id,
+            },
+          });
+        }
+      } catch (chatErr) {
+        // Chat notification is best-effort, don't fail the reservation
+        console.warn('Could not send chat notification:', chatErr);
+      }
+    } catch (notifErr) {
+      // Notification failure should not block the reservation
+      console.warn('Could not send committee notifications:', notifErr);
+    }
+
     // Récupérer la réservation avec les infos du lot
     const fullReservation = await db.reservation.findUnique({
       where: { id: reservation.id },
