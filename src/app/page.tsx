@@ -14,7 +14,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { Building2, Map, Home, Wallet, Users, User, Shield, ArrowLeft, Menu, LogOut, LogIn, CheckCircle, XCircle, AlertCircle, ChartLine, CreditCard, UserPlus, PlusCircle, Wrench, Zap, Droplet, ShieldCheck, FileText, Copy, ClipboardCheck, Upload, Phone } from 'lucide-react';
+import { Building2, Map, Home, Wallet, Users, User, Shield, ArrowLeft, Menu, LogOut, LogIn, CheckCircle, XCircle, AlertCircle, ChartLine, CreditCard, UserPlus, PlusCircle, Wrench, Zap, Droplet, ShieldCheck, FileText, Copy, ClipboardCheck, Upload, Phone, Activity } from 'lucide-react';
 import { EnhancedMapScreen } from '@/components/kami/EnhancedMapScreen';
 import { PersuasiveLandingPage } from '@/components/kami/PersuasiveLandingPage';
 import { TwoStepRegistration } from '@/components/kami/TwoStepRegistration';
@@ -40,6 +40,7 @@ import { PaymentMethodScreen } from '@/components/kami/PaymentMethodScreen';
 import { ServiceApresVenteScreen } from '@/components/kami/ServiceApresVenteScreen';
 import { ExpertApplicationsAdmin } from '@/components/kami/ExpertApplicationsAdmin';
 import { CommitteeNotificationBell } from '@/components/kami/CommitteeNotificationBell';
+import { UsersMonitorPanel } from '@/components/kami/UsersMonitorPanel';
 
 export default function KamiExtensionPage() {
   const [mounted, setMounted] = useState(false);
@@ -127,14 +128,32 @@ export default function KamiExtensionPage() {
     }
   };
 
+  // Heartbeat: keep user online status updated every 30s
+  const sendHeartbeat = useCallback(async () => {
+    if (!currentUser?.id) return;
+    try {
+      await fetch('/api/heartbeat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUser.id }),
+      });
+    } catch {
+      // silently fail
+    }
+  }, [currentUser?.id]);
+
   useEffect(() => {
     setMounted(true);
     loadLots();
     if (currentUser?.id) {
       loadMyReservations();
       checkCongratulationNotifications();
+      // Send first heartbeat, then every 30s
+      sendHeartbeat();
+      const interval = setInterval(sendHeartbeat, 30000);
+      return () => clearInterval(interval);
     }
-  }, [currentUser]);
+  }, [currentUser, sendHeartbeat]);
 
   const handleLogin = async (name: string, phone: string, password?: string) => {
     try {
@@ -1640,6 +1659,12 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
               <p className="text-sm font-bold">Candidatures Experts</p>
             </CardContent>
           </Card>
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('users-monitor')}>
+            <CardContent className="p-0 text-center">
+              <Activity className="text-cyan-500 dark:text-cyan-400 h-8 w-8 mx-auto mb-2" />
+              <p className="text-sm font-bold">Surveillance Connexions</p>
+            </CardContent>
+          </Card>
           <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition col-span-2" onClick={() => setAdminView('files')}>
             <CardContent className="p-0 text-center py-4">
               <Upload className="text-brand-blue h-8 w-8 mx-auto mb-2" />
@@ -1892,6 +1917,16 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
       {adminView === 'expert-applications' && (
         <div className="mt-6">
           <ExpertApplicationsAdmin onBack={() => setAdminView(null)} />
+        </div>
+      )}
+
+      {adminView === 'users-monitor' && (
+        <div className="mt-6">
+          <Button variant="ghost" onClick={() => setAdminView(null)} className="mb-4 text-muted-foreground">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Retour
+          </Button>
+          <UsersMonitorPanel />
         </div>
       )}
     </div>

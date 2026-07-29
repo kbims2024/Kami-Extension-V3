@@ -44,6 +44,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Mot de passe requis' }, { status: 401 });
     }
 
+    // Update lastSeen and set user as online
+    await db.user.update({
+      where: { id: user.id },
+      data: { isOnline: true, lastSeen: new Date() },
+    });
+
     return NextResponse.json(user);
   } catch (error) {
     console.error('Error in login:', error);

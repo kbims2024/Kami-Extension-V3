@@ -16,6 +16,8 @@ export interface IUserDocument extends Document {
   resetTokenExpires?: Date;
   quartier?: string;
   congratulatedLots: string;
+  lastSeen?: Date;
+  isOnline?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -36,6 +38,8 @@ const UserSchema = new Schema<IUserDocument>(
     resetTokenExpires: { type: Date, default: null },
     quartier: { type: String, default: null },
     congratulatedLots: { type: String, default: '' },
+    lastSeen: { type: Date, default: null },
+    isOnline: { type: Boolean, default: false },
   },
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
