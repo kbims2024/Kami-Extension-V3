@@ -86,3 +86,33 @@ Stage Summary:
 - RegulationRulesScreen.tsx created at src/components/kami/
 - Old 4-point inline rules replaced with 143-disposition comprehensive document
 - Visual verification confirmed: search bar, colored sections, article numbering, expand/collapse all working
+---
+Task ID: 2
+Agent: general-purpose
+Task: Enrichir le règlement intérieur du village KAMI-EXTENSION
+
+Work Log:
+- Read existing RegulationRulesScreen.tsx (12 sections, 750 lines, ~143 dispositions)
+- Added 10 new lucide-react icon imports (ShieldCheck, Building2, Store, Wifi, Heart, Droplets, Dumbbell, Users, Gavel)
+- Expanded all 12 existing sections with additional articles (1-2 new articles per section with 4-6 rules each)
+- Added 10 new regulatory sections:
+  1. Conditions d'Acquisition et de Cession des Lots (5 articles)
+  2. Gestion des Eaux Pluviales et Drainage (3 articles)
+  3. Télécommunications et Numérique (3 articles)
+  4. Espaces Récréatifs et Sportifs (3 articles)
+  5. Assurances et Gestion des Risques (4 articles)
+  6. Activités Économiques et Artisanales (4 articles)
+  7. Accessibilité et Solidarité (3 articles)
+  8. Droits et Devoirs des Locataires (4 articles)
+  9. Relations avec les Autorités Publiques (4 articles)
+  10. Médiation et Arbitrage (4 articles)
+- Content tailored to African/Cameroonian residential village context (Mobile Money, harmattan, saison des pluies, ENEO, Camwater, OHADA, benskins, tontines, soudure, etc.)
+- Kept component rendering code and SearchIcon function exactly as is
+- Verified compilation with lint and TypeScript: no errors in RegulationRulesScreen.tsx
+- Appended work record to worklog.md
+
+Stage Summary:
+- Regulation expanded from 12 to 22 sections (1459 lines total, nearly 2x)
+- All text in French with formal legal/regulatory language
+- Content specific to Cameroon/Africa (mentions local operators, climate, laws, cultural practices)
+- Component code preserved exactly; only rulesData array was modified

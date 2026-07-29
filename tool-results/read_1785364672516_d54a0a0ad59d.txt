@@ -1,0 +1,750 @@
+     1→     1→'use client';
+     2→     2→
+     3→     3→import { useState } from 'react';
+     4→     4→import { Button } from '@/components/ui/button';
+     5→     5→import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+     6→     6→import { Badge } from '@/components/ui/badge';
+     7→     7→import { Separator } from '@/components/ui/separator';
+     8→     8→import { ScrollArea } from '@/components/ui/scroll-area';
+     9→     9→import {
+    10→    10→  ArrowLeft,
+    11→    11→  ChevronDown,
+    12→    12→  ChevronUp,
+    13→    13→  TreePine,
+    14→    14→  Zap,
+    15→    15→  Car,
+    16→    16→  Trash2,
+    17→    17→  Scale,
+    18→    18→  FileText,
+    19→    19→  Eye,
+    20→    20→  Handshake,
+    21→    21→  ShieldAlert,
+    22→    22→  BookOpen,
+    23→    23→  BadgeCheck,
+    24→    24→  Landmark,
+    25→    25→  Wallet,
+    26→    26→  Building,
+    27→    27→} from 'lucide-react';
+    28→    28→
+    29→    29→interface RulesSection {
+    30→    30→  id: string;
+    31→    31→  title: string;
+    32→    32→  icon: React.ReactNode;
+    33→    33→  color: string;
+    34→    34→  bgColor: string;
+    35→    35→  borderColor: string;
+    36→    36→  articles: {
+    37→    37→    title: string;
+    38→    38→    rules: string[];
+    39→    39→  }[];
+    40→    40→}
+    41→    41→
+    42→    42→interface RegulationRulesScreenProps {
+    43→    43→  setCurrentScreen: (screen: string) => void;
+    44→    44→}
+    45→    45→
+    46→    46→const rulesData: RulesSection[] = [
+    47→    47→  {
+    48→    48→    id: 'general',
+    49→    49→    title: 'Dispositions Générales',
+    50→    50→    icon: <BookOpen className="h-6 w-6" />,
+    51→    51→    color: 'text-brand-blue',
+    52→    52→    bgColor: 'bg-blue-50 dark:bg-blue-950/30',
+    53→    53→    borderColor: 'border-l-brand-blue',
+    54→    54→    articles: [
+    55→    55→      {
+    56→    56→        title: 'Objet du règlement',
+    57→    57→        rules: [
+    58→    58→          'Le présent règlement intérieur a pour objet de définir les règles de vie commune au sein du village KAMI-EXTENSION, garantissant à chaque résident et propriétaire un cadre de vie harmonieux, sécurisé et respectueux de l\'environnement.',
+    59→    59→          'Il s\'applique à l\'ensemble des propriétaires de lots, résidents occupants, locataires, visiteurs et toute personne entrant dans le périmètre du village.',
+    60→    60→          'L\'ignorance du règlement ne saurait être invoquée pour justifier un manquement. Chaque propriétaire est tenu de le communiquer à ses locataires et occupants.',
+    61→    61→          'Tout propriétaire acquiert son lot dans le respect des présentes dispositions. La signature du contrat de réservation ou d\'achat vaut acceptation pleine et entière du présent règlement.',
+    62→    62→        ],
+    63→    63→      },
+    64→    64→      {
+    65→    65→        title: 'Définitions',
+    66→    66→        rules: [
+    67→    67→          '« Lot » désigne la parcelle de terrain cadastrée attribuée à un propriétaire au sein du village KAMI-EXTENSION.',
+    68→    68→          '« Résident » désigne toute personne physiquement installée sur un lot du village, qu\'en soit le titre d\'occupation.',
+    69→    69→          '« Comité de gestion des lots » désigne l\'organe chargé de l\'administration, de la coordination et du respect des règles du village.',
+    70→    70→          '« Périmètre du village » désigne l\'ensemble des lots, voies, espaces communs et zones collectives délimitant KAMI-EXTENSION.',
+    71→    71→        ],
+    72→    72→      },
+    73→    73→      {
+    74→    74→        title: 'Publication et modifications',
+    75→    75→        rules: [
+    76→    76→          'Le règlement intérieur est affiché dans les espaces communs et accessible en ligne via la plateforme KAMI-EXTENSION.',
+    77→    77→          'Toute modification du règlement doit être approuvée par le Comité de gestion des lots et communiquée à l\'ensemble des propriétaires au moins 30 jours avant son entrée en vigueur.',
+    78→    78→          'Les propriétaires peuvent formuler des suggestions de modification via le Comité de gestion, qui les examinera lors de ses réunions ordinaires.',
+    79→    79→        ],
+    80→    80→      },
+    81→    81→    ],
+    82→    82→  },
+    83→    83→  {
+    84→    84→    id: 'urbanisme',
+    85→    85→    title: 'Normes d\'Urbanisme et Construction',
+    86→    86→    icon: <Building className="h-6 w-6" />,
+    87→    87→    color: 'text-orange-600 dark:text-orange-400',
+    88→    88→    bgColor: 'bg-orange-50 dark:bg-orange-950/30',
+    89→    89→    borderColor: 'border-l-orange-500',
+    90→    90→    articles: [
+    91→    91→      {
+    92→    92→        title: 'Plan de construction',
+    93→    93→        rules: [
+    94→    94→          'Tout propriétaire souhaitant construire sur son lot doit soumettre un plan de construction au Comité de gestion pour approbation avant le début des travaux.',
+    95→    95→          'Le plan doit inclure : la vue en plan, les élévations, les dimensions, les matériaux envisagés, l\'emprise au sol et la hauteur maximale de la construction.',
+    96→    96→          'Le Comité dispose d\'un délai de 15 jours ouvrés pour donner son accord ou formuler des observations. En l\'absence de réponse dans ce délai, le plan est réputé approuvé.',
+    97→    97→          'Toute construction non conforme au plan approuvé devra être remise en conformité aux frais du propriétaire, sous peine de sanctions.',
+    98→    98→        ],
+    99→    99→      },
+   100→   100→      {
+   101→   101→        title: 'Normes architecturales',
+   102→   102→        rules: [
+   103→   103→          'La hauteur maximale des constructions est fixée à deux niveaux (RDC + 1 étage), sauf dérogation expresse du Comité.',
+   104→   104→          'L\'emprise au sol ne doit pas excéder 60 % de la surface du lot. Les 40 % restants doivent être réservés aux espaces verts, jardins et dégagements.',
+   105→   105→          'Les façades doivent respecter une harmonie chromatique avec l\'environnement du village. Les couleurs criardes ou trop contrastées sont proscrites.',
+   106→   106→          'Les clôtures ne doivent pas dépasser 2 mètres de hauteur. Les murs plein sont déconseillés au profit de clôtures ajourées (grilles, brise-vent végétalisés).',
+   107→   107→          'Les toitures doivent respecter un style homogène avec les constructions avoisinantes. L\'utilisation de matériaux neufs et durables est fortement encouragée.',
+   108→   108→          'Les fondations doivent être réalisées par des professionnels certifiés et respecter les normes parasismiques en vigueur dans la région.',
+   109→   109→        ],
+   110→   110→      },
+   111→   111→      {
+   112→   112→        title: 'Travaux et chantiers',
+   113→   113→        rules: [
+   114→   114→          'Les travaux doivent être réalisés exclusivement pendant les heures autorisées : du lundi au samedi, de 7h00 à 18h00. Les travaux le dimanche et jours fériés sont interdits.',
+   115→   115→          'Le bruit excessif (percussion, utilisation de matériel lourd) est toléré uniquement entre 8h00 et 17h00 en semaine.',
+   116→   116→          'Un panneau de chantier doit être installé avec les coordonnées de l\'entrepreneur et du propriétaire, ainsi que la durée prévue des travaux.',
+   117→   117→          'Le chantier doit être sécurisé : clôture de protection, signalisation, accès interdit aux enfants et aux personnes non autorisées.',
+   118→   118→          'Les déchets de chantier doivent être évacués quotidiennement. L\'accumulation de matériaux sur la voie publique est strictement interdite.',
+   119→   119→          'Les entrepreneurs doivent être couverts par une assurance responsabilité civile professionnelle.',
+   120→   120→        ],
+   121→   121→      },
+   122→   122→      {
+   123→   123→        title: 'Extensions et modifications',
+   124→   124→        rules: [
+   125→   125→          'Toute extension, modification de façade, surélévation ou changement de destination doit faire l\'objet d\'une demande préalable auprès du Comité de gestion.',
+   126→   126→          'Les installations annexes (garages, kiosques, appentis, citernes, panneaux solaires) doivent être intégrées au plan initial ou faire l\'objet d\'une autorisation séparée.',
+   127→   127→          'La démolition partielle ou totale d\'une construction existante nécessite l\'accord préalable du Comité de gestion.',
+   128→   128→        ],
+   129→   129→      },
+   130→   130→    ],
+   131→   131→  },
+   132→   132→  {
+   133→   133→    id: 'proprete',
+   134→   134→    title: 'Propreté et Hygiène',
+   135→   135→    icon: <Trash2 className="h-6 w-6" />,
+   136→   136→    color: 'text-emerald-600 dark:text-emerald-400',
+   137→   137→    bgColor: 'bg-emerald-50 dark:bg-emerald-950/30',
+   138→   138→    borderColor: 'border-l-emerald-500',
+   139→   139→    articles: [
+   140→   140→      {
+   141→   141→        title: 'Entretien des lots',
+   142→   142→        rules: [
+   143→   143→          'Chaque propriétaire est tenu de maintenir son lot propre, entretenu et exempt de tout déchet, même en l\'absence de construction.',
+   144→   144→          'La végétation doit être régulièrement entretenue. Les herbes hautes (supérieures à 30 cm) doivent être fauchées sous peine de mise en demeure par le Comité.',
+   145→   145→          'Les eaux usées et de pluie doivent être correctement évacuées. Le rejet d\'eaux stagnantes ou polluantes sur la voie publique est formellement interdit.',
+   146→   146→          'En période sèche, le propriétaire doit veiller à prévenir tout risque d\'incendie en maintenant un périmètre de sécurité autour de son lot.',
+   147→   147→        ],
+   148→   148→      },
+   149→   149→      {
+   150→   150→        title: 'Gestion des déchets',
+   151→   151→        rules: [
+   152→   152→          'Le tri sélectif des déchets est obligatoire. Des bacs de tri sont mis à disposition dans les points de collecte désignés par le Comité.',
+   153→   153→          'Les ordures ménagères doivent être déposées dans les bacs prévus à cet effet avant 6h00 du matin. Le dépôt de déchets en dehors des horaires et lieux prévus est sanctionné.',
+   154→   154→          'Les déchets encombrants, gravats et matériaux de construction doivent être évacués par le propriétaire à ses frais dans les décharges agréées.',
+   155→   155→          'Il est formellement interdit d\'enterrer, brûler ou déverser des déchets quelconques dans le village ou à ses abords immédiats.',
+   156→   156→          'Les produits chimiques, peintures, solvants et autres substances dangereuses doivent être éliminés conformément à la réglementation environnementale en vigueur.',
+   157→   157→        ],
+   158→   158→      },
+   159→   159→      {
+   160→   160→        title: 'Espaces communs',
+   161→   161→        rules: [
+   162→   162→          'Les voies, rues et chemins du village doivent rester propres et praticables. Chaque résident doit veiller à ne pas y déposer d\'obstacles ni de déchets.',
+   163→   163→          'Il est interdit de stocker des matériaux, véhicules hors d\'usage, ou tout autre objet sur les espaces communs.',
+   164→   164→          'Les espaces verts communs sont entretenus par le Comité de gestion. Tout résident peut y contribuer volontairement.',
+   165→   165→        ],
+   166→   166→      },
+   167→   167→    ],
+   168→   168→  },
+   169→   169→  {
+   170→   170→    id: 'securite',
+   171→   171→    title: 'Sécurité et Prévention',
+   172→   172→    icon: <ShieldAlert className="h-6 w-6" />,
+   173→   173→    color: 'text-red-600 dark:text-red-400',
+   174→   174→    bgColor: 'bg-red-50 dark:bg-red-950/30',
+   175→   175→    borderColor: 'border-l-red-500',
+   176→   176→    articles: [
+   177→   177→      {
+   178→   178→        title: 'Sécurité des personnes',
+   179→   179→        rules: [
+   180→   180→          'La circulation des véhicules motorisés dans le village est limitée à 20 km/h dans les zones résidentielles et 30 km/h sur les voies principales.',
+   181→   181→          'Les enfants de moins de 12 ans doivent être accompagnés d\'un adulte lorsqu\'ils circulent sur les voies du village.',
+   182→   182→          'Les terrains vagues, chantiers non sécurisés et zones dangereuses sont interdits d\'accès. Les parents sont responsables de la surveillance de leurs enfants.',
+   183→   183→          'Toute situation de danger immédiat doit être signalée au Comité de gestion ou aux services de secours compétents.',
+   184→   184→        ],
+   185→   185→      },
+   186→   186→      {
+   187→   187→        title: 'Prévention des incendies',
+   188→   188→        rules: [
+   189→   189→          'Les feux de broussailles, feux de joie et brûlages à l\'air libre sont strictement interdits sans autorisation préalable du Comité de gestion.',
+   190→   190→          'Chaque construction doit disposer d\'un extincteur conforme aux normes en vigueur, accessible et régulièrement vérifié.',
+   191→   191→          'Les installations électriques doivent être réalisées par un professionnel certifié et respecter les normes en vigueur. Les raccordements sauvages sont formellement interdits.',
+   192→   192→          'Un plan d\'évacuation doit être affiché dans chaque habitation. Les issues de secours doivent rester dégagées en permanence.',
+   193→   193→          'En saison sèche (novembre à mars), le brûlage de tout débris végétal est interdit sur l\'ensemble du périmètre du village.',
+   194→   194→        ],
+   195→   195→      },
+   196→   196→      {
+   197→   197→        title: 'Sécurité des biens',
+   198→   198→        rules: [
+   199→   199→          'Chaque propriétaire est responsable de la sécurité de son lot et de ses biens. L\'installation de dispositifs de surveillance est encouragée.',
+   200→   200→          'Les systèmes d\'alarme ne doivent pas perturber excessivement le voisinage. Les fausses alarmes répétées pourront faire l\'objet de sanctions.',
+   201→   201→          'Le Comité de gestion se réserve le droit de mettre en place des dispositifs de surveillance collective (caméras, éclairage public) pour la sécurité de tous.',
+   202→   202→          'Tout acte de vandalisme, vol ou dégradation sera signalé aux autorités compétentes et au Comité de gestion.',
+   203→   203→        ],
+   204→   204→      },
+   205→   205→    ],
+   206→   206→  },
+   207→   207→  {
+   208→   208→    id: 'circulation',
+   209→   209→    title: 'Circulation et Stationnement',
+   210→   210→    icon: <Car className="h-6 w-6" />,
+   211→   211→    color: 'text-violet-600 dark:text-violet-400',
+   212→   212→    bgColor: 'bg-violet-50 dark:bg-violet-950/30',
+   213→   213→    borderColor: 'border-l-violet-500',
+   214→   214→    articles: [
+   215→   215→      {
+   216→   216→        title: 'Règles de circulation',
+   217→   217→        rules: [
+   218→   218→          'Les véhicules doivent circuler sur les voies aménagées. La circulation hors piste est interdite sauf nécessité technique.',
+   219→   219→          'La vitesse est limitée à 20 km/h dans les zones résidentielles et à 30 km/h sur les axes principaux du village.',
+   220→   220→          'Les véhicules lourds (camions, engins de chantier) doivent obtenir une autorisation de circulation du Comité de gestion avant leur entrée dans le village.',
+   221→   221→          'Les véhicules à moteur bruyant (motos sans silencieux, engins modifiés) doivent maintenir un niveau sonore acceptable sous peine d\'interdiction.',
+   222→   222→        ],
+   223→   223→      },
+   224→   224→      {
+   225→   225→        title: 'Stationnement',
+   226→   226→        rules: [
+   227→   227→          'Le stationnement est autorisé uniquement sur les aires prévues à cet effet et devant les lots dans le respect des dégagements.',
+   228→   228→          'Il est interdit de stationner en double file, sur les trottoirs, aux intersections et devant les accès aux voies publiques.',
+   229→   229→          'Les véhicules hors d\'usage, en panne prolongée ou non immatriculés doivent être retirés du village dans un délai de 15 jours sous peine de mise en fourrière.',
+   230→   230→          'Le stationnement des poids lourds, engins de chantier et véhicules commerciaux de grande taille doit se faire dans les zones désignées à cet effet.',
+   231→   231→          'Les deux-roues doivent être stationnés dans les espaces prévus, sans gêner la circulation piétonne ni automobile.',
+   232→   232→        ],
+   233→   233→      },
+   234→   234→      {
+   235→   235→        title: 'Véhicules non motorisés',
+   236→   236→        rules: [
+   237→   237→          'Les vélos, trottinettes et autres véhicules non motorisés sont encouragés et doivent circuler sur les voies prévues.',
+   238→   238→          'Les circulations nocturnes de véhicules non motorisés doivent se faire avec un dispositif d\'éclairage.',
+   239→   239→        ],
+   240→   240→      },
+   241→   241→    ],
+   242→   242→  },
+   243→   243→  {
+   244→   244→    id: 'environnement',
+   245→   245→    title: 'Environnement et Cadre de Vie',
+   246→   246→    icon: <TreePine className="h-6 w-6" />,
+   247→   247→    color: 'text-green-600 dark:text-green-400',
+   248→   248→    bgColor: 'bg-green-50 dark:bg-green-950/30',
+   249→   249→    borderColor: 'border-l-green-500',
+   250→   250→    articles: [
+   251→   251→      {
+   252→   252→        title: 'Protection de la nature',
+   253→   253→        rules: [
+   254→   254→          'L\'abattage d\'arbres existants sur le lot ou les espaces communs est soumis à l\'autorisation du Comité de gestion.',
+   255→   255→          'Le débroussaillement doit respecter un périmètre de sécurité de 3 mètres autour des constructions.',
+   256→   256→          'Il est encouragé de planter des arbres et arbustes locaux pour embellir le cadre de vie et contribuer à la lutte contre l\'érosion.',
+   257→   257→          'Les espèces invasives doivent être signalées au Comité de gestion qui prendra les mesures appropriées.',
+   258→   258→          'La chasse, la pêche et le prélèvement de ressources naturelles sont interdits dans le périmètre du village sans autorisation.',
+   259→   259→        ],
+   260→   260→      },
+   261→   261→      {
+   262→   262→        title: 'Gestion de l\'eau',
+   263→   263→        rules: [
+   264→   264→          'L\'utilisation rationnelle de l\'eau est une obligation pour tous. Le gaspillage d\'eau potable est proscrit.',
+   265→   265→          'Les forages et puits individuels doivent être déclarés au Comité de gestion et respecter les normes sanitaires en vigueur.',
+   266→   266→          'Le rejet d\'eaux usées non traitées dans la nature ou les nappes phréatiques est formellement interdit.',
+   267→   267→          'Chaque propriétaire doit installer un système d\'assainissement conforme aux normes en vigueur avant toute occupation.',
+   268→   268→        ],
+   269→   269→      },
+   270→   270→      {
+   271→   271→        title: 'Pollution sonore et lumineuse',
+   272→   272→        rules: [
+   273→   273→          'Le repos nocturne doit être respecté entre 21h00 et 6h00. Toute nuisance sonore (musique, bruits divers, aboiements) est interdite pendant cette période.',
+   274→   274→          'Les activités bruyantes (fêtes, événements) doivent faire l\'objet d\'une déclaration préalable auprès du Comité et respecter un horaire raisonnable (fin au plus tard à 22h00).',
+   275→   275→          'L\'utilisation d\'éclairages extérieurs excessifs ou directionnels gênant le voisinage doit être évitée.',
+   276→   276→          'Les alarms de véhicules, sirènes et dispositifs sonores d\'alerte doivent être réglés de manière à ne pas perturber le voisinage.',
+   277→   277→        ],
+   278→   278→      },
+   279→   279→      {
+   280→   280→        title: 'Animaux',
+   281→   281→        rules: [
+   282→   282→          'Les animaux de compagnie (chiens, chats) sont autorisés sous réserve d\'être tenus en laisse dans les espaces communs.',
+   283→   283→          'Les propriétaires d\'animaux sont responsables des dégradations et nuisances causées par leurs animaux (aboiements, déjections, agressivité).',
+   284→   284→          'Les animaux errants ou non identifiés seront signalés aux services compétents. L\'abandon d\'animaux dans le village est strictement interdit.',
+   285→   285→          'L\'élevage d\'animaux de ferme (volailles, bétail) sur un lot résidentiel est soumis à l\'autorisation du Comité de gestion.',
+   286→   286→          'Les vaccinations obligatoires doivent être à jour pour tous les animaux détenus dans le village.',
+   287→   287→        ],
+   288→   288→      },
+   289→   289→    ],
+   290→   290→  },
+   291→   291→  {
+   292→   292→    id: 'equipements',
+   293→   293→    title: 'Réseaux et Équipements',
+   294→   294→    icon: <Zap className="h-6 w-6" />,
+   295→   295→    color: 'text-yellow-600 dark:text-yellow-400',
+   296→   296→    bgColor: 'bg-yellow-50 dark:bg-yellow-950/30',
+   297→   297→    borderColor: 'border-l-yellow-500',
+   298→   298→    articles: [
+   299→   299→      {
+   300→   300→        title: 'Électricité',
+   301→   301→        rules: [
+   302→   302→          'Chaque lot est alimenté en électricité via le réseau du village. Le raccordement doit être réalisé par un électricien certifié.',
+   303→   303→          'Les compteurs individuels sont la responsabilité de chaque propriétaire. Les fraudes de compteur sont passibles de poursuites.',
+   304→   304→          'Les panneaux solaires sont encouragés. Leur installation doit être approuvée par le Comité de gestion.',
+   305→   305→          'Les générateurs de secours doivent être installés dans des locaux ventilés, insonorisés et ne doivent pas dépasser un niveau sonore de 60 décibels à 5 mètres.',
+   306→   306→          'Le passage des câbles aériens sur la voie publique est interdit. Les raccordements doivent être souterrains.',
+   307→   307→        ],
+   308→   308→      },
+   309→   309→      {
+   310→   310→        title: 'Eau et Assainissement',
+   311→   311→        rules: [
+   312→   312→          'L\'eau courante est distribuée via le réseau communal. Toute dérivation non autorisée du réseau est interdite.',
+   313→   313→          'Les fuites sur le réseau individuel doivent être réparées dans les 48 heures de leur détection.',
+   314→   314→          'Les systèmes d\'assainissement individuels (fosses septiques, bacs à graisse) doivent être vidangés régulièrement par des entreprises agréées.',
+   315→   315→          'Il est interdit de connecter directement les eaux pluviales au réseau d\'assainissement.',
+   316→   316→        ],
+   317→   317→      },
+   318→   318→      {
+   319→   319→        title: 'Voirie et espaces publics',
+   320→   320→        rules: [
+   321→   321→          'La voirie du village est entretenue par le Comité de gestion. Les résidents doivent signaler toute dégradation constatée.',
+   322→   322→          'Il est interdit de modifier, obstruer ou dégrader les voies publiques, trottoirs, caniveaux et espaces verts communs.',
+   323→   323→          'Les plantations ornementales sur les espaces communs sont gérées par le Comité. Toute initiative privée doit recevoir son accord.',
+   324→   324→        ],
+   325→   325→      },
+   326→   326→    ],
+   327→   327→  },
+   328→   328→  {
+   329→   329→    id: 'voisinage',
+   330→   330→    title: 'Vie de Voisinage et Cohésion Sociale',
+   331→   331→    icon: <Handshake className="h-6 w-6" />,
+   332→   332→    color: 'text-pink-600 dark:text-pink-400',
+   333→   333→    bgColor: 'bg-pink-50 dark:bg-pink-950/30',
+   334→   334→    borderColor: 'border-l-pink-500',
+   335→   335→    articles: [
+   336→   336→      {
+   337→   337→        title: 'Respect et bonne conduite',
+   338→   338→        rules: [
+   339→   339→          'Tous les résidents se doivent un respect mutuel, sans distinction d\'origine, de religion, d\'opinion ou de statut social.',
+   340→   340→          'Les injures, menaces, harcèlement moral ou physique, discriminations et comportements antisociaux sont strictement interdits et passibles de sanctions.',
+   341→   341→          'Les conflits entre voisins doivent dans un premier temps faire l\'objet d\'une tentative de résolution à l\'amiable, avec l\'assistance du Comité de gestion si nécessaire.',
+   342→   342→          'L\'entraide et la solidarité entre résidents sont fortement encouragées. Le Comité de gestion organisera des activités de cohésion sociale.',
+   343→   343→        ],
+   344→   344→      },
+   345→   345→      {
+   346→   346→        title: 'Événements et rassemblements',
+   347→   347→        rules: [
+   348→   348→          'Les événements privés (fêtes, cérémonies) doivent être déclarés au Comité de gestion au minimum 72 heures à l\'avance.',
+   349→   349→          'Les événements collectifs sur les espaces communs sont organisés par le Comité de gestion. Les résidents peuvent proposer des initiatives.',
+   350→   350→          'Le nombre de participants aux événements privés ne doit pas causer de nuisance au voisinage (stationnement, bruit, surpeuplement).',
+   351→   351→          'Les commerces, activités économiques et services à domicile exercés dans le village nécessitent l\'autorisation du Comité de gestion.',
+   352→   352→        ],
+   353→   353→      },
+   354→   354→      {
+   355→   355→        title: 'Liberté de culte et coutumes',
+   356→   356→        rules: [
+   357→   357→          'La liberté de culte est garantie à tous les résidents, dans le respect des lois de la République.',
+   358→   358→          'Les activités religieuses doivent se dérouler dans le respect de la tranquillité publique, sans nuisance sonore ni obstruction de la voie publique.',
+   359→   359→          'Les pratiques culturelles et traditionnelles sont respectées dans la mesure où elles ne portent pas atteinte aux droits d\'autrui ni au présent règlement.',
+   360→   360→        ],
+   361→   361→      },
+   362→   362→    ],
+   363→   363→  },
+   364→   364→  {
+   365→   365→    id: 'cotisations',
+   366→   366→    title: 'Cotisations et Finances',
+   367→   367→    icon: <Wallet className="h-6 w-6" />,
+   368→   368→    color: 'text-amber-600 dark:text-amber-400',
+   369→   369→    bgColor: 'bg-amber-50 dark:bg-amber-950/30',
+   370→   370→    borderColor: 'border-l-amber-500',
+   371→   371→    articles: [
+   372→   372→      {
+   373→   373→        title: 'Cotisations obligatoires',
+   374→   374→        rules: [
+   375→   375→          'Chaque propriétaire est redevable d\'une cotisation annuelle pour l\'entretien des espaces communs, la voirie, l\'éclairage public et les services collectifs du village.',
+   376→   376→          'Le montant de la cotisation est fixé par le Comité de gestion en assemblée générale, en fonction des besoins du village et des charges réelles.',
+   377→   377→          'La cotisation est due dès la prise de possession du lot, même en l\'absence de construction.',
+   378→   378→          'Le défaut de paiement de la cotisation dans les délais impartis entraînera des pénalités de retard et, le cas échéant, des poursuites.',
+   379→   379→        ],
+   380→   380→      },
+   381→   381→      {
+   382→   382→        title: 'Charges de copropriété',
+   383→   383→        rules: [
+   384→   384→          'Les frais d\'entretien des équipements collectifs (éclairage, adduction d\'eau, assainissement, voirie) sont répartis entre les propriétaires au prorata de la surface de leur lot.',
+   385→   385→          'Les travaux d\'intérêt général décidés par le Comité de gestion peuvent faire l\'objet d\'une contribution supplémentaire temporaire.',
+   386→   386→          'Le Comité de gestion doit publier annuellement un rapport financier détaillant les dépenses et recettes, accessible à tous les propriétaires.',
+   387→   387→        ],
+   388→   388→      },
+   389→   389→      {
+   390→   390→        title: 'Redevances spéciales',
+   391→   391→        rules: [
+   392→   392→          'Une redevance spéciale pourra être demandée aux propriétaires dont les projets de construction nécessitent des adaptations des réseaux ou équipements collectifs.',
+   393→   393→          'Les frais de raccordement aux réseaux (eau, électricité) sont à la charge du propriétaire du lot.',
+   394→   394→        ],
+   395→   395→      },
+   396→   396→    ],
+   397→   397→  },
+   398→   398→  {
+   399→   399→    id: 'sanctions',
+   400→   400→    title: 'Sanctions et Procédures',
+   401→   401→    icon: <Scale className="h-6 w-6" />,
+   402→   402→    color: 'text-red-700 dark:text-red-500',
+   403→   403→    bgColor: 'bg-red-50 dark:bg-red-950/30',
+   404→   404→    borderColor: 'border-l-red-600',
+   405→   405→    articles: [
+   406→   406→      {
+   407→   407→        title: 'Types de manquements',
+   408→   408→        rules: [
+   409→   409→          'Sont considérés comme manquements : le non-respect de toute disposition du présent règlement, les nuisances de voisinage, les dégradations des espaces communs, les constructions non autorisées, le non-paiement des cotisations, et tout comportement portant atteinte à la sécurité ou à la tranquillité publique.',
+   410→   410→          'Les manquements sont classés en trois catégories : légers (première infraction mineure), moyens (répétition ou infraction significative), graves (infraction mettant en danger la sécurité ou portant atteinte aux droits d\'autrui).',
+   411→   411→        ],
+   412→   412→      },
+   413→   413→      {
+   414→   414→        title: 'Procédure de sanction',
+   415→   415→        rules: [
+   416→   416→          'En cas de manquement constaté, le Comité de gestion adressera au contrevenant un avertissement écrit, lui enjoignant de régulariser la situation dans un délai de 15 jours.',
+   417→   417→          'Si le manquement persiste après avertissement, le Comité pourra prononcer une amende dont le montant est fixé en fonction de la gravité de l\'infraction.',
+   418→   418→          'Pour les manquements graves (construction non autorisée, nuisance grave, dégradation volontaire), le Comité pourra saisir les autorités compétentes.',
+   419→   419→          'Tout propriétaire a le droit d\'être entendu avant toute décision de sanction. Il peut faire appel auprès du Comité de gestion dans un délai de 30 jours.',
+   420→   420→        ],
+   421→   421→      },
+   422→   422→      {
+   423→   423→        title: 'Amendes et pénalités',
+   424→   424→        rules: [
+   425→   425→          'Le barème des amendes est fixé par le Comité de gestion et communiqué à l\'ensemble des propriétaires.',
+   426→   426→          'Les pénalités de retard sur les cotisations sont fixées à 2 % par mois de retard sur le montant dû.',
+   427→   427→          'Les frais de remise en conformité (nettoyage, démolition, replantation, etc.) sont intégralement à la charge du contrevenant.',
+   428→   428→          'Le non-paiement répété des cotisations et amendes peut entraîner des poursuites judiciaires et, en dernier recours, la mise en vente forcée du lot.',
+   429→   429→        ],
+   430→   430→      },
+   431→   431→    ],
+   432→   432→  },
+   433→   433→  {
+   434→   434→    id: 'comite',
+   435→   435→    title: 'Comité de Gestion des Lots',
+   436→   436→    icon: <Landmark className="h-6 w-6" />,
+   437→   437→    color: 'text-purple-600 dark:text-purple-400',
+   438→   438→    bgColor: 'bg-purple-50 dark:bg-purple-950/30',
+   439→   439→    borderColor: 'border-l-purple-500',
+   440→   440→    articles: [
+   441→   441→      {
+   442→   442→        title: 'Rôle et missions',
+   443→   443→        rules: [
+   444→   444→          'Le Comité de gestion des lots est l\'organe de direction et de coordination du village KAMI-EXTENSION.',
+   445→   445→          'Il est chargé de : veiller au respect du présent règlement, gérer les espaces et équipements communs, organiser les assemblées générales, administrer les finances du village, coordonner les travaux d\'intérêt général.',
+   446→   446→          'Le Comité représente les propriétaires auprès des autorités locales et des tiers.',
+   447→   447→        ],
+   448→   448→      },
+   449→   449→      {
+   450→   450→        title: 'Composition et fonctionnement',
+   451→   451→        rules: [
+   452→   452→          'Le Comité est composé de membres élus parmi les propriétaires pour un mandat de 2 ans renouvelable.',
+   453→   453→          'Le Comité se réunit en session ordinaire une fois par trimestre. Des sessions extraordinaires peuvent être convoquées en cas de nécessité.',
+   454→   454→          'Les décisions du Comité sont prises à la majorité simple des membres présents. Les décisions modifiant le règlement nécessitent une majorité des deux tiers.',
+   455→   455→          'Les comptes rendus de réunions sont communiqués à l\'ensemble des propriétaires via la plateforme KAMI-EXTENSION.',
+   456→   456→        ],
+   457→   457→      },
+   458→   458→      {
+   459→   459→        title: 'Assemblée générale',
+   460→   460→        rules: [
+   461→   461→          'Une assemblée générale des propriétaires est convoquée au moins une fois par an pour l\'approbation des comptes, le vote du budget et les décisions importantes.',
+   462→   462→          'Chaque propriétaire dispose d\'une voix par lot possédé. Le vote peut se faire en présentiel ou par procuration.',
+   463→   463→          'L\'assemblée générale a le pouvoir de modifier le règlement intérieur, d\'approuver les dépenses exceptionnelles, et de révoquer les membres du Comité.',
+   464→   464→        ],
+   465→   465→      },
+   466→   466→    ],
+   467→   467→  },
+   468→   468→  {
+   469→   469→    id: 'dispositions',
+   470→   470→    title: 'Dispositions Finales',
+   471→   471→    icon: <FileText className="h-6 w-6" />,
+   472→   472→    color: 'text-slate-600 dark:text-slate-400',
+   473→   473→    bgColor: 'bg-slate-50 dark:bg-slate-950/30',
+   474→   474→    borderColor: 'border-l-slate-500',
+   475→   475→    articles: [
+   476→   476→      {
+   477→   477→        title: 'Entrée en vigueur',
+   478→   478→        rules: [
+   479→   479→          'Le présent règlement intérieur entre en vigueur dès son approbation par le Comité de gestion des lots.',
+   480→   480→          'Il s\'applique immédiatement à l\'ensemble des propriétaires et résidents actuels, ainsi qu\'à tout futur propriétaire ou résident.',
+   481→   481→        ],
+   482→   482→      },
+   483→   483→      {
+   484→   484→        title: 'Litiges',
+   485→   485→        rules: [
+   486→   486→          'En cas de litige entre résidents, une médiation sera proposée par le Comité de gestion avant tout recours judiciaire.',
+   487→   487→          'Si la médiation échoue, les parties pourront saisir la juridiction compétente.',
+   488→   488→          'Les litiges entre un résident et le Comité de gestion seront soumis à l\'arbitrage d\'un tiers indépendant désigné d\'un commun accord.',
+   489→   489→        ],
+   490→   490→      },
+   491→   491→      {
+   492→   492→        title: 'Révision',
+   493→   493→        rules: [
+   494→   494→          'Le présent règlement pourra être révisé par le Comité de gestion à tout moment, sur proposition d\'un membre ou d\'un groupe de propriétaires représentant au moins 10 % des lots.',
+   495→   495→          'Toute proposition de révision doit être notifiée à l\'ensemble des propriétaires 30 jours avant la tenue de l\'assemblée générale chargée de l\'examiner.',
+   496→   496→        ],
+   497→   497→      },
+   498→   498→    ],
+   499→   499→  },
+   500→   500→];
+   501→   501→
+   502→   502→export function RegulationRulesScreen({ setCurrentScreen }: RegulationRulesScreenProps) {
+   503→   503→  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+   504→   504→  const [expandedArticles, setExpandedArticles] = useState<Record<string, boolean>>({});
+   505→   505→  const [searchQuery, setSearchQuery] = useState('');
+   506→   506→
+   507→   507→  // Expand first section by default
+   508→   508→  useState(() => {
+   509→   509→    if (rulesData.length > 0) {
+   510→   510→      setExpandedSections({ [rulesData[0].id]: true });
+   511→   511→    }
+   512→   512→  });
+   513→   513→
+   514→   514→  const toggleSection = (sectionId: string) => {
+   515→   515→    setExpandedSections((prev) => ({ ...prev, [sectionId]: !prev[sectionId] }));
+   516→   516→  };
+   517→   517→
+   518→   518→  const toggleArticle = (articleKey: string) => {
+   519→   519→    setExpandedArticles((prev) => ({ ...prev, [articleKey]: !prev[articleKey] }));
+   520→   520→  };
+   521→   521→
+   522→   522→  const expandAll = () => {
+   523→   523→    const all: Record<string, boolean> = {};
+   524→   524→    rulesData.forEach((s) => {
+   525→   525→      all[s.id] = true;
+   526→   526→      s.articles.forEach((a, i) => {
+   527→   527→        all[`${s.id}-${i}`] = true;
+   528→   528→      });
+   529→   529→    });
+   530→   530→    setExpandedSections(all);
+   531→   531→    setExpandedArticles(all);
+   532→   532→  };
+   533→   533→
+   534→   534→  const collapseAll = () => {
+   535→   535→    setExpandedSections({});
+   536→   536→    setExpandedArticles({});
+   537→   537→  };
+   538→   538→
+   539→   539→  // Filter based on search
+   540→   540→  const filteredData = searchQuery
+   541→   541→    ? rulesData.map((section) => ({
+   542→   542→        ...section,
+   543→   543→        articles: section.articles.map((article) => ({
+   544→   544→          ...article,
+   545→   545→          rules: article.rules.filter(
+   546→   546→            (rule) =>
+   547→   547→              rule.toLowerCase().includes(searchQuery.toLowerCase()) ||
+   548→   548→              article.title.toLowerCase().includes(searchQuery.toLowerCase())
+   549→   549→          ),
+   550→   550→        })).filter((article) => article.rules.length > 0),
+   551→   551→      })).filter((section) => section.articles.length > 0)
+   552→   552→    : rulesData;
+   553→   553→
+   554→   554→  const totalArticles = rulesData.reduce((sum, s) => sum + s.articles.length, 0);
+   555→   555→  const totalRules = rulesData.reduce(
+   556→   556→    (sum, s) => sum + s.articles.reduce((aSum, a) => aSum + a.rules.length, 0),
+   557→   557→    0
+   558→   558→  );
+   559→   559→
+   560→   560→  return (
+   561→   561→    <div className="flex-1 flex flex-col bg-card pt-4 pb-8">
+   562→   562→      {/* Header */}
+   563→   563→      <div className="sticky top-0 z-10 bg-card/95 backdrop-blur-md border-b border-border px-4 py-3">
+   564→   564→        <div className="flex items-center gap-3 mb-3">
+   565→   565→          <Button
+   566→   566→            variant="ghost"
+   567→   567→            size="icon"
+   568→   568→            onClick={() => setCurrentScreen('home')}
+   569→   569→          >
+   570→   570→            <ArrowLeft className="h-5 w-5 text-muted-foreground" />
+   571→   571→          </Button>
+   572→   572→          <div className="flex-1">
+   573→   573→            <h2 className="text-xl font-bold text-[#8B5E3C] flex items-center justify-center gap-2">
+   574→   574→              <Scale className="h-5 w-5" />
+   575→   575→              Règlement Intérieur
+   576→   576→            </h2>
+   577→   577→            <p className="text-xs text-muted-foreground text-center">
+   578→   578→              KAMI-EXTENSION — {rulesData.length} chapitres • {totalArticles} articles • {totalRules} dispositions
+   579→   579→            </p>
+   580→   580→          </div>
+   581→   581→        </div>
+   582→   582→
+   583→   583→        {/* Search + Controls */}
+   584→   584→        <div className="flex items-center gap-2">
+   585→   585→          <div className="relative flex-1">
+   586→   586→            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+   587→   587→            <input
+   588→   588→              placeholder="Rechercher dans le règlement..."
+   589→   589→              value={searchQuery}
+   590→   590→              onChange={(e) => setSearchQuery(e.target.value)}
+   591→   591→              className="w-full pl-10 pr-4 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-[#8B5E3C]"
+   592→   592→            />
+   593→   593→          </div>
+   594→   594→          <Button
+   595→   595→            variant="outline"
+   596→   596→            size="sm"
+   597→   597→            onClick={expandAll}
+   598→   598→            className="text-xs whitespace-nowrap"
+   599→   599→          >
+   600→   600→            Tout ouvrir
+   601→   601→          </Button>
+   602→   602→          <Button
+   603→   603→            variant="outline"
+   604→   604→            size="sm"
+   605→   605→            onClick={collapseAll}
+   606→   606→            className="text-xs whitespace-nowrap"
+   607→   607→          >
+   608→   608→            Tout fermer
+   609→   609→          </Button>
+   610→   610→        </div>
+   611→   611→      </div>
+   612→   612→
+   613→   613→      {/* Content */}
+   614→   614→      <ScrollArea className="flex-1">
+   615→   615→        <div className="px-4 py-4 space-y-4">
+   616→   616→          {searchQuery && filteredData.length === 0 && (
+   617→   617→            <div className="text-center py-12">
+   618→   618→              <Eye className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
+   619→   619→              <p className="text-muted-foreground">Aucun résultat pour « {searchQuery} »</p>
+   620→   620→            </div>
+   621→   621→          )}
+   622→   622→
+   623→   623→          {filteredData.map((section) => (
+   624→   624→            <Card key={section.id} className={`border-l-4 ${section.borderColor} overflow-hidden`}>
+   625→   625→              {/* Section Header */}
+   626→   626→              <button
+   627→   627→                onClick={() => toggleSection(section.id)}
+   628→   628→                className="w-full text-left"
+   629→   629→              >
+   630→   630→                <CardHeader className="p-4 pb-2 cursor-pointer hover:bg-muted/30 transition-colors">
+   631→   631→                  <div className="flex items-center gap-3">
+   632→   632→                    <div className={`p-2 rounded-lg ${section.bgColor}`}>
+   633→   633→                      <span className={section.color}>{section.icon}</span>
+   634→   634→                    </div>
+   635→   635→                    <div className="flex-1">
+   636→   636→                      <CardTitle className={`text-base ${section.color}`}>
+   637→   637→                        {section.title}
+   638→   638→                      </CardTitle>
+   639→   639→                      <p className="text-xs text-muted-foreground mt-0.5">
+   640→   640→                        {section.articles.length} article{section.articles.length > 1 ? 's' : ''}
+   641→   641→                      </p>
+   642→   642→                    </div>
+   643→   643→                    {expandedSections[section.id] ? (
+   644→   644→                      <ChevronUp className="h-5 w-5 text-muted-foreground" />
+   645→   645→                    ) : (
+   646→   646→                      <ChevronDown className="h-5 w-5 text-muted-foreground" />
+   647→   647→                    )}
+   648→   648→                  </div>
+   649→   649→                </CardHeader>
+   650→   650→              </button>
+   651→   651→
+   652→   652→              {/* Articles */}
+   653→   653→              {expandedSections[section.id] && (
+   654→   654→                <CardContent className="pt-0 pb-4 px-4">
+   655→   655→                  <div className="space-y-3 mt-2">
+   656→   656→                    {section.articles.map((article, articleIdx) => {
+   657→   657→                      const articleKey = `${section.id}-${articleIdx}`;
+   658→   658→                      const isExpanded = expandedArticles[articleKey] !== false; // expanded by default
+   659→   659→
+   660→   660→                      return (
+   661→   661→                        <div
+   662→   662→                          key={articleKey}
+   663→   663→                          className="border border-border rounded-lg overflow-hidden"
+   664→   664→                        >
+   665→   665→                          {/* Article Header */}
+   666→   666→                          <button
+   667→   667→                            onClick={() => toggleArticle(articleKey)}
+   668→   668→                            className="w-full text-left px-3 py-2.5 flex items-center gap-2 hover:bg-muted/30 transition-colors"
+   669→   669→                          >
+   670→   670→                            <Badge variant="outline" className="text-xs font-mono flex-shrink-0">
+   671→   671→                              Art. {articleIdx + 1}
+   672→   672→                            </Badge>
+   673→   673→                            <span className="text-sm font-semibold text-foreground flex-1">
+   674→   674→                              {article.title}
+   675→   675→                            </span>
+   676→   676→                            {isExpanded ? (
+   677→   677→                              <ChevronUp className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+   678→   678→                            ) : (
+   679→   679→                              <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+   680→   680→                            )}
+   681→   681→                          </button>
+   682→   682→
+   683→   683→                          {/* Article Content */}
+   684→   684→                          {isExpanded && (
+   685→   685→                            <div className="px-3 pb-3 space-y-2">
+   686→   686→                              {article.rules.map((rule, ruleIdx) => (
+   687→   687→                                <div
+   688→   688→                                  key={ruleIdx}
+   689→   689→                                  className="flex items-start gap-2 text-sm text-foreground/90 leading-relaxed"
+   690→   690→                                >
+   691→   691→                                  <span className="text-xs text-muted-foreground mt-1 flex-shrink-0 font-mono min-w-[16px]">
+   692→   692→                                    {ruleIdx + 1}.
+   693→   693→                                  </span>
+   694→   694→                                  <p>{rule}</p>
+   695→   695→                                </div>
+   696→   696→                              ))}
+   697→   697→                            </div>
+   698→   698→                          )}
+   699→   699→                        </div>
+   700→   700→                      );
+   701→   701→                    })}
+   702→   702→                  </div>
+   703→   703→                </CardContent>
+   704→   704→              )}
+   705→   705→            </Card>
+   706→   706→          ))}
+   707→   707→
+   708→   708→          {/* Footer */}
+   709→   709→          <div className="mt-8 text-center">
+   710→   710→            <Separator className="mb-6" />
+   711→   711→            <div className="flex items-center justify-center gap-2 text-muted-foreground">
+   712→   712→              <BadgeCheck className="h-4 w-4" />
+   713→   713→              <p className="text-xs">
+   714→   714→                Règlement Intérieur du Village KAMI-EXTENSION
+   715→   715→              </p>
+   716→   716→            </div>
+   717→   717→            <p className="text-xs text-muted-foreground/60 mt-1">
+   718→   718→              Document adopté par le Comité de Gestion des Lots
+   719→   719→            </p>
+   720→   720→            <p className="text-xs text-muted-foreground/60">
+   721→   721→              Pour toute question, contactez le Comité de Gestion via la plateforme.
+   722→   722→            </p>
+   723→   723→          </div>
+   724→   724→        </div>
+   725→   725→      </ScrollArea>
+   726→   726→    </div>
+   727→   727→  );
+   728→   728→}
+   729→   729→
+   730→   730→// Search icon (since we're not importing from lucide here to keep it self-contained)
+   731→   731→function SearchIcon({ className }: { className?: string }) {
+   732→   732→  return (
+   733→   733→    <svg
+   734→   734→      xmlns="http://www.w3.org/2000/svg"
+   735→   735→      width="24"
+   736→   736→      height="24"
+   737→   737→      viewBox="0 0 24 24"
+   738→   738→      fill="none"
+   739→   739→      stroke="currentColor"
+   740→   740→      strokeWidth="2"
+   741→   741→      strokeLinecap="round"
+   742→   742→      strokeLinejoin="round"
+   743→   743→      className={className}
+   744→   744→    >
+   745→   745→      <circle cx="11" cy="11" r="8" />
+   746→   746→      <path d="m21 21-4.3-4.3" />
+   747→   747→    </svg>
+   748→   748→  );
+   749→   749→}
+   750→   750→
