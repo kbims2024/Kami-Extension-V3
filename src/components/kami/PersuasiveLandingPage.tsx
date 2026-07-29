@@ -7,6 +7,7 @@ import { FlashInfoBand } from '@/components/flash-info-band';
 import { Menu, Map, TrendingUp, Clock, Award, ArrowRight, ChevronRight, Headset, Building2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
+import { PublicProgressSection } from './PublicProgressSection';
 
 interface PersuasiveLandingPageProps {
   onReserveClick: () => void;
@@ -337,6 +338,9 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
           </div>
         </div>
       </section>
+
+      {/* Public Progress Section */}
+      <PublicProgressSection />
 
       {/* Final CTA */}
       <section className="py-20 bg-gradient-to-br from-brand-yellow to-yellow-500 text-gray-900 relative overflow-hidden">

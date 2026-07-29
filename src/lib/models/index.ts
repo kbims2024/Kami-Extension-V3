@@ -25,3 +25,6 @@ export type { IAdminFileDocument } from './AdminFile';
 
 export { Notification } from './Notification';
 export type { INotificationDocument } from './Notification';
+
+export { ProgressUpdate } from './ProgressUpdate';
+export type { IProgressUpdateDocument } from './ProgressUpdate';

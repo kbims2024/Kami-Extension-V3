@@ -14,7 +14,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { Building2, Map, Home, Wallet, Users, User, Shield, ArrowLeft, Menu, LogOut, LogIn, CheckCircle, XCircle, AlertCircle, ChartLine, CreditCard, UserPlus, PlusCircle, Wrench, Zap, Droplet, ShieldCheck, FileText, Copy, ClipboardCheck, Upload, Phone, Activity } from 'lucide-react';
+import { Building2, Map, Home, Wallet, Users, User, Shield, ArrowLeft, Menu, LogOut, LogIn, CheckCircle, XCircle, AlertCircle, ChartLine, CreditCard, UserPlus, PlusCircle, Wrench, Zap, Droplet, ShieldCheck, FileText, Copy, ClipboardCheck, Upload, Phone, Activity, Construction, TrendingUp } from 'lucide-react';
 import { EnhancedMapScreen } from '@/components/kami/EnhancedMapScreen';
 import { PersuasiveLandingPage } from '@/components/kami/PersuasiveLandingPage';
 import { TwoStepRegistration } from '@/components/kami/TwoStepRegistration';
@@ -41,6 +41,9 @@ import { ServiceApresVenteScreen } from '@/components/kami/ServiceApresVenteScre
 import { ExpertApplicationsAdmin } from '@/components/kami/ExpertApplicationsAdmin';
 import { CommitteeNotificationBell } from '@/components/kami/CommitteeNotificationBell';
 import { UsersMonitorPanel } from '@/components/kami/UsersMonitorPanel';
+import { PublicProgressSection } from '@/components/kami/PublicProgressSection';
+import { ProgressUpdatesAdmin } from '@/components/kami/ProgressUpdatesAdmin';
+import { SubscriberTrackingPanel } from '@/components/kami/SubscriberTrackingPanel';
 
 export default function KamiExtensionPage() {
   const [mounted, setMounted] = useState(false);
@@ -1671,6 +1674,18 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
               <p className="text-sm font-bold">Gérer Fichiers (Plan du village)</p>
             </CardContent>
           </Card>
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('progress-updates')}>
+            <CardContent className="p-0 text-center">
+              <Construction className="text-orange-500 dark:text-orange-400 h-8 w-8 mx-auto mb-2" />
+              <p className="text-sm font-bold">Avancement Travaux</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('subscriber-tracking')}>
+            <CardContent className="p-0 text-center">
+              <TrendingUp className="text-cyan-500 dark:text-cyan-400 h-8 w-8 mx-auto mb-2" />
+              <p className="text-sm font-bold">Suivi Souscripteurs</p>
+            </CardContent>
+          </Card>
         </div>
       )}
 
@@ -1927,6 +1942,18 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
             Retour
           </Button>
           <UsersMonitorPanel />
+        </div>
+      )}
+
+      {adminView === 'progress-updates' && (
+        <div className="mt-6">
+          <ProgressUpdatesAdmin onBack={() => setAdminView(null)} />
+        </div>
+      )}
+
+      {adminView === 'subscriber-tracking' && (
+        <div className="mt-6">
+          <SubscriberTrackingPanel onBack={() => setAdminView(null)} setCurrentScreen={setCurrentScreen} currentUser={currentUser} />
         </div>
       )}
     </div>
