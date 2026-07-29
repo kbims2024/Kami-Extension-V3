@@ -1,10 +1,42 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Send, User, Check, CheckCheck } from 'lucide-react';
+import {
+  ArrowLeft,
+  Send,
+  Check,
+  CheckCheck,
+  Smile,
+  Paperclip,
+  Phone,
+  MoreVertical,
+} from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// ─── WhatsApp colour palette ───
+const WA = {
+  headerDark: '#075E54',
+  headerTeal: '#128C7E',
+  outgoing: '#DCF8C6',
+  outgoingDark: '#005C4B',
+  incoming: '#FFFFFF',
+  incomingDark: '#1F2C34',
+  chatBg: '#ECE5DD',
+  chatBgDark: '#0B141A',
+  inputBg: '#F0F0F0',
+  inputBgDark: '#2A3942',
+  textDark: '#111B21',
+  textLight: '#E9EDEF',
+  checkRead: '#53BDEB',
+  timeSent: '#667781',
+  dateBubble: '#E1F3FB',
+  dateBubbleDark: '#182229',
+  dateText: '#54656F',
+  borderLight: '#E9EDEF',
+};
 
 interface Message {
   id: string;
@@ -30,6 +62,7 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen }: ChatPageProps) {
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -41,14 +74,12 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen }: ChatPageProps) {
 
   useEffect(() => {
     loadMessages();
-    // Poll for new messages every 5 seconds
     const interval = setInterval(loadMessages, 5000);
     return () => clearInterval(interval);
   }, [currentUser]);
 
   const loadMessages = async () => {
     if (!currentUser?.id) return;
-
     try {
       const response = await fetch(`/api/messages?userId=${currentUser.id}`);
       if (response.ok) {
@@ -62,7 +93,6 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen }: ChatPageProps) {
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !currentUser?.id || isLoading) return;
-
     setIsLoading(true);
     try {
       const response = await fetch('/api/messages', {
@@ -70,11 +100,10 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen }: ChatPageProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content: newMessage,
-          receiverId: 'ADMIN', // Special ID for admin
+          receiverId: 'ADMIN',
           senderId: currentUser.id,
         }),
       });
-
       if (response.ok) {
         setNewMessage('');
         await loadMessages();
@@ -93,123 +122,245 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen }: ChatPageProps) {
     }
   };
 
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
+  // ─── Helpers ───
 
-    if (diffMins < 1) return 'À l\'instant';
-    if (diffMins < 60) return `Il y a ${diffMins} min`;
-    if (diffMins < 1440) return `Il y a ${Math.floor(diffMins / 60)} h`;
-    return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+  const formatTimeShort = (dateString: string) => {
+    const d = new Date(dateString);
+    return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   };
 
+  const formatDateLabel = (dateString: string) => {
+    const d = new Date(dateString);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const msgDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+    if (msgDate.getTime() === today.getTime()) return "AUJOURD'HUI";
+    if (msgDate.getTime() === yesterday.getTime()) return 'HIER';
+    return d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
+  };
+
+  // Group messages by date
+  const groupedMessages = useMemo(() => {
+    const groups: { date: string; messages: Message[] }[] = [];
+    let currentLabel = '';
+
+    messages.forEach((msg) => {
+      const label = formatDateLabel(msg.createdAt);
+      if (label !== currentLabel) {
+        groups.push({ date: label, messages: [msg] });
+        currentLabel = label;
+      } else {
+        groups[groups.length - 1].messages.push(msg);
+      }
+    });
+
+    return groups;
+  }, [messages]);
+
+  // ─── Render ───
+
   return (
-    <div className="flex-1 flex flex-col bg-card min-h-screen">
-      {/* Header */}
-      <header className="flex justify-between items-center px-6 py-4 bg-card border-b border-border sticky top-0 z-20">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setCurrentScreen('home')}
-            className="hover:bg-blue-50"
-          >
-            <ArrowLeft className="h-5 w-5 text-foreground" />
-          </Button>
-          <div>
-            <h1 className="text-lg font-bold text-foreground leading-tight">Discussion</h1>
-            <p className="text-xs text-muted-foreground">Échange avec le Comité de Gestion des Lots</p>
-          </div>
-        </div>
+    <div className="flex-1 flex flex-col h-screen max-h-screen bg-[var(--wa-bg)]" style={{ '--wa-bg': WA.chatBg }}>
+      {/* ─── Header (WhatsApp green bar) ─── */}
+      <header
+        className="flex items-center px-2 py-1.5 shrink-0 relative z-20"
+        style={{ backgroundColor: WA.headerDark }}
+      >
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => setIsMenuOpen(true)}
-          className="hover:bg-blue-50"
+          onClick={() => setCurrentScreen('home')}
+          className="text-white hover:bg-white/10"
         >
-          <User className="h-6 w-6 text-foreground" />
+          <ArrowLeft className="h-5 w-5" />
         </Button>
+
+        {/* Avatar */}
+        <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center ml-1 flex-shrink-0">
+          <span className="text-lg font-bold text-white">CG</span>
+        </div>
+
+        <div className="flex-1 ml-3 min-w-0">
+          <h1 className="text-[15px] font-semibold text-white truncate leading-tight">
+            Comité de Gestion
+          </h1>
+          <p className="text-[12px] text-green-300/80 leading-tight">en ligne</p>
+        </div>
+
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
+            <Phone className="h-5 w-5" />
+          </Button>
+          <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
+            <MoreVertical className="h-5 w-5" />
+          </Button>
+        </div>
       </header>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      {/* ─── Chat area ─── */}
+      <div
+        className="flex-1 overflow-y-auto px-3 py-2 space-y-1"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+        }}
+      >
         {messages.length === 0 ? (
-          <div className="text-center py-20">
-            <User className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">
+          <div className="flex flex-col items-center justify-center py-20 px-6">
+            <div className="w-20 h-20 rounded-full bg-white/80 dark:bg-[#1F2C34] flex items-center justify-center mb-4 shadow-sm">
+              <span className="text-3xl">💬</span>
+            </div>
+            <p className="text-sm font-medium" style={{ color: WA.textDark }}>
               Aucun message pour le moment
             </p>
-            <p className="text-sm text-muted-foreground mt-2">
+            <p className="text-xs mt-1 text-center max-w-[260px]" style={{ color: WA.timeSent }}>
               Envoyez votre premier message au Comité de Gestion des Lots
             </p>
           </div>
         ) : (
-          messages.map((message, index) => {
-            const isAdmin = message.senderId === 'ADMIN';
-            const isMyMessage = message.senderId === currentUser?.id;
-
-            return (
-              <div
-                key={message.id || `page-chat-msg-${index}`}
-                className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}
-              >
-                <div
-                  className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                    isMyMessage
-                      ? 'bg-blue-600 text-white'
-                      : isAdmin
-                      ? 'bg-purple-100 dark:bg-purple-900/30 text-foreground border border-purple-200 dark:border-purple-800'
-                      : 'bg-muted text-foreground'
-                  }`}
+          groupedMessages.map((group, gi) => (
+            <div key={gi}>
+              {/* Date separator */}
+              <div className="flex justify-center my-3">
+                <span
+                  className="px-3 py-1 rounded-lg text-[11px] font-medium shadow-sm"
+                  style={{
+                    backgroundColor: WA.dateBubble,
+                    color: WA.dateText,
+                  }}
                 >
-                  {!isMyMessage && !isAdmin && (
-                    <p className="text-xs font-semibold mb-1 opacity-70">
-                      {message.sender.name}
-                    </p>
-                  )}
-                  <p className="text-sm leading-relaxed">{message.content}</p>
-                  <div className="flex items-center justify-end gap-1 mt-1">
-                    <p className="text-xs opacity-70">
-                      {formatTime(message.createdAt)}
-                    </p>
-                    {isMyMessage && (
-                      message.read ? (
-                        <CheckCheck className="h-3 w-3 opacity-70" />
-                      ) : (
-                        <Check className="h-3 w-3 opacity-70" />
-                      )
-                    )}
-                  </div>
-                </div>
+                  {group.date}
+                </span>
               </div>
-            );
-          })
+
+              {group.messages.map((message, index) => {
+                const isMyMessage = message.senderId === currentUser?.id;
+                const prevMsg = index > 0 ? group.messages[index - 1] : null;
+                const isConsecutive = prevMsg && prevMsg.senderId === message.senderId;
+
+                return (
+                  <motion.div
+                    key={message.id || `msg-${gi}-${index}`}
+                    initial={{ opacity: 0, y: 8, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ duration: 0.15 }}
+                    className={`flex ${isMyMessage ? 'justify-end' : 'justify-end'} ${isConsecutive ? 'mt-[2px]' : 'mt-1'}`}
+                  >
+                    {/* WhatsApp bubbles: both aligned right but incoming has outgoing color via CSS */}
+                    <div
+                      className={`
+                        relative max-w-[85%] md:max-w-[65%] rounded-lg px-2.5 py-1 shadow-sm
+                        ${isMyMessage ? 'rounded-tr-none' : 'rounded-tr-none'}
+                        ${isMyMessage && isConsecutive ? 'rounded-tr-md' : ''}
+                        ${!isMyMessage && isConsecutive ? 'rounded-tr-md' : ''}
+                      `}
+                      style={{
+                        backgroundColor: isMyMessage ? WA.outgoing : WA.incoming,
+                        color: WA.textDark,
+                      }}
+                    >
+                      {/* Message content */}
+                      <p className="text-[14.2px] leading-[19px] whitespace-pre-wrap break-words pr-12">
+                        {message.content}
+                      </p>
+
+                      {/* Time + checks (positioned bottom-right) */}
+                      <span
+                        className="absolute bottom-[3px] right-[5px] flex items-center gap-0.5 float-right ml-2 -mt-[14px]"
+                      >
+                        <span className="text-[11px]" style={{ color: WA.timeSent }}>
+                          {formatTimeShort(message.createdAt)}
+                        </span>
+                        {isMyMessage &&
+                          (message.read ? (
+                            <CheckCheck className="h-[16px] w-[16px]" style={{ color: WA.checkRead }} />
+                          ) : (
+                            <Check className="h-[16px] w-[16px]" style={{ color: WA.timeSent }} />
+                          ))}
+                      </span>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          ))
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <div className="p-4 border-t border-border bg-card">
-        <div className="flex gap-2">
-          <Input
+      {/* ─── Input bar (WhatsApp style) ─── */}
+      <div className="shrink-0 flex items-end gap-1 px-1 py-1" style={{ backgroundColor: WA.chatBg }}>
+        {/* Emoji */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-gray-500 hover:text-gray-700 rounded-full"
+        >
+          <Smile className="h-6 w-6" />
+        </Button>
+
+        {/* Attachment */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-gray-500 hover:text-gray-700 rounded-full"
+        >
+          <Paperclip className="h-5 w-5 rotate-45" />
+        </Button>
+
+        {/* Text input */}
+        <div className="flex-1 relative">
+          <input
+            ref={inputRef}
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Écrivez votre message..."
+            onKeyDown={handleKeyPress}
+            placeholder="Message"
             disabled={isLoading}
-            className="flex-1"
+            className="w-full rounded-full px-4 py-2.5 text-[15px] outline-none resize-none border-none"
+            style={{
+              backgroundColor: WA.inputBg,
+              color: WA.textDark,
+              minHeight: '42px',
+              maxHeight: '120px',
+            }}
           />
-          <Button
-            onClick={handleSendMessage}
-            disabled={isLoading || !newMessage.trim()}
-            className="bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600"
-          >
-            <Send className="h-5 w-5" />
-          </Button>
         </div>
+
+        {/* Send / Mic */}
+        <Button
+          onClick={handleSendMessage}
+          disabled={isLoading || !newMessage.trim()}
+          className="rounded-full shrink-0"
+          style={{
+            width: '42px',
+            height: '42px',
+            backgroundColor: newMessage.trim() ? WA.headerTeal : 'transparent',
+            color: 'white',
+          }}
+          size="icon"
+        >
+          {newMessage.trim() ? (
+            <Send className="h-5 w-5" />
+          ) : (
+            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+              <line x1="12" y1="19" x2="12" y2="23" />
+              <line x1="8" y1="23" x2="16" y2="23" />
+            </svg>
+          )}
+        </Button>
       </div>
+
+      {/* ─── Dark mode overrides ─── */}
+      <style jsx global>{`
+        .dark {
+          --wa-bg: ${WA.chatBgDark};
+        }
+      `}</style>
     </div>
   );
 }
