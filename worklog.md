@@ -55,3 +55,34 @@ Stage Summary:
 - Admin panel has new cards for managing publications and tracking subscribers
 - Subscriber tracking provides detailed info: lots reserved/purchased, payment progress, lot status
 - All components integrated into page.tsx with proper navigation
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Enrichir le règlement intérieur
+
+Work Log:
+- Created comprehensive RegulationRulesScreen component (768 lines) replacing old 40-line inline RulesScreen
+- 12 chapters with 38 articles and 143 detailed dispositions covering:
+  - Dispositions Générales (object, definitions, modifications)
+  - Normes d'Urbanisme et Construction (plans, architecturales, travaux, extensions)
+  - Propreté et Hygiène (entretien, déchets, espaces communs)
+  - Sécurité et Prévention (personnes, incendies, biens)
+  - Circulation et Stationnement (règles, stationnement, véhicules non motorisés)
+  - Environnement et Cadre de Vie (nature, eau, pollution, animaux)
+  - Réseaux et Équipements (électricité, eau, voirie)
+  - Vie de Voisinage et Cohésion Sociale (bonne conduite, événements, culte)
+  - Cotisations et Finances (cotisations, charges, redevances)
+  - Sanctions et Procédures (types, procédure, amendes)
+  - Comité de Gestion des Lots (rôle, composition, assemblée)
+  - Dispositions Finales (entrée en vigueur, litiges, révision)
+- Interactive features: search bar, expand/collapse all, collapsible sections & articles
+- Color-coded sections with distinct left borders and icons
+- Fixed "Wallet is not defined" import error
+- Replaced inline RulesScreen in page.tsx, updated card description text
+- Verified in browser: all 12 chapters render with proper navigation
+
+Stage Summary:
+- RegulationRulesScreen.tsx created at src/components/kami/
+- Old 4-point inline rules replaced with 143-disposition comprehensive document
+- Visual verification confirmed: search bar, colored sections, article numbering, expand/collapse all working

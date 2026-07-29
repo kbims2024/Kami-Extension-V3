@@ -44,6 +44,7 @@ import { UsersMonitorPanel } from '@/components/kami/UsersMonitorPanel';
 import { PublicProgressSection } from '@/components/kami/PublicProgressSection';
 import { ProgressUpdatesAdmin } from '@/components/kami/ProgressUpdatesAdmin';
 import { SubscriberTrackingPanel } from '@/components/kami/SubscriberTrackingPanel';
+import { RegulationRulesScreen } from '@/components/kami/RegulationRulesScreen';
 
 export default function KamiExtensionPage() {
   const [mounted, setMounted] = useState(false);
@@ -427,9 +428,8 @@ export default function KamiExtensionPage() {
 
       {currentScreen === 'rules' && (
         <PageTransition>
-          <RulesScreen
+          <RegulationRulesScreen
             setCurrentScreen={setCurrentScreen}
-            setIsMenuOpen={setIsMenuOpen}
           />
         </PageTransition>
       )}
@@ -777,7 +777,7 @@ function HomeScreen({ setCurrentScreen, setIsMenuOpen }: any) {
           <CardContent className="p-4 flex items-center justify-between">
             <div>
               <h4 className="font-bold text-foreground">Règlement Intérieur</h4>
-              <p className="text-xs text-muted-foreground">Discipline et propreté</p>
+              <p className="text-xs text-muted-foreground">11 chapitres • Dispositions complètes</p>
             </div>
             <Button
               onClick={() => setCurrentScreen('rules')}
@@ -1354,51 +1354,6 @@ function AffiliationScreen({ currentUser, copyReferralLink, setCurrentScreen, se
       <p className="text-xs text-muted-foreground text-center">
         Gagnez des commissions quand vos filleuls achètent un lot.
       </p>
-    </div>
-  );
-}
-
-// Rules Screen Component
-function RulesScreen({ setCurrentScreen, setIsMenuOpen }: any) {
-  return (
-    <div className="flex-1 flex flex-col bg-card p-6 pt-16">
-      <Button
-        variant="ghost"
-        size="icon"
-        className="absolute top-4 left-4"
-        onClick={() => setCurrentScreen('home')}
-      >
-        <ArrowLeft className="h-5 w-5 text-muted-foreground" />
-      </Button>
-
-      <h2 className="text-2xl font-bold text-center text-[#8B5E3C] mb-6">Règlement Intérieur</h2>
-
-      <div className="space-y-4 text-foreground text-sm leading-relaxed">
-        <div className="flex items-start">
-          <Wrench className="text-[#10B981] mt-1 mr-3 h-5 w-5" />
-          <p>
-            <strong>Propreté :</strong> Maintenir le lot et les abords propres.
-          </p>
-        </div>
-        <div className="flex items-start">
-          <Map className="text-[#10B981] mt-1 mr-3 h-5 w-5" />
-          <p>
-            <strong>Urbanisme :</strong> Respecter les normes architecturales.
-          </p>
-        </div>
-        <div className="flex items-start">
-          <Users className="text-[#10B981] mt-1 mr-3 h-5 w-5" />
-          <p>
-            <strong>Voisinage :</strong> Respect mutuel et tranquillité.
-          </p>
-        </div>
-        <div className="flex items-start">
-          <ShieldCheck className="text-[#10B981] mt-1 mr-3 h-5 w-5" />
-          <p>
-            <strong>Discipline :</strong> Les manquements sont sanctionnés.
-          </p>
-        </div>
-      </div>
     </div>
   );
 }
