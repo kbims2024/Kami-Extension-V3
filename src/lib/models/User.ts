@@ -7,6 +7,7 @@ export interface IUserDocument extends Document {
   phone: string;
   email?: string;
   password?: string;
+  avatarUrl?: string;
   role: string;
   isResident: boolean;
   referralCode?: string;
@@ -30,6 +31,7 @@ const UserSchema = new Schema<IUserDocument>(
     phone: { type: String, required: true, unique: true },
     email: { type: String, unique: true, sparse: true },
     password: { type: String, default: null },
+    avatarUrl: { type: String, default: null },
     role: { type: String, default: 'USER', enum: ['USER', 'ADMIN', 'MANAGEMENT_COMMITTEE'] },
     isResident: { type: Boolean, default: true },
     referralCode: { type: String, unique: true, sparse: true },

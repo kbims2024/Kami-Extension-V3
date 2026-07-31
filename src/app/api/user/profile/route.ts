@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
       pseudo: user.pseudo,
       phone: user.phone,
       email: user.email,
+      avatarUrl: user.avatarUrl || null,
       isResident: user.isResident,
       quartier: user.quartier,
       referralCode: user.referralCode,
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, name, pseudo, phone, email, quartier } = body;
+    const { userId, name, pseudo, phone, email, quartier, avatarUrl } = body;
 
     if (!userId) {
       return NextResponse.json({ error: 'userId requis' }, { status: 400 });
@@ -73,6 +74,10 @@ export async function PUT(request: NextRequest) {
     if (email !== undefined) updateData.email = email.trim() || null;
     if (existingUser.isResident && quartier !== undefined) {
       updateData.quartier = quartier || null;
+    }
+
+    if (avatarUrl !== undefined) {
+      updateData.avatarUrl = avatarUrl || null;
     }
 
     const updatedUser = await db.user.update({

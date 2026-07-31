@@ -7,6 +7,7 @@ interface User {
   pseudo?: string | null;
   phone: string;
   email?: string | null;
+  avatarUrl?: string | null;
   isResident: boolean;
   quartier?: string | null;
   villageOrigine?: string | null;

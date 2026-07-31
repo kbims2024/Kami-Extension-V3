@@ -1006,9 +1006,66 @@ function ProfileScreen({ currentUser, setCurrentUser, copyReferralLink, setCurre
     phone: currentUser?.phone || '',
     email: currentUser?.email || '',
     quartier: currentUser?.quartier || '',
+    avatarUrl: currentUser?.avatarUrl || '',
   });
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(currentUser?.avatarUrl || null);
 
   const quartiersKami = ['ASSAKLA', "N'GLOH", "N'ZOKLOH", "N'GUOUAH"];
+
+  const uploadAvatar = async (file: File) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', 'AVATAR');
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.error || 'Échec de l upload');
+      }
+
+      const data = await response.json();
+      return data.url || data.path || null;
+    } catch (error) {
+      console.error('Avatar upload error:', error);
+      return null;
+    }
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif'];
+    if (!validTypes.includes(file.type)) {
+      toast.error('Veuillez sélectionner une image PNG, JPG, WEBP ou GIF.');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('L image de profil ne doit pas dépasser 5 Mo.');
+      return;
+    }
+
+    setAvatarFile(file);
+    const previewUrl = URL.createObjectURL(file);
+    setAvatarPreview(previewUrl);
+
+    const uploadedUrl = await uploadAvatar(file);
+    if (uploadedUrl) {
+      setForm((prev) => ({ ...prev, avatarUrl: uploadedUrl }));
+      toast.success('Photo de profil téléchargée avec succès');
+    } else {
+      toast.error('Impossible de télécharger la photo de profil.');
+      setAvatarFile(null);
+      setAvatarPreview(currentUser?.avatarUrl || null);
+    }
+  };
 
   const handleSave = async () => {
     if (!form.name.trim()) {
@@ -1062,7 +1119,10 @@ function ProfileScreen({ currentUser, setCurrentUser, copyReferralLink, setCurre
       phone: currentUser?.phone || '',
       email: currentUser?.email || '',
       quartier: currentUser?.quartier || '',
+      avatarUrl: currentUser?.avatarUrl || '',
     });
+    setAvatarFile(null);
+    setAvatarPreview(currentUser?.avatarUrl || null);
     setIsEditing(false);
   };
 
@@ -1106,6 +1166,31 @@ function ProfileScreen({ currentUser, setCurrentUser, copyReferralLink, setCurre
 
       {isEditing ? (
         <div className="space-y-4 max-w-lg mx-auto w-full">
+          {/* Avatar */}
+          <Card className="border-border">
+            <CardContent className="p-4 space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="w-20 h-20 rounded-full overflow-hidden bg-muted flex items-center justify-center text-3xl text-foreground">
+                  {avatarPreview ? (
+                    <img src={avatarPreview} alt="Aperçu photo" className="w-full h-full object-cover" />
+                  ) : (
+                    <span>?</span>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold text-foreground">Photo de profil</Label>
+                  <Input
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg,image/webp,image/gif"
+                    onChange={handleAvatarChange}
+                    className="h-10"
+                  />
+                  <p className="text-xs text-muted-foreground">PNG, JPG, WEBP, GIF • max 5 Mo</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Nom */}
           <Card className="border-border">
             <CardContent className="p-4 space-y-2">
