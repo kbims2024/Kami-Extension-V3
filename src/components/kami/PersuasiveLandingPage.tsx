@@ -156,7 +156,7 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
       </div>
 
       {/* Hero Section */}
-      <section className="relative flex flex-col justify-center text-white overflow-hidden bg-gradient-to-br from-brand-blue via-blue-700 to-brand-blue"
+      <section className="relative flex flex-col justify-center text-white overflow-hidden bg-gradient-to-br from-brand-blue via-blue-700 to-brand-blue pt-24 md:pt-28"
         style={{ minHeight: 'calc(100vh - 73px)' }}
       >
         {/* Animated Background Elements */}
@@ -166,11 +166,11 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-3xl" />
         </div>
 
-        <div className="container mx-auto px-4 md:px-6 relative z-10 flex-1 flex flex-col justify-center">
+        <div className="container mx-auto px-4 md:px-6 relative z-10 flex-1 flex flex-col justify-center pt-4 md:pt-6">
           <div className="max-w-4xl mx-auto text-center w-full">
 
             {/* Badge — HORS de l'image de fond */}
-            <div className="inline-flex items-center bg-yellow-400/10 border border-yellow-400/30 px-4 md:px-4 py-2 rounded-full mb-5 md:mb-6">
+            <div className="inline-flex items-center bg-yellow-400/10 border border-yellow-400/30 px-4 md:px-4 py-2 rounded-full mb-4 md:mb-5 mt-2">
               <div className="w-2 h-2 md:w-2 md:h-2 bg-yellow-400 rounded-full mr-2 animate-pulse" />
               <span className="text-sm md:text-sm font-medium text-yellow-300">
                 Opportunité unique à KAMI
