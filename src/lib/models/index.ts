@@ -28,3 +28,6 @@ export type { INotificationDocument } from './Notification';
 
 export { ProgressUpdate } from './ProgressUpdate';
 export type { IProgressUpdateDocument } from './ProgressUpdate';
+
+export { ExpertApplication } from './ExpertApplication';
+export type { IExpertApplicationDocument } from './ExpertApplication';

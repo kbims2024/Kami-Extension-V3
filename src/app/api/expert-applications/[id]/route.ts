@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { db } from '@/lib/db';
 
 // PATCH - Approve or reject an expert application (admin/committee)
 export async function PATCH(
@@ -13,7 +11,7 @@ export async function PATCH(
     const body = await req.json();
     const { action, rejectReason } = body;
 
-    const application = await prisma.expertApplication.findUnique({
+    const application = await db.expertApplication.findUnique({
       where: { id },
     });
 
@@ -26,7 +24,7 @@ export async function PATCH(
     }
 
     if (action === 'APPROVE') {
-      const updated = await prisma.expertApplication.update({
+      const updated = await db.expertApplication.update({
         where: { id },
         data: {
           status: 'APPROVED',
@@ -47,7 +45,7 @@ export async function PATCH(
         return NextResponse.json({ error: 'Veuillez fournir une raison de rejet (min. 5 caractères).' }, { status: 400 });
       }
 
-      const updated = await prisma.expertApplication.update({
+      const updated = await db.expertApplication.update({
         where: { id },
         data: {
           status: 'REJECTED',

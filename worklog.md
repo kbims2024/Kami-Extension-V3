@@ -117,3 +117,4 @@ Stage Summary:
 - Content specific to Cameroon/Africa (mentions local operators, climate, laws, cultural practices)
 - Component code preserved exactly; only rulesData array was modified
 Task 1 done: villageOrigine field added for non-residents
+Task 2 done: Full MongoDB config, Prisma removed, Vercel ready

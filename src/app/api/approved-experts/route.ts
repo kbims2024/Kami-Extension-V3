@@ -1,17 +1,15 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { db } from '@/lib/db';
 
 // GET - Retrieve approved experts (approved applications) to merge with static list
 export async function GET() {
   try {
-    const approved = await prisma.expertApplication.findMany({
+    const approved = await db.expertApplication.findMany({
       where: { status: 'APPROVED' },
       orderBy: { reviewedAt: 'desc' },
     });
 
-    const experts = approved.map((a) => ({
+    const experts = approved.map((a: any) => ({
       id: a.id,
       name: a.fullName,
       specialty: a.specialty,
@@ -23,13 +21,7 @@ export async function GET() {
       image: a.profileImage || '',
       bio: a.bio,
       location: a.location,
-      certifications: (() => {
-        try {
-          return JSON.parse(a.certifications);
-        } catch {
-          return [];
-        }
-      })(),
+      certifications: Array.isArray(a.certifications) ? a.certifications : [],
       availability: a.availability,
       projects: 0,
       source: 'application',
