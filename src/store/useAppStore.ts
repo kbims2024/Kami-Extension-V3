@@ -9,6 +9,7 @@ interface User {
   email?: string | null;
   isResident: boolean;
   quartier?: string | null;
+  villageOrigine?: string | null;
   referralCode?: string;
   role?: string;
   status?: string;

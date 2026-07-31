@@ -116,3 +116,4 @@ Stage Summary:
 - All text in French with formal legal/regulatory language
 - Content specific to Cameroon/Africa (mentions local operators, climate, laws, cultural practices)
 - Component code preserved exactly; only rulesData array was modified
+Task 1 done: villageOrigine field added for non-residents

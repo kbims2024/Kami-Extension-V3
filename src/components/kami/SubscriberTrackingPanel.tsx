@@ -59,6 +59,7 @@ interface SubscriberData {
   role: string;
   isResident: boolean;
   quartier: string | null;
+  villageOrigine: string | null;
   pseudo: string | null;
   status: string;
   createdAt: string;
@@ -335,10 +336,16 @@ export function SubscriberTrackingPanel({ onBack, setCurrentScreen, currentUser 
                               {subscriber.email}
                             </span>
                           )}
-                          {subscriber.quartier && (
+                          {subscriber.isResident && subscriber.quartier && (
                             <span className="flex items-center gap-1">
                               <MapPin className="h-3 w-3" />
                               {subscriber.quartier}
+                            </span>
+                          )}
+                          {!subscriber.isResident && subscriber.villageOrigine && (
+                            <span className="flex items-center gap-1">
+                              <MapPin className="h-3 w-3" />
+                              {subscriber.villageOrigine}
                             </span>
                           )}
                         </div>
@@ -548,10 +555,16 @@ export function SubscriberTrackingPanel({ onBack, setCurrentScreen, currentUser 
                           <span>{selectedSubscriber.email}</span>
                         </div>
                       )}
-                      {selectedSubscriber.quartier && (
+                      {selectedSubscriber.isResident && selectedSubscriber.quartier && (
                         <div className="flex items-center gap-2">
                           <MapPin className="h-4 w-4 text-muted-foreground" />
-                          <span>{selectedSubscriber.quartier}</span>
+                          <span>Quartier: {selectedSubscriber.quartier}</span>
+                        </div>
+                      )}
+                      {!selectedSubscriber.isResident && selectedSubscriber.villageOrigine && (
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4 text-muted-foreground" />
+                          <span>Village d'origine: {selectedSubscriber.villageOrigine}</span>
                         </div>
                       )}
                       <div className="flex items-center gap-2">

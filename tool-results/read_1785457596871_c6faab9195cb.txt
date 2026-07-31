@@ -1,0 +1,649 @@
+    43→  status: string;
+    44→  totalPrice: number;
+    45→  paidAmount: number;
+    46→  remainingAmount: number;
+    47→  paymentProgress: number;
+    48→  isResident: boolean;
+    49→  reservedAt: string;
+    50→  lotPaymentsCount: number;
+    51→  validatedPaymentsCount: number;
+    52→}
+    53→
+    54→interface SubscriberData {
+    55→  id: string;
+    56→  name: string;
+    57→  phone: string;
+    58→  email: string | null;
+    59→  role: string;
+    60→  isResident: boolean;
+    61→  quartier: string | null;
+    62→  pseudo: string | null;
+    63→  status: string;
+    64→  createdAt: string;
+    65→  lotsReservedCount: number;
+    66→  lotsPurchasedCount: number;
+    67→  totalLotsCount: number;
+    68→  lotDetails: LotDetail[];
+    69→  totalAmountPaid: number;
+    70→  totalAmountRemaining: number;
+    71→  overallProgress: number;
+    72→}
+    73→
+    74→interface SubscriberTrackingPanelProps {
+    75→  onBack?: () => void;
+    76→  setCurrentScreen?: (screen: string) => void;
+    77→  currentUser?: { id: string; role: string; name: string; phone: string } | null;
+    78→}
+    79→
+    80→export function SubscriberTrackingPanel({ onBack, setCurrentScreen, currentUser }: SubscriberTrackingPanelProps) {
+    81→  const [subscribers, setSubscribers] = useState<SubscriberData[]>([]);
+    82→  const [loading, setLoading] = useState(true);
+    83→  const [searchQuery, setSearchQuery] = useState('');
+    84→  const [selectedSubscriber, setSelectedSubscriber] = useState<SubscriberData | null>(null);
+    85→  const [expandedLots, setExpandedLots] = useState<Record<string, boolean>>({});
+    86→  const [filterStatus, setFilterStatus] = useState<string>('TOUS');
+    87→
+    88→  useEffect(() => {
+    89→    loadSubscribers();
+    90→  }, []);
+    91→
+    92→  const loadSubscribers = async () => {
+    93→    setLoading(true);
+    94→    try {
+    95→      const response = await fetch('/api/admin/subscriber-tracking');
+    96→      if (response.ok) {
+    97→        const data = await response.json();
+    98→        setSubscribers(data);
+    99→      }
+   100→    } catch (error) {
+   101→      console.error('Error loading subscribers:', error);
+   102→      toast.error('Erreur lors du chargement');
+   103→    } finally {
+   104→      setLoading(false);
+   105→    }
+   106→  };
+   107→
+   108→  const formatCurrency = (amount: number) => {
+   109→    return `${amount.toLocaleString('fr-FR')} FCFA`;
+   110→  };
+   111→
+   112→  const formatDate = (dateStr: string) => {
+   113→    try {
+   114→      return new Date(dateStr).toLocaleDateString('fr-FR', {
+   115→        day: 'numeric',
+   116→        month: 'short',
+   117→        year: 'numeric',
+   118→      });
+   119→    } catch {
+   120→      return dateStr;
+   121→    }
+   122→  };
+   123→
+   124→  const toggleLotExpand = (subId: string) => {
+   125→    setExpandedLots((prev) => ({ ...prev, [subId]: !prev[subId] }));
+   126→  };
+   127→
+   128→  const startChat = (userId: string, userName: string) => {
+   129→    localStorage.setItem('selectedChatUser', JSON.stringify({ id: userId, name: userName }));
+   130→    if (setCurrentScreen) {
+   131→      setCurrentScreen('admin-chat');
+   132→    }
+   133→  };
+   134→
+   135→  const filteredSubscribers = subscribers.filter((sub) => {
+   136→    // Search filter
+   137→    const matchesSearch =
+   138→      sub.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+   139→      sub.phone.includes(searchQuery) ||
+   140→      (sub.email && sub.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
+   141→      (sub.pseudo && sub.pseudo.toLowerCase().includes(searchQuery.toLowerCase()));
+   142→
+   143→    // Status filter
+   144→    let matchesStatus = true;
+   145→    if (filterStatus === 'ACHETEUR') {
+   146→      matchesStatus = sub.lotsPurchasedCount > 0;
+   147→    } else if (filterStatus === 'SOUSCRIPTEUR') {
+   148→      matchesStatus = sub.lotsReservedCount > 0 && sub.lotsPurchasedCount === 0;
+   149→    } else if (filterStatus === 'SANS_LOT') {
+   150→      matchesStatus = sub.totalLotsCount === 0;
+   151→    } else if (filterStatus === 'COMITE') {
+   152→      matchesStatus = sub.role === 'MANAGEMENT_COMMITTEE';
+   153→    }
+   154→
+   155→    return matchesSearch && matchesStatus;
+   156→  });
+   157→
+   158→  const getStatusColor = (status: string) => {
+   159→    switch (status) {
+   160→      case 'RESERVED': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400';
+   161→      case 'PAID': return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400';
+   162→      default: return 'bg-muted text-muted-foreground';
+   163→    }
+   164→  };
+   165→
+   166→  const getProgressColor = (progress: number) => {
+   167→    if (progress >= 100) return 'bg-emerald-500';
+   168→    if (progress >= 50) return 'bg-yellow-500';
+   169→    if (progress > 0) return 'bg-orange-500';
+   170→    return 'bg-muted';
+   171→  };
+   172→
+   173→  // Summary stats
+   174→  const totalSubscribers = subscribers.length;
+   175→  const totalWithLots = subscribers.filter((s) => s.totalLotsCount > 0).length;
+   176→  const totalBuyers = subscribers.filter((s) => s.lotsPurchasedCount > 0).length;
+   177→  const totalRevenue = subscribers.reduce((sum, s) => sum + s.totalAmountPaid, 0);
+   178→
+   179→  return (
+   180→    <div className="space-y-4">
+   181→      {onBack && (
+   182→        <Button variant="ghost" onClick={onBack} className="text-muted-foreground">
+   183→          <ArrowLeft className="mr-2 h-4 w-4" />
+   184→          Retour
+   185→        </Button>
+   186→      )}
+   187→
+   188→      <div>
+   189→        <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+   190→          <TrendingUp className="h-5 w-5 text-cyan-500 dark:text-cyan-400" />
+   191→          Suivi des Souscripteurs
+   192→        </h2>
+   193→        <p className="text-sm text-muted-foreground">
+   194→          Tableau de bord détaillé pour le suivi de chaque souscripteur
+   195→        </p>
+   196→      </div>
+   197→
+   198→      {/* Summary Cards */}
+   199→      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+   200→        <Card className="border-l-4 border-cyan-500">
+   201→          <CardContent className="p-3">
+   202→            <p className="text-xs text-muted-foreground">Total Souscripteurs</p>
+   203→            <p className="text-xl font-bold text-foreground">{totalSubscribers}</p>
+   204→          </CardContent>
+   205→        </Card>
+   206→        <Card className="border-l-4 border-orange-500">
+   207→          <CardContent className="p-3">
+   208→            <p className="text-xs text-muted-foreground">Avec Lots</p>
+   209→            <p className="text-xl font-bold text-foreground">{totalWithLots}</p>
+   210→          </CardContent>
+   211→        </Card>
+   212→        <Card className="border-l-4 border-emerald-500">
+   213→          <CardContent className="p-3">
+   214→            <p className="text-xs text-muted-foreground">Acheteurs</p>
+   215→            <p className="text-xl font-bold text-foreground">{totalBuyers}</p>
+   216→          </CardContent>
+   217→        </Card>
+   218→        <Card className="border-l-4 border-purple-500">
+   219→          <CardContent className="p-3">
+   220→            <p className="text-xs text-muted-foreground">Revenus Collectés</p>
+   221→            <p className="text-lg font-bold text-foreground">{formatCurrency(totalRevenue)}</p>
+   222→          </CardContent>
+   223→        </Card>
+   224→      </div>
+   225→
+   226→      {/* Filters */}
+   227→      <div className="flex flex-col sm:flex-row gap-3">
+   228→        <div className="relative flex-1">
+   229→          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+   230→          <Input
+   231→            placeholder="Rechercher par nom, téléphone, email..."
+   232→            value={searchQuery}
+   233→            onChange={(e) => setSearchQuery(e.target.value)}
+   234→            className="pl-10"
+   235→          />
+   236→        </div>
+   237→        <div className="flex gap-2 flex-wrap">
+   238→          {[
+   239→            { key: 'TOUS', label: 'Tous' },
+   240→            { key: 'ACHETEUR', label: 'Acheteurs' },
+   241→            { key: 'SOUSCRIPTEUR', label: 'Souscripteurs' },
+   242→            { key: 'SANS_LOT', label: 'Sans lot' },
+   243→            { key: 'COMITE', label: 'Comité' },
+   244→          ].map((f) => (
+   245→            <Button
+   246→              key={f.key}
+   247→              variant={filterStatus === f.key ? 'default' : 'outline'}
+   248→              size="sm"
+   249→              onClick={() => setFilterStatus(f.key)}
+   250→              className={
+   251→                filterStatus === f.key
+   252→                  ? 'bg-cyan-600 hover:bg-cyan-700 text-white'
+   253→                  : 'hover:bg-cyan-50 dark:hover:bg-cyan-950'
+   254→              }
+   255→            >
+   256→              {f.label}
+   257→            </Button>
+   258→          ))}
+   259→        </div>
+   260→      </div>
+   261→
+   262→      {/* Subscriber List */}
+   263→      {loading ? (
+   264→        <div className="flex items-center justify-center py-12">
+   265→          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500" />
+   266→        </div>
+   267→      ) : filteredSubscribers.length === 0 ? (
+   268→        <Card>
+   269→          <CardContent className="py-12 text-center">
+   270→            <User className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
+   271→            <p className="text-muted-foreground">
+   272→              {searchQuery || filterStatus !== 'TOUS'
+   273→                ? 'Aucun souscripteur trouvé'
+   274→                : 'Aucun souscripteur enregistré'}
+   275→            </p>
+   276→          </CardContent>
+   277→        </Card>
+   278→      ) : (
+   279→        <ScrollArea className="max-h-[600px]">
+   280→          <div className="space-y-3 pr-4">
+   281→            {filteredSubscribers.map((subscriber) => (
+   282→              <Card
+   283→                key={subscriber.id}
+   284→                className="border border-border hover:shadow-md transition-shadow"
+   285→              >
+   286→                <CardContent className="p-4">
+   287→                  {/* Header Row */}
+   288→                  <div className="flex items-start justify-between gap-3">
+   289→                    <div className="flex items-center gap-3 flex-1 min-w-0">
+   290→                      {/* Avatar */}
+   291→                      <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${
+   292→                        subscriber.role === 'MANAGEMENT_COMMITTEE'
+   293→                          ? 'bg-purple-100 dark:bg-purple-900/30'
+   294→                          : subscriber.lotsPurchasedCount > 0
+   295→                            ? 'bg-emerald-100 dark:bg-emerald-900/30'
+   296→                            : subscriber.lotsReservedCount > 0
+   297→                              ? 'bg-orange-100 dark:bg-orange-900/30'
+   298→                              : 'bg-muted'
+   299→                      }`}>
+   300→                        <User className={`h-6 w-6 ${
+   301→                          subscriber.role === 'MANAGEMENT_COMMITTEE'
+   302→                            ? 'text-purple-600 dark:text-purple-400'
+   303→                            : subscriber.lotsPurchasedCount > 0
+   304→                              ? 'text-emerald-600 dark:text-emerald-400'
+   305→                              : subscriber.lotsReservedCount > 0
+   306→                                ? 'text-orange-600 dark:text-orange-400'
+   307→                                : 'text-muted-foreground'
+   308→                        }`} />
+   309→                      </div>
+   310→
+   311→                      {/* Info */}
+   312→                      <div className="flex-1 min-w-0">
+   313→                        <div className="flex items-center gap-2 flex-wrap">
+   314→                          <h3 className="font-bold text-foreground">{subscriber.name}</h3>
+   315→                          {subscriber.role === 'MANAGEMENT_COMMITTEE' && (
+   316→                            <Badge className="bg-purple-600 hover:bg-purple-700 text-xs flex items-center gap-1">
+   317→                              <Crown className="h-3 w-3" />
+   318→                              Comité
+   319→                            </Badge>
+   320→                          )}
+   321→                          {subscriber.status === 'BLOCKED' && (
+   322→                            <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-xs">
+   323→                              Bloqué
+   324→                            </Badge>
+   325→                          )}
+   326→                        </div>
+   327→                        <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground flex-wrap">
+   328→                          <span className="flex items-center gap-1">
+   329→                            <Phone className="h-3 w-3" />
+   330→                            {subscriber.phone}
+   331→                          </span>
+   332→                          {subscriber.email && (
+   333→                            <span className="flex items-center gap-1">
+   334→                              <Mail className="h-3 w-3" />
+   335→                              {subscriber.email}
+   336→                            </span>
+   337→                          )}
+   338→                          {subscriber.quartier && (
+   339→                            <span className="flex items-center gap-1">
+   340→                              <MapPin className="h-3 w-3" />
+   341→                              {subscriber.quartier}
+   342→                            </span>
+   343→                          )}
+   344→                        </div>
+   345→                        <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+   346→                          <Calendar className="h-3 w-3" />
+   347→                          Inscrit le {formatDate(subscriber.createdAt)}
+   348→                        </div>
+   349→                      </div>
+   350→                    </div>
+   351→
+   352→                    {/* Action buttons */}
+   353→                    <div className="flex items-center gap-1 flex-shrink-0">
+   354→                      <Button
+   355→                        variant="ghost"
+   356→                        size="icon"
+   357→                        className="h-8 w-8"
+   358→                        onClick={() => setSelectedSubscriber(subscriber)}
+   359→                        title="Voir détails"
+   360→                      >
+   361→                        <Eye className="h-4 w-4 text-cyan-500" />
+   362→                      </Button>
+   363→                      {subscriber.role !== 'ADMIN' && (
+   364→                        <Button
+   365→                          variant="ghost"
+   366→                          size="icon"
+   367→                          className="h-8 w-8"
+   368→                          onClick={() => startChat(subscriber.id, subscriber.name)}
+   369→                          title="Discuter"
+   370→                        >
+   371→                          <MessageSquare className="h-4 w-4 text-blue-500" />
+   372→                        </Button>
+   373→                      )}
+   374→                    </div>
+   375→                  </div>
+   376→
+   377→                  {/* Stats Row */}
+   378→                  <div className="grid grid-cols-3 gap-3 mt-3 pt-3 border-t border-border">
+   379→                    <div className="text-center">
+   380→                      <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+   381→                        <Package className="h-3 w-3" />
+   382→                        Réservés
+   383→                      </div>
+   384→                      <p className="text-lg font-bold text-orange-600 dark:text-orange-400">
+   385→                        {subscriber.lotsReservedCount}
+   386→                      </p>
+   387→                    </div>
+   388→                    <div className="text-center">
+   389→                      <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+   390→                        <CreditCard className="h-3 w-3" />
+   391→                        Achetés
+   392→                      </div>
+   393→                      <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+   394→                        {subscriber.lotsPurchasedCount}
+   395→                      </p>
+   396→                    </div>
+   397→                    <div className="text-center">
+   398→                      <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+   399→                        <Wallet className="h-3 w-3" />
+   400→                        Payé
+   401→                      </div>
+   402→                      <p className="text-sm font-bold text-foreground">
+   403→                        {formatCurrency(subscriber.totalAmountPaid)}
+   404→                      </p>
+   405→                    </div>
+   406→                  </div>
+   407→
+   408→                  {/* Lot Details Expandable */}
+   409→                  {subscriber.totalLotsCount > 0 && (
+   410→                    <div className="mt-3">
+   411→                      <button
+   412→                        onClick={() => toggleLotExpand(subscriber.id)}
+   413→                        className="w-full flex items-center justify-between text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
+   414→                      >
+   415→                        <span className="flex items-center gap-2">
+   416→                          <Building2 className="h-4 w-4" />
+   417→                          Détails des lots ({subscriber.totalLotsCount})
+   418→                        </span>
+   419→                        {expandedLots[subscriber.id] ? (
+   420→                          <ChevronUp className="h-4 w-4" />
+   421→                        ) : (
+   422→                          <ChevronDown className="h-4 w-4" />
+   423→                        )}
+   424→                      </button>
+   425→
+   426→                      {expandedLots[subscriber.id] && (
+   427→                        <div className="space-y-2 mt-2 pl-2 border-l-2 border-border">
+   428→                          {subscriber.lotDetails.map((lot) => (
+   429→                            <div
+   430→                              key={lot.reservationId}
+   431→                              className="p-3 rounded-lg bg-muted/50 border border-border text-sm"
+   432→                            >
+   433→                              <div className="flex items-center justify-between mb-2">
+   434→                                <div className="flex items-center gap-2">
+   435→                                  <h4 className="font-semibold text-foreground">{lot.lotName}</h4>
+   436→                                  <Badge className={getStatusColor(lot.status)}>{lot.status === 'RESERVED' ? 'Réservé' : 'Soldé'}</Badge>
+   437→                                  {lot.isResident && (
+   438→                                    <Badge variant="outline" className="text-xs">Résident</Badge>
+   439→                                  )}
+   440→                                </div>
+   441→                              </div>
+   442→
+   443→                              <div className="grid grid-cols-2 gap-2 text-xs mb-2">
+   444→                                <div className="text-muted-foreground">
+   445→                                  Surface: <span className="text-foreground">{lot.surface}</span>
+   446→                                </div>
+   447→                                <div className="text-muted-foreground">
+   448→                                  Prix: <span className="text-foreground">{formatCurrency(lot.totalPrice)}</span>
+   449→                                </div>
+   450→                                <div className="text-muted-foreground">
+   451→                                  Payé: <span className="text-emerald-600 dark:text-emerald-400 font-medium">{formatCurrency(lot.paidAmount)}</span>
+   452→                                </div>
+   453→                                <div className="text-muted-foreground">
+   454→                                  Reste: <span className="text-red-500 dark:text-red-400 font-medium">{formatCurrency(lot.remainingAmount)}</span>
+   455→                                </div>
+   456→                                <div className="text-muted-foreground">
+   457→                                  Paiements: <span className="text-foreground">{lot.validatedPaymentsCount} validé(s) / {lot.lotPaymentsCount} total</span>
+   458→                                </div>
+   459→                                <div className="text-muted-foreground">
+   460→                                  Réservé le: <span className="text-foreground">{formatDate(lot.reservedAt)}</span>
+   461→                                </div>
+   462→                              </div>
+   463→
+   464→                              {/* Progress bar */}
+   465→                              <div className="w-full">
+   466→                                <div className="flex justify-between text-xs mb-1">
+   467→                                  <span className="text-muted-foreground">Progression</span>
+   468→                                  <span className={`font-bold ${
+   469→                                    lot.paymentProgress >= 100
+   470→                                      ? 'text-emerald-600 dark:text-emerald-400'
+   471→                                      : 'text-foreground'
+   472→                                  }`}>
+   473→                                    {lot.paymentProgress}%
+   474→                                  </span>
+   475→                                </div>
+   476→                                <div className="w-full bg-border rounded-full h-2">
+   477→                                  <div
+   478→                                    className={`h-2 rounded-full transition-all ${getProgressColor(lot.paymentProgress)}`}
+   479→                                    style={{ width: `${Math.min(lot.paymentProgress, 100)}%` }}
+   480→                                  />
+   481→                                </div>
+   482→                              </div>
+   483→                            </div>
+   484→                          ))}
+   485→                        </div>
+   486→                      )}
+   487→                    </div>
+   488→                  )}
+   489→                </CardContent>
+   490→              </Card>
+   491→            ))}
+   492→          </div>
+   493→        </ScrollArea>
+   494→      )}
+   495→
+   496→      {/* Detail Modal */}
+   497→      <Dialog open={!!selectedSubscriber} onOpenChange={() => setSelectedSubscriber(null)}>
+   498→        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+   499→          {selectedSubscriber && (
+   500→            <>
+   501→              <DialogHeader>
+   502→                <DialogTitle className="text-xl flex items-center gap-3">
+   503→                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+   504→                    selectedSubscriber.role === 'MANAGEMENT_COMMITTEE'
+   505→                      ? 'bg-purple-100 dark:bg-purple-900/30'
+   506→                      : 'bg-cyan-100 dark:bg-cyan-900/30'
+   507→                  }`}>
+   508→                    <User className={`h-6 w-6 ${
+   509→                      selectedSubscriber.role === 'MANAGEMENT_COMMITTEE'
+   510→                        ? 'text-purple-600 dark:text-purple-400'
+   511→                        : 'text-cyan-600 dark:text-cyan-400'
+   512→                    }`} />
+   513→                  </div>
+   514→                  <div>
+   515→                    <div className="flex items-center gap-2">
+   516→                      <span>{selectedSubscriber.name}</span>
+   517→                      {selectedSubscriber.role === 'MANAGEMENT_COMMITTEE' && (
+   518→                        <Badge className="bg-purple-600 hover:bg-purple-700 text-xs">Comité</Badge>
+   519→                      )}
+   520→                    </div>
+   521→                    <p className="text-sm text-muted-foreground font-normal">
+   522→                      Souscripteur depuis le {formatDate(selectedSubscriber.createdAt)}
+   523→                    </p>
+   524→                  </div>
+   525→                </DialogTitle>
+   526→              </DialogHeader>
+   527→
+   528→              {/* Personal Info */}
+   529→              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+   530→                <Card>
+   531→                  <CardContent className="p-4">
+   532→                    <h4 className="font-semibold text-sm mb-3 text-muted-foreground">Informations personnelles</h4>
+   533→                    <div className="space-y-2 text-sm">
+   534→                      <div className="flex items-center gap-2">
+   535→                        <User className="h-4 w-4 text-muted-foreground" />
+   536→                        <span>{selectedSubscriber.name}</span>
+   537→                        {selectedSubscriber.pseudo && (
+   538→                          <span className="text-muted-foreground">({selectedSubscriber.pseudo})</span>
+   539→                        )}
+   540→                      </div>
+   541→                      <div className="flex items-center gap-2">
+   542→                        <Phone className="h-4 w-4 text-muted-foreground" />
+   543→                        <span>{selectedSubscriber.phone}</span>
+   544→                      </div>
+   545→                      {selectedSubscriber.email && (
+   546→                        <div className="flex items-center gap-2">
+   547→                          <Mail className="h-4 w-4 text-muted-foreground" />
+   548→                          <span>{selectedSubscriber.email}</span>
+   549→                        </div>
+   550→                      )}
+   551→                      {selectedSubscriber.quartier && (
+   552→                        <div className="flex items-center gap-2">
+   553→                          <MapPin className="h-4 w-4 text-muted-foreground" />
+   554→                          <span>{selectedSubscriber.quartier}</span>
+   555→                        </div>
+   556→                      )}
+   557→                      <div className="flex items-center gap-2">
+   558→                        <Calendar className="h-4 w-4 text-muted-foreground" />
+   559→                        <span>Résident: {selectedSubscriber.isResident ? 'Oui' : 'Non'}</span>
+   560→                      </div>
+   561→                    </div>
+   562→                  </CardContent>
+   563→                </Card>
+   564→
+   565→                <Card>
+   566→                  <CardContent className="p-4">
+   567→                    <h4 className="font-semibold text-sm mb-3 text-muted-foreground">Résumé des lots</h4>
+   568→                    <div className="grid grid-cols-2 gap-3">
+   569→                      <div className="text-center p-3 rounded-lg bg-orange-50 dark:bg-orange-950/20">
+   570→                        <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+   571→                          {selectedSubscriber.lotsReservedCount}
+   572→                        </p>
+   573→                        <p className="text-xs text-muted-foreground">Réservés</p>
+   574→                      </div>
+   575→                      <div className="text-center p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/20">
+   576→                        <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+   577→                          {selectedSubscriber.lotsPurchasedCount}
+   578→                        </p>
+   579→                        <p className="text-xs text-muted-foreground">Achetés</p>
+   580→                      </div>
+   581→                    </div>
+   582→                    <div className="mt-3 space-y-2">
+   583→                      <div className="flex justify-between text-sm">
+   584→                        <span className="text-muted-foreground">Total payé</span>
+   585→                        <span className="font-bold text-emerald-600 dark:text-emerald-400">
+   586→                          {formatCurrency(selectedSubscriber.totalAmountPaid)}
+   587→                        </span>
+   588→                      </div>
+   589→                      <div className="flex justify-between text-sm">
+   590→                        <span className="text-muted-foreground">Reste à payer</span>
+   591→                        <span className="font-bold text-red-500 dark:text-red-400">
+   592→                          {formatCurrency(selectedSubscriber.totalAmountRemaining)}
+   593→                        </span>
+   594→                      </div>
+   595→                      <div className="flex justify-between text-sm items-center">
+   596→                        <span className="text-muted-foreground">Progression globale</span>
+   597→                        <span className="font-bold">{selectedSubscriber.overallProgress}%</span>
+   598→                      </div>
+   599→                      <div className="w-full bg-border rounded-full h-2.5">
+   600→                        <div
+   601→                          className={`h-2.5 rounded-full transition-all ${getProgressColor(selectedSubscriber.overallProgress)}`}
+   602→                          style={{ width: `${Math.min(selectedSubscriber.overallProgress, 100)}%` }}
+   603→                        />
+   604→                      </div>
+   605→                    </div>
+   606→                  </CardContent>
+   607→                </Card>
+   608→              </div>
+   609→
+   610→              {/* Detailed Lot Information */}
+   611→              {selectedSubscriber.lotDetails.length > 0 && (
+   612→                <Card>
+   613→                  <CardHeader>
+   614→                    <CardTitle className="text-base">Détails des lots</CardTitle>
+   615→                  </CardHeader>
+   616→                  <CardContent>
+   617→                    <div className="space-y-4">
+   618→                      {selectedSubscriber.lotDetails.map((lot) => (
+   619→                        <div key={lot.reservationId} className="p-4 rounded-lg border border-border bg-muted/30">
+   620→                          <div className="flex items-center justify-between mb-3">
+   621→                            <div className="flex items-center gap-2">
+   622→                              <Building2 className="h-5 w-5 text-muted-foreground" />
+   623→                              <h4 className="font-bold text-foreground">{lot.lotName}</h4>
+   624→                            </div>
+   625→                            <Badge className={getStatusColor(lot.status)}>
+   626→                              {lot.status === 'RESERVED' ? 'Réservé' : 'Soldé'}
+   627→                            </Badge>
+   628→                          </div>
+   629→
+   630→                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm mb-3">
+   631→                            <div>
+   632→                              <p className="text-muted-foreground text-xs">Surface</p>
+   633→                              <p className="font-medium">{lot.surface}</p>
+   634→                            </div>
+   635→                            <div>
+   636→                              <p className="text-muted-foreground text-xs">Prix total</p>
+   637→                              <p className="font-medium">{formatCurrency(lot.totalPrice)}</p>
+   638→                            </div>
+   639→                            <div>
+   640→                              <p className="text-muted-foreground text-xs">Montant payé</p>
+   641→                              <p className="font-medium text-emerald-600 dark:text-emerald-400">{formatCurrency(lot.paidAmount)}</p>
+   642→                            </div>
+   643→                            <div>
+   644→                              <p className="text-muted-foreground text-xs">Reste</p>
+   645→                              <p className="font-medium text-red-500 dark:text-red-400">{formatCurrency(lot.remainingAmount)}</p>
+   646→                            </div>
+   647→                            <div>
+   648→                              <p className="text-muted-foreground text-xs">Paiements validés</p>
+   649→                              <p className="font-medium">{lot.validatedPaymentsCount} / {lot.lotPaymentsCount}</p>
+   650→                            </div>
+   651→                            <div>
+   652→                              <p className="text-muted-foreground text-xs">Date réservation</p>
+   653→                              <p className="font-medium">{formatDate(lot.reservedAt)}</p>
+   654→                            </div>
+   655→                          </div>
+   656→
+   657→                          <div>
+   658→                            <div className="flex justify-between text-sm mb-1">
+   659→                              <span className="text-muted-foreground">État d&apos;avancement du paiement</span>
+   660→                              <span className={`font-bold ${lot.paymentProgress >= 100 ? 'text-emerald-600 dark:text-emerald-400' : ''}`}>
+   661→                                {lot.paymentProgress}%
+   662→                              </span>
+   663→                            </div>
+   664→                            <div className="w-full bg-border rounded-full h-3">
+   665→                              <div
+   666→                                className={`h-3 rounded-full transition-all ${getProgressColor(lot.paymentProgress)}`}
+   667→                                style={{ width: `${Math.min(lot.paymentProgress, 100)}%` }}
+   668→                              />
+   669→                            </div>
+   670→                          </div>
+   671→                        </div>
+   672→                      ))}
+   673→                    </div>
+   674→                  </CardContent>
+   675→                </Card>
+   676→              )}
+   677→
+   678→              {selectedSubscriber.lotDetails.length === 0 && (
+   679→                <div className="text-center py-8">
+   680→                  <Building2 className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
+   681→                  <p className="text-muted-foreground">Aucun lot réservé ni acheté</p>
+   682→                </div>
+   683→              )}
+   684→            </>
+   685→          )}
+   686→        </DialogContent>
+   687→      </Dialog>
+   688→    </div>
+   689→  );
+   690→}
+   691→

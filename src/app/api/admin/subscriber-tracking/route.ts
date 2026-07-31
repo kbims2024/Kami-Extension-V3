@@ -67,6 +67,7 @@ export async function GET() {
         role: user.role,
         isResident: user.isResident,
         quartier: user.quartier || null,
+        villageOrigine: user.villageOrigine || null,
         pseudo: user.pseudo || null,
         status: user.status,
         createdAt: user.createdAt,

@@ -6,10 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, ArrowRight, CheckCircle, Home, Users, Shield, Eye, EyeOff, Menu } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, Home, Users, Shield, Eye, EyeOff, Menu, MapPin } from 'lucide-react';
 
 interface TwoStepRegistrationProps {
-  onComplete: (userData: { name: string; pseudo: string; phone: string; isResident: boolean; password: string; quartier?: string }) => void;
+  onComplete: (userData: { name: string; pseudo: string; phone: string; isResident: boolean; password: string; quartier?: string; villageOrigine?: string }) => void;
   onBack: () => void;
   setIsMenuOpen?: (open: boolean) => void;
 }
@@ -20,6 +20,7 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [quartier, setQuartier] = useState('');
+  const [villageOrigine, setVillageOrigine] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     pseudo: '',
@@ -64,6 +65,11 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
       return;
     }
 
+    if (!isResident && !villageOrigine.trim()) {
+      alert('Veuillez indiquer votre village d\'origine');
+      return;
+    }
+
     if (formData.phone.length < 8) {
       alert('Veuillez entrer un numéro de téléphone valide');
       return;
@@ -86,6 +92,7 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
       isResident: isResident!,
       password: formData.password,
       quartier: isResident ? quartier : undefined,
+      villageOrigine: !isResident ? villageOrigine.trim() : undefined,
     });
   };
 
@@ -351,6 +358,26 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
                           ))}
                         </SelectContent>
                       </Select>
+                    </div>
+                  )}
+
+                  {!isResident && (
+                    <div>
+                      <Label htmlFor="villageOrigine" className="text-sm font-semibold text-foreground mb-2 block">
+                        Village d'origine <span className="text-red-500">*</span>
+                      </Label>
+                      <p className="text-xs text-muted-foreground mb-2">Indiquez le village dont vous êtes originaire</p>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="villageOrigine"
+                          type="text"
+                          placeholder="Ex: Bafoussam, Douala, Yaoundé..."
+                          value={villageOrigine}
+                          onChange={(e) => setVillageOrigine(e.target.value)}
+                          className="h-11 text-base border-border focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 pl-10"
+                        />
+                      </div>
                     </div>
                   )}
 

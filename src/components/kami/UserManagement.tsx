@@ -23,6 +23,8 @@ interface User {
   name: string
   phone: string
   isResident: boolean
+  quartier?: string
+  villageOrigine?: string
   referralCode: string
   status: string
   createdAt: string
@@ -321,6 +323,12 @@ export const UserManagement: React.FC<UserManagementProps> = ({ onBack }) => {
                       <div className="flex flex-col">
                         <p className="font-medium text-foreground">{user.name}</p>
                         <p className="text-xs text-muted-foreground">{user.phone}</p>
+                        {user.isResident && user.quartier && (
+                          <p className="text-xs text-muted-foreground">Quartier: {user.quartier}</p>
+                        )}
+                        {!user.isResident && user.villageOrigine && (
+                          <p className="text-xs text-muted-foreground">Village d'origine: {user.villageOrigine}</p>
+                        )}
                         <p className="text-xs text-muted-foreground">Code: {user.referralCode}</p>
                       </div>
                     </td>

@@ -28,6 +28,8 @@ export async function GET() {
         email: user.email,
         role: user.role,
         isResident: user.isResident,
+        quartier: user.quartier || null,
+        villageOrigine: user.villageOrigine || null,
         referralCode: user.referralCode,
         status: user.status,
         reservationCount,
