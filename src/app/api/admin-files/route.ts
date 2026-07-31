@@ -40,10 +40,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Fichier ou type manquant' }, { status: 400 });
     }
 
-    // Vérifier que c'est un PDF ou PNG
-    const validMimeTypes = ['application/pdf', 'image/png', 'image/jpeg'];
+    // Accepter images et vidéos
+    const validMimeTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif', 'video/mp4', 'video/webm', 'video/quicktime'];
     if (!validMimeTypes.includes(file.type)) {
-      return NextResponse.json({ error: 'Type de fichier non supporté (PDF, PNG ou JPEG requis)' }, { status: 400 });
+      return NextResponse.json({ error: 'Type de fichier non supporté (image ou vidéo requis)' }, { status: 400 });
     }
 
     // Créer le dossier uploads s'il n'existe pas
@@ -92,6 +92,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       file: filesDb[type],
+      path: filesDb[type].path,
     });
   } catch (error) {
     console.error('Erreur lors de l\'upload:', error);

@@ -87,6 +87,12 @@ const TYPE_CONFIG: Record<
     label: 'Approbation',
     color: 'text-green-500',
   },
+  MESSAGE: {
+    emoji: '💬',
+    icon: Info,
+    label: 'Message',
+    color: 'text-sky-500',
+  },
   SYSTEM: {
     emoji: 'ℹ️',
     icon: Info,

@@ -48,10 +48,10 @@ export async function POST(request: NextRequest) {
         title,
         description,
         category,
-        images: images || [],
-        videos: videos || [],
+        images: Array.isArray(images) ? images : [],
+        videos: Array.isArray(videos) ? videos : [],
         date,
-        isPinned: isPinned || false,
+        isPinned: Boolean(isPinned),
         authorId: authorId || null,
       },
     });

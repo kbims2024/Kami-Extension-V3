@@ -119,6 +119,14 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen }: AdminChatPage
     }
   }, [selectedUserId]);
 
+  useEffect(() => {
+    if (!adminId) return;
+    const interval = setInterval(() => {
+      loadUsers();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [adminId]);
+
   const loadAdminId = async () => {
     try {
       const response = await fetch('/api/admin/ensure');

@@ -79,6 +79,28 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Notify committee/admin when a user sends a message to the admin inbox
+    if (receiverId === 'ADMIN' || finalReceiverId === await getAdminId()) {
+      const adminId = await getAdminId();
+      const senderLabel = sender.name || sender.phone || 'Un utilisateur';
+      await db.notification.create({
+        data: {
+          userId: adminId,
+          title: 'Nouveau message',
+          message: `${senderLabel} vous a envoyé : ${content}`,
+          type: 'MESSAGE',
+          read: false,
+          data: JSON.stringify({
+            senderId: sender.id,
+            senderName: sender.name,
+            senderPhone: sender.phone,
+            messageId: message.id,
+            content,
+          }),
+        },
+      });
+    }
+
     return NextResponse.json(message);
   } catch (error) {
     console.error('Error creating message:', error);

@@ -26,6 +26,7 @@ import {
   Upload,
   Construction,
   Calendar,
+  Pencil,
 } from 'lucide-react';
 
 interface ProgressUpdate {
@@ -58,6 +59,7 @@ export function ProgressUpdatesAdmin({ onBack }: ProgressUpdatesAdminProps) {
   const [videos, setVideos] = useState<string[]>([]);
   const [isPinned, setIsPinned] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadUpdates();
@@ -89,6 +91,7 @@ export function ProgressUpdatesAdmin({ onBack }: ProgressUpdatesAdminProps) {
       for (const file of Array.from(files)) {
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('type', 'PROGRESS_IMAGE');
         try {
           const res = await fetch('/api/admin-files', {
             method: 'POST',
@@ -96,10 +99,14 @@ export function ProgressUpdatesAdmin({ onBack }: ProgressUpdatesAdminProps) {
           });
           if (res.ok) {
             const data = await res.json();
-            setImages((prev) => [...prev, data.path]);
+            setImages((prev) => [...prev, data.path || data.file?.path]);
+          } else {
+            const errorData = await res.json().catch(() => ({}));
+            toast.error(errorData.error || 'Erreur upload image');
           }
         } catch (err) {
           console.error('Upload error:', err);
+          toast.error('Erreur upload image');
         }
       }
     };
@@ -110,12 +117,14 @@ export function ProgressUpdatesAdmin({ onBack }: ProgressUpdatesAdminProps) {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'video/*';
+    input.multiple = true;
     input.onchange = async (e) => {
       const files = (e.target as HTMLInputElement).files;
       if (!files) return;
       for (const file of Array.from(files)) {
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('type', 'PROGRESS_VIDEO');
         try {
           const res = await fetch('/api/admin-files', {
             method: 'POST',
@@ -123,14 +132,30 @@ export function ProgressUpdatesAdmin({ onBack }: ProgressUpdatesAdminProps) {
           });
           if (res.ok) {
             const data = await res.json();
-            setVideos((prev) => [...prev, data.path]);
+            setVideos((prev) => [...prev, data.path || data.file?.path]);
+          } else {
+            const errorData = await res.json().catch(() => ({}));
+            toast.error(errorData.error || 'Erreur upload vidéo');
           }
         } catch (err) {
           console.error('Upload error:', err);
+          toast.error('Erreur upload vidéo');
         }
       }
     };
     input.click();
+  };
+
+  const resetForm = () => {
+    setTitle('');
+    setDescription('');
+    setCategory('TRAVAUX');
+    setDate(new Date().toISOString().split('T')[0]);
+    setImages([]);
+    setVideos([]);
+    setIsPinned(false);
+    setEditingId(null);
+    setShowForm(false);
   };
 
   const handleSubmit = async () => {
@@ -141,22 +166,22 @@ export function ProgressUpdatesAdmin({ onBack }: ProgressUpdatesAdminProps) {
 
     setSubmitting(true);
     try {
-      const response = await fetch('/api/progress-updates', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, description, category, date, images, videos, isPinned }),
-      });
+      const payload = { title, description, category, date, images, videos, isPinned };
+      const response = editingId
+        ? await fetch(`/api/progress-updates/${editingId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          })
+        : await fetch('/api/progress-updates', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
 
       if (response.ok) {
-        toast.success('Publication ajoutée avec succès !');
-        setTitle('');
-        setDescription('');
-        setCategory('TRAVAUX');
-        setDate(new Date().toISOString().split('T')[0]);
-        setImages([]);
-        setVideos([]);
-        setIsPinned(false);
-        setShowForm(false);
+        toast.success(editingId ? 'Publication modifiée avec succès !' : 'Publication ajoutée avec succès !');
+        resetForm();
         loadUpdates();
       } else {
         const data = await response.json();
@@ -180,6 +205,18 @@ export function ProgressUpdatesAdmin({ onBack }: ProgressUpdatesAdminProps) {
     } catch (error) {
       toast.error('Erreur lors de la suppression');
     }
+  };
+
+  const handleEdit = (update: ProgressUpdate) => {
+    setEditingId(update.id);
+    setTitle(update.title);
+    setDescription(update.description);
+    setCategory(update.category);
+    setDate(update.date);
+    setImages(update.images || []);
+    setVideos(update.videos || []);
+    setIsPinned(update.isPinned);
+    setShowForm(true);
   };
 
   const handleTogglePin = async (update: ProgressUpdate) => {
@@ -235,7 +272,13 @@ export function ProgressUpdatesAdmin({ onBack }: ProgressUpdatesAdminProps) {
           <p className="text-sm text-muted-foreground">Gérez les publications publiques de progression</p>
         </div>
         <Button
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            if (showForm) {
+              resetForm();
+            } else {
+              setShowForm(true);
+            }
+          }}
           className="bg-brand-blue hover:bg-brand-blue text-white"
         >
           <Plus className="mr-2 h-4 w-4" />
@@ -247,7 +290,7 @@ export function ProgressUpdatesAdmin({ onBack }: ProgressUpdatesAdminProps) {
       {showForm && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Nouvelle publication</CardTitle>
+            <CardTitle className="text-lg">{editingId ? 'Modifier la publication' : 'Nouvelle publication'}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -382,11 +425,11 @@ export function ProgressUpdatesAdmin({ onBack }: ProgressUpdatesAdminProps) {
                 disabled={submitting}
                 className="bg-brand-blue hover:bg-brand-blue text-white flex-1"
               >
-                {submitting ? 'Publication...' : 'Publier'}
+                {submitting ? (editingId ? 'Modification...' : 'Publication...') : editingId ? 'Enregistrer' : 'Publier'}
               </Button>
               <Button
                 variant="outline"
-                onClick={() => setShowForm(false)}
+                onClick={() => resetForm()}
               >
                 Annuler
               </Button>
@@ -464,6 +507,15 @@ export function ProgressUpdatesAdmin({ onBack }: ProgressUpdatesAdminProps) {
                         </div>
 
                         <div className="flex items-center gap-1 flex-shrink-0">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => handleEdit(update)}
+                            title="Modifier"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
                           <Button
                             variant="ghost"
                             size="icon"

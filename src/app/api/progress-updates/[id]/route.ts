@@ -24,9 +24,16 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await request.json();
+    const data: Record<string, any> = { ...body };
+    if (data.images !== undefined) {
+      data.images = Array.isArray(data.images) ? data.images : [];
+    }
+    if (data.videos !== undefined) {
+      data.videos = Array.isArray(data.videos) ? data.videos : [];
+    }
     const updated = await db.progressUpdate.update({
       where: { id },
-      data: body,
+      data,
     });
     return NextResponse.json(updated);
   } catch (error) {
