@@ -4,14 +4,6 @@
   "installCommand": "bun install",
   "framework": "nextjs",
   "regions": ["iad1"],
-  "env": {
-    "MONGODB_URI": "@mongodb-uri"
-  },
-  "build": {
-    "env": {
-      "MONGODB_URI": "@mongodb-uri"
-    }
-  },
   "headers": [
     {
       "source": "/uploads/(.*)",
