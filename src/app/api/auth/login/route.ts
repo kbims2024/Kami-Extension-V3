@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { hashPassword, verifyPassword } from '@/lib/password';
+import { verifyPassword } from '@/lib/password';
 
 // POST /api/auth/login - Connexion
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { phone, email, password, name, isResident } = body;
+    const { phone, email, pseudo, password } = body;
 
-    // Valider qu'au moins un identifiant est fourni (email ou téléphone)
-    if (!phone && !email) {
-      return NextResponse.json({ error: 'Numéro de téléphone ou email requis' }, { status: 400 });
+    // Valider qu'au moins un identifiant est fourni (pseudo, téléphone ou email)
+    if (!phone && !email && !pseudo) {
+      return NextResponse.json({ error: 'Pseudo, numéro de téléphone ou email requis' }, { status: 400 });
     }
 
     // Vérifier le mot de passe est fourni
@@ -18,9 +18,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Mot de passe requis' }, { status: 400 });
     }
 
-    // Rechercher l'utilisateur par téléphone ou par email
+    // Rechercher l'utilisateur par pseudo, téléphone ou email
     let user = null;
-    if (phone) {
+    if (pseudo) {
+      user = await db.user.findUnique({
+        where: { pseudo },
+      });
+    } else if (phone) {
       user = await db.user.findUnique({
         where: { phone },
       });

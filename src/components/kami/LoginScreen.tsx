@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, LogIn, Menu, Eye, EyeOff, Lock, Mail, Phone } from 'lucide-react';
+import { ArrowLeft, LogIn, Menu, Eye, EyeOff, Lock, Mail, Phone, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { PasswordResetDialog } from './PasswordResetDialog';
 import { LogoDisplay } from '@/components/kami/LogoDisplay';
@@ -16,11 +16,12 @@ interface LoginScreenProps {
   setIsMenuOpen?: (open: boolean) => void;
 }
 
-type LoginMethod = 'phone' | 'email';
+type LoginMethod = 'pseudo' | 'phone' | 'email';
 
 export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps) {
-  const [loginMethod, setLoginMethod] = useState<LoginMethod>('phone');
+  const [loginMethod, setLoginMethod] = useState<LoginMethod>('pseudo');
   const [formData, setFormData] = useState({
+    pseudo: '',
     phone: '',
     email: '',
     password: '',
@@ -32,6 +33,11 @@ export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps
   const handleSubmit = async () => {
     if (!formData.password) {
       toast.error('Veuillez entrer votre mot de passe');
+      return;
+    }
+
+    if (loginMethod === 'pseudo' && !formData.pseudo) {
+      toast.error('Veuillez entrer votre pseudo');
       return;
     }
 
@@ -61,6 +67,7 @@ export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          pseudo: loginMethod === 'pseudo' ? formData.pseudo : undefined,
           phone: loginMethod === 'phone' ? formData.phone : undefined,
           email: loginMethod === 'email' ? formData.email : undefined,
           password: formData.password,
@@ -135,6 +142,15 @@ export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps
               <div className="flex gap-2 mb-4">
                 <Button
                   type="button"
+                  variant={loginMethod === 'pseudo' ? 'default' : 'outline'}
+                  onClick={() => setLoginMethod('pseudo')}
+                  className={`flex-1 ${loginMethod === 'pseudo' ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
+                >
+                  <User className="h-4 w-4 mr-2" />
+                  Pseudo
+                </Button>
+                <Button
+                  type="button"
                   variant={loginMethod === 'phone' ? 'default' : 'outline'}
                   onClick={() => setLoginMethod('phone')}
                   className={`flex-1 ${loginMethod === 'phone' ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
@@ -153,7 +169,21 @@ export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps
                 </Button>
               </div>
 
-              {loginMethod === 'phone' ? (
+              {loginMethod === 'pseudo' ? (
+                <div>
+                  <Label htmlFor="pseudo" className="text-sm font-semibold text-foreground mb-2 block">
+                    Pseudo
+                  </Label>
+                  <Input
+                    id="pseudo"
+                    type="text"
+                    placeholder="Ex: kaminou"
+                    value={formData.pseudo}
+                    onChange={(e) => setFormData({ ...formData, pseudo: e.target.value })}
+                    className="h-11 text-base border-border focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400"
+                  />
+                </div>
+              ) : loginMethod === 'phone' ? (
                 <div>
                   <Label htmlFor="phone" className="text-sm font-semibold text-foreground mb-2 block">
                     Numéro de téléphone
