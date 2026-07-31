@@ -1092,6 +1092,7 @@ function ProfileScreen({ currentUser, setCurrentUser, copyReferralLink, setCurre
           pseudo: form.pseudo.trim(),
           phone: form.phone,
           email: form.email,
+          avatarUrl: form.avatarUrl,
           quartier: currentUser.isResident ? form.quartier : undefined,
         }),
       });
