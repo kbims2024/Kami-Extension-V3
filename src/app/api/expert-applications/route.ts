@@ -2,9 +2,7 @@ import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { db } from '@/lib/db';
 
 // POST - Submit a new expert application with profile image (public)
 export async function POST(req: NextRequest) {
@@ -104,7 +102,7 @@ export async function POST(req: NextRequest) {
 
     const profileImagePath = `/uploads/expert-photos/${safeFilename}`;
 
-    const application = await prisma.expertApplication.create({
+    const application = await db.expertApplication.create({
       data: {
         fullName: fullName.trim(),
         phone: phone.trim(),
@@ -113,7 +111,7 @@ export async function POST(req: NextRequest) {
         specialty: specialty.trim(),
         experience: experience.trim(),
         location: location.trim(),
-        certifications: JSON.stringify(certifications),
+        certifications,
         bio: bio.trim(),
         availability: availability?.trim() || 'Disponible sous 72h',
         profileImage: profileImagePath,
@@ -140,23 +138,12 @@ export async function GET(req: NextRequest) {
 
     const where = status && status !== 'ALL' ? { status } : {};
 
-    const applications = await prisma.expertApplication.findMany({
+    const applications = await db.expertApplication.findMany({
       where,
       orderBy: { createdAt: 'desc' },
     });
 
-    const parsed = applications.map((a) => ({
-      ...a,
-      certifications: (() => {
-        try {
-          return JSON.parse(a.certifications);
-        } catch {
-          return [];
-        }
-      })(),
-    }));
-
-    return NextResponse.json({ applications: parsed });
+    return NextResponse.json({ applications });
   } catch (error) {
     console.error('[expert-applications/GET] Error:', error);
     return NextResponse.json({ error: 'Erreur serveur.' }, { status: 500 });
