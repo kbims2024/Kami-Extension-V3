@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, LogIn, Menu, Eye, EyeOff, Lock, Mail, Phone, User } from 'lucide-react';
+import { ArrowLeft, LogIn, Menu, Eye, EyeOff, Lock, Phone, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { PasswordResetDialog } from './PasswordResetDialog';
 import { LogoDisplay } from '@/components/kami/LogoDisplay';
@@ -16,14 +16,13 @@ interface LoginScreenProps {
   setIsMenuOpen?: (open: boolean) => void;
 }
 
-type LoginMethod = 'pseudo' | 'phone' | 'email';
+type LoginMethod = 'pseudo' | 'phone';
 
 export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps) {
   const [loginMethod, setLoginMethod] = useState<LoginMethod>('pseudo');
   const [formData, setFormData] = useState({
     pseudo: '',
     phone: '',
-    email: '',
     password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -46,18 +45,8 @@ export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps
       return;
     }
 
-    if (loginMethod === 'email' && !formData.email) {
-      toast.error('Veuillez entrer votre adresse email');
-      return;
-    }
-
     if (loginMethod === 'phone' && formData.phone.length < 8) {
       toast.error('Veuillez entrer un numéro de téléphone valide');
-      return;
-    }
-
-    if (loginMethod === 'email' && !formData.email.includes('@')) {
-      toast.error('Veuillez entrer une adresse email valide');
       return;
     }
 
@@ -69,7 +58,6 @@ export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps
         body: JSON.stringify({
           pseudo: loginMethod === 'pseudo' ? formData.pseudo : undefined,
           phone: loginMethod === 'phone' ? formData.phone : undefined,
-          email: loginMethod === 'email' ? formData.email : undefined,
           password: formData.password,
         }),
       });
@@ -158,15 +146,6 @@ export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps
                   <Phone className="h-4 w-4 mr-2" />
                   Téléphone
                 </Button>
-                <Button
-                  type="button"
-                  variant={loginMethod === 'email' ? 'default' : 'outline'}
-                  onClick={() => setLoginMethod('email')}
-                  className={`flex-1 ${loginMethod === 'email' ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
-                >
-                  <Mail className="h-4 w-4 mr-2" />
-                  Email
-                </Button>
               </div>
 
               {loginMethod === 'pseudo' ? (
@@ -199,15 +178,15 @@ export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps
                 </div>
               ) : (
                 <div>
-                  <Label htmlFor="email" className="text-sm font-semibold text-foreground mb-2 block">
-                    Adresse email
+                  <Label htmlFor="phone" className="text-sm font-semibold text-foreground mb-2 block">
+                    Numéro de téléphone
                   </Label>
                   <Input
-                    id="email"
-                    type="email"
-                    placeholder="Ex: jean.kone@email.com"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    id="phone"
+                    type="tel"
+                    placeholder="Ex: 07 58 42 10"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     className="h-11 text-base border-border focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400"
                   />
                 </div>
