@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { ShieldCheck, Eye, EyeOff, Loader2, Lock, Phone, Mail } from 'lucide-react';
+import { ShieldCheck, Eye, EyeOff, Loader2, Lock, Phone, User } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface AdminLoginDialogProps {
@@ -20,13 +20,13 @@ interface AdminLoginDialogProps {
   onAdminLoginSuccess: (user: any) => void;
 }
 
-type LoginMethod = 'phone' | 'email';
+type LoginMethod = 'pseudo' | 'phone';
 
 export function AdminLoginDialog({ open, onOpenChange, onAdminLoginSuccess }: AdminLoginDialogProps) {
-  const [loginMethod, setLoginMethod] = useState<LoginMethod>('phone');
+  const [loginMethod, setLoginMethod] = useState<LoginMethod>('pseudo');
   const [formData, setFormData] = useState({
+    pseudo: '',
     phone: '',
-    email: '',
     password: '',
     adminCode: '',
   });
@@ -41,13 +41,13 @@ export function AdminLoginDialog({ open, onOpenChange, onAdminLoginSuccess }: Ad
       return;
     }
 
-    if (loginMethod === 'phone' && !formData.phone.trim()) {
-      toast.error('Veuillez entrer votre numéro de téléphone');
+    if (loginMethod === 'pseudo' && !formData.pseudo.trim()) {
+      toast.error('Veuillez entrer votre pseudo');
       return;
     }
 
-    if (loginMethod === 'email' && !formData.email.trim()) {
-      toast.error('Veuillez entrer votre adresse email');
+    if (loginMethod === 'phone' && !formData.phone.trim()) {
+      toast.error('Veuillez entrer votre numéro de téléphone');
       return;
     }
 
@@ -62,8 +62,8 @@ export function AdminLoginDialog({ open, onOpenChange, onAdminLoginSuccess }: Ad
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          pseudo: loginMethod === 'pseudo' ? formData.pseudo.trim() : undefined,
           phone: loginMethod === 'phone' ? formData.phone.trim() : undefined,
-          email: loginMethod === 'email' ? formData.email.trim() : undefined,
           password: formData.password,
           adminCode: formData.adminCode.trim(),
         }),
@@ -74,7 +74,7 @@ export function AdminLoginDialog({ open, onOpenChange, onAdminLoginSuccess }: Ad
         onAdminLoginSuccess(user);
         onOpenChange(false);
         // Reset form
-        setFormData({ phone: '', email: '', password: '', adminCode: '' });
+        setFormData({ pseudo: '', phone: '', password: '', adminCode: '' });
         toast.success(`Bienvenue administrateur ${user.pseudo || user.name} !`);
       } else {
         const data = await response.json();
@@ -147,6 +147,15 @@ export function AdminLoginDialog({ open, onOpenChange, onAdminLoginSuccess }: Ad
           <div className="flex gap-2">
             <Button
               type="button"
+              variant={loginMethod === 'pseudo' ? 'default' : 'outline'}
+              onClick={() => setLoginMethod('pseudo')}
+              className={`flex-1 text-sm ${loginMethod === 'pseudo' ? 'bg-purple-600 hover:bg-purple-700' : ''}`}
+            >
+              <User className="h-3.5 w-3.5 mr-1.5" />
+              Pseudo
+            </Button>
+            <Button
+              type="button"
               variant={loginMethod === 'phone' ? 'default' : 'outline'}
               onClick={() => setLoginMethod('phone')}
               className={`flex-1 text-sm ${loginMethod === 'phone' ? 'bg-purple-600 hover:bg-purple-700' : ''}`}
@@ -154,19 +163,24 @@ export function AdminLoginDialog({ open, onOpenChange, onAdminLoginSuccess }: Ad
               <Phone className="h-3.5 w-3.5 mr-1.5" />
               Téléphone
             </Button>
-            <Button
-              type="button"
-              variant={loginMethod === 'email' ? 'default' : 'outline'}
-              onClick={() => setLoginMethod('email')}
-              className={`flex-1 text-sm ${loginMethod === 'email' ? 'bg-purple-600 hover:bg-purple-700' : ''}`}
-            >
-              <Mail className="h-3.5 w-3.5 mr-1.5" />
-              Email
-            </Button>
           </div>
 
-          {/* Champ téléphone ou email */}
-          {loginMethod === 'phone' ? (
+          {/* Champ pseudo ou téléphone */}
+          {loginMethod === 'pseudo' ? (
+            <div>
+              <Label htmlFor="adminPseudo" className="text-sm font-semibold text-foreground mb-2 block">
+                Pseudo
+              </Label>
+              <Input
+                id="adminPseudo"
+                type="text"
+                placeholder="Ex: admin"
+                value={formData.pseudo}
+                onChange={(e) => setFormData({ ...formData, pseudo: e.target.value })}
+                className="h-11 text-base border-border focus:border-purple-500 focus:ring-purple-500"
+              />
+            </div>
+          ) : (
             <div>
               <Label htmlFor="adminPhone" className="text-sm font-semibold text-foreground mb-2 block">
                 Numéro de téléphone
@@ -177,20 +191,6 @@ export function AdminLoginDialog({ open, onOpenChange, onAdminLoginSuccess }: Ad
                 placeholder="Ex: 07 58 42 10"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="h-11 text-base border-border focus:border-purple-500 focus:ring-purple-500"
-              />
-            </div>
-          ) : (
-            <div>
-              <Label htmlFor="adminEmail" className="text-sm font-semibold text-foreground mb-2 block">
-                Adresse email
-              </Label>
-              <Input
-                id="adminEmail"
-                type="email"
-                placeholder="Ex: admin@email.com"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="h-11 text-base border-border focus:border-purple-500 focus:ring-purple-500"
               />
             </div>

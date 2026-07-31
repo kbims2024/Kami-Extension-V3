@@ -9,7 +9,7 @@ const ADMIN_SECRET_CODE = process.env.ADMIN_SECRET_CODE || 'KAMI2024ADMIN';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { phone, email, password, adminCode } = body;
+    const { phone, pseudo, password, adminCode } = body;
 
     // Vérifier que le code secret admin est fourni
     if (!adminCode) {
@@ -22,8 +22,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Vérifier qu'au moins un identifiant est fourni
-    if (!phone && !email) {
-      return NextResponse.json({ error: 'Numéro de téléphone ou email requis' }, { status: 400 });
+    if (!phone && !pseudo) {
+      return NextResponse.json({ error: 'Pseudo ou numéro de téléphone requis' }, { status: 400 });
     }
 
     // Vérifier le mot de passe
@@ -33,10 +33,10 @@ export async function POST(request: NextRequest) {
 
     // Rechercher l'utilisateur
     let user = null;
-    if (phone) {
+    if (pseudo) {
+      user = await db.user.findUnique({ where: { pseudo } });
+    } else if (phone) {
       user = await db.user.findUnique({ where: { phone } });
-    } else if (email) {
-      user = await db.user.findUnique({ where: { email } });
     }
 
     if (!user) {
