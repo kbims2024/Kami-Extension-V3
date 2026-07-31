@@ -454,6 +454,7 @@ export default function KamiExtensionPage() {
             lots={lots}
             loadLots={loadLots}
             setCurrentScreen={setCurrentScreen}
+            currentUser={currentUser}
           />
         </PageTransition>
       )}
@@ -1360,7 +1361,7 @@ function AffiliationScreen({ currentUser, copyReferralLink, setCurrentScreen, se
 }
 
 // Admin Screen Component
-function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen }: any) {
+function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen, currentUser }: any) {
   // Stats state
   const [stats, setStats] = useState({ available: 0, reserved: 0, pending: 0, revenue: 0, userCount: 0, reservationCount: 0, totalLots: 0, paid: 0 });
   const [statsLoading, setStatsLoading] = useState(false);
