@@ -4,6 +4,8 @@ import { existsSync } from 'fs';
 import { NextRequest, NextResponse } from 'next/server';
 import { readFileSync } from 'fs';
 
+export const runtime = 'nodejs';
+
 const FILES_DB_PATH = join(process.cwd(), 'db', 'files.json');
 
 // Helper: Ensure files.json exists
@@ -40,10 +42,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Fichier ou type manquant' }, { status: 400 });
     }
 
-    // Accepter images et vidéos
+    // Accepter images, vidéos et pdf
     const validMimeTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif', 'video/mp4', 'video/webm', 'video/quicktime'];
     if (!validMimeTypes.includes(file.type)) {
-      return NextResponse.json({ error: 'Type de fichier non supporté (image ou vidéo requis)' }, { status: 400 });
+      return NextResponse.json({ error: 'Type de fichier non supporté (image/vidéo/pdf requis)' }, { status: 400 });
     }
 
     // Créer le dossier uploads s'il n'existe pas
