@@ -1,8 +1,9 @@
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
 import { NextRequest, NextResponse } from 'next/server';
+import { GridFSBucket, ObjectId } from 'mongodb';
+import { connectDB } from '@/lib/mongodb';
 import { db } from '@/lib/db';
+
+export const runtime = 'nodejs';
 
 // POST - Submit a new expert application with profile image (public)
 export async function POST(req: NextRequest) {
@@ -32,9 +33,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Format d\'image non supporté (JPEG, PNG, WebP ou GIF requis).' }, { status: 400 });
     }
 
-    // Validate image size (max 5MB)
-    if (profileImage.size > 5 * 1024 * 1024) {
-      return NextResponse.json({ error: 'L\'image ne doit pas dépasser 5 Mo.' }, { status: 400 });
+    // Validate image size (max 10MB)
+    if (profileImage.size > 10 * 1024 * 1024) {
+      return NextResponse.json({ error: 'L\'image ne doit pas dépasser 10 Mo.' }, { status: 400 });
     }
 
     // Other validations
@@ -85,22 +86,46 @@ export async function POST(req: NextRequest) {
       certifications = [];
     }
 
-    // Save the profile image
-    const uploadsDir = join(process.cwd(), 'public', 'uploads', 'expert-photos');
-    if (!existsSync(uploadsDir)) {
-      await mkdir(uploadsDir, { recursive: true });
-    }
+    // Upload profile image to GridFS
+    const mongoose = await connectDB();
+    const dbClient = mongoose.connection.db;
+    const bucket = new GridFSBucket(dbClient, { bucketName: 'uploads' });
 
-    const appId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-    const ext = profileImage.name.split('.').pop() || 'jpg';
-    const safeFilename = `expert_${appId}.${ext}`;
-    const filepath = join(uploadsDir, safeFilename);
+    const timestamp = Date.now();
+    const safeName = profileImage.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const filename = `expert_${timestamp}_${safeName}`;
 
-    const bytes = await profileImage.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    await writeFile(filepath, buffer);
+    const buffer = Buffer.from(await profileImage.arrayBuffer());
 
-    const profileImagePath = `/uploads/expert-photos/${safeFilename}`;
+    const uploadStream = bucket.openUploadStream(filename, {
+      contentType: profileImage.type,
+      metadata: {
+        originalName: profileImage.name,
+        type: 'expert-photo',
+      },
+    });
+
+    await new Promise<void>((resolve, reject) => {
+      uploadStream.on('error', (err) => reject(err));
+      uploadStream.on('finish', () => resolve());
+      uploadStream.end(buffer);
+    });
+
+    const fileId = uploadStream.id.toString();
+
+    // store metadata in uploadedFiles collection
+    await dbClient.collection('uploadedFiles').insertOne({
+      _id: uploadStream.id,
+      fileId,
+      filename,
+      originalName: profileImage.name,
+      mimeType: profileImage.type,
+      size: buffer.length,
+      type: 'expert-photo',
+      uploadedAt: new Date(),
+    });
+
+    const profileImageUrl = `/api/serve-file?fileId=${fileId}`;
 
     const application = await db.expertApplication.create({
       data: {
@@ -114,7 +139,7 @@ export async function POST(req: NextRequest) {
         certifications,
         bio: bio.trim(),
         availability: availability?.trim() || 'Disponible sous 72h',
-        profileImage: profileImagePath,
+        profileImage: profileImageUrl,
         status: 'PENDING',
       },
     });
@@ -123,9 +148,11 @@ export async function POST(req: NextRequest) {
       success: true,
       id: application.id,
       message: 'Votre candidature a été soumise au comité de gestion des lots. Vous serez notifié après analyse.',
+      profileImageUrl,
+      fileId,
     });
   } catch (error) {
-    console.error('[expert-applications/POST] Error:', error);
+    console.error('[expert-applications/POST] Error (GridFS):', error);
     return NextResponse.json({ error: 'Erreur serveur lors de la soumission.' }, { status: 500 });
   }
 }
