@@ -4,6 +4,8 @@ import { existsSync } from 'fs';
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
+export const runtime = 'nodejs';
+
 // POST - Submit a new expert application with profile image (public)
 export async function POST(req: NextRequest) {
   try {
@@ -29,12 +31,12 @@ export async function POST(req: NextRequest) {
     // Validate image type
     const validImageTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
     if (!validImageTypes.includes(profileImage.type)) {
-      return NextResponse.json({ error: 'Format d\'image non supporté (JPEG, PNG, WebP ou GIF requis).' }, { status: 400 });
+      return NextResponse.json({ error: "Format d'image non supporté (JPEG, PNG, WebP ou GIF requis)." }, { status: 400 });
     }
 
     // Validate image size (max 5MB)
     if (profileImage.size > 5 * 1024 * 1024) {
-      return NextResponse.json({ error: 'L\'image ne doit pas dépasser 5 Mo.' }, { status: 400 });
+      return NextResponse.json({ error: "L'image ne doit pas dépasser 5 Mo." }, { status: 400 });
     }
 
     // Other validations
@@ -45,13 +47,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Le numéro de téléphone est requis.' }, { status: 400 });
     }
     if (!categoryId) {
-      return NextResponse.json({ error: 'La catégorie d\'expertise est requise.' }, { status: 400 });
+      return NextResponse.json({ error: "La catégorie d'expertise est requise." }, { status: 400 });
     }
     if (!specialty || specialty.trim().length < 3) {
       return NextResponse.json({ error: 'La spécialité est requise.' }, { status: 400 });
     }
     if (!experience) {
-      return NextResponse.json({ error: 'L\'expérience est requise.' }, { status: 400 });
+      return NextResponse.json({ error: "L'expérience est requise." }, { status: 400 });
     }
     if (!location) {
       return NextResponse.json({ error: 'La localisation est requise.' }, { status: 400 });
