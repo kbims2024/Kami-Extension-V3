@@ -1,61 +1,57 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { join } from 'path';
-import { readFileSync, existsSync } from 'fs';
-import { readFile } from 'fs/promises';
+import { GridFSBucket, ObjectId } from 'mongodb';
+import { connectDB } from '@/lib/mongodb';
 
-const FILES_DB_PATH = join(process.cwd(), 'db', 'files.json');
-
-// Helper: Read files.json
-async function readFilesDb() {
-  try {
-    const content = await readFile(FILES_DB_PATH, 'utf-8');
-    return JSON.parse(content);
-  } catch (error) {
-    return {};
-  }
-}
+export const runtime = 'nodejs';
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const type = searchParams.get('type');
+    const fileId = searchParams.get('fileId');
 
-    if (!type) {
-      return NextResponse.json({ error: 'Type manquant' }, { status: 400 });
+    if (!fileId) {
+      return NextResponse.json({ error: 'fileId manquant' }, { status: 400 });
     }
 
-    const filesDb = await readFilesDb();
+    if (!ObjectId.isValid(fileId)) {
+      return NextResponse.json({ error: 'fileId invalide' }, { status: 400 });
+    }
 
-    if (!filesDb[type]) {
+    const mongoose = await connectDB();
+    const db = mongoose.connection.db;
+    const bucket = new GridFSBucket(db, { bucketName: 'uploads' });
+
+    // Lookup metadata stored in uploadedFiles
+    const meta = await db.collection('uploadedFiles').findOne({ _id: new ObjectId(fileId) });
+    if (!meta) {
       return NextResponse.json({ error: 'Fichier non trouvé' }, { status: 404 });
     }
 
-    const fileInfo = filesDb[type];
-    const filePath = join(process.cwd(), 'public', fileInfo.path);
+    // Stream file from GridFS
+    const downloadStream = bucket.openDownloadStream(new ObjectId(fileId));
+    const chunks: Buffer[] = [];
 
-    if (!existsSync(filePath)) {
-      return NextResponse.json({ error: 'Fichier physique non trouvé' }, { status: 404 });
-    }
-
-    // Lire le fichier
-    const fileBuffer = readFileSync(filePath);
-
-    // Créer la réponse avec les headers appropriés
-    const response = new NextResponse(fileBuffer, {
-      headers: {
-        'Content-Type': fileInfo.mimeType,
-        'Content-Length': fileBuffer.length.toString(),
-        'Content-Disposition': 'inline; filename="plan.pdf"',
-        'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';",
-        'X-Frame-Options': 'SAMEORIGIN',
-        'X-Content-Type-Options': 'nosniff',
-        'Cache-Control': 'public, max-age=3600',
-      },
+    await new Promise<void>((resolve, reject) => {
+      downloadStream.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+      downloadStream.on('error', (err) => reject(err));
+      downloadStream.on('end', () => resolve());
     });
 
-    return response;
+    const buffer = Buffer.concat(chunks);
+
+    const headers = {
+      'Content-Type': meta.mimeType || 'application/octet-stream',
+      'Content-Length': buffer.length.toString(),
+      'Content-Disposition': `inline; filename="${meta.originalName || meta.filename || 'file'}"`,
+      'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';",
+      'X-Frame-Options': 'SAMEORIGIN',
+      'X-Content-Type-Options': 'nosniff',
+      'Cache-Control': 'public, max-age=3600',
+    } as Record<string, string>;
+
+    return new NextResponse(buffer, { headers });
   } catch (error) {
-    console.error('Erreur lors de la récupération du fichier:', error);
+    console.error('Erreur lors de la récupération du fichier (GridFS):', error);
     return NextResponse.json({ error: 'Erreur lors de la récupération du fichier' }, { status: 500 });
   }
 }
