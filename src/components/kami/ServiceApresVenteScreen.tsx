@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
@@ -47,6 +48,9 @@ import {
   Calendar,
   MapPin,
   Lock,
+  Eye,
+  EyeOff,
+  Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -58,8 +62,8 @@ interface ServiceApresVenteScreenProps {
   onLoginClick?: () => void;
 }
 
-// Informations de contact du service après-vente
-const SAV_CONTACTS = {
+// Default contact info (used as fallback)
+const DEFAULT_SAV_CONTACTS = {
   phone: '+225 27 22 49 00 00',
   phoneHref: 'tel:+2252722490000',
   whatsapp: '+225 07 58 42 10 00',
@@ -68,17 +72,17 @@ const SAV_CONTACTS = {
   emailHref: 'mailto:sav@kami-extension.com',
 };
 
-const SAV_HORAIRES = [
+const DEFAULT_SAV_HORAIRES = [
   { day: 'Lundi - Vendredi', hours: '08h00 - 18h00' },
   { day: 'Samedi', hours: '09h00 - 13h00' },
   { day: 'Dimanche & jours fériés', hours: 'Fermé' },
 ];
 
-const SAV_FAQ = [
+const DEFAULT_SAV_FAQ = [
   {
-    question: 'Comment suivre l\'avancée de mon paiement ?',
+    question: "Comment suivre l'avancée de mon paiement ?",
     answer:
-      'Connectez-vous à votre espace client pour voir l\'historique complet de vos versements et le solde restant. Vous pouvez aussi contacter notre SAV par téléphone ou WhatsApp.',
+      "Connectez-vous à votre espace client pour voir l'historique complet de vos versements et le solde restant. Vous pouvez aussi contacter notre SAV par téléphone ou WhatsApp.",
   },
   {
     question: 'Comment obtenir mon reçu de paiement ?',
@@ -88,12 +92,12 @@ const SAV_FAQ = [
   {
     question: 'Quand recevrai-je mes documents de propriété ?',
     answer:
-      'Après le paiement intégral du lot, les documents sont préparés sous 15 à 30 jours. Vous serez notifié par message dès qu\'ils seront disponibles au retrait.',
+      "Après le paiement intégral du lot, les documents sont préparés sous 15 à 30 jours. Vous serez notifié par message dès qu'ils seront disponibles au retrait.",
   },
   {
-    question: 'Que faire si j\'ai un litige ou une réclamation ?',
+    question: "Que faire si j'ai un litige ou une réclamation ?",
     answer:
-      'Adressez votre réclamation par email au service après-vente ou via WhatsApp. Un conseiller vous recontactera sous 48h ouvrées avec un accusé de réception et un numéro de ticket.',
+      "Adressez votre réclamation par email au service après-vente ou via WhatsApp. Un conseiller vous recontactera sous 48h ouvrées avec un accusé de réception et un numéro de ticket.",
   },
 ];
 
@@ -268,6 +272,32 @@ export function ServiceApresVenteScreen({
   const [showExpertPanel, setShowExpertPanel] = useState(false);
   const [selectedExpertCategoryId, setSelectedExpertCategoryId] = useState<string | undefined>(undefined);
 
+  // ── Dynamic SAV settings ──
+  const [savContacts, setSavContacts] = useState(DEFAULT_SAV_CONTACTS);
+  const [savHoraires, setSavHoraires] = useState(DEFAULT_SAV_HORAIRES);
+  const [savFaq, setSavFaq] = useState(DEFAULT_SAV_FAQ);
+
+  useEffect(() => {
+    fetch('/api/sav-settings')
+      .then(r => r.json())
+      .then(data => {
+        if (data.savPhone) {
+          setSavContacts(prev => ({
+            ...prev,
+            phone: data.savPhone,
+            phoneHref: `tel:${data.savPhone.replace(/\s/g, '')}`,
+            whatsapp: data.savWhatsapp,
+            whatsappHref: `https://wa.me/${data.savWhatsapp.replace(/\s/g, '')}`,
+            email: data.savEmail,
+            emailHref: `mailto:${data.savEmail}`,
+          }));
+        }
+        if (data.savHoraires) setSavHoraires(data.savHoraires);
+        if (data.savFaq) setSavFaq(data.savFaq);
+      })
+      .catch(() => {});
+  }, []);
+
   // ── Dialog : Besoin d'aide ? ──
   const [showHelpDialog, setShowHelpDialog] = useState(false);
   const [helpSubject, setHelpSubject] = useState('');
@@ -276,10 +306,14 @@ export function ServiceApresVenteScreen({
 
   // ── Dialog : Suivi des paiements ──
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
-  const [paymentRef, setPaymentRef] = useState('');
   const [paymentPhone, setPaymentPhone] = useState('');
+  const [paymentPassword, setPaymentPassword] = useState('');
+  const [showPaymentPassword, setShowPaymentPassword] = useState(false);
+  const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentSubmitted, setPaymentSubmitted] = useState(false);
-  const [paymentTicket, setPaymentTicket] = useState('');
+  const [paymentData, setPaymentData] = useState<any>(null);
+  const [paymentStats, setPaymentStats] = useState<any>(null);
+  const [paymentLoginError, setPaymentLoginError] = useState('');
 
   // ── Dialog : Documents ──
   const [showDocsDialog, setShowDocsDialog] = useState(false);
@@ -344,18 +378,44 @@ export function ServiceApresVenteScreen({
     setExpertSubmitted(true);
   };
 
-  const handleSubmitPayment = () => {
-    if (!paymentPhone.trim()) {
-      toast.error('Veuillez entrer votre numéro de téléphone pour vérifier votre dossier.');
+  const handleSubmitPayment = async () => {
+    if (!paymentPassword.trim()) {
+      toast.error('Veuillez entrer votre mot de passe.');
       return;
     }
-    const ticket = generateTicket('PAY');
-    setPaymentTicket(ticket);
-    toast.success(
-      `Votre demande de suivi a été enregistrée (Ticket ${ticket}). Vous recevrez un récapitulatif par SMS.`,
-      { duration: 5000 },
-    );
-    setPaymentSubmitted(true);
+    setPaymentLoading(true);
+    setPaymentLoginError('');
+    try {
+      // 1. Login
+      const loginRes = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: paymentPhone || undefined, password: paymentPassword }),
+      });
+      if (!loginRes.ok) {
+        const err = await loginRes.json();
+        setPaymentLoginError(err.error || 'Erreur de connexion');
+        setPaymentLoading(false);
+        return;
+      }
+      const user = await loginRes.json();
+
+      // 2. Fetch payments & stats in parallel
+      const [paymentsRes, statsRes] = await Promise.all([
+        fetch(`/api/user/payments?userId=${user.id}`),
+        fetch(`/api/user/stats?userId=${user.id}`),
+      ]);
+      const paymentsData = paymentsRes.ok ? await paymentsRes.json() : [];
+      const statsData = statsRes.ok ? await statsRes.json() : null;
+
+      setPaymentData(Array.isArray(paymentsData) ? paymentsData : []);
+      setPaymentStats(statsData);
+      setPaymentSubmitted(true);
+    } catch {
+      setPaymentLoginError('Erreur de connexion au serveur.');
+    } finally {
+      setPaymentLoading(false);
+    }
   };
 
   const handleSubmitReclamation = () => {
@@ -514,19 +574,19 @@ export function ServiceApresVenteScreen({
                     className="p-5 space-y-4"
                   >
                     <div className="flex gap-2">
-                      <a href={SAV_CONTACTS.phoneHref} className="flex-1">
+                      <a href={savContacts.phoneHref} className="flex-1">
                         <Button variant="outline" className="w-full h-11 text-xs font-bold border-emerald-200 hover:bg-emerald-50 hover:border-emerald-400">
                           <Phone className="h-3.5 w-3.5 mr-1.5 text-emerald-600" />
                           Appeler
                         </Button>
                       </a>
-                      <a href={SAV_CONTACTS.whatsappHref} target="_blank" rel="noopener noreferrer" className="flex-1">
+                      <a href={savContacts.whatsappHref} target="_blank" rel="noopener noreferrer" className="flex-1">
                         <Button variant="outline" className="w-full h-11 text-xs font-bold border-green-200 hover:bg-green-50 hover:border-green-400">
                           <MessageCircle className="h-3.5 w-3.5 mr-1.5 text-green-600" />
                           WhatsApp
                         </Button>
                       </a>
-                      <a href={SAV_CONTACTS.emailHref} className="flex-1">
+                      <a href={savContacts.emailHref} className="flex-1">
                         <Button variant="outline" className="w-full h-11 text-xs font-bold border-blue-200 hover:bg-blue-50 hover:border-blue-400">
                           <Mail className="h-3.5 w-3.5 mr-1.5 text-blue-600" />
                           Écrire
@@ -613,7 +673,7 @@ export function ServiceApresVenteScreen({
               ═══════════════════════════════════════════════ */}
           <Dialog open={showPaymentDialog} onOpenChange={(open) => {
             setShowPaymentDialog(open);
-            if (!open) { setPaymentSubmitted(false); setPaymentRef(''); setPaymentPhone(''); }
+            if (!open) { setPaymentSubmitted(false); setPaymentPhone(''); setPaymentPassword(''); setPaymentLoginError(''); setPaymentData(null); setPaymentStats(null); }
           }}>
             <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden rounded-2xl">
               <div className="bg-gradient-to-br from-emerald-500 to-teal-700 px-5 pt-5 pb-5 text-center relative overflow-hidden">
@@ -625,70 +685,122 @@ export function ServiceApresVenteScreen({
                     <Wallet className="h-6 w-6 text-white" />
                   </div>
                   <DialogTitle className="text-white text-base font-bold">Suivi de vos paiements</DialogTitle>
-                  <p className="text-emerald-100 text-[11px] mt-1">Consultez l&apos;historique et le solde de votre compte.</p>
+                  <p className="text-emerald-100 text-[11px] mt-1">Connectez-vous pour voir vos réservations et paiements.</p>
                 </motion.div>
               </div>
               <AnimatePresence mode="wait">
                 {!paymentSubmitted ? (
                   <motion.div key="form" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="p-5 space-y-4">
                     <div className="flex gap-2 items-center p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/50">
-                      <Search className="h-4 w-4 text-emerald-600 shrink-0" />
+                      <Lock className="h-4 w-4 text-emerald-600 shrink-0" />
                       <p className="text-[11px] text-muted-foreground leading-relaxed">
-                        Entrez vos informations pour retrouver votre dossier de paiement.
+                        Entrez votre mot de passe pour accéder à vos données de paiement.
                       </p>
                     </div>
                     <div>
-                      <label className="text-xs font-bold text-foreground mb-1 block">Référence du lot <span className="text-muted-foreground font-normal">(optionnel)</span></label>
+                      <label className="text-xs font-bold text-foreground mb-1 block">Téléphone <span className="text-muted-foreground font-normal">(optionnel)</span></label>
                       <Textarea
-                        value={paymentRef}
-                        onChange={(e) => setPaymentRef(e.target.value)}
-                        placeholder="Ex : LOT-A12-003"
+                        value={paymentPhone}
+                        onChange={(e) => setPaymentPhone(e.target.value)}
+                        placeholder="Optionnel"
                         className="min-h-[40px] text-sm resize-none"
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-bold text-foreground mb-1 block">Numéro de téléphone <span className="text-red-500">*</span></label>
-                      <Textarea
-                        value={paymentPhone}
-                        onChange={(e) => setPaymentPhone(e.target.value)}
-                        placeholder="+225 07 XX XX XX XX"
-                        className="min-h-[40px] text-sm resize-none"
-                      />
+                      <label className="text-xs font-bold text-foreground mb-1 block">Mot de passe <span className="text-red-500">*</span></label>
+                      <div className="relative">
+                        <Input
+                          value={paymentPassword}
+                          onChange={(e) => setPaymentPassword(e.target.value)}
+                          placeholder="Votre mot de passe"
+                          type={showPaymentPassword ? 'text' : 'password'}
+                          className="h-10 text-sm pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPaymentPassword(!showPaymentPassword)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showPaymentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
                     </div>
+                    {paymentLoginError && (
+                      <div className="flex items-center gap-2 p-2.5 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50">
+                        <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />
+                        <p className="text-[11px] text-red-600 dark:text-red-400">{paymentLoginError}</p>
+                      </div>
+                    )}
                     <Button
                       className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-lg shadow-emerald-500/20"
                       onClick={handleSubmitPayment}
+                      disabled={paymentLoading}
                     >
-                      <Search className="h-4 w-4 mr-2" />
-                      Rechercher mes paiements
+                      {paymentLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Search className="h-4 w-4 mr-2" />}
+                      {paymentLoading ? 'Connexion...' : 'Voir mes paiements'}
                     </Button>
                     <div className="flex items-center justify-center gap-4">
-                      <a href={SAV_CONTACTS.whatsappHref} target="_blank" rel="noopener noreferrer" className="text-[11px] text-emerald-600 font-semibold hover:underline flex items-center gap-1">
+                      <a href={savContacts.whatsappHref} target="_blank" rel="noopener noreferrer" className="text-[11px] text-emerald-600 font-semibold hover:underline flex items-center gap-1">
                         <MessageCircle className="h-3 w-3" />
                         Demander par WhatsApp
                       </a>
-                      <a href={SAV_CONTACTS.phoneHref} className="text-[11px] text-emerald-600 font-semibold hover:underline flex items-center gap-1">
+                      <a href={savContacts.phoneHref} className="text-[11px] text-emerald-600 font-semibold hover:underline flex items-center gap-1">
                         <Phone className="h-3 w-3" />
                         Appeler le SAV
                       </a>
                     </div>
                   </motion.div>
                 ) : (
-                  <motion.div key="success" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="p-6 text-center">
-                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 12 }}>
-                      <CheckCircle2 className="h-14 w-14 text-emerald-500 mx-auto mb-3" />
-                    </motion.div>
-                    <h3 className="text-base font-bold text-foreground mb-1">Demande enregistrée !</h3>
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-300 dark:border-emerald-800 my-2">
-                      <Ticket className="h-3.5 w-3.5 text-emerald-600" />
-                      <span className="text-sm font-bold text-emerald-700 dark:text-emerald-300">{paymentTicket}</span>
+                  <motion.div key="success" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
+                    {/* Summary stats */}
+                    {paymentStats && (
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="bg-emerald-50 dark:bg-emerald-950/20 rounded-lg p-3 border border-emerald-200 dark:border-emerald-900/50">
+                          <p className="text-[10px] text-muted-foreground">Total versé</p>
+                          <p className="text-sm font-bold text-emerald-700 dark:text-emerald-300">{paymentStats.totalPaid?.toLocaleString('fr-FR')} F</p>
+                        </div>
+                        <div className="bg-orange-50 dark:bg-orange-950/20 rounded-lg p-3 border border-orange-200 dark:border-orange-900/50">
+                          <p className="text-[10px] text-muted-foreground">Reste à payer</p>
+                          <p className="text-sm font-bold text-orange-700 dark:text-orange-300">{paymentStats.totalRemaining?.toLocaleString('fr-FR')} F</p>
+                        </div>
+                        <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-3 border border-blue-200 dark:border-blue-900/50">
+                          <p className="text-[10px] text-muted-foreground">Lots réservés</p>
+                          <p className="text-sm font-bold text-blue-700 dark:text-blue-300">{paymentStats.totalReserved}</p>
+                        </div>
+                        <div className="bg-purple-50 dark:bg-purple-950/20 rounded-lg p-3 border border-purple-200 dark:border-purple-900/50">
+                          <p className="text-[10px] text-muted-foreground">Progression</p>
+                          <p className="text-sm font-bold text-purple-700 dark:text-purple-300">{paymentStats.paymentProgress?.toFixed(1)}%</p>
+                        </div>
+                      </div>
+                    )}
+                    {/* Per-reservation detail */}
+                    <div className="space-y-2.5">
+                      <h4 className="text-xs font-bold text-foreground">Vos réservations</h4>
+                      {paymentData && paymentData.length > 0 ? paymentData.map((p: any, idx: number) => (
+                        <Card key={idx} className="border-border">
+                          <CardContent className="p-3 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <p className="text-xs font-bold text-foreground">{p.lotName || 'Lot inconnu'}</p>
+                              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${p.status === 'VALIDATED' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'}`}>{p.status === 'VALIDATED' ? 'Validé' : p.status}</span>
+                            </div>
+                            <div className="flex justify-between text-[11px]">
+                              <span className="text-muted-foreground">Montant : <strong className="text-foreground">{p.amount?.toLocaleString('fr-FR')} F</strong></span>
+                              <span className="text-muted-foreground">{p.createdAt ? new Date(p.createdAt).toLocaleDateString('fr-FR') : ''}</span>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )) : (
+                        <p className="text-xs text-muted-foreground text-center py-4">Aucun paiement enregistré.</p>
+                      )}
                     </div>
-                    <p className="text-xs text-muted-foreground max-w-xs mx-auto mb-4 leading-relaxed">
-                      Votre récapitulatif de paiement sera envoyé par SMS sous <strong className="text-foreground">quelques minutes</strong>.
-                    </p>
-                    <Button className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold" onClick={() => setShowPaymentDialog(false)}>
-                      Fermer
-                    </Button>
+                    <div className="flex gap-2 pt-1">
+                      <Button variant="outline" onClick={() => { setPaymentSubmitted(false); setPaymentPassword(''); setPaymentLoginError(''); }} className="flex-1 text-xs font-bold">
+                        Retour
+                      </Button>
+                      <Button className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold" onClick={() => setShowPaymentDialog(false)}>
+                        Fermer
+                      </Button>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -750,8 +862,8 @@ export function ServiceApresVenteScreen({
                 <div className="p-2.5 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 mt-2">
                   <p className="text-[11px] text-muted-foreground leading-relaxed text-center">
                     <strong className="text-foreground">Besoin d&apos;aide ?</strong> Contactez le SAV par{' '}
-                    <a href={SAV_CONTACTS.whatsappHref} target="_blank" rel="noopener noreferrer" className="text-blue-600 font-semibold hover:underline">WhatsApp</a> ou{' '}
-                    <a href={SAV_CONTACTS.phoneHref} className="text-blue-600 font-semibold hover:underline">téléphone</a>.
+                    <a href={savContacts.whatsappHref} target="_blank" rel="noopener noreferrer" className="text-blue-600 font-semibold hover:underline">WhatsApp</a> ou{' '}
+                    <a href={savContacts.phoneHref} className="text-blue-600 font-semibold hover:underline">téléphone</a>.
                   </p>
                 </div>
               </div>
@@ -925,11 +1037,11 @@ export function ServiceApresVenteScreen({
                       </Button>
                     </div>
                     <div className="flex items-center justify-center gap-4">
-                      <a href={SAV_CONTACTS.phoneHref} className="text-[11px] text-red-500 font-semibold hover:underline flex items-center gap-1">
+                      <a href={savContacts.phoneHref} className="text-[11px] text-red-500 font-semibold hover:underline flex items-center gap-1">
                         <Phone className="h-3 w-3" />
                         Appeler le SAV
                       </a>
-                      <a href={SAV_CONTACTS.whatsappHref} target="_blank" rel="noopener noreferrer" className="text-[11px] text-red-500 font-semibold hover:underline flex items-center gap-1">
+                      <a href={savContacts.whatsappHref} target="_blank" rel="noopener noreferrer" className="text-[11px] text-red-500 font-semibold hover:underline flex items-center gap-1">
                         <MessageCircle className="h-3 w-3" />
                         WhatsApp
                       </a>
@@ -990,13 +1102,13 @@ export function ServiceApresVenteScreen({
                     {!expertSubmitted ? (
                       <motion.div key="form" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="p-5 space-y-4">
                         <div className="flex gap-2">
-                          <a href={SAV_CONTACTS.phoneHref} className="flex-1">
-                            <Button variant="outline" className="w-full h-10 text-[11px] font-bold" style={{ borderColor: `${selectedExpert.color}40`, hover: '' }}>
+                          <a href={savContacts.phoneHref} className="flex-1">
+                            <Button variant="outline" className="w-full h-10 text-[11px] font-bold" style={{ borderColor: `${selectedExpert.color}40` }}>
                               <Phone className="h-3.5 w-3.5 mr-1" style={{ color: selectedExpert.color }} />
                               Appeler
                             </Button>
                           </a>
-                          <a href={SAV_CONTACTS.whatsappHref} target="_blank" rel="noopener noreferrer" className="flex-1">
+                          <a href={savContacts.whatsappHref} target="_blank" rel="noopener noreferrer" className="flex-1">
                             <Button variant="outline" className="w-full h-10 text-[11px] font-bold" style={{ borderColor: `${selectedExpert.color}40` }}>
                               <MessageCircle className="h-3.5 w-3.5 mr-1" style={{ color: selectedExpert.color }} />
                               WhatsApp
@@ -1087,36 +1199,36 @@ export function ServiceApresVenteScreen({
           <div>
             <h3 className="text-sm font-bold text-foreground mb-2 px-1">Contactez-nous</h3>
             <div className="grid grid-cols-3 gap-2">
-              <a href={SAV_CONTACTS.phoneHref} className="block group">
+              <a href={savContacts.phoneHref} className="block group">
                 <Card className="border border-border cursor-pointer transition-all hover:shadow-md hover:border-emerald-400 h-full">
                   <CardContent className="p-2.5 flex flex-col items-center text-center gap-1">
                     <div className="w-9 h-9 bg-emerald-100 dark:bg-emerald-900/40 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                       <Phone className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                     </div>
                     <p className="text-[11px] font-bold text-foreground">Appeler</p>
-                    <p className="text-[9px] text-muted-foreground leading-tight">{SAV_CONTACTS.phone}</p>
+                    <p className="text-[9px] text-muted-foreground leading-tight">{savContacts.phone}</p>
                   </CardContent>
                 </Card>
               </a>
-              <a href={SAV_CONTACTS.whatsappHref} target="_blank" rel="noopener noreferrer" className="block group">
+              <a href={savContacts.whatsappHref} target="_blank" rel="noopener noreferrer" className="block group">
                 <Card className="border border-border cursor-pointer transition-all hover:shadow-md hover:border-green-500 h-full">
                   <CardContent className="p-2.5 flex flex-col items-center text-center gap-1">
                     <div className="w-9 h-9 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                       <MessageCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
                     </div>
                     <p className="text-[11px] font-bold text-foreground">WhatsApp</p>
-                    <p className="text-[9px] text-muted-foreground leading-tight">{SAV_CONTACTS.whatsapp}</p>
+                    <p className="text-[9px] text-muted-foreground leading-tight">{savContacts.whatsapp}</p>
                   </CardContent>
                 </Card>
               </a>
-              <a href={SAV_CONTACTS.emailHref} className="block group">
+              <a href={savContacts.emailHref} className="block group">
                 <Card className="border border-border cursor-pointer transition-all hover:shadow-md hover:border-blue-400 h-full">
                   <CardContent className="p-2.5 flex flex-col items-center text-center gap-1">
                     <div className="w-9 h-9 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                       <Mail className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     </div>
                     <p className="text-[11px] font-bold text-foreground">Écrire</p>
-                    <p className="text-[9px] text-muted-foreground leading-tight">{SAV_CONTACTS.email}</p>
+                    <p className="text-[9px] text-muted-foreground leading-tight">{savContacts.email}</p>
                   </CardContent>
                 </Card>
               </a>
@@ -1256,7 +1368,7 @@ export function ServiceApresVenteScreen({
                 <h3 className="text-sm font-bold text-foreground">Horaires d&apos;ouverture</h3>
               </div>
               <div className="space-y-1.5">
-                {SAV_HORAIRES.map((h) => (
+                {savHoraires.map((h) => (
                   <div key={h.day} className="flex justify-between items-center text-xs py-1.5 border-b border-border last:border-0">
                     <span className="text-muted-foreground font-medium">{h.day}</span>
                     <span className={h.hours === 'Fermé' ? 'text-red-500 font-bold' : 'text-foreground font-bold'}>
@@ -1275,7 +1387,7 @@ export function ServiceApresVenteScreen({
               <h3 className="text-sm font-bold text-foreground">Questions fréquentes</h3>
             </div>
             <div className="space-y-1.5">
-              {SAV_FAQ.map((item, index) => {
+              {savFaq.map((item, index) => {
                 const isOpen = openFaq === index;
                 return (
                   <Card key={index} className={`border-border transition-all ${isOpen ? 'border-emerald-300 dark:border-emerald-800' : ''}`}>

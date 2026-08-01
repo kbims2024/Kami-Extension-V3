@@ -1,8 +1,17 @@
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+
+// Helper: convert a File to a base64 data URI
+function fileToDataUri(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      resolve(reader.result as string);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
 
 // POST - Submit a new expert application with profile image (public)
 export async function POST(req: NextRequest) {
@@ -29,12 +38,12 @@ export async function POST(req: NextRequest) {
     // Validate image type
     const validImageTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
     if (!validImageTypes.includes(profileImage.type)) {
-      return NextResponse.json({ error: 'Format d\'image non supporté (JPEG, PNG, WebP ou GIF requis).' }, { status: 400 });
+      return NextResponse.json({ error: "Format d'image non supporté (JPEG, PNG, WebP ou GIF requis)." }, { status: 400 });
     }
 
     // Validate image size (max 5MB)
     if (profileImage.size > 5 * 1024 * 1024) {
-      return NextResponse.json({ error: 'L\'image ne doit pas dépasser 5 Mo.' }, { status: 400 });
+      return NextResponse.json({ error: "L'image ne doit pas dépasser 5 Mo." }, { status: 400 });
     }
 
     // Other validations
@@ -85,22 +94,8 @@ export async function POST(req: NextRequest) {
       certifications = [];
     }
 
-    // Save the profile image
-    const uploadsDir = join(process.cwd(), 'public', 'uploads', 'expert-photos');
-    if (!existsSync(uploadsDir)) {
-      await mkdir(uploadsDir, { recursive: true });
-    }
-
-    const appId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-    const ext = profileImage.name.split('.').pop() || 'jpg';
-    const safeFilename = `expert_${appId}.${ext}`;
-    const filepath = join(uploadsDir, safeFilename);
-
-    const bytes = await profileImage.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    await writeFile(filepath, buffer);
-
-    const profileImagePath = `/uploads/expert-photos/${safeFilename}`;
+    // Convert profile image to base64 data URI (stored inline, NOT via UploadedFile)
+    const profileImageDataUri = await fileToDataUri(profileImage);
 
     const application = await db.expertApplication.create({
       data: {
@@ -114,7 +109,7 @@ export async function POST(req: NextRequest) {
         certifications,
         bio: bio.trim(),
         availability: availability?.trim() || 'Disponible sous 72h',
-        profileImage: profileImagePath,
+        profileImage: profileImageDataUri,
         status: 'PENDING',
       },
     });

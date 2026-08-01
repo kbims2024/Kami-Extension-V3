@@ -1,0 +1,1759 @@
+   160→  }, [currentUser, sendHeartbeat]);
+   161→
+   162→  const handleLogin = async (name: string, phone: string, password?: string) => {
+   163→    try {
+   164→      const response = await fetch('/api/auth/login', {
+   165→        method: 'POST',
+   166→        headers: { 'Content-Type': 'application/json' },
+   167→        body: JSON.stringify({
+   168→          name,
+   169→          phone,
+   170→          password: password || undefined,
+   171→        }),
+   172→      });
+   173→
+   174→      if (response.ok) {
+   175→        const user = await response.json();
+   176→        setCurrentUser(user);
+   177→        toast.success(`Bienvenue ${user.name} !`);
+   178→        setCurrentScreen('home');
+   179→      } else {
+   180→        const data = await response.json();
+   181→        toast.error(data.error || 'Erreur de connexion');
+   182→      }
+   183→    } catch (error) {
+   184→      console.error('Login error:', error);
+   185→      toast.error('Erreur de connexion');
+   186→    }
+   187→  };
+   188→
+   189→  const handleOpenReservation = (lot: typeof lots[0]) => {
+   190→    if (!currentUser) {
+   191→      toast.error('Veuillez vous connecter pour réserver');
+   192→      setCurrentScreen('auth-choice');
+   193→      return;
+   194→    }
+   195→    setSelectedLot(lot);
+   196→    setCurrentScreen('payment-method');
+   197→  };
+   198→
+   199→  const handleReservation = async () => {
+   200→    if (!selectedLot || !currentUser) return;
+   201→
+   202→    const amount = parseInt(paymentAmount);
+   203→    const totalPrice = currentUser.isResident ? selectedLot.priceRes : selectedLot.priceNon;
+   204→
+   205→    if (!amount || amount < 10000) {
+   206→      toast.error('Le montant minimum est de 10 000 FCFA');
+   207→      return;
+   208→    }
+   209→
+   210→    if (amount > totalPrice) {
+   211→      toast.error('Le montant dépasse le prix du lot');
+   212→      return;
+   213→    }
+   214→
+   215→    try {
+   216→      const response = await fetch('/api/reservations', {
+   217→        method: 'POST',
+   218→        headers: { 'Content-Type': 'application/json' },
+   219→        body: JSON.stringify({
+   220→          userId: currentUser.id,
+   221→          lotId: selectedLot.id,
+   222→          amount,
+   223→          totalPrice,
+   224→          isResident: currentUser.isResident,
+   225→        }),
+   226→      });
+   227→
+   228→      if (response.ok) {
+   229→        const reservation = await response.json();
+   230→        addReservation(reservation);
+   231→        toast.success('Paiement validé avec succès !');
+   232→        setIsReservationModalOpen(false);
+   233→        loadLots();
+   234→      } else {
+   235→        toast.error('Erreur lors de la réservation');
+   236→      }
+   237→    } catch (error) {
+   238→      // Fallback for demo
+   239→      const newReservation = {
+   240→        id: `RES-${Date.now()}`,
+   241→        lotId: selectedLot.id,
+   242→        lotName: selectedLot.name,
+   243→        surface: selectedLot.surface,
+   244→        paidAmount: amount,
+   245→        totalPrice,
+   246→        isResident: currentUser.isResident,
+   247→        status: amount === totalPrice ? ('PAID' as const) : ('RESERVED' as const),
+   248→      };
+   249→      addReservation(newReservation);
+   250→      toast.success('Paiement validé avec succès !');
+   251→      setIsReservationModalOpen(false);
+   252→    }
+   253→  };
+   254→
+   255→  const copyReferralLink = () => {
+   256→    if (!currentUser?.referralCode) return;
+   257→    navigator.clipboard.writeText(`kami.app/ref/${currentUser.referralCode}`);
+   258→    toast.success('Lien copié !');
+   259→  };
+   260→
+   261→  const handleRegistrationComplete = async (userData: { name: string; pseudo: string; phone: string; isResident: boolean; password: string; quartier?: string; villageOrigine?: string }) => {
+   262→    try {
+   263→      const response = await fetch('/api/auth/register', {
+   264→        method: 'POST',
+   265→        headers: { 'Content-Type': 'application/json' },
+   266→        body: JSON.stringify({
+   267→          name: userData.name,
+   268→          pseudo: userData.pseudo,
+   269→          phone: userData.phone,
+   270→          isResident: userData.isResident,
+   271→          password: userData.password,
+   272→          quartier: userData.quartier,
+   273→          villageOrigine: userData.villageOrigine,
+   274→        }),
+   275→      });
+   276→
+   277→      if (response.ok) {
+   278→        const user = await response.json();
+   279→        setCurrentUser(user);
+   280→        toast.success(`Bienvenue ${user.pseudo || user.name} ! Votre compte est créé.`);
+   281→        setCurrentScreen('map');
+   282→      } else {
+   283→        const data = await response.json();
+   284→        toast.error(data.error || 'Erreur lors de la création du compte');
+   285→      }
+   286→    } catch (error) {
+   287→      console.error('Registration error:', error);
+   288→      toast.error('Erreur lors de la création du compte');
+   289→    }
+   290→  };
+   291→
+   292→  if (!mounted) return null;
+   293→
+   294→  return (
+   295→    <div className="min-h-screen flex flex-col bg-background">
+   296→      {/* Toast Container */}
+   297→      <div id="toast-container" />
+   298→
+   299→      {/* Modern Side Menu */}
+   300→      <ModernSideMenu
+   301→        isOpen={isMenuOpen}
+   302→        onClose={() => setIsMenuOpen(false)}
+   303→        currentUser={currentUser}
+   304→        onNavigate={setCurrentScreen}
+   305→        onLogout={() => {
+   306→          logout();
+   307→          toast.success('Déconnexion réussie');
+   308→        }}
+   309→      />
+   310→
+   311→      {/* Screens */}
+   312→      {/* Page d'accueil persuasive pour tous */}
+   313→      {currentScreen === 'home' && (
+   314→        <PageTransition>
+   315→          <PersuasiveLandingPage
+   316→            lots={lots}
+   317→            onReserveClick={() => {
+   318→              if (currentUser) {
+   319→                setCurrentScreen('map');
+   320→              } else {
+   321→                setCurrentScreen('auth-choice');
+   322→              }
+   323→            }}
+   324→            setIsMenuOpen={setIsMenuOpen}
+   325→            setCurrentScreen={setCurrentScreen}
+   326→          />
+   327→        </PageTransition>
+   328→      )}
+   329→
+   330→      {/* Écran d'inscription en 2 étapes */}
+   331→      {!currentUser && currentScreen === 'register' && (
+   332→        <PageTransition>
+   333→          <TwoStepRegistration
+   334→            onComplete={handleRegistrationComplete}
+   335→            onBack={() => setCurrentScreen('home')}
+   336→            setIsMenuOpen={setIsMenuOpen}
+   337→          />
+   338→        </PageTransition>
+   339→      )}
+   340→
+   341→      {/* Écran de choix d'authentification */}
+   342→      {!currentUser && currentScreen === 'auth-choice' && (
+   343→        <PageTransition>
+   344→          <AuthChoiceScreen
+   345→            onLoginClick={() => setCurrentScreen('login-screen')}
+   346→            onRegisterClick={() => setCurrentScreen('register')}
+   347→            onServiceApresVenteClick={() => setCurrentScreen('sav')}
+   348→            onBack={() => setCurrentScreen('home')}
+   349→            setIsMenuOpen={setIsMenuOpen}
+   350→          />
+   351→        </PageTransition>
+   352→      )}
+   353→
+   354→      {/* Écran de connexion */}
+   355→      {!currentUser && currentScreen === 'login-screen' && (
+   356→        <PageTransition>
+   357→          <LoginScreen
+   358→            onLogin={(name, phone) => handleLogin(name, phone)}
+   359→            onBack={() => setCurrentScreen('auth-choice')}
+   360→            setIsMenuOpen={setIsMenuOpen}
+   361→          />
+   362→        </PageTransition>
+   363→      )}
+   364→
+   365→      {/* Écran de connexion (ancien, pour compatibilité) */}
+   366→      {!currentUser && currentScreen === 'login' && (
+   367→        <PageTransition>
+   368→          <AuthChoiceScreen
+   369→            onLoginClick={() => setCurrentScreen('login-screen')}
+   370→            onRegisterClick={() => setCurrentScreen('register')}
+   371→            onServiceApresVenteClick={() => setCurrentScreen('sav')}
+   372→            onBack={() => setCurrentScreen('home')}
+   373→            setIsMenuOpen={setIsMenuOpen}
+   374→          />
+   375→        </PageTransition>
+   376→      )}
+   377→
+   378→      {currentScreen === 'map' && (
+   379→        <PageTransition>
+   380→          <EnhancedMapScreen
+   381→            lots={lots}
+   382→            handleOpenReservation={handleOpenReservation}
+   383→            setCurrentScreen={setCurrentScreen}
+   384→            setIsMenuOpen={setIsMenuOpen}
+   385→          />
+   386→        </PageTransition>
+   387→      )}
+   388→
+   389→      {currentScreen === 'dashboard' && (
+   390→        <PageTransition>
+   391→          <UserDashboard
+   392→            currentUser={currentUser}
+   393→            setCurrentScreen={setCurrentScreen}
+   394→            setIsMenuOpen={setIsMenuOpen}
+   395→            onPayLot={(reservation: any) => {
+   396→              // Find the lot from the lots list
+   397→              const lot = lots.find((l: any) => l.name === reservation.lotName);
+   398→              if (lot) {
+   399→                setSelectedLot({ ...lot, paidAmount: reservation.paidAmount });
+   400→                setCurrentScreen('payment-method');
+   401→              }
+   402→            }}
+   403→          />
+   404→        </PageTransition>
+   405→      )}
+   406→
+   407→      {currentScreen === 'profile' && (
+   408→        <PageTransition>
+   409→          <ProfileScreen
+   410→            currentUser={currentUser}
+   411→            setCurrentUser={setCurrentUser}
+   412→            copyReferralLink={copyReferralLink}
+   413→            setCurrentScreen={setCurrentScreen}
+   414→            setIsMenuOpen={setIsMenuOpen}
+   415→          />
+   416→        </PageTransition>
+   417→      )}
+   418→
+   419→      {currentScreen === 'affiliation' && (
+   420→        <PageTransition>
+   421→          <AffiliationScreen
+   422→            currentUser={currentUser}
+   423→            copyReferralLink={copyReferralLink}
+   424→            setCurrentScreen={setCurrentScreen}
+   425→            setIsMenuOpen={setIsMenuOpen}
+   426→          />
+   427→        </PageTransition>
+   428→      )}
+   429→
+   430→      {currentScreen === 'rules' && (
+   431→        <PageTransition>
+   432→          <RegulationRulesScreen
+   433→            setCurrentScreen={setCurrentScreen}
+   434→          />
+   435→        </PageTransition>
+   436→      )}
+   437→
+   438→      {/* Écran Service Après-Vente */}
+   439→      {currentScreen === 'sav' && (
+   440→        <PageTransition>
+   441→          <ServiceApresVenteScreen
+   442→            onBack={() => setCurrentScreen(currentUser ? 'home' : 'auth-choice')}
+   443→            setIsMenuOpen={setIsMenuOpen}
+   444→            onLoginClick={() => setCurrentScreen('login-screen')}
+   445→          />
+   446→        </PageTransition>
+   447→      )}
+   448→
+   449→      {currentScreen === 'admin' && currentUser?.role === 'ADMIN' && (
+   450→        <PageTransition>
+   451→          <AdminScreen
+   452→            adminView={adminView}
+   453→            setAdminView={setAdminView}
+   454→            lots={lots}
+   455→            loadLots={loadLots}
+   456→            setCurrentScreen={setCurrentScreen}
+   457→          />
+   458→        </PageTransition>
+   459→      )}
+   460→
+   461→      {currentScreen === 'admin-flash-infos' && currentUser?.role === 'ADMIN' && (
+   462→        <PageTransition>
+   463→          <FlashInfoAdmin onBack={() => setCurrentScreen('home')} />
+   464→        </PageTransition>
+   465→      )}
+   466→
+   467→      {currentScreen === 'settings' && (
+   468→        <PageTransition>
+   469→          <SettingsPage onBack={() => setCurrentScreen('home')} />
+   470→        </PageTransition>
+   471→      )}
+   472→
+   473→      {currentScreen === 'plan' && (
+   474→        <PageTransition>
+   475→          <PlanPage
+   476→            setCurrentScreen={setCurrentScreen}
+   477→            setIsMenuOpen={setIsMenuOpen}
+   478→          />
+   479→        </PageTransition>
+   480→      )}
+   481→
+   482→      {currentScreen === 'chat' && (
+   483→        <PageTransition>
+   484→          <ChatPage
+   485→            setCurrentScreen={setCurrentScreen}
+   486→            setIsMenuOpen={setIsMenuOpen}
+   487→          />
+   488→        </PageTransition>
+   489→      )}
+   490→
+   491→      {currentScreen === 'admin-chat' && currentUser?.role === 'ADMIN' && (
+   492→        <PageTransition>
+   493→          <AdminChatPage
+   494→            setCurrentScreen={setCurrentScreen}
+   495→            setIsMenuOpen={setIsMenuOpen}
+   496→          />
+   497→        </PageTransition>
+   498→      )}
+   499→
+   500→      {currentScreen === 'management-committee' && (
+   501→        <PageTransition>
+   502→          <ManagementCommitteeManagement onBack={() => setCurrentScreen('home')} setCurrentScreen={setCurrentScreen} currentUser={currentUser} />
+   503→        </PageTransition>
+   504→      )}
+   505→
+   506→      {/* Payment Method Screen */}
+   507→      {currentScreen === 'payment-method' && selectedLot && currentUser && (
+   508→        <PageTransition>
+   509→          <PaymentMethodScreen
+   510→            lot={selectedLot}
+   511→            user={currentUser}
+   512→            onBack={() => {
+   513→              setCurrentScreen(currentUser ? 'map' : 'home');
+   514→            }}
+   515→            onPaymentComplete={() => {
+   516→              loadLots();
+   517→              loadMyReservations();
+   518→              setCurrentScreen('dashboard');
+   519→              toast.success('Paiement enregistré !');
+   520→            }}
+   521→          />
+   522→        </PageTransition>
+   523→      )}
+   524→
+   525→      {/* Reservation Modal */}
+   526→      <Dialog open={isReservationModalOpen} onOpenChange={setIsReservationModalOpen}>
+   527→        <DialogContent className="max-w-lg rounded-t-3xl">
+   528→          <div className="w-10 h-1 bg-muted rounded-full mx-auto mb-4" />
+   529→          <DialogHeader>
+   530→            <DialogTitle className="text-2xl font-bold">Lot {selectedLot?.name}</DialogTitle>
+   531→            <p className="text-xs text-muted-foreground">{selectedLot?.surface}</p>
+   532→          </DialogHeader>
+   533→
+   534→          {selectedLot && currentUser && (
+   535→            <div className="space-y-4">
+   536→              <Card className="bg-card border-border">
+   537→                <CardContent className="p-3 flex items-center justify-between">
+   538→                  <div className="flex items-center">
+   539→                    <User className="mr-3 h-5 w-5 text-[#8B5E3C]" />
+   540→                    <div>
+   541→                      <p className="text-xs text-muted-foreground">Votre statut</p>
+   542→                      <p className="font-bold text-foreground">
+   543→                        {currentUser.isResident ? 'Résident KAMI' : 'Non-Résident'}
+   544→                      </p>
+   545→                    </div>
+   546→                  </div>
+   547→                  <div className="text-right">
+   548→                    <p className="text-xs text-muted-foreground">Prix appliqué</p>
+   549→                    <p className="font-extrabold text-[#8B5E3C]">
+   550→                      {(currentUser.isResident ? selectedLot.priceRes : selectedLot.priceNon).toLocaleString('fr-FR')} F
+   551→                    </p>
+   552→                  </div>
+   553→                </CardContent>
+   554→              </Card>
+   555→
+   556→              <div>
+   557→                <Label>Montant à payer maintenant</Label>
+   558→                <p className="text-xs text-muted-foreground mb-2">Minimum requis : 10 000 F</p>
+   559→                <Input
+   560→                  type="number"
+   561→                  min={10000}
+   562→                  placeholder="Ex: 50000"
+   563→                  value={paymentAmount}
+   564→                  onChange={(e) => setPaymentAmount(e.target.value)}
+   565→                />
+   566→              </div>
+   567→
+   568→              <Card className="bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800">
+   569→                <CardContent className="p-3">
+   570→                  <label className="flex items-center space-x-2 cursor-pointer">
+   571→                    <Checkbox
+   572→                      checked={agreeRules}
+   573→                      onCheckedChange={(checked) => setAgreeRules(checked as boolean)}
+   574→                    />
+   575→                    <span className="text-xs font-bold text-foreground">
+   576→                      J'ACCEPTE LE RÈGLEMENT INTÉRIEUR
+   577→                    </span>
+   578→                  </label>
+   579→                </CardContent>
+   580→              </Card>
+   581→
+   582→              <DialogFooter className="flex-col gap-2">
+   583→                <Button
+   584→                  className="w-full bg-[#10B981] hover:bg-[#059669] text-white font-bold py-4 rounded-2xl"
+   585→                  disabled={!agreeRules}
+   586→                  onClick={handleReservation}
+   587→                >
+   588→                  Confirmer le paiement
+   589→                </Button>
+   590→                <Button
+   591→                  variant="ghost"
+   592→                  className="w-full text-muted-foreground"
+   593→                  onClick={() => setIsReservationModalOpen(false)}
+   594→                >
+   595→                  Annuler
+   596→                </Button>
+   597→              </DialogFooter>
+   598→            </div>
+   599→          )}
+   600→        </DialogContent>
+   601→      </Dialog>
+   602→
+   603→
+   604→      {/* Footer avec déclencheur caché admin (5 appuis) */}
+   605→      <footer className="mt-auto bg-card border-t border-border py-4 px-6 text-center text-sm text-muted-foreground">
+   606→        <p
+   607→          onClick={() => {
+   608→            if (footerTapTimerRef.current) clearTimeout(footerTapTimerRef.current);
+   609→            footerTapCountRef.current += 1;
+   610→            if (footerTapCountRef.current >= 5) {
+   611→              footerTapCountRef.current = 0;
+   612→              setIsAdminLoginOpen(true);
+   613→            } else {
+   614→              footerTapTimerRef.current = setTimeout(() => {
+   615→                footerTapCountRef.current = 0;
+   616→              }, 2000);
+   617→            }
+   618→          }}
+   619→          className="cursor-default select-none"
+   620→        >
+   621→          © 2024 KAMI-EXTENSION - Tous droits réservés
+   622→        </p>
+   623→      </footer>
+   624→
+   625→      {/* Admin Login Dialog (déclenché par 5 appuis sur le footer) */}
+   626→      <AdminLoginDialog
+   627→        open={isAdminLoginOpen}
+   628→        onOpenChange={setIsAdminLoginOpen}
+   629→        onAdminLoginSuccess={(user) => {
+   630→          setCurrentUser(user);
+   631→          setCurrentScreen('admin');
+   632→        }}
+   633→      />
+   634→
+   635→      {/* Congratulation Notification */}
+   636→      <CongratulationNotification />
+   637→    </div>
+   638→  );
+   639→}
+   640→
+   641→// Old Login Screen Component (déprécié)
+   642→function OldLoginScreen({
+   643→  loginName,
+   644→  setLoginName,
+   645→  loginPhone,
+   646→  setLoginPhone,
+   647→  loginIsResident,
+   648→  setLoginIsResident,
+   649→  handleLogin,
+   650→}: any) {
+   651→  return (
+   652→    <div className="flex-1 flex flex-col items-center justify-center bg-card p-6 pt-16">
+   653→      <div className="flex flex-col items-center mb-10">
+   654→        <div className="mb-4">
+   655→          <LogoDisplay size="xl" showBackground={true} />
+   656→        </div>
+   657→      </div>
+   658→
+   659→      <div className="w-full max-w-md space-y-4">
+   660→        <div>
+   661→          <Label className="block text-sm font-bold text-foreground mb-1">Nom complet</Label>
+   662→          <Input
+   663→            type="text"
+   664→            placeholder="Ex: Jean Koné"
+   665→            value={loginName}
+   666→            onChange={(e) => setLoginName(e.target.value)}
+   667→            className="h-12 text-lg"
+   668→          />
+   669→        </div>
+   670→
+   671→        <div>
+   672→          <Label className="block text-sm font-bold text-foreground mb-1">Numéro de téléphone</Label>
+   673→          <Input
+   674→            type="tel"
+   675→            placeholder="+225 07 XX XX XX"
+   676→            value={loginPhone}
+   677→            onChange={(e) => setLoginPhone(e.target.value)}
+   678→            className="h-12 text-lg"
+   679→          />
+   680→        </div>
+   681→
+   682→        <div>
+   683→          <Label className="block text-sm font-bold text-foreground mb-2">Votre statut de résidence :</Label>
+   684→          <RadioGroup value={loginIsResident.toString()} onValueChange={(v) => setLoginIsResident(v === 'true')}>
+   685→            <div
+   686→              className={`flex items-center p-3 border-2 rounded-xl cursor-pointer transition-all ${loginIsResident ? 'border-[#10B981] bg-emerald-50 dark:bg-emerald-900/20' : 'border-border'}`}
+   687→            >
+   688→              <RadioGroupItem value="true" id="resident-yes" className="mr-3" />
+   689→              <Label htmlFor="resident-yes" className="cursor-pointer flex-1">
+   690→                <div>
+   691→                  <span className="font-bold text-foreground block">Résident de KAMI</span>
+   692→                  <p className="text-xs text-muted-foreground">Prix des lots : 100 000 F</p>
+   693→                </div>
+   694→              </Label>
+   695→            </div>
+   696→            <div
+   697→              className={`flex items-center p-3 border-2 rounded-xl cursor-pointer transition-all mt-2 ${!loginIsResident ? 'border-[#10B981] bg-emerald-50 dark:bg-emerald-900/20' : 'border-border'}`}
+   698→            >
+   699→              <RadioGroupItem value="false" id="resident-no" className="mr-3" />
+   700→              <Label htmlFor="resident-no" className="cursor-pointer flex-1">
+   701→                <div>
+   702→                  <span className="font-bold text-foreground block">Non-Résident</span>
+   703→                  <p className="text-xs text-muted-foreground">Prix des lots : 150 000 F</p>
+   704→                </div>
+   705→              </Label>
+   706→            </div>
+   707→          </RadioGroup>
+   708→        </div>
+   709→
+   710→        <Button
+   711→          onClick={handleLogin}
+   712→          className="w-full bg-[#10B981] hover:bg-[#059669] text-white font-bold py-4 rounded-2xl shadow-lg text-lg"
+   713→        >
+   714→          Créer mon compte / Se connecter
+   715→        </Button>
+   716→      </div>
+   717→    </div>
+   718→  );
+   719→}
+   720→
+   721→// Home Screen Component
+   722→function HomeScreen({ setCurrentScreen, setIsMenuOpen }: any) {
+   723→  return (
+   724→    <div className="flex-1 flex flex-col bg-card">
+   725→      <header className="flex justify-between items-center p-4 bg-card sticky top-0 z-10 shadow-sm">
+   726→        <LogoDisplay size="xl" className="text-[#8B5E3C]" />
+   727→        <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(true)}>
+   728→          <Menu className="h-6 w-6 text-foreground" />
+   729→        </Button>
+   730→      </header>
+   731→
+   732→      <div className="bg-[#8B5E3C] text-white p-8 pb-12 rounded-b-[2rem] relative overflow-hidden">
+   733→        <Building2 className="absolute top-0 right-0 opacity-10 h-[150px] w-[150px]" />
+   734→        <h2 className="text-3xl font-extrabold mb-2 relative z-10">
+   735→          Construisez votre avenir au village
+   736→        </h2>
+   737→        <p className="opacity-90 mb-6 relative z-10">
+   738→          Le nouveau quartier moderne, propre et discipliné de Kami.
+   739→        </p>
+   740→        <Button
+   741→          onClick={() => setCurrentScreen('map')}
+   742→          className="bg-card text-[#8B5E3C] font-bold py-3 px-6 rounded-full shadow-lg hover:bg-background relative z-10"
+   743→        >
+   744→          <Map className="mr-2 h-4 w-4" />
+   745→          Voir les lots disponibles
+   746→        </Button>
+   747→      </div>
+   748→
+   749→      <div className="p-6 grid grid-cols-2 gap-4">
+   750→        <Card className="bg-emerald-50 border-emerald-100 dark:bg-emerald-900/20 dark:border-emerald-800">
+   751→          <CardContent className="p-4 text-center">
+   752→            <Wrench className="text-[#10B981] dark:text-emerald-400 h-8 w-8 mx-auto mb-2" />
+   753→            <h4 className="font-bold text-sm text-foreground">Routes Pavées</h4>
+   754→          </CardContent>
+   755→        </Card>
+   756→        <Card className="bg-blue-50 border-blue-100 dark:bg-blue-900/20 dark:border-blue-800">
+   757→          <CardContent className="p-4 text-center">
+   758→            <Zap className="text-blue-500 dark:text-blue-400 h-8 w-8 mx-auto mb-2" />
+   759→            <h4 className="font-bold text-sm text-foreground">Électricité</h4>
+   760→          </CardContent>
+   761→        </Card>
+   762→        <Card className="bg-cyan-50 border-cyan-100 dark:bg-cyan-900/20 dark:border-cyan-800">
+   763→          <CardContent className="p-4 text-center">
+   764→            <Droplet className="text-cyan-500 dark:text-cyan-400 h-8 w-8 mx-auto mb-2" />
+   765→            <h4 className="font-bold text-sm text-foreground">Eau Courante</h4>
+   766→          </CardContent>
+   767→        </Card>
+   768→        <Card className="bg-purple-50 border-purple-100 dark:bg-purple-900/20 dark:border-purple-800">
+   769→          <CardContent className="p-4 text-center">
+   770→            <ShieldCheck className="text-purple-500 dark:text-purple-400 h-8 w-8 mx-auto mb-2" />
+   771→            <h4 className="font-bold text-sm text-foreground">Sécurité</h4>
+   772→          </CardContent>
+   773→        </Card>
+   774→      </div>
+   775→
+   776→      <div className="px-6 pb-6">
+   777→        <Card className="border-2 border-dashed border-[#8B5E3C]">
+   778→          <CardContent className="p-4 flex items-center justify-between">
+   779→            <div>
+   780→              <h4 className="font-bold text-foreground">Règlement Intérieur</h4>
+   781→              <p className="text-xs text-muted-foreground">11 chapitres • Dispositions complètes</p>
+   782→            </div>
+   783→            <Button
+   784→              onClick={() => setCurrentScreen('rules')}
+   785→              className="bg-[#8B5E3C] hover:bg-[#6B472C] text-white px-4 py-2 rounded-xl text-sm font-bold"
+   786→            >
+   787→              Lire
+   788→            </Button>
+   789→          </CardContent>
+   790→        </Card>
+   791→      </div>
+   792→    </div>
+   793→  );
+   794→}
+   795→
+   796→// Map Screen Component
+   797→function MapScreen({ lots, handleOpenReservation, setCurrentScreen, setIsMenuOpen }: any) {
+   798→  const availableCount = lots.filter((l: any) => l.status === 'AVAILABLE').length;
+   799→
+   800→  const getStatusBadge = (status: string) => {
+   801→    switch (status) {
+   802→      case 'AVAILABLE':
+   803→        return <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] px-2 py-0.5 font-bold">DISPONIBLE</Badge>;
+   804→      case 'RESERVED':
+   805→        return <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 text-[10px] px-2 py-0.5 font-bold">RÉSERVÉ</Badge>;
+   806→      case 'PAID':
+   807→        return <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-[10px] px-2 py-0.5 font-bold">SOLDÉ</Badge>;
+   808→    }
+   809→  };
+   810→
+   811→  const getLotButton = (lot: any) => {
+   812→    if (lot.status === 'AVAILABLE') {
+   813→      return (
+   814→        <Button
+   815→          onClick={() => handleOpenReservation(lot)}
+   816→          className="w-full mt-2 bg-[#10B981] hover:bg-[#059669] text-white text-xs font-bold h-8"
+   817→        >
+   818→          Réserver
+   819→        </Button>
+   820→      );
+   821→    }
+   822→    return (
+   823→      <Button disabled className="w-full mt-2 bg-muted text-muted-foreground text-xs font-bold h-8">
+   824→        {lot.status === 'RESERVED' ? 'Réservé' : 'Soldé'}
+   825→      </Button>
+   826→    );
+   827→  };
+   828→
+   829→  return (
+   830→    <div className="flex-1 flex flex-col bg-background pb-20">
+   831→      <header className="bg-card p-4 pb-2 shadow-sm flex justify-between items-center sticky top-0 z-10">
+   832→        <div className="flex items-center">
+   833→          <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(true)}>
+   834→            <Menu className="h-5 w-5 text-foreground" />
+   835→          </Button>
+   836→          <h2 className="text-lg font-bold text-foreground ml-2">Plan du Village</h2>
+   837→        </div>
+   838→        <Badge className="bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 text-xs font-bold">{availableCount} Libres</Badge>
+   839→      </header>
+   840→
+   841→      <div className="flex-1 overflow-y-auto p-4">
+   842→        <div className="grid grid-cols-2 gap-3">
+   843→          {lots.map((lot: any) => (
+   844→            <Card
+   845→              key={lot.id}
+   846→              className={`border-2 ${
+   847→                lot.status === 'AVAILABLE'
+   848→                  ? 'bg-card border-emerald-200 dark:border-emerald-700'
+   849→                  : lot.status === 'RESERVED'
+   850→                  ? 'bg-background border-orange-200 dark:border-orange-700 opacity-50'
+   851→                  : 'bg-background border-red-200 dark:border-red-700 opacity-50'
+   852→              } rounded-2xl`}
+   853→            >
+   854→              <CardContent className="p-3 flex flex-col justify-between h-full">
+   855→                <div>
+   856→                  <div className="flex justify-between items-start mb-2">
+   857→                    <Home
+   858→                      className={`h-5 w-5 ${
+   859→                        lot.status === 'AVAILABLE' ? 'text-emerald-500 dark:text-emerald-400' : lot.status === 'RESERVED' ? 'text-orange-400' : 'text-red-400'
+   860→                      }`}
+   861→                    />
+   862→                    {getStatusBadge(lot.status)}
+   863→                  </div>
+   864→                  <h4 className="font-bold text-foreground">Lot {lot.name}</h4>
+   865→                  <p className="text-xs text-muted-foreground">{lot.surface}</p>
+   866→                </div>
+   867→                <div>
+   868→                  <p className="font-extrabold text-[#8B5E3C] text-sm">
+   869→                    Dès {lot.priceRes.toLocaleString('fr-FR')} F
+   870→                  </p>
+   871→                  {getLotButton(lot)}
+   872→                </div>
+   873→              </CardContent>
+   874→            </Card>
+   875→          ))}
+   876→        </div>
+   877→      </div>
+   878→
+   879→      <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border flex justify-around py-3 text-muted-foreground">
+   880→        <Button
+   881→          variant="ghost"
+   882→          className="flex flex-col items-center h-auto"
+   883→          onClick={() => setCurrentScreen('home')}
+   884→        >
+   885→          <Home className="h-5 w-5" />
+   886→          <span className="text-xs mt-1">Accueil</span>
+   887→        </Button>
+   888→        <Button
+   889→          variant="ghost"
+   890→          className="flex flex-col items-center h-auto text-[#10B981]"
+   891→          disabled
+   892→        >
+   893→          <Map className="h-5 w-5" />
+   894→          <span className="text-xs mt-1 font-bold">Lots</span>
+   895→        </Button>
+   896→        <Button
+   897→          variant="ghost"
+   898→          className="flex flex-col items-center h-auto"
+   899→          onClick={() => setCurrentScreen('dashboard')}
+   900→        >
+   901→          <Wallet className="h-5 w-5" />
+   902→          <span className="text-xs mt-1">Mes Lots</span>
+   903→        </Button>
+   904→      </nav>
+   905→    </div>
+   906→  );
+   907→}
+   908→
+   909→// Dashboard Screen Component
+   910→function DashboardScreen({ myReservations, setCurrentScreen, setIsMenuOpen }: any) {
+   911→  return (
+   912→    <div className="flex-1 flex flex-col bg-background pb-20">
+   913→      <header className="bg-card p-4 shadow-sm flex items-center sticky top-0 z-10">
+   914→        <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(true)}>
+   915→          <Menu className="h-5 w-5 text-foreground" />
+   916→        </Button>
+   917→        <h2 className="text-lg font-bold text-foreground ml-2">Mes Réservations</h2>
+   918→      </header>
+   919→
+   920→      <div className="flex-1 overflow-y-auto p-4">
+   921→        {myReservations.length === 0 ? (
+   922→          <div className="text-center text-muted-foreground mt-20">
+   923→            <Home className="h-12 w-12 mx-auto mb-4" />
+   924→            <p>Aucun lot réservé.</p>
+   925→          </div>
+   926→        ) : (
+   927→          myReservations.map((reservation: any) => {
+   928→            const isPaid = reservation.paidAmount === reservation.totalPrice;
+   929→            const progress = (reservation.paidAmount / reservation.totalPrice) * 100;
+   930→            const remaining = reservation.totalPrice - reservation.paidAmount;
+   931→
+   932→            return (
+   933→              <Card key={reservation.id || `res-${reservation.lotId}`} className="bg-card rounded-2xl shadow-sm border border-border mb-4">
+   934→                <CardContent className="p-4">
+   935→                  <div className="flex justify-between items-center mb-3">
+   936→                    <h3 className="font-bold text-foreground">Lot {reservation.lotName}</h3>
+   937→                    <Badge className={isPaid ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'}>
+   938→                      {isPaid ? 'Soldé ✓' : 'Réservé'}
+   939→                    </Badge>
+   940→                  </div>
+   941→                  <p className="text-xs text-muted-foreground mb-2">
+   942→                    Statut: {reservation.isResident ? 'Résident' : 'Non-Résident'} ({reservation.totalPrice.toLocaleString('fr-FR')} F)
+   943→                  </p>
+   944→                  <Card className="bg-card border-0">
+   945→                    <CardContent className="p-3">
+   946→                      <div className="flex justify-between text-sm mb-1">
+   947→                        <span className="text-muted-foreground">Payé</span>
+   948→                        <span className="font-bold text-[#10B981]">{reservation.paidAmount.toLocaleString('fr-FR')} F</span>
+   949→                      </div>
+   950→                      {!isPaid && (
+   951→                        <div className="flex justify-between text-sm">
+   952→                          <span className="text-muted-foreground">Reste</span>
+   953→                          <span className="font-bold text-red-500 dark:text-red-400">{remaining.toLocaleString('fr-FR')} F</span>
+   954→                        </div>
+   955→                      )}
+   956→                      <div className="w-full bg-border rounded-full h-1.5 mt-2">
+   957→                        <div className="bg-[#10B981] h-1.5 rounded-full" style={{ width: `${progress}%` }} />
+   958→                      </div>
+   959→                    </CardContent>
+   960→                  </Card>
+   961→                </CardContent>
+   962→              </Card>
+   963→            );
+   964→          })
+   965→        )}
+   966→      </div>
+   967→
+   968→      <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border flex justify-around py-3 text-muted-foreground">
+   969→        <Button
+   970→          variant="ghost"
+   971→          className="flex flex-col items-center h-auto"
+   972→          onClick={() => setCurrentScreen('home')}
+   973→        >
+   974→          <Home className="h-5 w-5" />
+   975→          <span className="text-xs mt-1">Accueil</span>
+   976→        </Button>
+   977→        <Button
+   978→          variant="ghost"
+   979→          className="flex flex-col items-center h-auto"
+   980→          onClick={() => setCurrentScreen('map')}
+   981→        >
+   982→          <Map className="h-5 w-5" />
+   983→          <span className="text-xs mt-1">Lots</span>
+   984→        </Button>
+   985→        <Button
+   986→          variant="ghost"
+   987→          className="flex flex-col items-center h-auto text-[#10B981]"
+   988→          disabled
+   989→        >
+   990→          <Wallet className="h-5 w-5" />
+   991→          <span className="text-xs mt-1 font-bold">Mes Lots</span>
+   992→        </Button>
+   993→      </nav>
+   994→    </div>
+   995→  );
+   996→}
+   997→
+   998→// Profile Screen Component
+   999→function ProfileScreen({ currentUser, setCurrentUser, copyReferralLink, setCurrentScreen, setIsMenuOpen }: any) {
+  1000→  const [isEditing, setIsEditing] = useState(false);
+  1001→  const [isLoading, setIsLoading] = useState(false);
+  1002→  const [form, setForm] = useState({
+  1003→    name: currentUser?.name || '',
+  1004→    pseudo: currentUser?.pseudo || '',
+  1005→    phone: currentUser?.phone || '',
+  1006→    email: currentUser?.email || '',
+  1007→    quartier: currentUser?.quartier || '',
+  1008→  });
+  1009→
+  1010→  const quartiersKami = ['ASSAKLA', "N'GLOH", "N'ZOKLOH", "N'GUOUAH"];
+  1011→
+  1012→  const handleSave = async () => {
+  1013→    if (!form.name.trim()) {
+  1014→      toast.error('Le nom est obligatoire');
+  1015→      return;
+  1016→    }
+  1017→    if (!form.pseudo.trim()) {
+  1018→      toast.error('Le pseudo est obligatoire');
+  1019→      return;
+  1020→    }
+  1021→    if (currentUser?.isResident && !form.quartier) {
+  1022→      toast.error('Le quartier est obligatoire pour les résidents KAMI');
+  1023→      return;
+  1024→    }
+  1025→
+  1026→    setIsLoading(true);
+  1027→    try {
+  1028→      const response = await fetch('/api/user/profile', {
+  1029→        method: 'PUT',
+  1030→        headers: { 'Content-Type': 'application/json' },
+  1031→        body: JSON.stringify({
+  1032→          userId: currentUser.id,
+  1033→          name: form.name,
+  1034→          pseudo: form.pseudo.trim(),
+  1035→          phone: form.phone,
+  1036→          email: form.email,
+  1037→          quartier: currentUser.isResident ? form.quartier : undefined,
+  1038→        }),
+  1039→      });
+  1040→
+  1041→      if (response.ok) {
+  1042→        const updatedUser = await response.json();
+  1043→        setCurrentUser({ ...currentUser, ...updatedUser });
+  1044→        toast.success('Profil mis à jour avec succès');
+  1045→        setIsEditing(false);
+  1046→      } else {
+  1047→        const data = await response.json();
+  1048→        toast.error(data.error || 'Erreur lors de la mise à jour');
+  1049→      }
+  1050→    } catch (error) {
+  1051→      toast.error('Erreur serveur');
+  1052→    } finally {
+  1053→      setIsLoading(false);
+  1054→    }
+  1055→  };
+  1056→
+  1057→  const handleCancel = () => {
+  1058→    setForm({
+  1059→      name: currentUser?.name || '',
+  1060→      pseudo: currentUser?.pseudo || '',
+  1061→      phone: currentUser?.phone || '',
+  1062→      email: currentUser?.email || '',
+  1063→      quartier: currentUser?.quartier || '',
+  1064→    });
+  1065→    setIsEditing(false);
+  1066→  };
+  1067→
+  1068→  return (
+  1069→    <div className="flex-1 flex flex-col bg-background p-6 pt-16 pb-20">
+  1070→      <div className="flex justify-between items-center mb-6">
+  1071→        <Button
+  1072→          variant="ghost"
+  1073→          size="icon"
+  1074→          onClick={() => { setIsMenuOpen(true); setCurrentScreen('home'); }}
+  1075→        >
+  1076→          <ArrowLeft className="h-5 w-5 text-foreground" />
+  1077→        </Button>
+  1078→        <h2 className="text-lg font-bold text-foreground">Mon Profil</h2>
+  1079→        {!isEditing ? (
+  1080→          <Button
+  1081→            variant="ghost"
+  1082→            size="sm"
+  1083→            onClick={() => setIsEditing(true)}
+  1084→            className="text-brand-blue font-semibold"
+  1085→          >
+  1086→            Modifier
+  1087→          </Button>
+  1088→        ) : (
+  1089→          <div className="w-9" />
+  1090→        )}
+  1091→      </div>
+  1092→
+  1093→      {/* Avatar + Statut */}
+  1094→      <div className="flex flex-col items-center mb-6">
+  1095→        <div className="w-20 h-20 rounded-full bg-brand-blue/10 dark:bg-brand-blue/20 flex items-center justify-center mb-3">
+  1096→          <User className="h-9 w-9 text-brand-blue" />
+  1097→        </div>
+  1098→        {!isEditing && (
+  1099→          <>
+  1100→            <h3 className="text-xl font-bold text-foreground">{currentUser?.name || 'Non connecté'}</h3>
+  1101→            <p className="text-sm text-muted-foreground">{currentUser?.phone || ''}</p>
+  1102→          </>
+  1103→        )}
+  1104→      </div>
+  1105→
+  1106→      {isEditing ? (
+  1107→        <div className="space-y-4 max-w-lg mx-auto w-full">
+  1108→          {/* Nom */}
+  1109→          <Card className="border-border">
+  1110→            <CardContent className="p-4 space-y-2">
+  1111→              <Label className="text-sm font-semibold text-foreground">
+  1112→                Nom complet <span className="text-red-500">*</span>
+  1113→              </Label>
+  1114→              <Input
+  1115→                value={form.name}
+  1116→                onChange={(e) => setForm({ ...form, name: e.target.value })}
+  1117→                placeholder="Votre nom complet"
+  1118→                className="h-10"
+  1119→              />
+  1120→            </CardContent>
+  1121→          </Card>
+  1122→
+  1123→          {/* Pseudo */}
+  1124→          <Card className="border-border">
+  1125→            <CardContent className="p-4 space-y-2">
+  1126→              <Label className="text-sm font-semibold text-foreground">
+  1127→                Pseudo <span className="text-red-500">*</span>
+  1128→              </Label>
+  1129→              <p className="text-xs text-muted-foreground">Ce pseudo sera visible par tous sur la plateforme (réservations, etc.)</p>
+  1130→              <Input
+  1131→                value={form.pseudo}
+  1132→                onChange={(e) => setForm({ ...form, pseudo: e.target.value })}
+  1133→                placeholder="Votre pseudo public"
+  1134→                className="h-10"
+  1135→              />
+  1136→            </CardContent>
+  1137→          </Card>
+  1138→
+  1139→          {/* Téléphone */}
+  1140→          <Card className="border-border">
+  1141→            <CardContent className="p-4 space-y-2">
+  1142→              <Label className="text-sm font-semibold text-foreground">Téléphone</Label>
+  1143→              <Input
+  1144→                value={form.phone}
+  1145→                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+  1146→                placeholder="Numéro de téléphone"
+  1147→                className="h-10"
+  1148→              />
+  1149→            </CardContent>
+  1150→          </Card>
+  1151→
+  1152→          {/* Email */}
+  1153→          <Card className="border-border">
+  1154→            <CardContent className="p-4 space-y-2">
+  1155→              <Label className="text-sm font-semibold text-foreground">Email (optionnel)</Label>
+  1156→              <Input
+  1157→                type="email"
+  1158→                value={form.email}
+  1159→                onChange={(e) => setForm({ ...form, email: e.target.value })}
+  1160→                placeholder="votre@email.com"
+  1161→                className="h-10"
+  1162→              />
+  1163→            </CardContent>
+  1164→          </Card>
+  1165→
+  1166→          {/* Quartier (résidents uniquement) */}
+  1167→          {currentUser?.isResident && (
+  1168→            <Card className="border-border">
+  1169→              <CardContent className="p-4 space-y-2">
+  1170→                <Label className="text-sm font-semibold text-foreground">
+  1171→                  Quartier <span className="text-red-500">*</span>
+  1172→                </Label>
+  1173→                <Select value={form.quartier} onValueChange={(v) => setForm({ ...form, quartier: v })}>
+  1174→                  <SelectTrigger className="h-10">
+  1175→                    <SelectValue placeholder="Sélectionnez votre quartier" />
+  1176→                  </SelectTrigger>
+  1177→                  <SelectContent>
+  1178→                    {quartiersKami.map((q) => (
+  1179→                      <SelectItem key={q} value={q}>{q}</SelectItem>
+  1180→                    ))}
+  1181→                  </SelectContent>
+  1182→                </Select>
+  1183→              </CardContent>
+  1184→            </Card>
+  1185→          )}
+  1186→
+  1187→          {/* Boutons */}
+  1188→          <div className="flex gap-3 pt-2">
+  1189→            <Button
+  1190→              variant="outline"
+  1191→              className="flex-1 h-11 font-semibold"
+  1192→              onClick={handleCancel}
+  1193→              disabled={isLoading}
+  1194→            >
+  1195→              Annuler
+  1196→            </Button>
+  1197→            <Button
+  1198→              className="flex-1 h-11 bg-brand-blue hover:bg-blue-700 text-white font-semibold"
+  1199→              onClick={handleSave}
+  1200→              disabled={isLoading}
+  1201→            >
+  1202→              {isLoading ? 'Enregistrement...' : 'Enregistrer'}
+  1203→            </Button>
+  1204→          </div>
+  1205→        </div>
+  1206→      ) : (
+  1207→        <div className="space-y-3 max-w-lg mx-auto w-full">
+  1208→          {/* Nom */}
+  1209→          <Card className="border-border">
+  1210→            <CardContent className="p-4 flex justify-between items-center">
+  1211→              <div>
+  1212→                <p className="text-sm text-muted-foreground">Nom complet</p>
+  1213→                <p className="font-bold text-foreground">{currentUser?.name || '-'}</p>
+  1214→              </div>
+  1215→              <User className="h-5 w-5 text-brand-blue" />
+  1216→            </CardContent>
+  1217→          </Card>
+  1218→
+  1219→          {/* Pseudo */}
+  1220→          <Card className="border-border bg-brand-blue/5 dark:bg-brand-blue/10">
+  1221→            <CardContent className="p-4 flex justify-between items-center">
+  1222→              <div>
+  1223→                <p className="text-sm text-muted-foreground">Pseudo <span className="text-[10px] text-brand-blue font-medium">(public)</span></p>
+  1224→                <p className="font-bold text-brand-blue">{currentUser?.pseudo || 'Non défini'}</p>
+  1225→              </div>
+  1226→              <User className="h-5 w-5 text-brand-blue" />
+  1227→            </CardContent>
+  1228→          </Card>
+  1229→
+  1230→          {/* Téléphone */}
+  1231→          <Card className="border-border">
+  1232→            <CardContent className="p-4 flex justify-between items-center">
+  1233→              <div>
+  1234→                <p className="text-sm text-muted-foreground">Téléphone</p>
+  1235→                <p className="font-bold text-foreground">{currentUser?.phone || '-'}</p>
+  1236→              </div>
+  1237→              <Phone className="h-5 w-5 text-brand-blue" />
+  1238→            </CardContent>
+  1239→          </Card>
+  1240→
+  1241→          {/* Email */}
+  1242→          <Card className="border-border">
+  1243→            <CardContent className="p-4 flex justify-between items-center">
+  1244→              <div>
+  1245→                <p className="text-sm text-muted-foreground">Email</p>
+  1246→                <p className="font-bold text-foreground">{currentUser?.email || 'Non renseigné'}</p>
+  1247→              </div>
+  1248→              <CreditCard className="h-5 w-5 text-brand-blue" />
+  1249→            </CardContent>
+  1250→          </Card>
+  1251→
+  1252→          {/* Quartier (résidents) */}
+  1253→          {currentUser?.isResident && (
+  1254→            <Card className="border-border">
+  1255→              <CardContent className="p-4 flex justify-between items-center">
+  1256→                <div>
+  1257→                  <p className="text-sm text-muted-foreground">Quartier</p>
+  1258→                  <p className="font-bold text-foreground">{currentUser?.quartier || 'Non renseigné'}</p>
+  1259→                </div>
+  1260→                <Home className="h-5 w-5 text-brand-blue" />
+  1261→              </CardContent>
+  1262→            </Card>
+  1263→          )}
+  1264→
+  1265→          {/* Statut résidence */}
+  1266→          <Card
+  1267→            className={
+  1268→              currentUser?.isResident
+  1269→                ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800'
+  1270→                : 'bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800'
+  1271→            }
+  1272→          >
+  1273→            <CardContent className="p-4 flex justify-between items-center">
+  1274→              <div>
+  1275→                <p className="text-sm text-muted-foreground">Statut de résidence</p>
+  1276→                <p className={`font-bold ${currentUser?.isResident ? 'text-emerald-700 dark:text-emerald-400' : 'text-orange-700 dark:text-orange-400'}`}>
+  1277→                  {currentUser?.isResident ? 'Résident KAMI (100 000 F)' : 'Non-Résident (150 000 F)'}
+  1278→                </p>
+  1279→              </div>
+  1280→              <Home className={`h-5 w-5 ${currentUser?.isResident ? 'text-emerald-600 dark:text-emerald-400' : 'text-orange-600 dark:text-orange-400'}`} />
+  1281→            </CardContent>
+  1282→          </Card>
+  1283→
+  1284→          {/* Parrainage */}
+  1285→          {currentUser?.referralCode && (
+  1286→            <Card className="border-border">
+  1287→              <CardContent className="p-4">
+  1288→                <p className="text-sm text-muted-foreground mb-2">Code de parrainage</p>
+  1289→                <div className="flex items-center bg-background border rounded-lg p-2">
+  1290→                  <input
+  1291→                    type="text"
+  1292→                    value={`kami.app/ref/${currentUser.referralCode}`}
+  1293→                    readOnly
+  1294→                    className="flex-1 text-sm outline-none text-foreground font-semibold bg-transparent"
+  1295→                  />
+  1296→                  <Button
+  1297→                    onClick={copyReferralLink}
+  1298→                    size="sm"
+  1299→                    className="bg-brand-blue hover:bg-blue-700 text-white"
+  1300→                  >
+  1301→                    <Copy className="h-4 w-4" />
+  1302→                  </Button>
+  1303→                </div>
+  1304→              </CardContent>
+  1305→            </Card>
+  1306→          )}
+  1307→        </div>
+  1308→      )}
+  1309→    </div>
+  1310→  );
+  1311→}
+  1312→
+  1313→// Affiliation Screen Component
+  1314→function AffiliationScreen({ currentUser, copyReferralLink, setCurrentScreen, setIsMenuOpen }: any) {
+  1315→  return (
+  1316→    <div className="flex-1 flex flex-col bg-card p-6 pt-16">
+  1317→      <Button
+  1318→        variant="ghost"
+  1319→        size="icon"
+  1320→        className="absolute top-4 left-4"
+  1321→        onClick={() => { setIsMenuOpen(true); setCurrentScreen('home'); }}
+  1322→      >
+  1323→        <ArrowLeft className="h-5 w-5 text-muted-foreground" />
+  1324→      </Button>
+  1325→
+  1326→      <h2 className="text-2xl font-bold text-center text-[#8B5E3C] mb-6">Parrainage</h2>
+  1327→
+  1328→      <Card className="bg-emerald-50 p-6 rounded-2xl text-center border border-emerald-100 dark:bg-emerald-900/20 dark:border-emerald-800 mb-6">
+  1329→        <p className="text-foreground text-sm">Vos gains totaux</p>
+  1330→        <h3 className="text-4xl font-extrabold text-[#10B981] dark:text-emerald-400 mt-2">
+  1331→          0 <span className="text-lg">FCFA</span>
+  1332→        </h3>
+  1333→      </Card>
+  1334→
+  1335→      <Card className="bg-card p-4 rounded-xl mb-6">
+  1336→        <p className="text-sm text-muted-foreground mb-2">Partagez votre lien :</p>
+  1337→        <div className="flex items-center bg-card border rounded-lg p-2">
+  1338→          <input
+  1339→            type="text"
+  1340→            value={currentUser?.referralCode ? `kami.app/ref/${currentUser.referralCode}` : 'Non connecté'}
+  1341→            readOnly
+  1342→            className="flex-1 text-sm outline-none text-foreground font-semibold bg-transparent"
+  1343→          />
+  1344→          <Button
+  1345→            onClick={copyReferralLink}
+  1346→            size="sm"
+  1347→            className="bg-[#8B5E3C] hover:bg-[#6B472C] text-white"
+  1348→            disabled={!currentUser?.referralCode}
+  1349→          >
+  1350→            <Copy className="h-4 w-4" />
+  1351→          </Button>
+  1352→        </div>
+  1353→      </Card>
+  1354→
+  1355→      <p className="text-xs text-muted-foreground text-center">
+  1356→        Gagnez des commissions quand vos filleuls achètent un lot.
+  1357→      </p>
+  1358→    </div>
+  1359→  );
+  1360→}
+  1361→
+  1362→// Admin Screen Component
+  1363→function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen }: any) {
+  1364→  // Stats state
+  1365→  const [stats, setStats] = useState({ available: 0, reserved: 0, pending: 0, revenue: 0, userCount: 0, reservationCount: 0, totalLots: 0, paid: 0 });
+  1366→  const [statsLoading, setStatsLoading] = useState(false);
+  1367→
+  1368→  // Payments state
+  1369→  const [payments, setPayments] = useState<any[]>([]);
+  1370→  const [paymentsLoading, setPaymentsLoading] = useState(false);
+  1371→
+  1372→  // Users state
+  1373→  const [users, setUsers] = useState<any[]>([]);
+  1374→  const [usersLoading, setUsersLoading] = useState(false);
+  1375→
+  1376→  // New lot state
+  1377→  const [newLot, setNewLot] = useState({ name: '', surface: '', block: '', priceRes: '', priceNon: '' });
+  1378→
+  1379→  // Load stats from API
+  1380→  const loadStats = async () => {
+  1381→    setStatsLoading(true);
+  1382→    try {
+  1383→      const response = await fetch('/api/admin/stats');
+  1384→      if (response.ok) {
+  1385→        const data = await response.json();
+  1386→        setStats({
+  1387→          available: data.available || 0,
+  1388→          reserved: (data.reserved || 0) + (data.paid || 0),
+  1389→          pending: data.pendingPayments || 0,
+  1390→          revenue: data.revenue || 0,
+  1391→          userCount: data.userCount || 0,
+  1392→          reservationCount: data.reservationCount || 0,
+  1393→          totalLots: data.totalLots || 0,
+  1394→          paid: data.paid || 0,
+  1395→        });
+  1396→      }
+  1397→    } catch (error) {
+  1398→      console.error('Error loading stats:', error);
+  1399→    } finally {
+  1400→      setStatsLoading(false);
+  1401→    }
+  1402→  };
+  1403→
+  1404→  // Load payments from API
+  1405→  const loadPayments = async () => {
+  1406→    setPaymentsLoading(true);
+  1407→    try {
+  1408→      const response = await fetch('/api/admin/payments');
+  1409→      if (response.ok) {
+  1410→        const data = await response.json();
+  1411→        setPayments(data);
+  1412→      }
+  1413→    } catch (error) {
+  1414→      console.error('Error loading payments:', error);
+  1415→    } finally {
+  1416→      setPaymentsLoading(false);
+  1417→    }
+  1418→  };
+  1419→
+  1420→  // Load users from API
+  1421→  const loadUsers = async () => {
+  1422→    setUsersLoading(true);
+  1423→    try {
+  1424→      const response = await fetch('/api/admin/users');
+  1425→      if (response.ok) {
+  1426→        const data = await response.json();
+  1427→        setUsers(data);
+  1428→      }
+  1429→    } catch (error) {
+  1430→      console.error('Error loading users:', error);
+  1431→    } finally {
+  1432→      setUsersLoading(false);
+  1433→    }
+  1434→  };
+  1435→
+  1436→  // Handle add lot
+  1437→  const handleAddLot = async () => {
+  1438→    if (!newLot.name || !newLot.surface || !newLot.block || !newLot.priceRes || !newLot.priceNon) {
+  1439→      toast.error('Remplissez tous les champs');
+  1440→      return;
+  1441→    }
+  1442→
+  1443→    try {
+  1444→      const response = await fetch('/api/lots', {
+  1445→        method: 'POST',
+  1446→        headers: { 'Content-Type': 'application/json' },
+  1447→        body: JSON.stringify({
+  1448→          name: newLot.name,
+  1449→          surface: newLot.surface,
+  1450→          block: newLot.block,
+  1451→          priceRes: parseInt(newLot.priceRes),
+  1452→          priceNon: parseInt(newLot.priceNon),
+  1453→        }),
+  1454→      });
+  1455→
+  1456→      if (response.ok) {
+  1457→        toast.success(`Lot ${newLot.name} ajouté !`);
+  1458→        setNewLot({ name: '', surface: '', block: '', priceRes: '', priceNon: '' });
+  1459→        loadLots();
+  1460→      } else {
+  1461→        toast.error('Erreur lors de l\'ajout du lot');
+  1462→      }
+  1463→    } catch (error) {
+  1464→      toast.error('Erreur lors de l\'ajout du lot');
+  1465→    }
+  1466→  };
+  1467→
+  1468→  // Handle validate payment (accept payment)
+  1469→  const handleValidatePayment = async (reservationId: string) => {
+  1470→    const amount = prompt('Montant à valider (FCFA):');
+  1471→    if (!amount) return;
+  1472→
+  1473→    try {
+  1474→      const response = await fetch('/api/admin/payments', {
+  1475→        method: 'PUT',
+  1476→        headers: { 'Content-Type': 'application/json' },
+  1477→        body: JSON.stringify({
+  1478→          reservationId,
+  1479→          amount: parseInt(amount),
+  1480→          status: 'VALIDATED',
+  1481→        }),
+  1482→      });
+  1483→
+  1484→      if (response.ok) {
+  1485→        toast.success('Paiement validé avec succès !');
+  1486→        loadPayments();
+  1487→        loadStats();
+  1488→        loadLots();
+  1489→      } else {
+  1490→        toast.error('Erreur lors de la validation');
+  1491→      }
+  1492→    } catch (error) {
+  1493→      toast.error('Erreur lors de la validation');
+  1494→    }
+  1495→  };
+  1496→
+  1497→  // Handle delete reservation
+  1498→  const handleDeleteReservation = async (reservationId: string) => {
+  1499→    if (!confirm('Êtes-vous sûr de vouloir supprimer cette réservation ?')) return;
+  1500→
+  1501→    try {
+  1502→      const response = await fetch(`/api/admin/payments?id=${reservationId}`, {
+  1503→        method: 'DELETE',
+  1504→      });
+  1505→
+  1506→      if (response.ok) {
+  1507→        toast.success('Réservation supprimée !');
+  1508→        loadPayments();
+  1509→        loadStats();
+  1510→        loadLots();
+  1511→      } else {
+  1512→        toast.error('Erreur lors de la suppression');
+  1513→      }
+  1514→    } catch (error) {
+  1515→      toast.error('Erreur lors de la suppression');
+  1516→    }
+  1517→  };
+  1518→
+  1519→  // Handle delete user
+  1520→  const handleDeleteUser = async (userId: string) => {
+  1521→    if (!confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) return;
+  1522→
+  1523→    try {
+  1524→      const response = await fetch(`/api/admin/users?id=${userId}`, {
+  1525→        method: 'DELETE',
+  1526→      });
+  1527→
+  1528→      if (response.ok) {
+  1529→        toast.success('Utilisateur supprimé !');
+  1530→        loadUsers();
+  1531→        loadStats();
+  1532→      } else {
+  1533→        toast.error('Erreur lors de la suppression');
+  1534→      }
+  1535→    } catch (error) {
+  1536→      toast.error('Erreur lors de la suppression');
+  1537→    }
+  1538→  };
+  1539→
+  1540→  // Load data when view changes
+  1541→  useEffect(() => {
+  1542→    if (adminView === 'stats') {
+  1543→      loadStats();
+  1544→      // Auto-refresh every 10 seconds
+  1545→      const interval = setInterval(loadStats, 10000);
+  1546→      return () => clearInterval(interval);
+  1547→    } else if (adminView === 'payments') {
+  1548→      loadPayments();
+  1549→    } else if (adminView === 'users') {
+  1550→      loadUsers();
+  1551→    }
+  1552→  }, [adminView]);
+  1553→
+  1554→  return (
+  1555→    <div className="flex-1 flex flex-col bg-card p-6 pt-16">
+  1556→      <Button
+  1557→        variant="ghost"
+  1558→        size="icon"
+  1559→        className="absolute top-4 left-4"
+  1560→        onClick={() => setCurrentScreen('home')}
+  1561→      >
+  1562→        <ArrowLeft className="h-5 w-5 text-muted-foreground" />
+  1563→      </Button>
+  1564→
+  1565→      <div className="flex items-center justify-between mb-6">
+  1566→        <h2 className="text-2xl font-bold text-center text-red-600 flex-1 flex items-center justify-center">
+  1567→          <Shield className="mr-2 h-6 w-6" />
+  1568→          Admin
+  1569→        </h2>
+  1570→        {currentUser?.id && (
+  1571→          <div className="absolute top-4 right-4">
+  1572→            <CommitteeNotificationBell userId={currentUser.id} />
+  1573→          </div>
+  1574→        )}
+  1575→      </div>
+  1576→
+  1577→      {!adminView && (
+  1578→        <div className="grid grid-cols-2 gap-4">
+  1579→          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('dashboard')}>
+  1580→            <CardContent className="p-0 text-center">
+  1581→              <ChartLine className="text-[#10B981] h-8 w-8 mx-auto mb-2" />
+  1582→              <p className="text-sm font-bold">Tableau de Bord</p>
+  1583→            </CardContent>
+  1584→          </Card>
+  1585→          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('payments')}>
+  1586→            <CardContent className="p-0 text-center">
+  1587→              <CheckCircle className="text-blue-500 dark:text-blue-400 h-8 w-8 mx-auto mb-2" />
+  1588→              <p className="text-sm font-bold">Valider Paiements</p>
+  1589→            </CardContent>
+  1590→          </Card>
+  1591→          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('users')}>
+  1592→            <CardContent className="p-0 text-center">
+  1593→              <UserPlus className="text-purple-500 dark:text-purple-400 h-8 w-8 mx-auto mb-2" />
+  1594→              <p className="text-sm font-bold">Gérer Utilisateurs</p>
+  1595→            </CardContent>
+  1596→          </Card>
+  1597→          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('add-lots')}>
+  1598→            <CardContent className="p-0 text-center">
+  1599→              <PlusCircle className="text-[#8B5E3C] dark:text-[#A5785C] h-8 w-8 mx-auto mb-2" />
+  1600→              <p className="text-sm font-bold">Ajouter Lots</p>
+  1601→            </CardContent>
+  1602→          </Card>
+  1603→          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('logo')}>
+  1604→            <CardContent className="p-0 text-center">
+  1605→              <FileText className="text-orange-500 dark:text-orange-400 h-8 w-8 mx-auto mb-2" />
+  1606→              <p className="text-sm font-bold">Éditer le Logo</p>
+  1607→            </CardContent>
+  1608→          </Card>
+  1609→          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('flash-infos')}>
+  1610→            <CardContent className="p-0 text-center">
+  1611→              <FileText className="text-brand-blue h-8 w-8 mx-auto mb-2" />
+  1612→              <p className="text-sm font-bold">Flash Infos</p>
+  1613→            </CardContent>
+  1614→          </Card>
+  1615→          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('expert-applications')}>
+  1616→            <CardContent className="p-0 text-center">
+  1617→              <UserPlus className="text-emerald-500 dark:text-emerald-400 h-8 w-8 mx-auto mb-2" />
+  1618→              <p className="text-sm font-bold">Candidatures Experts</p>
+  1619→            </CardContent>
+  1620→          </Card>
+  1621→          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('users-monitor')}>
+  1622→            <CardContent className="p-0 text-center">
+  1623→              <Activity className="text-cyan-500 dark:text-cyan-400 h-8 w-8 mx-auto mb-2" />
+  1624→              <p className="text-sm font-bold">Surveillance Connexions</p>
+  1625→            </CardContent>
+  1626→          </Card>
+  1627→          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition col-span-2" onClick={() => setAdminView('files')}>
+  1628→            <CardContent className="p-0 text-center py-4">
+  1629→              <Upload className="text-brand-blue h-8 w-8 mx-auto mb-2" />
+  1630→              <p className="text-sm font-bold">Gérer Fichiers (Plan du village)</p>
+  1631→            </CardContent>
+  1632→          </Card>
+  1633→          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('progress-updates')}>
+  1634→            <CardContent className="p-0 text-center">
+  1635→              <Construction className="text-orange-500 dark:text-orange-400 h-8 w-8 mx-auto mb-2" />
+  1636→              <p className="text-sm font-bold">Avancement Travaux</p>
+  1637→            </CardContent>
+  1638→          </Card>
+  1639→          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('subscriber-tracking')}>
+  1640→            <CardContent className="p-0 text-center">
+  1641→              <TrendingUp className="text-cyan-500 dark:text-cyan-400 h-8 w-8 mx-auto mb-2" />
+  1642→              <p className="text-sm font-bold">Suivi Souscripteurs</p>
+  1643→            </CardContent>
+  1644→          </Card>
+  1645→        </div>
+  1646→      )}
+  1647→
+  1648→      {adminView === 'dashboard' && (
+  1649→        <div className="mt-6">
+  1650→          <Button variant="ghost" onClick={() => setAdminView(null)} className="mb-4 text-muted-foreground">
+  1651→            <ArrowLeft className="mr-2 h-4 w-4" />
+  1652→            Retour
+  1653→          </Button>
+  1654→          <AdminDashboard onBack={() => setAdminView(null)} />
+  1655→        </div>
+  1656→      )}
+  1657→
+  1658→      {adminView === 'stats' && (
+  1659→        <div className="mt-6">
+  1660→          <Button variant="ghost" onClick={() => setAdminView(null)} className="mb-4 text-muted-foreground">
+  1661→            <ArrowLeft className="mr-2 h-4 w-4" />
+  1662→            Retour
+  1663→          </Button>
+  1664→          {statsLoading ? (
+  1665→            <Card className="bg-card p-6">
+  1666→              <CardContent className="text-center text-muted-foreground">
+  1667→                <AlertCircle className="h-8 w-8 mx-auto mb-2 animate-pulse" />
+  1668→                <p>Chargement...</p>
+  1669→              </CardContent>
+  1670→            </Card>
+  1671→          ) : (
+  1672→            <>
+  1673→              <div className="grid grid-cols-2 gap-4 mb-4">
+  1674→                <Card className="bg-card p-4 rounded-xl shadow-sm border-l-4 border-[#10B981]">
+  1675→                  <p className="text-xs text-muted-foreground">Encaissé</p>
+  1676→                  <h3 className="text-lg font-extrabold text-foreground">{stats.revenue.toLocaleString('fr-FR')} F</h3>
+  1677→                </Card>
+  1678→                <Card className="bg-card p-4 rounded-xl shadow-sm border-l-4 border-blue-500">
+  1679→                  <p className="text-xs text-muted-foreground">Disponibles</p>
+  1680→                  <h3 className="text-lg font-extrabold text-foreground">{stats.available}</h3>
+  1681→                </Card>
+  1682→                <Card className="bg-card p-4 rounded-xl shadow-sm border-l-4 border-orange-500">
+  1683→                  <p className="text-xs text-muted-foreground">Attente</p>
+  1684→                  <h3 className="text-lg font-extrabold text-foreground">{stats.pending}</h3>
+  1685→                </Card>
+  1686→                <Card className="bg-card p-4 rounded-xl shadow-sm border-l-4 border-red-500">
+  1687→                  <p className="text-xs text-muted-foreground">Réservés/Soldés</p>
+  1688→                  <h3 className="text-lg font-extrabold text-foreground">{stats.reserved}</h3>
+  1689→                </Card>
+  1690→              </div>
+  1691→              <div className="grid grid-cols-2 gap-4">
+  1692→                <Card className="bg-card p-4 rounded-xl shadow-sm">
+  1693→                  <p className="text-xs text-muted-foreground">Total Lots</p>
+  1694→                  <h3 className="text-lg font-extrabold text-foreground">{stats.totalLots}</h3>
+  1695→                </Card>
+  1696→                <Card className="bg-card p-4 rounded-xl shadow-sm">
+  1697→                  <p className="text-xs text-muted-foreground">Utilisateurs</p>
+  1698→                  <h3 className="text-lg font-extrabold text-foreground">{stats.userCount}</h3>
+  1699→                </Card>
+  1700→              </div>
+  1701→            </>
+  1702→          )}
+  1703→        </div>
+  1704→      )}
+  1705→
+  1706→      {adminView === 'add-lots' && (
+  1707→        <div className="mt-6">
+  1708→          <Button variant="ghost" onClick={() => setAdminView(null)} className="mb-4 text-muted-foreground">
+  1709→            <ArrowLeft className="mr-2 h-4 w-4" />
+  1710→            Retour
+  1711→          </Button>
+  1712→          <Card className="bg-card p-4 rounded-xl shadow-sm border border-border">
+  1713→            <CardContent className="space-y-4">
+  1714→              <div>
+  1715→                <Label className="text-sm">Îlot</Label>
+  1716→                <Input
+  1717→                  value={newLot.block}
+  1718→                  onChange={(e) => setNewLot({ ...newLot, block: e.target.value })}
+  1719→                  placeholder="A"
+  1720→                  className="mt-1"
+  1721→                />
+  1722→              </div>
+  1723→              <div className="grid grid-cols-2 gap-3">
+  1724→                <div>
+  1725→                  <Label className="text-sm">Numéro</Label>
+  1726→                  <Input
+  1727→                    value={newLot.name}
+  1728→                    onChange={(e) => setNewLot({ ...newLot, name: e.target.value })}
+  1729→                    placeholder="01"
+  1730→                    className="mt-1"
+  1731→                  />
+  1732→                </div>
+  1733→                <div>
+  1734→                  <Label className="text-sm">Surface</Label>
+  1735→                  <Input
+  1736→                    value={newLot.surface}
+  1737→                    onChange={(e) => setNewLot({ ...newLot, surface: e.target.value })}
+  1738→                    placeholder="300m²"
+  1739→                    className="mt-1"
+  1740→                  />
+  1741→                </div>
+  1742→              </div>
+  1743→              <div className="grid grid-cols-2 gap-3">
+  1744→                <div>
+  1745→                  <Label className="text-sm">Prix Résident</Label>
+  1746→                  <Input
+  1747→                    type="number"
+  1748→                    value={newLot.priceRes}
+  1749→                    onChange={(e) => setNewLot({ ...newLot, priceRes: e.target.value })}
+  1750→                    placeholder="100000"
+  1751→                    className="mt-1"
+  1752→                  />
+  1753→                </div>
+  1754→                <div>
+  1755→                  <Label className="text-sm">Prix Non-Rés</Label>
+  1756→                  <Input
+  1757→                    type="number"
+  1758→                    value={newLot.priceNon}
+  1759→                    onChange={(e) => setNewLot({ ...newLot, priceNon: e.target.value })}
+  1760→                    placeholder="150000"
+  1761→                    className="mt-1"
+  1762→                  />
+  1763→                </div>
+  1764→              </div>
+  1765→              <Button
+  1766→                onClick={handleAddLot}
+  1767→                className="w-full bg-[#10B981] hover:bg-[#059669] text-white font-bold"
+  1768→              >
+  1769→                Créer le Lot
+  1770→              </Button>
+  1771→            </CardContent>
+  1772→          </Card>
+  1773→        </div>
+  1774→      )}
+  1775→
+  1776→      {adminView === 'payments' && (
+  1777→        <div className="mt-6">
+  1778→          <Button variant="ghost" onClick={() => setAdminView(null)} className="mb-4 text-muted-foreground">
+  1779→            <ArrowLeft className="mr-2 h-4 w-4" />
+  1780→            Retour
+  1781→          </Button>
+  1782→          {paymentsLoading ? (
+  1783→            <Card className="bg-card p-6">
+  1784→              <CardContent className="text-center text-muted-foreground">
+  1785→                <AlertCircle className="h-8 w-8 mx-auto mb-2 animate-pulse" />
+  1786→                <p>Chargement...</p>
+  1787→              </CardContent>
+  1788→            </Card>
+  1789→          ) : payments.length === 0 ? (
+  1790→            <Card className="bg-card p-6">
+  1791→              <CardContent className="text-center text-muted-foreground">
+  1792→                <AlertCircle className="h-8 w-8 mx-auto mb-2" />
+  1793→                <p>Aucun paiement en attente.</p>
+  1794→              </CardContent>
+  1795→            </Card>
+  1796→          ) : (
+  1797→            <div className="space-y-4">
+  1798→              {payments.map((payment: any) => {
+  1799→                const progress = ((payment.paidAmount || 0) / (payment.totalPrice || 1)) * 100;
+  1800→                const remaining = (payment.totalPrice || 0) - (payment.paidAmount || 0);
+  1801→                const isPaid = payment.paidAmount >= payment.totalPrice;
+  1802→
+  1803→                return (
+  1804→                  <Card key={payment.id || `pay-${payment.lotId}`} className="bg-card rounded-xl shadow-sm border border-border">
+  1805→                    <CardContent className="p-4">
+  1806→                      <div className="flex justify-between items-start mb-3">
+  1807→                        <div>
+  1808→                          <h3 className="font-bold text-foreground">Lot {payment.lot?.name || payment.lotName}</h3>
+  1809→                          <p className="text-xs text-muted-foreground">{payment.user?.name || 'Utilisateur inconnu'}</p>
+  1810→                        </div>
+  1811→                        <Badge className={isPaid ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'}>
+  1812→                          {isPaid ? 'Soldé' : 'En cours'}
+  1813→                        </Badge>
+  1814→                      </div>
+  1815→                      
+  1816→                      <div className="mb-3">
+  1817→                        <div className="flex justify-between text-sm mb-1">
+  1818→                          <span className="text-muted-foreground">Payé</span>
+  1819→                          <span className="font-bold text-[#10B981]">{(payment.paidAmount || 0).toLocaleString('fr-FR')} F</span>
+  1820→                        </div>
+  1821→                        <div className="flex justify-between text-sm mb-2">
+  1822→                          <span className="text-muted-foreground">Total</span>
+  1823→                          <span className="font-bold text-foreground">{(payment.totalPrice || 0).toLocaleString('fr-FR')} F</span>
+  1824→                        </div>
+  1825→                        {!isPaid && (
+  1826→                          <div className="flex justify-between text-sm mb-2">
+  1827→                            <span className="text-muted-foreground">Reste</span>
+  1828→                            <span className="font-bold text-red-500 dark:text-red-400">{remaining.toLocaleString('fr-FR')} F</span>
+  1829→                          </div>
+  1830→                        )}
+  1831→                        <div className="w-full bg-border rounded-full h-2">
+  1832→                          <div className="bg-[#10B981] h-2 rounded-full transition-all" style={{ width: `${Math.min(progress, 100)}%` }} />
+  1833→                        </div>
+  1834→                      </div>
+  1835→
+  1836→                      <div className="flex gap-2 mt-3">
+  1837→                        <Button
+  1838→                          size="sm"
+  1839→                          className="flex-1 bg-[#10B981] hover:bg-[#059669] text-white"
+  1840→                          onClick={() => handleValidatePayment(payment.id)}
+  1841→                        >
+  1842→                          <CheckCircle className="mr-1 h-4 w-4" />
+  1843→                          Valider
+  1844→                        </Button>
+  1845→                        <Button
+  1846→                          size="sm"
+  1847→                          variant="destructive"
+  1848→                          className="flex-1"
+  1849→                          onClick={() => handleDeleteReservation(payment.id)}
+  1850→                        >
+  1851→                          <XCircle className="mr-1 h-4 w-4" />
+  1852→                          Supprimer
+  1853→                        </Button>
+  1854→                      </div>
+  1855→                    </CardContent>
+  1856→                  </Card>
+  1857→                );
+  1858→              })}
+  1859→            </div>
+  1860→          )}
+  1861→        </div>
+  1862→      )}
+  1863→
+  1864→      {adminView === 'users' && (
+  1865→        <div className="mt-6">
+  1866→          <UserManagement onBack={() => setAdminView(null)} />
+  1867→        </div>
+  1868→      )}
+  1869→
+  1870→      {adminView === 'logo' && (
+  1871→        <div className="mt-6">
+  1872→          <Button variant="ghost" onClick={() => setAdminView(null)} className="mb-4 text-muted-foreground">
+  1873→            <ArrowLeft className="mr-2 h-4 w-4" />
+  1874→            Retour
+  1875→          </Button>
+  1876→          <AdminLogo />
+  1877→        </div>
+  1878→      )}
+  1879→
+  1880→      {adminView === 'flash-infos' && (
+  1881→        <FlashInfoAdmin onBack={() => setAdminView(null)} />
+  1882→      )}
+  1883→
+  1884→      {adminView === 'files' && (
+  1885→        <AdminFiles onBack={() => setAdminView(null)} />
+  1886→      )}
+  1887→
+  1888→      {adminView === 'expert-applications' && (
+  1889→        <div className="mt-6">
+  1890→          <ExpertApplicationsAdmin onBack={() => setAdminView(null)} />
+  1891→        </div>
+  1892→      )}
+  1893→
+  1894→      {adminView === 'users-monitor' && (
+  1895→        <div className="mt-6">
+  1896→          <Button variant="ghost" onClick={() => setAdminView(null)} className="mb-4 text-muted-foreground">
+  1897→            <ArrowLeft className="mr-2 h-4 w-4" />
+  1898→            Retour
+  1899→          </Button>
+  1900→          <UsersMonitorPanel />
+  1901→        </div>
+  1902→      )}
+  1903→
+  1904→      {adminView === 'progress-updates' && (
+  1905→        <div className="mt-6">
+  1906→          <ProgressUpdatesAdmin onBack={() => setAdminView(null)} />
+  1907→        </div>
+  1908→      )}
+  1909→
+  1910→      {adminView === 'subscriber-tracking' && (
+  1911→        <div className="mt-6">
+  1912→          <SubscriberTrackingPanel onBack={() => setAdminView(null)} setCurrentScreen={setCurrentScreen} currentUser={currentUser} />
+  1913→        </div>
+  1914→      )}
+  1915→    </div>
+  1916→  );
+  1917→}
+  1918→

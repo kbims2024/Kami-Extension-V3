@@ -17,6 +17,7 @@ export interface IUserDocument extends Document {
   quartier?: string;
   villageOrigine?: string;
   congratulatedLots: string;
+  profilePhoto?: string;
   lastSeen?: Date;
   isOnline?: boolean;
   createdAt: Date;
@@ -40,6 +41,7 @@ const UserSchema = new Schema<IUserDocument>(
     quartier: { type: String, default: null },
     villageOrigine: { type: String, default: null },
     congratulatedLots: { type: String, default: '' },
+    profilePhoto: { type: String, default: null },
     lastSeen: { type: Date, default: null },
     isOnline: { type: Boolean, default: false },
   },

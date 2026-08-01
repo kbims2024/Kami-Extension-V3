@@ -14,7 +14,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { Building2, Map, Home, Wallet, Users, User, Shield, ArrowLeft, Menu, LogOut, LogIn, CheckCircle, XCircle, AlertCircle, ChartLine, CreditCard, UserPlus, PlusCircle, Wrench, Zap, Droplet, ShieldCheck, FileText, Copy, ClipboardCheck, Upload, Phone, Activity, Construction, TrendingUp } from 'lucide-react';
+import { Building2, Map, Home, Wallet, Users, User, Shield, ArrowLeft, Menu, LogOut, LogIn, CheckCircle, XCircle, AlertCircle, ChartLine, CreditCard, UserPlus, PlusCircle, Wrench, Zap, Droplet, ShieldCheck, FileText, Copy, ClipboardCheck, Upload, Phone, Activity, Construction, TrendingUp, Camera, Share2, Headset, Plus, Trash2 } from 'lucide-react';
 import { EnhancedMapScreen } from '@/components/kami/EnhancedMapScreen';
 import { PersuasiveLandingPage } from '@/components/kami/PersuasiveLandingPage';
 import { TwoStepRegistration } from '@/components/kami/TwoStepRegistration';
@@ -355,7 +355,7 @@ export default function KamiExtensionPage() {
       {!currentUser && currentScreen === 'login-screen' && (
         <PageTransition>
           <LoginScreen
-            onLogin={(name, phone) => handleLogin(name, phone)}
+            onLogin={(name, phone, password) => handleLogin(name, phone, password)}
             onBack={() => setCurrentScreen('auth-choice')}
             setIsMenuOpen={setIsMenuOpen}
           />
@@ -999,6 +999,7 @@ function DashboardScreen({ myReservations, setCurrentScreen, setIsMenuOpen }: an
 function ProfileScreen({ currentUser, setCurrentUser, copyReferralLink, setCurrentScreen, setIsMenuOpen }: any) {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [photoUploading, setPhotoUploading] = useState(false);
   const [form, setForm] = useState({
     name: currentUser?.name || '',
     pseudo: currentUser?.pseudo || '',
@@ -1006,6 +1007,26 @@ function ProfileScreen({ currentUser, setCurrentUser, copyReferralLink, setCurre
     email: currentUser?.email || '',
     quartier: currentUser?.quartier || '',
   });
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error('Image trop volumineuse (max 5 Mo)'); return; }
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { toast.error('Format non supporté (JPEG, PNG, WebP)'); return; }
+    setPhotoUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('profilePhoto', file);
+      formData.append('userId', currentUser.id);
+      const res = await fetch('/api/user/profile', { method: 'PUT', body: formData });
+      if (res.ok) {
+        const updated = await res.json();
+        setCurrentUser({ ...currentUser, ...updated });
+        toast.success('Photo de profil mise à jour');
+      } else { toast.error('Erreur lors du téléchargement'); }
+    } catch { toast.error('Erreur serveur'); }
+    finally { setPhotoUploading(false); }
+  };
 
   const quartiersKami = ['ASSAKLA', "N'GLOH", "N'ZOKLOH", "N'GUOUAH"];
 
@@ -1092,8 +1113,25 @@ function ProfileScreen({ currentUser, setCurrentUser, copyReferralLink, setCurre
 
       {/* Avatar + Statut */}
       <div className="flex flex-col items-center mb-6">
-        <div className="w-20 h-20 rounded-full bg-brand-blue/10 dark:bg-brand-blue/20 flex items-center justify-center mb-3">
-          <User className="h-9 w-9 text-brand-blue" />
+        <div className="relative mb-3">
+          <div className="w-20 h-20 rounded-full bg-brand-blue/10 dark:bg-brand-blue/20 flex items-center justify-center overflow-hidden border-2 border-border">
+            {currentUser?.profilePhoto ? (
+              <img src={currentUser.profilePhoto} alt="Photo" className="w-full h-full object-cover" />
+            ) : (
+              <User className="h-9 w-9 text-brand-blue" />
+            )}
+          </div>
+          {isEditing && (
+            <label className="absolute bottom-0 right-0 w-7 h-7 bg-brand-blue rounded-full flex items-center justify-center cursor-pointer hover:bg-blue-700 transition-colors shadow-md">
+              <Camera className="h-3.5 w-3.5 text-white" />
+              <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handlePhotoUpload} disabled={photoUploading} />
+            </label>
+          )}
+          {photoUploading && (
+            <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center">
+              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
+            </div>
+          )}
         </div>
         {!isEditing && (
           <>
@@ -1285,20 +1323,38 @@ function ProfileScreen({ currentUser, setCurrentUser, copyReferralLink, setCurre
           {currentUser?.referralCode && (
             <Card className="border-border">
               <CardContent className="p-4">
-                <p className="text-sm text-muted-foreground mb-2">Code de parrainage</p>
-                <div className="flex items-center bg-background border rounded-lg p-2">
+                <p className="text-sm text-muted-foreground mb-2">Lien de parrainage</p>
+                <div className="flex items-center bg-background border rounded-lg p-2 gap-2">
                   <input
                     type="text"
                     value={`kami.app/ref/${currentUser.referralCode}`}
                     readOnly
-                    className="flex-1 text-sm outline-none text-foreground font-semibold bg-transparent"
+                    className="flex-1 text-sm outline-none text-foreground font-semibold bg-transparent min-w-0"
                   />
                   <Button
                     onClick={copyReferralLink}
                     size="sm"
-                    className="bg-brand-blue hover:bg-blue-700 text-white"
+                    variant="outline"
+                    className="shrink-0"
+                    title="Copier le lien"
                   >
                     <Copy className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="shrink-0"
+                    title="Partager le lien"
+                    onClick={() => {
+                      if (navigator.share) {
+                        navigator.share({ title: 'Rejoins KAMI-EXTENSION', text: 'Réserve ton lot de terrain à KAMI-EXTENSION', url: `https://kami.app/ref/${currentUser.referralCode}` });
+                      } else {
+                        copyReferralLink();
+                        toast.success('Lien copié ! Partagez-le avec vos proches.');
+                      }
+                    }}
+                  >
+                    <Share2 className="h-4 w-4" />
                   </Button>
                 </div>
               </CardContent>
@@ -1333,21 +1389,39 @@ function AffiliationScreen({ currentUser, copyReferralLink, setCurrentScreen, se
       </Card>
 
       <Card className="bg-card p-4 rounded-xl mb-6">
-        <p className="text-sm text-muted-foreground mb-2">Partagez votre lien :</p>
-        <div className="flex items-center bg-card border rounded-lg p-2">
+        <p className="text-sm text-muted-foreground mb-2">Partagez votre lien de parrainage :</p>
+        <div className="flex items-center bg-card border rounded-lg p-2 gap-2">
           <input
             type="text"
-            value={currentUser?.referralCode ? `kami.app/ref/${currentUser.referralCode}` : 'Non connecté'}
+            value={currentUser?.referralCode ? `https://kami.app/ref/${currentUser.referralCode}` : 'Non connecté'}
             readOnly
-            className="flex-1 text-sm outline-none text-foreground font-semibold bg-transparent"
+            className="flex-1 text-sm outline-none text-foreground font-semibold bg-transparent min-w-0"
           />
           <Button
             onClick={copyReferralLink}
             size="sm"
-            className="bg-[#8B5E3C] hover:bg-[#6B472C] text-white"
+            className="bg-[#8B5E3C] hover:bg-[#6B472C] text-white shrink-0"
             disabled={!currentUser?.referralCode}
+            title="Copier"
           >
             <Copy className="h-4 w-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="shrink-0"
+            disabled={!currentUser?.referralCode}
+            title="Partager"
+            onClick={() => {
+              if (navigator.share) {
+                navigator.share({ title: 'Rejoins KAMI-EXTENSION', text: 'Réserve ton lot de terrain à KAMI-EXTENSION', url: `https://kami.app/ref/${currentUser.referralCode}` });
+              } else {
+                copyReferralLink();
+                toast.success('Lien copié ! Partagez-le avec vos proches.');
+              }
+            }}
+          >
+            <Share2 className="h-4 w-4" />
           </Button>
         </div>
       </Card>
@@ -1360,6 +1434,125 @@ function AffiliationScreen({ currentUser, copyReferralLink, setCurrentScreen, se
 }
 
 // Admin Screen Component
+function SavSettingsAdmin({ onBack }: { onBack: () => void }) {
+  const [savPhone, setSavPhone] = useState('');
+  const [savWhatsapp, setSavWhatsapp] = useState('');
+  const [savEmail, setSavEmail] = useState('');
+  const [savHoraires, setSavHoraires] = useState<{ day: string; hours: string }[]>([]);
+  const [savFaq, setSavFaq] = useState<{ question: string; answer: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/sav-settings')
+      .then(r => r.json())
+      .then(data => {
+        setSavPhone(data.savPhone || '');
+        setSavWhatsapp(data.savWhatsapp || '');
+        setSavEmail(data.savEmail || '');
+        setSavHoraires(data.savHoraires || []);
+        setSavFaq(data.savFaq || []);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch('/api/sav-settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'x-admin-role': 'ADMIN' },
+        body: JSON.stringify({ savPhone, savWhatsapp, savEmail, savHoraires, savFaq }),
+      });
+      if (res.ok) toast.success('Paramètres SAV enregistrés !');
+      else toast.error('Erreur lors de la sauvegarde');
+    } catch {
+      toast.error('Erreur de connexion');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="mt-6">
+        <Button variant="ghost" onClick={onBack} className="mb-4 text-muted-foreground"><ArrowLeft className="mr-2 h-4 w-4" />Retour</Button>
+        <Card className="bg-card p-6"><CardContent className="text-center text-muted-foreground"><AlertCircle className="h-8 w-8 mx-auto mb-2 animate-pulse" /><p>Chargement...</p></CardContent></Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-6 space-y-4">
+      <div className="flex items-center gap-3 mb-2">
+        <Button variant="ghost" onClick={onBack} className="text-muted-foreground"><ArrowLeft className="mr-2 h-4 w-4" />Retour</Button>
+        <h2 className="text-lg font-bold">Paramètres SAV</h2>
+      </div>
+
+      <Card className="bg-card p-4">
+        <CardContent className="p-0 space-y-4">
+          <div>
+            <Label className="text-xs font-bold">Téléphone SAV</Label>
+            <Input value={savPhone} onChange={e => setSavPhone(e.target.value)} placeholder="+225 27 22 49 00 00" className="mt-1" />
+          </div>
+          <div>
+            <Label className="text-xs font-bold">WhatsApp SAV</Label>
+            <Input value={savWhatsapp} onChange={e => setSavWhatsapp(e.target.value)} placeholder="+225 07 58 42 10 00" className="mt-1" />
+          </div>
+          <div>
+            <Label className="text-xs font-bold">Email SAV</Label>
+            <Input value={savEmail} onChange={e => setSavEmail(e.target.value)} placeholder="sav@kami-extension.com" className="mt-1" />
+          </div>
+
+          <Separator />
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <Label className="text-xs font-bold">Horaires d&apos;ouverture</Label>
+              <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setSavHoraires([...savHoraires, { day: '', hours: '' }])}><Plus className="h-3 w-3 mr-1" />Ajouter</Button>
+            </div>
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {savHoraires.map((h, i) => (
+                <div key={i} className="flex gap-2 items-center">
+                  <Input value={h.day} onChange={e => { const n = [...savHoraires]; n[i].day = e.target.value; setSavHoraires(n); }} placeholder="Jour" className="flex-1 h-9 text-sm" />
+                  <Input value={h.hours} onChange={e => { const n = [...savHoraires]; n[i].hours = e.target.value; setSavHoraires(n); }} placeholder="Horaires" className="flex-1 h-9 text-sm" />
+                  <Button variant="ghost" size="sm" className="h-9 w-9 text-red-500 shrink-0" onClick={() => setSavHoraires(savHoraires.filter((_, idx) => idx !== i))}><Trash2 className="h-4 w-4" /></Button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <Separator />
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <Label className="text-xs font-bold">FAQ</Label>
+              <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setSavFaq([...savFaq, { question: '', answer: '' }])}><Plus className="h-3 w-3 mr-1" />Ajouter</Button>
+            </div>
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {savFaq.map((f, i) => (
+                <div key={i} className="border rounded-lg p-3 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <span className="text-xs font-bold text-muted-foreground mt-2 shrink-0">Q{i + 1}</span>
+                    <Input value={f.question} onChange={e => { const n = [...savFaq]; n[i].question = e.target.value; setSavFaq(n); }} placeholder="Question" className="flex-1 h-9 text-sm" />
+                    <Button variant="ghost" size="sm" className="h-9 w-9 text-red-500 shrink-0" onClick={() => setSavFaq(savFaq.filter((_, idx) => idx !== i))}><Trash2 className="h-4 w-4" /></Button>
+                  </div>
+                  <Input value={f.answer} onChange={e => { const n = [...savFaq]; n[i].answer = e.target.value; setSavFaq(n); }} placeholder="Réponse" className="h-9 text-sm" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <Button onClick={handleSave} disabled={saving} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
+            {saving ? 'Enregistrement...' : 'Enregistrer les paramètres SAV'}
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen }: any) {
   // Stats state
   const [stats, setStats] = useState({ available: 0, reserved: 0, pending: 0, revenue: 0, userCount: 0, reservationCount: 0, totalLots: 0, paid: 0 });
@@ -1642,6 +1835,12 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
               <p className="text-sm font-bold">Suivi Souscripteurs</p>
             </CardContent>
           </Card>
+          <Card onClick={() => setAdminView('sav-settings')} className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition">
+            <CardContent className="p-0 text-center">
+              <Headset className="text-emerald-500 h-8 w-8 mx-auto mb-2" />
+              <p className="text-sm font-bold">Paramètres SAV</p>
+            </CardContent>
+          </Card>
         </div>
       )}
 
@@ -1912,6 +2111,8 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
           <SubscriberTrackingPanel onBack={() => setAdminView(null)} setCurrentScreen={setCurrentScreen} currentUser={currentUser} />
         </div>
       )}
+
+      {adminView === 'sav-settings' && <SavSettingsAdmin onBack={() => setAdminView(null)} />}
     </div>
   );
 }

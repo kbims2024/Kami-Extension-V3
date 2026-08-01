@@ -1,0 +1,1053 @@
+   305→
+   306→  // ── Dialog : Suivi des paiements ──
+   307→  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+   308→  const [paymentRef, setPaymentRef] = useState('');
+   309→  const [paymentPhone, setPaymentPhone] = useState('');
+   310→  const [paymentSubmitted, setPaymentSubmitted] = useState(false);
+   311→  const [paymentTicket, setPaymentTicket] = useState('');
+   312→
+   313→  // ── Dialog : Documents ──
+   314→  const [showDocsDialog, setShowDocsDialog] = useState(false);
+   315→
+   316→  // ── Dialog : Réclamations ──
+   317→  const [showReclamationDialog, setShowReclamationDialog] = useState(false);
+   318→  const [reclamationCategory, setReclamationCategory] = useState('');
+   319→  const [reclamationDescription, setReclamationDescription] = useState('');
+   320→  const [reclamationName, setReclamationName] = useState('');
+   321→  const [reclamationPhone, setReclamationPhone] = useState('');
+   322→  const [reclamationSubmitted, setReclamationSubmitted] = useState(false);
+   323→  const [reclamationTicket, setReclamationTicket] = useState('');
+   324→
+   325→  // ── Dialog : Assistance technique ──
+   326→  const [showAssistanceDialog, setShowAssistanceDialog] = useState(false);
+   327→  const [assistanceTopic, setAssistanceTopic] = useState('');
+   328→  const [assistanceMessage, setAssistanceMessage] = useState('');
+   329→  const [assistanceSubmitted, setAssistanceSubmitted] = useState(false);
+   330→
+   331→  // ── Dialog : Sollicitation expert ──
+   332→  const [showExpertDialog, setShowExpertDialog] = useState(false);
+   333→  const [selectedExpert, setSelectedExpert] = useState<typeof SAV_EXPERTS[number] | null>(null);
+   334→  const [expertName, setExpertName] = useState('');
+   335→  const [expertPhone, setExpertPhone] = useState('');
+   336→  const [expertNeed, setExpertNeed] = useState('');
+   337→  const [expertUrgency, setExpertUrgency] = useState('');
+   338→  const [expertSubmitted, setExpertSubmitted] = useState(false);
+   339→
+   340→  // Générer un numéro de ticket aléatoire
+   341→  const generateTicket = (prefix: string) => {
+   342→    const num = Math.floor(100000 + Math.random() * 900000);
+   343→    return `${prefix}-${num}`;
+   344→  };
+   345→
+   346→  // ── Handlers ──
+   347→
+   348→  const handleRequestExpert = (expert: typeof SAV_EXPERTS[number]) => {
+   349→    setSelectedExpertCategoryId(expert.id);
+   350→    setShowExpertPanel(true);
+   351→  };
+   352→
+   353→  const handleOpenExpertPanel = (categoryId?: string) => {
+   354→    setSelectedExpertCategoryId(categoryId);
+   355→    setShowExpertPanel(true);
+   356→  };
+   357→
+   358→  const handleBackFromExpertPanel = () => {
+   359→    setShowExpertPanel(false);
+   360→    setSelectedExpertCategoryId(undefined);
+   361→  };
+   362→
+   363→  const handleSubmitExpert = () => {
+   364→    if (!expertName.trim() || !expertPhone.trim() || !expertNeed.trim() || !expertUrgency) {
+   365→      toast.error('Veuillez remplir tous les champs.');
+   366→      return;
+   367→    }
+   368→    const ticket = generateTicket('EXP');
+   369→    toast.success(
+   370→      `Demande envoyée ! Ticket ${ticket}. Notre ${selectedExpert?.title.toLowerCase()} vous contactera sous 24h.`,
+   371→      { duration: 6000 },
+   372→    );
+   373→    setExpertSubmitted(true);
+   374→  };
+   375→
+   376→  const handleSubmitPayment = () => {
+   377→    if (!paymentPhone.trim()) {
+   378→      toast.error('Veuillez entrer votre numéro de téléphone pour vérifier votre dossier.');
+   379→      return;
+   380→    }
+   381→    const ticket = generateTicket('PAY');
+   382→    setPaymentTicket(ticket);
+   383→    toast.success(
+   384→      `Votre demande de suivi a été enregistrée (Ticket ${ticket}). Vous recevrez un récapitulatif par SMS.`,
+   385→      { duration: 5000 },
+   386→    );
+   387→    setPaymentSubmitted(true);
+   388→  };
+   389→
+   390→  const handleSubmitReclamation = () => {
+   391→    if (!reclamationName.trim() || !reclamationPhone.trim() || !reclamationCategory || !reclamationDescription.trim()) {
+   392→      toast.error('Veuillez remplir tous les champs obligatoires.');
+   393→      return;
+   394→    }
+   395→    const ticket = generateTicket('REC');
+   396→    setReclamationTicket(ticket);
+   397→    toast.success(
+   398→      `Réclamation enregistrée ! Ticket ${ticket}. Suivi sous 48h ouvrées.`,
+   399→      { duration: 6000 },
+   400→    );
+   401→    setReclamationSubmitted(true);
+   402→  };
+   403→
+   404→  const handleSubmitAssistance = () => {
+   405→    if (!assistanceTopic || !assistanceMessage.trim()) {
+   406→      toast.error('Veuillez choisir un sujet et décrire votre besoin.');
+   407→      return;
+   408→    }
+   409→    toast.success(
+   410→      'Votre demande d\'assistance a été envoyée. Notre équipe technique vous recontactera rapidement.',
+   411→      { duration: 5000 },
+   412→    );
+   413→    setAssistanceSubmitted(true);
+   414→  };
+   415→
+   416→  // ── Render ──
+   417→
+   418→  return (
+   419→    <div className="flex-1 flex flex-col bg-background min-h-screen">
+   420→      {/* Header */}
+   421→      <header className="flex items-center gap-2 px-3 py-2 bg-card border-b border-border shrink-0">
+   422→        <Button
+   423→          variant="ghost"
+   424→          size="icon"
+   425→          onClick={onBack}
+   426→          className="hover:bg-emerald-50 dark:hover:bg-emerald-950/30 h-9 w-9"
+   427→        >
+   428→          <ArrowLeft className="h-5 w-5 text-foreground" />
+   429→        </Button>
+   430→        <div className="flex items-center gap-2 flex-1 min-w-0">
+   431→          <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/40 rounded-lg flex items-center justify-center shrink-0">
+   432→            <Headset className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+   433→          </div>
+   434→          <div className="min-w-0">
+   435→            <h1 className="text-base font-bold text-foreground leading-tight truncate">
+   436→              Service après-vente
+   437→            </h1>
+   438→            <p className="text-[11px] text-muted-foreground leading-tight">
+   439→              Nous sommes à votre écoute
+   440→            </p>
+   441→          </div>
+   442→        </div>
+   443→        {setIsMenuOpen && (
+   444→          <Button
+   445→            variant="ghost"
+   446→            size="icon"
+   447→            onClick={() => setIsMenuOpen(true)}
+   448→            className="hover:bg-emerald-50 dark:hover:bg-emerald-950/30 h-9 w-9"
+   449→          >
+   450→            <Menu className="h-5 w-5 text-foreground" />
+   451→          </Button>
+   452→        )}
+   453→      </header>
+   454→
+   455→      {/* Content */}
+   456→      <div className="flex-1 overflow-y-auto">
+   457→        <div className="max-w-2xl mx-auto w-full px-4 pt-3 pb-4 space-y-3.5">
+   458→          {/* Hero — Besoin d'aide ? */}
+   459→          <motion.div
+   460→            whileHover={{ scale: 1.01 }}
+   461→            whileTap={{ scale: 0.99 }}
+   462→          >
+   463→            <Card
+   464→              className="border-emerald-200 dark:border-emerald-900/50 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/30 dark:to-card overflow-hidden cursor-pointer"
+   465→              onClick={() => {
+   466→                setHelpSubject('');
+   467→                setHelpMessage('');
+   468→                setHelpSubmitted(false);
+   469→                setShowHelpDialog(true);
+   470→              }}
+   471→            >
+   472→              <CardContent className="p-4 text-center">
+   473→                <motion.div
+   474→                  className="w-14 h-14 bg-emerald-100 dark:bg-emerald-900/40 rounded-2xl flex items-center justify-center mx-auto mb-2 shadow-lg shadow-emerald-200/50 dark:shadow-emerald-900/30"
+   475→                  animate={{
+   476→                    boxShadow: [
+   477→                      '0 10px 15px -3px rgba(16,185,129,0.2)',
+   478→                      '0 10px 25px -3px rgba(16,185,129,0.4)',
+   479→                      '0 10px 15px -3px rgba(16,185,129,0.2)',
+   480→                    ],
+   481→                  }}
+   482→                  transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+   483→                >
+   484→                  <Headset className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+   485→                </motion.div>
+   486→                <h2 className="text-base font-bold text-foreground mb-0.5">
+   487→                  Besoin d&apos;aide ?
+   488→                </h2>
+   489→                <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
+   490→                  Notre équipe vous accompagne pour vos paiements, vos documents
+   491→                  et toutes vos questions concernant votre lot.
+   492→                </p>
+   493→                <motion.div
+   494→                  className="mt-2.5"
+   495→                  animate={{ scale: [1, 1.03, 1] }}
+   496→                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+   497→                >
+   498→                  <Button
+   499→                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-lg shadow-emerald-500/25 h-10"
+   500→                  >
+   501→                    <Headset className="h-4 w-4 mr-1.5" />
+   502→                    Obtenir de l&apos;aide maintenant
+   503→                  </Button>
+   504→                </motion.div>
+   505→              </CardContent>
+   506→            </Card>
+   507→          </motion.div>
+   508→
+   509→          {/* ═══════════════════════════════════════════════
+   510→              DIALOG : Besoin d'aide ? (formulaire général)
+   511→              ═══════════════════════════════════════════════ */}
+   512→          <Dialog open={showHelpDialog} onOpenChange={setShowHelpDialog}>
+   513→            <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden rounded-2xl">
+   514→              <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 px-5 pt-5 pb-6 text-center relative overflow-hidden">
+   515→                <div className="absolute inset-0 opacity-10">
+   516→                  <div className="absolute -top-4 -right-4 w-24 h-24 bg-white rounded-full" />
+   517→                  <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-white rounded-full" />
+   518→                </div>
+   519→                <motion.div
+   520→                  className="relative z-10"
+   521→                  initial={{ scale: 0.8, opacity: 0 }}
+   522→                  animate={{ scale: 1, opacity: 1 }}
+   523→                  transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+   524→                >
+   525→                  <div className="w-14 h-14 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center mx-auto mb-3">
+   526→                    <Headset className="h-7 w-7 text-white" />
+   527→                  </div>
+   528→                  <DialogTitle className="text-white text-lg font-bold">
+   529→                    Comment pouvons-nous vous aider ?
+   530→                  </DialogTitle>
+   531→                  <p className="text-emerald-100 text-xs mt-1">
+   532→                    Décrivez votre besoin et nous vous répondrons rapidement.
+   533→                  </p>
+   534→                </motion.div>
+   535→              </div>
+   536→              <AnimatePresence mode="wait">
+   537→                {!helpSubmitted ? (
+   538→                  <motion.div
+   539→                    key="form"
+   540→                    initial={{ opacity: 0, x: 20 }}
+   541→                    animate={{ opacity: 1, x: 0 }}
+   542→                    exit={{ opacity: 0, x: -20 }}
+   543→                    className="p-5 space-y-4"
+   544→                  >
+   545→                    <div className="flex gap-2">
+   546→                      <a href={savContacts.phoneHref} className="flex-1">
+   547→                        <Button variant="outline" className="w-full h-11 text-xs font-bold border-emerald-200 hover:bg-emerald-50 hover:border-emerald-400">
+   548→                          <Phone className="h-3.5 w-3.5 mr-1.5 text-emerald-600" />
+   549→                          Appeler
+   550→                        </Button>
+   551→                      </a>
+   552→                      <a href={savContacts.whatsappHref} target="_blank" rel="noopener noreferrer" className="flex-1">
+   553→                        <Button variant="outline" className="w-full h-11 text-xs font-bold border-green-200 hover:bg-green-50 hover:border-green-400">
+   554→                          <MessageCircle className="h-3.5 w-3.5 mr-1.5 text-green-600" />
+   555→                          WhatsApp
+   556→                        </Button>
+   557→                      </a>
+   558→                      <a href={savContacts.emailHref} className="flex-1">
+   559→                        <Button variant="outline" className="w-full h-11 text-xs font-bold border-blue-200 hover:bg-blue-50 hover:border-blue-400">
+   560→                          <Mail className="h-3.5 w-3.5 mr-1.5 text-blue-600" />
+   561→                          Écrire
+   562→                        </Button>
+   563→                      </a>
+   564→                    </div>
+   565→                    <div>
+   566→                      <label className="text-xs font-bold text-foreground mb-1.5 block">Sujet de votre demande</label>
+   567→                      <div className="flex flex-wrap gap-1.5">
+   568→                        {['Paiement', 'Documents', 'Visite de lot', 'Litige', 'Question générale'].map((subject) => (
+   569→                          <button
+   570→                            key={subject}
+   571→                            type="button"
+   572→                            onClick={() => setHelpSubject(subject)}
+   573→                            className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all border ${
+   574→                              helpSubject === subject
+   575→                                ? 'bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 text-emerald-700 dark:text-emerald-300 shadow-sm'
+   576→                                : 'bg-muted/50 border-border text-muted-foreground hover:border-emerald-300 hover:text-foreground'
+   577→                            }`}
+   578→                          >
+   579→                            {subject}
+   580→                          </button>
+   581→                        ))}
+   582→                      </div>
+   583→                    </div>
+   584→                    <div>
+   585→                      <label className="text-xs font-bold text-foreground mb-1.5 block">Décrivez votre besoin</label>
+   586→                      <Textarea
+   587→                        value={helpMessage}
+   588→                        onChange={(e) => setHelpMessage(e.target.value)}
+   589→                        placeholder="Ex : J'ai un problème avec mon paiement de janvier..."
+   590→                        className="min-h-[100px] text-sm resize-none"
+   591→                      />
+   592→                    </div>
+   593→                    <Button
+   594→                      className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-500/20 transition-all"
+   595→                      onClick={() => {
+   596→                        if (!helpSubject || !helpMessage.trim()) {
+   597→                          toast.error('Veuillez choisir un sujet et décrire votre besoin.');
+   598→                          return;
+   599→                        }
+   600→                        setHelpSubmitted(true);
+   601→                        toast.success('Votre demande a été envoyée avec succès. Nous vous recontacterons sous 24h.', { duration: 5000 });
+   602→                      }}
+   603→                    >
+   604→                      <Send className="h-4 w-4 mr-2" />
+   605→                      Envoyer ma demande
+   606→                    </Button>
+   607→                    <p className="text-[10px] text-muted-foreground text-center">
+   608→                      En envoyant ce formulaire, vous acceptez que notre SAV vous recontacte par téléphone ou email.
+   609→                    </p>
+   610→                  </motion.div>
+   611→                ) : (
+   612→                  <motion.div
+   613→                    key="success"
+   614→                    initial={{ opacity: 0, scale: 0.9 }}
+   615→                    animate={{ opacity: 1, scale: 1 }}
+   616→                    exit={{ opacity: 0, scale: 0.9 }}
+   617→                    className="p-8 text-center"
+   618→                  >
+   619→                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 12, delay: 0.1 }}>
+   620→                      <CheckCircle2 className="h-16 w-16 text-emerald-500 mx-auto mb-4" />
+   621→                    </motion.div>
+   622→                    <h3 className="text-lg font-bold text-foreground mb-1">Demande envoyée !</h3>
+   623→                    <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-4">
+   624→                      Notre SAV a bien reçu votre demande concernant «&nbsp;{helpSubject}&nbsp;». Nous vous recontacterons sous <strong className="text-foreground">24h ouvrées</strong>.
+   625→                    </p>
+   626→                    <div className="flex gap-2 justify-center">
+   627→                      <Button variant="outline" onClick={() => { setHelpSubject(''); setHelpMessage(''); setHelpSubmitted(false); }} className="text-xs font-bold">
+   628→                        Nouvelle demande
+   629→                      </Button>
+   630→                      <Button className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold" onClick={() => setShowHelpDialog(false)}>
+   631→                        Fermer
+   632→                      </Button>
+   633→                    </div>
+   634→                  </motion.div>
+   635→                )}
+   636→              </AnimatePresence>
+   637→            </DialogContent>
+   638→          </Dialog>
+   639→
+   640→          {/* ═══════════════════════════════════════════════
+   641→              DIALOG : Suivi des paiements
+   642→              ═══════════════════════════════════════════════ */}
+   643→          <Dialog open={showPaymentDialog} onOpenChange={(open) => {
+   644→            setShowPaymentDialog(open);
+   645→            if (!open) { setPaymentSubmitted(false); setPaymentRef(''); setPaymentPhone(''); }
+   646→          }}>
+   647→            <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden rounded-2xl">
+   648→              <div className="bg-gradient-to-br from-emerald-500 to-teal-700 px-5 pt-5 pb-5 text-center relative overflow-hidden">
+   649→                <div className="absolute inset-0 opacity-10">
+   650→                  <div className="absolute -top-4 -right-4 w-24 h-24 bg-white rounded-full" />
+   651→                </div>
+   652→                <motion.div className="relative z-10" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 15 }}>
+   653→                  <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center mx-auto mb-2">
+   654→                    <Wallet className="h-6 w-6 text-white" />
+   655→                  </div>
+   656→                  <DialogTitle className="text-white text-base font-bold">Suivi de vos paiements</DialogTitle>
+   657→                  <p className="text-emerald-100 text-[11px] mt-1">Consultez l&apos;historique et le solde de votre compte.</p>
+   658→                </motion.div>
+   659→              </div>
+   660→              <AnimatePresence mode="wait">
+   661→                {!paymentSubmitted ? (
+   662→                  <motion.div key="form" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="p-5 space-y-4">
+   663→                    <div className="flex gap-2 items-center p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/50">
+   664→                      <Search className="h-4 w-4 text-emerald-600 shrink-0" />
+   665→                      <p className="text-[11px] text-muted-foreground leading-relaxed">
+   666→                        Entrez vos informations pour retrouver votre dossier de paiement.
+   667→                      </p>
+   668→                    </div>
+   669→                    <div>
+   670→                      <label className="text-xs font-bold text-foreground mb-1 block">Référence du lot <span className="text-muted-foreground font-normal">(optionnel)</span></label>
+   671→                      <Textarea
+   672→                        value={paymentRef}
+   673→                        onChange={(e) => setPaymentRef(e.target.value)}
+   674→                        placeholder="Ex : LOT-A12-003"
+   675→                        className="min-h-[40px] text-sm resize-none"
+   676→                      />
+   677→                    </div>
+   678→                    <div>
+   679→                      <label className="text-xs font-bold text-foreground mb-1 block">Numéro de téléphone <span className="text-red-500">*</span></label>
+   680→                      <Textarea
+   681→                        value={paymentPhone}
+   682→                        onChange={(e) => setPaymentPhone(e.target.value)}
+   683→                        placeholder="+225 07 XX XX XX XX"
+   684→                        className="min-h-[40px] text-sm resize-none"
+   685→                      />
+   686→                    </div>
+   687→                    <Button
+   688→                      className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-lg shadow-emerald-500/20"
+   689→                      onClick={handleSubmitPayment}
+   690→                    >
+   691→                      <Search className="h-4 w-4 mr-2" />
+   692→                      Rechercher mes paiements
+   693→                    </Button>
+   694→                    <div className="flex items-center justify-center gap-4">
+   695→                      <a href={savContacts.whatsappHref} target="_blank" rel="noopener noreferrer" className="text-[11px] text-emerald-600 font-semibold hover:underline flex items-center gap-1">
+   696→                        <MessageCircle className="h-3 w-3" />
+   697→                        Demander par WhatsApp
+   698→                      </a>
+   699→                      <a href={savContacts.phoneHref} className="text-[11px] text-emerald-600 font-semibold hover:underline flex items-center gap-1">
+   700→                        <Phone className="h-3 w-3" />
+   701→                        Appeler le SAV
+   702→                      </a>
+   703→                    </div>
+   704→                  </motion.div>
+   705→                ) : (
+   706→                  <motion.div key="success" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="p-6 text-center">
+   707→                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 12 }}>
+   708→                      <CheckCircle2 className="h-14 w-14 text-emerald-500 mx-auto mb-3" />
+   709→                    </motion.div>
+   710→                    <h3 className="text-base font-bold text-foreground mb-1">Demande enregistrée !</h3>
+   711→                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-300 dark:border-emerald-800 my-2">
+   712→                      <Ticket className="h-3.5 w-3.5 text-emerald-600" />
+   713→                      <span className="text-sm font-bold text-emerald-700 dark:text-emerald-300">{paymentTicket}</span>
+   714→                    </div>
+   715→                    <p className="text-xs text-muted-foreground max-w-xs mx-auto mb-4 leading-relaxed">
+   716→                      Votre récapitulatif de paiement sera envoyé par SMS sous <strong className="text-foreground">quelques minutes</strong>.
+   717→                    </p>
+   718→                    <Button className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold" onClick={() => setShowPaymentDialog(false)}>
+   719→                      Fermer
+   720→                    </Button>
+   721→                  </motion.div>
+   722→                )}
+   723→              </AnimatePresence>
+   724→            </DialogContent>
+   725→          </Dialog>
+   726→
+   727→          {/* ═══════════════════════════════════════════════
+   728→              DIALOG : Documents & attestations
+   729→              ═══════════════════════════════════════════════ */}
+   730→          <Dialog open={showDocsDialog} onOpenChange={setShowDocsDialog}>
+   731→            <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden rounded-2xl">
+   732→              <div className="bg-gradient-to-br from-blue-500 to-indigo-700 px-5 pt-5 pb-5 text-center relative overflow-hidden">
+   733→                <div className="absolute inset-0 opacity-10">
+   734→                  <div className="absolute -top-4 -right-4 w-24 h-24 bg-white rounded-full" />
+   735→                </div>
+   736→                <motion.div className="relative z-10" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 15 }}>
+   737→                  <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center mx-auto mb-2">
+   738→                    <FileText className="h-6 w-6 text-white" />
+   739→                  </div>
+   740→                  <DialogTitle className="text-white text-base font-bold">Documents & attestations</DialogTitle>
+   741→                  <p className="text-blue-100 text-[11px] mt-1">Téléchargez vos documents officiels.</p>
+   742→                </motion.div>
+   743→              </div>
+   744→              <div className="p-4 space-y-2.5 max-h-[60vh] overflow-y-auto">
+   745→                {SAV_DOCUMENTS.map((doc, i) => {
+   746→                  const Icon = doc.icon;
+   747→                  return (
+   748→                    <motion.div
+   749→                      key={doc.id}
+   750→                      initial={{ opacity: 0, x: 20 }}
+   751→                      animate={{ opacity: 1, x: 0 }}
+   752→                      transition={{ delay: i * 0.06, duration: 0.3 }}
+   753→                    >
+   754→                      <Card className="border-border hover:border-blue-300 dark:hover:border-blue-800 transition-all cursor-pointer group" onClick={() => {
+   755→                        if (doc.requiresAuth) {
+   756→                          toast.info(`Pour télécharger "${doc.title}", connectez-vous à votre espace client.`, { duration: 4000 });
+   757→                        }
+   758→                      }}>
+   759→                        <CardContent className="p-3 flex items-center gap-3">
+   760→                          <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${doc.color}18` }}>
+   761→                            <Icon className="h-4.5 w-4.5" style={{ color: doc.color }} />
+   762→                          </div>
+   763→                          <div className="flex-1 min-w-0">
+   764→                            <p className="text-xs font-bold text-foreground">{doc.title}</p>
+   765→                            <p className="text-[10px] text-muted-foreground leading-snug">{doc.description}</p>
+   766→                            {doc.requiresFullPayment && (
+   767→                              <span className="inline-flex items-center gap-1 mt-0.5 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+   768→                                <Lock className="h-2.5 w-2.5" />
+   769→                                Après paiement intégral
+   770→                              </span>
+   771→                            )}
+   772→                          </div>
+   773→                          <Download className="h-4 w-4 text-muted-foreground group-hover:text-blue-500 shrink-0 transition-colors" />
+   774→                        </CardContent>
+   775→                      </Card>
+   776→                    </motion.div>
+   777→                  );
+   778→                })}
+   779→                <div className="p-2.5 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 mt-2">
+   780→                  <p className="text-[11px] text-muted-foreground leading-relaxed text-center">
+   781→                    <strong className="text-foreground">Besoin d&apos;aide ?</strong> Contactez le SAV par{' '}
+   782→                    <a href={savContacts.whatsappHref} target="_blank" rel="noopener noreferrer" className="text-blue-600 font-semibold hover:underline">WhatsApp</a> ou{' '}
+   783→                    <a href={savContacts.phoneHref} className="text-blue-600 font-semibold hover:underline">téléphone</a>.
+   784→                  </p>
+   785→                </div>
+   786→              </div>
+   787→            </DialogContent>
+   788→          </Dialog>
+   789→
+   790→          {/* ═══════════════════════════════════════════════
+   791→              DIALOG : Réclamations & litiges
+   792→              ═══════════════════════════════════════════════ */}
+   793→          <Dialog open={showReclamationDialog} onOpenChange={(open) => {
+   794→            setShowReclamationDialog(open);
+   795→            if (!open) { setReclamationSubmitted(false); setReclamationCategory(''); setReclamationDescription(''); setReclamationName(''); setReclamationPhone(''); }
+   796→          }}>
+   797→            <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden rounded-2xl">
+   798→              <div className="bg-gradient-to-br from-amber-500 to-orange-600 px-5 pt-5 pb-5 text-center relative overflow-hidden">
+   799→                <div className="absolute inset-0 opacity-10">
+   800→                  <div className="absolute -top-4 -right-4 w-24 h-24 bg-white rounded-full" />
+   801→                </div>
+   802→                <motion.div className="relative z-10" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 15 }}>
+   803→                  <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center mx-auto mb-2">
+   804→                    <AlertCircle className="h-6 w-6 text-white" />
+   805→                  </div>
+   806→                  <DialogTitle className="text-white text-base font-bold">Réclamations & litiges</DialogTitle>
+   807→                  <p className="text-amber-100 text-[11px] mt-1">Signalez un problème, nous ouvrons un ticket suivi.</p>
+   808→                </motion.div>
+   809→              </div>
+   810→              <AnimatePresence mode="wait">
+   811→                {!reclamationSubmitted ? (
+   812→                  <motion.div key="form" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="p-5 space-y-4">
+   813→                    <div>
+   814→                      <label className="text-xs font-bold text-foreground mb-1 block">Votre nom <span className="text-red-500">*</span></label>
+   815→                      <Textarea value={reclamationName} onChange={(e) => setReclamationName(e.target.value)} placeholder="Nom complet" className="min-h-[40px] text-sm resize-none" />
+   816→                    </div>
+   817→                    <div>
+   818→                      <label className="text-xs font-bold text-foreground mb-1 block">Téléphone <span className="text-red-500">*</span></label>
+   819→                      <Textarea value={reclamationPhone} onChange={(e) => setReclamationPhone(e.target.value)} placeholder="+225 07 XX XX XX XX" className="min-h-[40px] text-sm resize-none" />
+   820→                    </div>
+   821→                    <div>
+   822→                      <label className="text-xs font-bold text-foreground mb-1.5 block">Catégorie de réclamation <span className="text-red-500">*</span></label>
+   823→                      <div className="flex flex-wrap gap-1.5">
+   824→                        {RECLAMATION_CATEGORIES.map((cat) => {
+   825→                          const Icon = cat.icon;
+   826→                          return (
+   827→                            <button
+   828→                              key={cat.id}
+   829→                              type="button"
+   830→                              onClick={() => setReclamationCategory(cat.id)}
+   831→                              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all border ${
+   832→                                reclamationCategory === cat.id
+   833→                                  ? 'border-amber-400 shadow-sm'
+   834→                                  : 'bg-muted/50 border-border text-muted-foreground hover:border-amber-300'
+   835→                              }`}
+   836→                              style={reclamationCategory === cat.id ? { backgroundColor: `${cat.color}18`, color: cat.color } : {}}
+   837→                            >
+   838→                              <Icon className="h-3 w-3" />
+   839→                              {cat.label}
+   840→                            </button>
+   841→                          );
+   842→                        })}
+   843→                      </div>
+   844→                    </div>
+   845→                    <div>
+   846→                      <label className="text-xs font-bold text-foreground mb-1 block">Décrivez votre réclamation <span className="text-red-500">*</span></label>
+   847→                      <Textarea
+   848→                        value={reclamationDescription}
+   849→                        onChange={(e) => setReclamationDescription(e.target.value)}
+   850→                        placeholder="Décrivez le problème en détail : date, circonstances, actions déjà entreprises..."
+   851→                        className="min-h-[100px] text-sm resize-none"
+   852→                      />
+   853→                    </div>
+   854→                    <Button
+   855→                      className="w-full h-11 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs shadow-lg shadow-amber-500/20"
+   856→                      onClick={handleSubmitReclamation}
+   857→                    >
+   858→                      <AlertCircle className="h-4 w-4 mr-2" />
+   859→                      Envoyer ma réclamation
+   860→                    </Button>
+   861→                    <p className="text-[10px] text-muted-foreground text-center">
+   862→                      Un accusé de réception avec numéro de ticket vous sera envoyé par SMS.
+   863→                    </p>
+   864→                  </motion.div>
+   865→                ) : (
+   866→                  <motion.div key="success" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="p-6 text-center">
+   867→                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 12 }}>
+   868→                      <CheckCircle2 className="h-14 w-14 text-amber-500 mx-auto mb-3" />
+   869→                    </motion.div>
+   870→                    <h3 className="text-base font-bold text-foreground mb-1">Réclamation enregistrée !</h3>
+   871→                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-800 my-2">
+   872→                      <Ticket className="h-3.5 w-3.5 text-amber-600" />
+   873→                      <span className="text-sm font-bold text-amber-700 dark:text-amber-300">{reclamationTicket}</span>
+   874→                    </div>
+   875→                    <p className="text-xs text-muted-foreground max-w-xs mx-auto mb-4 leading-relaxed">
+   876→                      Votre réclamation est prise en charge. Un conseiller vous recontactera sous <strong className="text-foreground">48h ouvrées</strong>.
+   877→                    </p>
+   878→                    <div className="flex gap-2 justify-center">
+   879→                      <Button variant="outline" onClick={() => { setReclamationSubmitted(false); setReclamationCategory(''); setReclamationDescription(''); }} className="text-xs font-bold">
+   880→                        Autre réclamation
+   881→                      </Button>
+   882→                      <Button className="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold" onClick={() => setShowReclamationDialog(false)}>
+   883→                        Fermer
+   884→                      </Button>
+   885→                    </div>
+   886→                  </motion.div>
+   887→                )}
+   888→              </AnimatePresence>
+   889→            </DialogContent>
+   890→          </Dialog>
+   891→
+   892→          {/* ═══════════════════════════════════════════════
+   893→              DIALOG : Assistance technique
+   894→              ═══════════════════════════════════════════════ */}
+   895→          <Dialog open={showAssistanceDialog} onOpenChange={(open) => {
+   896→            setShowAssistanceDialog(open);
+   897→            if (!open) { setAssistanceSubmitted(false); setAssistanceTopic(''); setAssistanceMessage(''); }
+   898→          }}>
+   899→            <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden rounded-2xl">
+   900→              <div className="bg-gradient-to-br from-red-500 to-rose-700 px-5 pt-5 pb-5 text-center relative overflow-hidden">
+   901→                <div className="absolute inset-0 opacity-10">
+   902→                  <div className="absolute -top-4 -right-4 w-24 h-24 bg-white rounded-full" />
+   903→                </div>
+   904→                <motion.div className="relative z-10" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 15 }}>
+   905→                  <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center mx-auto mb-2">
+   906→                    <Wrench className="h-6 w-6 text-white" />
+   907→                  </div>
+   908→                  <DialogTitle className="text-white text-base font-bold">Assistance technique</DialogTitle>
+   909→                  <p className="text-red-100 text-[11px] mt-1">Questions sur votre lot, bornage, raccordements.</p>
+   910→                </motion.div>
+   911→              </div>
+   912→              <AnimatePresence mode="wait">
+   913→                {!assistanceSubmitted ? (
+   914→                  <motion.div key="form" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="p-5 space-y-4">
+   915→                    <div>
+   916→                      <label className="text-xs font-bold text-foreground mb-1.5 block">Quel est votre sujet ?</label>
+   917→                      <div className="flex flex-wrap gap-1.5">
+   918→                        {ASSISTANCE_TOPICS.map((topic) => {
+   919→                          const Icon = topic.icon;
+   920→                          return (
+   921→                            <button
+   922→                              key={topic.id}
+   923→                              type="button"
+   924→                              onClick={() => setAssistanceTopic(topic.id)}
+   925→                              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all border ${
+   926→                                assistanceTopic === topic.id
+   927→                                  ? 'bg-red-100 dark:bg-red-900/30 border-red-400 text-red-700 dark:text-red-300 shadow-sm'
+   928→                                  : 'bg-muted/50 border-border text-muted-foreground hover:border-red-300 hover:text-foreground'
+   929→                              }`}
+   930→                            >
+   931→                              <Icon className="h-3 w-3" />
+   932→                              {topic.label}
+   933→                            </button>
+   934→                          );
+   935→                        })}
+   936→                      </div>
+   937→                    </div>
+   938→                    <div>
+   939→                      <label className="text-xs font-bold text-foreground mb-1 block">Décrivez votre besoin</label>
+   940→                      <Textarea
+   941→                        value={assistanceMessage}
+   942→                        onChange={(e) => setAssistanceMessage(e.target.value)}
+   943→                        placeholder="Ex : Je souhaite connaître les démarches pour le raccordement à l'eau de mon lot B5..."
+   944→                        className="min-h-[100px] text-sm resize-none"
+   945→                      />
+   946→                    </div>
+   947→                    <div className="flex gap-2">
+   948→                      <Button
+   949→                        className="flex-1 h-11 bg-red-500 hover:bg-red-600 text-white font-bold text-xs shadow-lg shadow-red-500/20"
+   950→                        onClick={handleSubmitAssistance}
+   951→                      >
+   952→                        <Send className="h-4 w-4 mr-2" />
+   953→                        Envoyer
+   954→                      </Button>
+   955→                    </div>
+   956→                    <div className="flex items-center justify-center gap-4">
+   957→                      <a href={savContacts.phoneHref} className="text-[11px] text-red-500 font-semibold hover:underline flex items-center gap-1">
+   958→                        <Phone className="h-3 w-3" />
+   959→                        Appeler le SAV
+   960→                      </a>
+   961→                      <a href={savContacts.whatsappHref} target="_blank" rel="noopener noreferrer" className="text-[11px] text-red-500 font-semibold hover:underline flex items-center gap-1">
+   962→                        <MessageCircle className="h-3 w-3" />
+   963→                        WhatsApp
+   964→                      </a>
+   965→                    </div>
+   966→                  </motion.div>
+   967→                ) : (
+   968→                  <motion.div key="success" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="p-6 text-center">
+   969→                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 12 }}>
+   970→                      <CheckCircle2 className="h-14 w-14 text-red-500 mx-auto mb-3" />
+   971→                    </motion.div>
+   972→                    <h3 className="text-base font-bold text-foreground mb-1">Demande envoyée !</h3>
+   973→                    <p className="text-xs text-muted-foreground max-w-xs mx-auto mb-4 leading-relaxed">
+   974→                      Notre équipe technique a reçu votre demande et vous recontactera sous <strong className="text-foreground">24h ouvrées</strong>.
+   975→                    </p>
+   976→                    <div className="flex gap-2 justify-center">
+   977→                      <Button variant="outline" onClick={() => { setAssistanceSubmitted(false); setAssistanceTopic(''); setAssistanceMessage(''); }} className="text-xs font-bold">
+   978→                        Autre question
+   979→                      </Button>
+   980→                      <Button className="bg-red-500 hover:bg-red-600 text-white text-xs font-bold" onClick={() => setShowAssistanceDialog(false)}>
+   981→                        Fermer
+   982→                      </Button>
+   983→                    </div>
+   984→                  </motion.div>
+   985→                )}
+   986→              </AnimatePresence>
+   987→            </DialogContent>
+   988→          </Dialog>
+   989→
+   990→          {/* ═══════════════════════════════════════════════
+   991→              DIALOG : Sollicitation expert
+   992→              ═══════════════════════════════════════════════ */}
+   993→          <Dialog open={showExpertDialog} onOpenChange={(open) => {
+   994→            setShowExpertDialog(open);
+   995→            if (!open) { setSelectedExpert(null); }
+   996→          }}>
+   997→            <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden rounded-2xl">
+   998→              {selectedExpert && (
+   999→                <>
+  1000→                  <div
+  1001→                    className="px-5 pt-5 pb-5 text-center relative overflow-hidden"
+  1002→                    style={{ background: `linear-gradient(135deg, ${selectedExpert.color}, ${selectedExpert.color}cc)` }}
+  1003→                  >
+  1004→                    <div className="absolute inset-0 opacity-10">
+  1005→                      <div className="absolute -top-4 -right-4 w-24 h-24 bg-white rounded-full" />
+  1006→                      <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-white rounded-full" />
+  1007→                    </div>
+  1008→                    <motion.div className="relative z-10" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 15 }}>
+  1009→                      <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center mx-auto mb-2">
+  1010→                        {(() => { const EIcon = selectedExpert.icon; return <EIcon className="h-6 w-6 text-white" />; })()}
+  1011→                      </div>
+  1012→                      <DialogTitle className="text-white text-base font-bold">
+  1013→                        Solliciter un {selectedExpert.title.toLowerCase()}
+  1014→                      </DialogTitle>
+  1015→                      <p className="text-white/70 text-[11px] mt-1">{selectedExpert.subtitle}</p>
+  1016→                    </motion.div>
+  1017→                  </div>
+  1018→                  <AnimatePresence mode="wait">
+  1019→                    {!expertSubmitted ? (
+  1020→                      <motion.div key="form" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="p-5 space-y-4">
+  1021→                        <div className="flex gap-2">
+  1022→                          <a href={savContacts.phoneHref} className="flex-1">
+  1023→                            <Button variant="outline" className="w-full h-10 text-[11px] font-bold" style={{ borderColor: `${selectedExpert.color}40`, hover: '' }}>
+  1024→                              <Phone className="h-3.5 w-3.5 mr-1" style={{ color: selectedExpert.color }} />
+  1025→                              Appeler
+  1026→                            </Button>
+  1027→                          </a>
+  1028→                          <a href={savContacts.whatsappHref} target="_blank" rel="noopener noreferrer" className="flex-1">
+  1029→                            <Button variant="outline" className="w-full h-10 text-[11px] font-bold" style={{ borderColor: `${selectedExpert.color}40` }}>
+  1030→                              <MessageCircle className="h-3.5 w-3.5 mr-1" style={{ color: selectedExpert.color }} />
+  1031→                              WhatsApp
+  1032→                            </Button>
+  1033→                          </a>
+  1034→                        </div>
+  1035→                        <div className="h-px bg-border" />
+  1036→                        <p className="text-[11px] text-muted-foreground text-center">ou remplissez le formulaire ci-dessous :</p>
+  1037→                        <div>
+  1038→                          <label className="text-xs font-bold text-foreground mb-1 block">Votre nom <span className="text-red-500">*</span></label>
+  1039→                          <Textarea value={expertName} onChange={(e) => setExpertName(e.target.value)} placeholder="Nom complet" className="min-h-[40px] text-sm resize-none" />
+  1040→                        </div>
+  1041→                        <div>
+  1042→                          <label className="text-xs font-bold text-foreground mb-1 block">Téléphone <span className="text-red-500">*</span></label>
+  1043→                          <Textarea value={expertPhone} onChange={(e) => setExpertPhone(e.target.value)} placeholder="+225 07 XX XX XX XX" className="min-h-[40px] text-sm resize-none" />
+  1044→                        </div>
+  1045→                        <div>
+  1046→                          <label className="text-xs font-bold text-foreground mb-1.5 block">Niveau d&apos;urgence <span className="text-red-500">*</span></label>
+  1047→                          <div className="flex flex-wrap gap-1.5">
+  1048→                            {[
+  1049→                              { id: 'normal', label: 'Normal', emoji: '🟢' },
+  1050→                              { id: 'urgent', label: 'Urgent', emoji: '🟡' },
+  1051→                              { id: 'tres-urgent', label: 'Très urgent', emoji: '🔴' },
+  1052→                            ].map((u) => (
+  1053→                              <button
+  1054→                                key={u.id}
+  1055→                                type="button"
+  1056→                                onClick={() => setExpertUrgency(u.id)}
+  1057→                                className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all border ${
+  1058→                                  expertUrgency === u.id
+  1059→                                    ? 'border-foreground bg-foreground/5 shadow-sm'
+  1060→                                    : 'bg-muted/50 border-border text-muted-foreground hover:border-foreground/30'
+  1061→                                }`}
+  1062→                              >
+  1063→                                <span>{u.emoji}</span>
+  1064→                                {u.label}
+  1065→                              </button>
+  1066→                            ))}
+  1067→                          </div>
+  1068→                        </div>
+  1069→                        <div>
+  1070→                          <label className="text-xs font-bold text-foreground mb-1 block">Décrivez votre besoin <span className="text-red-500">*</span></label>
+  1071→                          <Textarea
+  1072→                            value={expertNeed}
+  1073→                            onChange={(e) => setExpertNeed(e.target.value)}
+  1074→                            placeholder={`Ex : J'ai besoin d'un ${selectedExpert.title.toLowerCase()} pour mon lot B5, travaux de...`}
+  1075→                            className="min-h-[90px] text-sm resize-none"
+  1076→                          />
+  1077→                        </div>
+  1078→                        <Button
+  1079→                          className="w-full h-11 text-white font-bold text-xs shadow-lg transition-all"
+  1080→                          style={{ backgroundColor: selectedExpert.color, '--tw-shadow-color': `${selectedExpert.color}40` } as React.CSSProperties}
+  1081→                          onClick={handleSubmitExpert}
+  1082→                        >
+  1083→                          <Send className="h-4 w-4 mr-2" />
+  1084→                          Envoyer ma demande
+  1085→                        </Button>
+  1086→                        <p className="text-[10px] text-muted-foreground text-center">
+  1087→                          Mise en relation sous <strong className="text-foreground">24h ouvrées</strong>.
+  1088→                        </p>
+  1089→                      </motion.div>
+  1090→                    ) : (
+  1091→                      <motion.div key="success" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="p-6 text-center">
+  1092→                        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 12 }}>
+  1093→                          <CheckCircle2 className="h-14 w-14 mx-auto mb-3" style={{ color: selectedExpert.color }} />
+  1094→                        </motion.div>
+  1095→                        <h3 className="text-base font-bold text-foreground mb-1">Demande envoyée !</h3>
+  1096→                        <p className="text-xs text-muted-foreground max-w-xs mx-auto mb-4 leading-relaxed">
+  1097→                          Votre demande de mise en relation avec un <strong className="text-foreground">{selectedExpert.title.toLowerCase()}</strong> a été enregistrée. Notre SAV vous contactera sous <strong className="text-foreground">24h ouvrées</strong>.
+  1098→                        </p>
+  1099→                        <div className="flex gap-2 justify-center">
+  1100→                          <Button variant="outline" onClick={() => { setExpertSubmitted(false); setExpertName(''); setExpertPhone(''); setExpertNeed(''); setExpertUrgency(''); }} className="text-xs font-bold">
+  1101→                            Autre demande
+  1102→                          </Button>
+  1103→                          <Button className="text-white text-xs font-bold" style={{ backgroundColor: selectedExpert.color }} onClick={() => setShowExpertDialog(false)}>
+  1104→                            Fermer
+  1105→                          </Button>
+  1106→                        </div>
+  1107→                      </motion.div>
+  1108→                    )}
+  1109→                  </AnimatePresence>
+  1110→                </>
+  1111→              )}
+  1112→            </DialogContent>
+  1113→          </Dialog>
+  1114→
+  1115→          {/* Méthodes de contact rapides */}
+  1116→          <div>
+  1117→            <h3 className="text-sm font-bold text-foreground mb-2 px-1">Contactez-nous</h3>
+  1118→            <div className="grid grid-cols-3 gap-2">
+  1119→              <a href={savContacts.phoneHref} className="block group">
+  1120→                <Card className="border border-border cursor-pointer transition-all hover:shadow-md hover:border-emerald-400 h-full">
+  1121→                  <CardContent className="p-2.5 flex flex-col items-center text-center gap-1">
+  1122→                    <div className="w-9 h-9 bg-emerald-100 dark:bg-emerald-900/40 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+  1123→                      <Phone className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+  1124→                    </div>
+  1125→                    <p className="text-[11px] font-bold text-foreground">Appeler</p>
+  1126→                    <p className="text-[9px] text-muted-foreground leading-tight">{savContacts.phone}</p>
+  1127→                  </CardContent>
+  1128→                </Card>
+  1129→              </a>
+  1130→              <a href={savContacts.whatsappHref} target="_blank" rel="noopener noreferrer" className="block group">
+  1131→                <Card className="border border-border cursor-pointer transition-all hover:shadow-md hover:border-green-500 h-full">
+  1132→                  <CardContent className="p-2.5 flex flex-col items-center text-center gap-1">
+  1133→                    <div className="w-9 h-9 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+  1134→                      <MessageCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+  1135→                    </div>
+  1136→                    <p className="text-[11px] font-bold text-foreground">WhatsApp</p>
+  1137→                    <p className="text-[9px] text-muted-foreground leading-tight">{savContacts.whatsapp}</p>
+  1138→                  </CardContent>
+  1139→                </Card>
+  1140→              </a>
+  1141→              <a href={savContacts.emailHref} className="block group">
+  1142→                <Card className="border border-border cursor-pointer transition-all hover:shadow-md hover:border-blue-400 h-full">
+  1143→                  <CardContent className="p-2.5 flex flex-col items-center text-center gap-1">
+  1144→                    <div className="w-9 h-9 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+  1145→                      <Mail className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+  1146→                    </div>
+  1147→                    <p className="text-[11px] font-bold text-foreground">Écrire</p>
+  1148→                    <p className="text-[9px] text-muted-foreground leading-tight">{savContacts.email}</p>
+  1149→                  </CardContent>
+  1150→                </Card>
+  1151→              </a>
+  1152→            </div>
+  1153→          </div>
+  1154→
+  1155→          {/* ═══════════════════════════════════════════════
+  1156→              Nos services — 4 cartes cliquables
+  1157→              ═══════════════════════════════════════════════ */}
+  1158→          <div>
+  1159→            <h3 className="text-sm font-bold text-foreground mb-2 px-1">Nos services</h3>
+  1160→            <div className="grid grid-cols-2 gap-2">
+  1161→              {SAV_SERVICES.map((service) => {
+  1162→                const Icon = service.icon;
+  1163→                return (
+  1164→                  <motion.div key={service.title} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+  1165→                    <Card
+  1166→                      className="border-border cursor-pointer group hover:shadow-md transition-all h-full"
+  1167→                      onClick={() => {
+  1168→                        switch (service.title) {
+  1169→                          case 'Suivi des paiements':
+  1170→                            setShowPaymentDialog(true);
+  1171→                            break;
+  1172→                          case 'Documents & attestations':
+  1173→                            setShowDocsDialog(true);
+  1174→                            break;
+  1175→                          case 'Réclamations & litiges':
+  1176→                            setShowReclamationDialog(true);
+  1177→                            break;
+  1178→                          case 'Assistance technique':
+  1179→                            setShowAssistanceDialog(true);
+  1180→                            break;
+  1181→                        }
+  1182→                      }}
+  1183→                    >
+  1184→                      <CardContent className="p-3 flex flex-col items-center text-center gap-1.5">
+  1185→                        <div
+  1186→                          className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform"
+  1187→                          style={{ backgroundColor: `${service.color}20` }}
+  1188→                        >
+  1189→                          <Icon className="h-4.5 w-4.5" style={{ color: service.color }} />
+  1190→                        </div>
+  1191→                        <p className="text-[11px] font-bold text-foreground">{service.title}</p>
+  1192→                        <p className="text-[10px] text-muted-foreground leading-snug">{service.description}</p>
+  1193→                        <div className="mt-0.5 flex items-center gap-0.5 text-[9px] font-semibold" style={{ color: service.color }}>
+  1194→                          <span>Ouvrir</span>
+  1195→                          <ChevronDown className="h-2.5 w-2.5 group-hover:translate-y-0.5 transition-transform" />
+  1196→                        </div>
+  1197→                      </CardContent>
+  1198→                    </Card>
+  1199→                  </motion.div>
+  1200→                );
+  1201→              })}
+  1202→            </div>
+  1203→          </div>
+  1204→
+  1205→          {/* Besoin d'un expert pour votre projet ? */}
+  1206→          <AnimatePresence mode="wait">
+  1207→            {!showExpertPanel ? (
+  1208→              <motion.div
+  1209→                key="expert-cta"
+  1210→                initial={{ opacity: 0 }}
+  1211→                animate={{ opacity: 1 }}
+  1212→                exit={{ opacity: 0, x: -20 }}
+  1213→                transition={{ duration: 0.2 }}
+  1214→              >
+  1215→                <Card className="border-amber-200 dark:border-amber-900/50 bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/20 dark:to-card overflow-hidden cursor-pointer"
+  1216→                  onClick={() => handleOpenExpertPanel()}
+  1217→                >
+  1218→                  <CardContent className="p-3.5 text-center">
+  1219→                    <motion.div
+  1220→                      className="w-11 h-11 bg-amber-100 dark:bg-amber-900/40 rounded-xl flex items-center justify-center mx-auto mb-2 shadow-md shadow-amber-200/50 dark:shadow-amber-900/30"
+  1221→                      animate={{
+  1222→                        boxShadow: [
+  1223→                          '0 4px 6px -1px rgba(245,158,11,0.2)',
+  1224→                          '0 10px 15px -3px rgba(245,158,11,0.4)',
+  1225→                          '0 4px 6px -1px rgba(245,158,11,0.2)',
+  1226→                        ],
+  1227→                      }}
+  1228→                      transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+  1229→                    >
+  1230→                      <HardHat className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+  1231→                    </motion.div>
+  1232→                    <h3 className="text-xs font-bold text-foreground mb-0.5">
+  1233→                      Besoin d&apos;un expert pour votre projet ?
+  1234→                    </h3>
+  1235→                    <p className="text-[10px] text-muted-foreground max-w-xs mx-auto leading-relaxed mb-2.5">
+  1236→                      Choisissez l&apos;un de nos partenaires qualifiés et nous vous
+  1237→                      mettrons en relation rapidement.
+  1238→                    </p>
+  1239→                    <Button
+  1240→                      className="relative overflow-hidden bg-amber-500 hover:bg-amber-600 text-white font-bold w-full text-xs shadow-md shadow-amber-500/25 transition-all hover:scale-[1.02] h-10"
+  1241→                      onClick={(e) => {
+  1242→                        e.stopPropagation();
+  1243→                        handleOpenExpertPanel();
+  1244→                      }}
+  1245→                    >
+  1246→                      <motion.span
+  1247→                        className="absolute inset-0"
+  1248→                        animate={{
+  1249→                          background: ['rgba(255,255,255,0)', 'rgba(255,255,255,0.15)', 'rgba(255,255,255,0)'],
+  1250→                        }}
+  1251→                        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+  1252→                      />
+  1253→                      <ChevronDown className="h-4 w-4 mr-2" />
+  1254→                      <motion.span
+  1255→                        animate={{ scale: [1, 1.03, 1] }}
+  1256→                        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+  1257→                      >
+  1258→                        Voir nos experts disponibles
+  1259→                      </motion.span>
+  1260→                    </Button>
+  1261→                  </CardContent>
+  1262→                </Card>
+  1263→              </motion.div>
+  1264→            ) : (
+  1265→              <motion.div
+  1266→                key="expert-panel"
+  1267→                initial={{ opacity: 0, x: 20 }}
+  1268→                animate={{ opacity: 1, x: 0 }}
+  1269→                exit={{ opacity: 0, x: 20 }}
+  1270→                transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+  1271→              >
+  1272→                <ExpertDetailPanel
+  1273→                  initialCategoryId={selectedExpertCategoryId}
+  1274→                  onBack={handleBackFromExpertPanel}
+  1275→                />
+  1276→              </motion.div>
+  1277→            )}
+  1278→          </AnimatePresence>
+  1279→
+  1280→          {/* Horaires */}
+  1281→          <Card className="border-border">
+  1282→            <CardContent className="p-3.5">
+  1283→              <div className="flex items-center gap-2 mb-2">
+  1284→                <Clock className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+  1285→                <h3 className="text-sm font-bold text-foreground">Horaires d&apos;ouverture</h3>
+  1286→              </div>
+  1287→              <div className="space-y-1.5">
+  1288→                {savHoraires.map((h) => (
+  1289→                  <div key={h.day} className="flex justify-between items-center text-xs py-1.5 border-b border-border last:border-0">
+  1290→                    <span className="text-muted-foreground font-medium">{h.day}</span>
+  1291→                    <span className={h.hours === 'Fermé' ? 'text-red-500 font-bold' : 'text-foreground font-bold'}>
+  1292→                      {h.hours}
+  1293→                    </span>
+  1294→                  </div>
+  1295→                ))}
+  1296→              </div>
+  1297→            </CardContent>
+  1298→          </Card>
+  1299→
+  1300→          {/* FAQ */}
+  1301→          <div>
+  1302→            <div className="flex items-center gap-2 mb-2 px-1">
+  1303→              <HelpCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+  1304→              <h3 className="text-sm font-bold text-foreground">Questions fréquentes</h3>
+  1305→            </div>
+  1306→            <div className="space-y-1.5">
+  1307→              {savFaq.map((item, index) => {
+  1308→                const isOpen = openFaq === index;
+  1309→                return (
+  1310→                  <Card key={index} className={`border-border transition-all ${isOpen ? 'border-emerald-300 dark:border-emerald-800' : ''}`}>
+  1311→                    <button
+  1312→                      type="button"
+  1313→                      onClick={() => setOpenFaq(isOpen ? null : index)}
+  1314→                      className="w-full text-left p-3 flex items-center justify-between gap-3"
+  1315→                      aria-expanded={isOpen}
+  1316→                    >
+  1317→                      <span className="text-sm font-bold text-foreground flex-1">{item.question}</span>
+  1318→                      <ChevronDown className={`h-4 w-4 text-muted-foreground shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+  1319→                    </button>
+  1320→                    {isOpen && (
+  1321→                      <div className="px-3 pb-3 -mt-1">
+  1322→                        <p className="text-[11px] text-muted-foreground leading-relaxed">{item.answer}</p>
+  1323→                      </div>
+  1324→                    )}
+  1325→                  </Card>
+  1326→                );
+  1327→              })}
+  1328→            </div>
+  1329→          </div>
+  1330→
+  1331→          {/* CTA : se connecter pour suivre sa demande */}
+  1332→          {onLoginClick && (
+  1333→            <Card className="border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/20">
+  1334→              <CardContent className="p-3.5 text-center">
+  1335→                <p className="text-sm font-bold text-foreground mb-0.5">Déjà client ?</p>
+  1336→                <p className="text-[11px] text-muted-foreground mb-2.5">
+  1337→                  Connectez-vous pour suivre vos demandes et l&apos;avancée de vos paiements en temps réel.
+  1338→                </p>
+  1339→                <Button onClick={onLoginClick} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold w-full h-10 text-xs">
+  1340→                  Se connecter à mon espace
+  1341→                </Button>
+  1342→              </CardContent>
+  1343→            </Card>
+  1344→          )}
+  1345→
+  1346→          {/* Note de bas de page */}
+  1347→          <div className="text-center pb-1 pt-0">
+  1348→            <p className="text-[11px] text-muted-foreground">
+  1349→              KAMI-EXTENSION · Service après-vente à votre service
+  1350→            </p>
+  1351→          </div>
+  1352→        </div>
+  1353→      </div>
+  1354→    </div>
+  1355→  );
+  1356→}
+  1357→

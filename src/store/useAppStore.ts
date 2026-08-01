@@ -11,6 +11,7 @@ interface User {
   quartier?: string | null;
   villageOrigine?: string | null;
   referralCode?: string;
+  profilePhoto?: string | null;
   role?: string;
   status?: string;
 }

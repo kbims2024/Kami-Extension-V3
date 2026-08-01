@@ -118,3 +118,29 @@ Stage Summary:
 - Component code preserved exactly; only rulesData array was modified
 Task 1 done: villageOrigine field added for non-residents
 Task 2 done: Full MongoDB config, Prisma removed, Vercel ready
+
+---
+Task ID: main
+Agent: Main Agent
+Task: SAV Settings API + Admin UI + Fix Payment Tracking Dialog
+
+Work Log:
+- **A1**: Extended Settings model (Settings.ts) with 5 new fields: savPhone, savWhatsapp, savEmail, savHoraires (JSON string), savFaq (JSON string) — all with appropriate defaults.
+- **A2**: Created `/api/sav-settings/route.ts` — GET returns parsed SAV settings (with defaults fallback), PUT (admin-only via `x-admin-role: ADMIN` header) updates settings using the Prisma-like db wrapper API (`findFirst`, `update`, `create`).
+- **A3**: Added `SavSettingsAdmin` component inline in page.tsx with full form (phone, whatsapp, email, horaires editor with add/remove, FAQ editor with add/remove). Added admin card with Headset icon in the admin grid. Added `adminView === 'sav-settings'` handler. Imported `Headset`, `Plus`, `Trash2` icons.
+- **A4**: Converted SAV_CONTACTS, SAV_HORAIRES, SAV_FAQ constants to `DEFAULT_SAV_*` constants. Added `savContacts`, `savHoraires`, `savFaq` state variables with `useEffect` fetching from `/api/sav-settings`. Replaced all 14 references to old constants with new state variables throughout the SAV screen JSX.
+- **B**: Replaced fake payment tracking dialog with real authentication flow:
+  - Removed `paymentRef` and `paymentTicket` state, added `paymentPassword`, `showPaymentPassword`, `paymentLoading`, `paymentData`, `paymentStats`, `paymentLoginError` state
+  - New `handleSubmitPayment` async handler: validates password → POST to `/api/auth/login` → fetches payments + stats in parallel → displays real data
+  - Login form shows: optional phone field + required password field with Eye/EyeOff toggle
+  - Success view shows: 4 summary stat cards (total paid, remaining, lots reserved, progress %) + per-payment cards (lot name, status badge, amount, date)
+  - Error display for failed login attempts
+  - Loading spinner during authentication
+  - Imported `Eye`, `EyeOff`, `Loader2` icons and `Input` component
+  - Fixed pre-existing `hover: ''` style prop error on Button
+
+Stage Summary:
+- All 4 tasks completed: Settings model extended, API created, admin UI added, SAV screen dynamic, payment dialog fixed
+- No new lint errors introduced (all 12 lint errors are pre-existing)
+- No new TypeScript errors in modified files (Settings.ts transform errors are pre-existing)
+---

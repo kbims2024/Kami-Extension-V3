@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
+// Helper: convert a File to a base64 data URI
+function fileToDataUri(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      resolve(reader.result as string);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 // GET /api/user/profile?userId=xxx
 export async function GET(request: NextRequest) {
   try {
@@ -25,6 +37,7 @@ export async function GET(request: NextRequest) {
       referralCode: user.referralCode,
       status: user.status,
       role: user.role,
+      profilePhoto: (user as any).profilePhoto,
     });
   } catch (error) {
     console.error('Erreur profil GET:', error);
@@ -35,8 +48,54 @@ export async function GET(request: NextRequest) {
 // PUT /api/user/profile - Mettre à jour le profil
 export async function PUT(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { userId, name, pseudo, phone, email, quartier } = body;
+    const contentType = request.headers.get('content-type') || '';
+    const isMultipart = contentType.includes('multipart/form-data');
+
+    let userId: string;
+    let name: string | undefined;
+    let pseudo: string | undefined;
+    let phone: string | undefined;
+    let email: string | undefined;
+    let quartier: string | undefined;
+    let profilePhotoDataUri: string | undefined;
+
+    if (isMultipart) {
+      const formData = await request.formData();
+      userId = (formData.get('userId') as string) || '';
+      name = (formData.get('name') as string) || undefined;
+      pseudo = (formData.get('pseudo') as string) || undefined;
+      phone = (formData.get('phone') as string) || undefined;
+      email = (formData.get('email') as string) || undefined;
+      quartier = (formData.get('quartier') as string) || undefined;
+
+      const photoFile = formData.get('profilePhoto') as File | null;
+      if (photoFile && photoFile.size > 0) {
+        // Validate image type
+        const validImageTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        if (!validImageTypes.includes(photoFile.type)) {
+          return NextResponse.json(
+            { error: "Format d'image non supporté (JPEG, PNG, WebP ou GIF requis)" },
+            { status: 400 }
+          );
+        }
+        // Validate image size (max 5MB)
+        if (photoFile.size > 5 * 1024 * 1024) {
+          return NextResponse.json(
+            { error: "La photo ne doit pas dépasser 5 Mo" },
+            { status: 400 }
+          );
+        }
+        profilePhotoDataUri = await fileToDataUri(photoFile);
+      }
+    } else {
+      const body = await request.json();
+      userId = body.userId;
+      name = body.name;
+      pseudo = body.pseudo;
+      phone = body.phone;
+      email = body.email;
+      quartier = body.quartier;
+    }
 
     if (!userId) {
       return NextResponse.json({ error: 'userId requis' }, { status: 400 });
@@ -74,6 +133,9 @@ export async function PUT(request: NextRequest) {
     if (existingUser.isResident && quartier !== undefined) {
       updateData.quartier = quartier || null;
     }
+    if (profilePhotoDataUri !== undefined) {
+      updateData.profilePhoto = profilePhotoDataUri;
+    }
 
     const updatedUser = await db.user.update({
       where: { id: userId },
@@ -91,6 +153,7 @@ export async function PUT(request: NextRequest) {
       referralCode: updatedUser.referralCode,
       status: updatedUser.status,
       role: updatedUser.role,
+      profilePhoto: (updatedUser as any).profilePhoto,
     });
   } catch (error) {
     console.error('Erreur profil PUT:', error);

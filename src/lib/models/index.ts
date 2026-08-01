@@ -31,3 +31,6 @@ export type { IProgressUpdateDocument } from './ProgressUpdate';
 
 export { ExpertApplication } from './ExpertApplication';
 export type { IExpertApplicationDocument } from './ExpertApplication';
+
+export { UploadedFile } from './UploadedFile';
+export type { IUploadedFileDocument } from './UploadedFile';

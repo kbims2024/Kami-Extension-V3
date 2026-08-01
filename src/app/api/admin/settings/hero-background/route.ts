@@ -1,8 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { writeFile } from 'fs/promises';
-import path from 'path';
-import { mkdir } from 'fs/promises';
+
+// Helper: convert a File to a base64 data URI
+function fileToDataUri(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      resolve(reader.result as string);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
 
 // GET - Récupérer les paramètres (incluant l'image de fond)
 export async function GET() {
@@ -26,7 +35,7 @@ export async function GET() {
   }
 }
 
-// POST - Mettre à jour l'image de fond du hero
+// POST - Mettre à jour l'image de fond du hero (store as base64 in Settings)
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
@@ -49,44 +58,30 @@ export async function POST(request: NextRequest) {
     }
 
     // Valider la taille du fichier (max 5MB)
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    if (file.size > maxSize) {
+    if (file.size > 5 * 1024 * 1024) {
       return NextResponse.json(
         { error: 'Le fichier est trop volumineux. Maximum 5MB' },
         { status: 400 }
       );
     }
 
-    // Convertir le fichier en buffer
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    // Créer le dossier uploads s'il n'existe pas
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'hero');
-    await mkdir(uploadsDir, { recursive: true });
-
-    // Générer un nom de fichier unique
-    const timestamp = Date.now();
-    const ext = path.extname(file.name);
-    const filename = `hero-bg-${timestamp}${ext}`;
-    const filepath = path.join(uploadsDir, filename);
-
-    // Sauvegarder le fichier
-    await writeFile(filepath, buffer);
+    // Convert file to base64 data URI
+    const dataUri = await fileToDataUri(file);
 
     // Récupérer ou créer les paramètres
     let settings = await db.settings.findFirst();
     if (!settings) {
       settings = await db.settings.create({
         data: {
-          heroBackground: `/uploads/hero/${filename}`,
+          heroBackground: dataUri,
         },
       });
     } else {
+      const settingsId = settings.id!;
       settings = await db.settings.update({
-        where: { id: settings.id },
+        where: { id: settingsId },
         data: {
-          heroBackground: `/uploads/hero/${filename}`,
+          heroBackground: dataUri,
         },
       });
     }
@@ -96,9 +91,9 @@ export async function POST(request: NextRequest) {
       heroBackground: settings.heroBackground,
     });
   } catch (error) {
-    console.error('Erreur lors du téléchargement de l\'image:', error);
+    console.error("Erreur lors du téléchargement de l'image:", error);
     return NextResponse.json(
-      { error: 'Erreur lors du téléchargement de l\'image' },
+      { error: "Erreur lors du téléchargement de l'image" },
       { status: 500 }
     );
   }

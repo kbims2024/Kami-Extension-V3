@@ -15,6 +15,7 @@ import { AdminFile } from './models/AdminFile';
 import { Notification } from './models/Notification';
 import { ProgressUpdate } from './models/ProgressUpdate';
 import { ExpertApplication } from './models/ExpertApplication';
+import { UploadedFile } from './models/UploadedFile';
 
 // Helper: ensure DB connection before any operation
 async function ensureConnection() {
@@ -396,4 +397,5 @@ export const db = {
   notification: createModelWrapper(Notification),
   progressUpdate: createModelWrapper(ProgressUpdate),
   expertApplication: createModelWrapper(ExpertApplication),
+  uploadedFile: createModelWrapper(UploadedFile),
 };
