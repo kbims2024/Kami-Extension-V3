@@ -144,3 +144,21 @@ Stage Summary:
 - No new lint errors introduced (all 12 lint errors are pre-existing)
 - No new TypeScript errors in modified files (Settings.ts transform errors are pre-existing)
 ---
+---
+Task ID: preview-fix
+Agent: Main Agent
+Task: Fix preview not working - dev server crash on boot
+
+Work Log:
+- Diagnosed that the preview panel (Caddy port 81) could not reach the Next.js dev server (port 3000)
+- Found that .zscripts/dev.sh was failing on startup due to:\n  1. `set -euo pipefail` causing script exit on any error\n  2. `bun run db:push` (Prisma) failing since Prisma was removed in previous migration\n  3. `trap cleanup EXIT` killing the dev server when script exited
+- Fixed .zscripts/dev.sh: removed set -euo pipefail, removed db:push step, added auto-restart loop, added NODE_OPTIONS memory limit
+- Updated package.json dev script: removed `tee dev.log` pipe (caused issues), added NODE_OPTIONS for 1GB memory
+- Verified: dev server starts, serves 200 with 30KB+ page content through both direct (port 3000) and proxy (port 81)
+- Cleaned up temporary files (server.js, keep-alive.sh, keep-alive.log)
+
+Stage Summary:
+- Root cause: dev.sh boot script failing due to Prisma db:push after Prisma was removed
+- Fixed dev.sh will work correctly on next container restart
+- Dev server verified: HTTP 200, 30KB+ HTML, stable across multiple requests
+
