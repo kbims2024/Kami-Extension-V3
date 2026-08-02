@@ -157,7 +157,7 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
 
       {/* Hero Section */}
       <section className="relative flex flex-col justify-center text-white overflow-hidden bg-gradient-to-br from-brand-blue via-blue-700 to-brand-blue"
-        style={{ minHeight: 'calc(100vh - 73px)' }}
+        style={{ minHeight: 'calc(100vh - 73px)', paddingTop: '110px' }}
       >
         {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">

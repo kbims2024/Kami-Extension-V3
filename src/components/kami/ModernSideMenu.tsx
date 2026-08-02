@@ -17,7 +17,7 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
   const menuItems = [
     { icon: Home, label: 'Accueil', screen: 'home' },
     { icon: Map, label: 'Plan des lots', screen: 'map' },
-    { icon: Wallet, label: 'Mes réservations', screen: 'dashboard' },
+    { icon: Wallet, label: 'Mes réservations', screen: 'dashboard', requireAuth: true },
     { icon: MessageSquare, label: 'Discussions', screen: 'chat', requireAuth: true },
     { icon: Users, label: 'Comité de Gestion des Lots', screen: 'management-committee', requireAuth: true, isAdminOnly: true },
     { icon: User, label: 'Mon profil', screen: 'profile', requireAuth: true },

@@ -387,7 +387,7 @@ export default function KamiExtensionPage() {
         </PageTransition>
       )}
 
-      {currentScreen === 'dashboard' && (
+      {currentScreen === 'dashboard' && currentUser && (
         <PageTransition>
           <UserDashboard
             currentUser={currentUser}
