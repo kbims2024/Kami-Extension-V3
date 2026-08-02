@@ -1,44 +1,15 @@
 /**
- * Drop-in replacement for Prisma db client using Mongoose.
- * Provides Prisma-like API (findUnique, findMany, create, update, delete, etc.)
- * so that existing route files need minimal changes.
+ * Local JSON-file-based database.
+ * Drop-in replacement for MongoDB/Mongoose — same Prisma-like API.
+ * 
+ * Data persists to db/test-data.json so it survives HMR.
+ * For production deployment on Vercel, swap back to the Mongoose version.
  */
-import { connectDB } from './mongodb';
-import { User } from './models/User';
-import { Lot } from './models/Lot';
-import { Reservation } from './models/Reservation';
-import { Payment } from './models/Payment';
-import { Message } from './models/Message';
-import { Settings } from './models/Settings';
-import { Logo } from './models/Logo';
-import { AdminFile } from './models/AdminFile';
-import { Notification } from './models/Notification';
-import { ProgressUpdate } from './models/ProgressUpdate';
-import { ExpertApplication } from './models/ExpertApplication';
-import { UploadedFile } from './models/UploadedFile';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
+import { join } from 'path';
+import { randomUUID } from 'crypto';
 
-// Helper: ensure DB connection before any operation
-async function ensureConnection() {
-  await connectDB();
-}
-
-// Helper: convert Mongoose doc to plain object with id
-function toPlain<T>(doc: any): T | null {
-  if (!doc) return null;
-  const obj = doc.toObject ? doc.toObject() : doc;
-  if (obj._id) {
-    obj.id = obj._id.toString();
-    delete obj._id;
-  }
-  if (obj.__v !== undefined) delete obj.__v;
-  return obj as T;
-}
-
-function toPlainArray<T>(docs: any[]): T[] {
-  return docs.map(d => toPlain<T>(d)!);
-}
-
-// ─── Helper: build Mongoose query from Prisma-like options ───
+// ─── Types ───
 
 type PrismaWhere = Record<string, any>;
 type PrismaOrderBy = Record<string, 'asc' | 'desc'>;
@@ -54,350 +25,441 @@ interface QueryOptions {
   take?: number;
 }
 
-function buildSort(orderBy?: PrismaOrderBy): Record<string, 1 | -1> | undefined {
-  if (!orderBy) return undefined;
-  const sort: Record<string, 1 | -1> = {};
-  for (const [key, val] of Object.entries(orderBy)) {
-    sort[key] = val === 'desc' ? -1 : 1;
-  }
-  return sort;
+interface CreateArgs {
+  data: Record<string, any>;
 }
 
-function buildMongoWhere(where?: PrismaWhere): Record<string, any> {
-  if (!where) return {};
-  const mongoWhere: Record<string, any> = {};
+interface UpdateArgs {
+  where: Record<string, string>;
+  data: Record<string, any>;
+  select?: PrismaSelect;
+}
 
+interface DeleteArgs {
+  where: Record<string, string>;
+}
+
+// ─── Storage ───
+
+const DB_DIR = join(process.cwd(), 'db');
+const DB_FILE = join(DB_DIR, 'test-data.json');
+
+// Default seed data
+const DEFAULT_DATA: Record<string, any[]> = {
+  user: [],
+  lot: [],
+  reservation: [],
+  payment: [],
+  message: [],
+  settings: [{
+    id: 'settings-default',
+    heroBackground: null,
+    savPhone: '+225 27 22 49 00 00',
+    savWhatsapp: '+225 07 58 42 10 00',
+    savEmail: 'sav@kami-extension.com',
+    savHoraires: JSON.stringify([
+      { day: 'Lundi - Vendredi', hours: '08h00 - 18h00' },
+      { day: 'Samedi', hours: '09h00 - 13h00' },
+      { day: 'Dimanche & jours fériés', hours: 'Fermé' },
+    ]),
+    savFaq: JSON.stringify([
+      {
+        question: "Comment suivre l'avancée de mon paiement ?",
+        answer: "Connectez-vous à votre espace client pour voir l'historique complet de vos versements et le solde restant. Vous pouvez aussi contacter notre SAV par téléphone ou WhatsApp.",
+      },
+      {
+        question: 'Comment obtenir mon reçu de paiement ?',
+        answer: 'Les reçus sont disponibles dans la section « Documents & attestations » de votre espace client. Vous pouvez les télécharger en PDF ou demander une copie physique au bureau.',
+      },
+      {
+        question: 'Quand recevrai-je mes documents de propriété ?',
+        answer: 'Après le paiement intégral du lot, les documents sont préparés sous 15 à 30 jours. Vous serez notifié par message dès qu\'ils seront disponibles au retrait.',
+      },
+      {
+        question: 'Que faire si j\'ai un litige ou une réclamation ?',
+        answer: 'Adressez votre réclamation par email au service après-vente ou via WhatsApp. Un conseiller vous recontactera sous 48h ouvrées avec un accusé de réception et un numéro de ticket.',
+      },
+    ]),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  }],
+  logo: [],
+  adminFile: [],
+  notification: [],
+  progressUpdate: [],
+  expertApplication: [],
+  uploadedFile: [],
+};
+
+// In-memory store
+let store: Record<string, any[]> | null = null;
+
+function loadStore(): Record<string, any[]> {
+  if (store) return store;
+  if (existsSync(DB_FILE)) {
+    try {
+      store = JSON.parse(readFileSync(DB_FILE, 'utf-8'));
+    } catch {
+      store = { ...DEFAULT_DATA };
+    }
+  } else {
+    store = { ...DEFAULT_DATA };
+  }
+  return store!;
+}
+
+function saveStore() {
+  if (!existsSync(DB_DIR)) {
+    mkdirSync(DB_DIR, { recursive: true });
+  }
+  writeFileSync(DB_FILE, JSON.stringify(store, null, 2), 'utf-8');
+}
+
+function ensureCollection(name: string): any[] {
+  const s = loadStore();
+  if (!Array.isArray(s[name])) s[name] = [];
+  return s[name];
+}
+
+// ─── Helpers ───
+
+function genId(): string {
+  return randomUUID();
+}
+
+function matchesWhere(doc: Record<string, any>, where: PrismaWhere): boolean {
   for (const [key, val] of Object.entries(where)) {
     if (val === undefined || val === null) continue;
 
-    // Handle { in: [...] } syntax
+    // { in: [...] }
     if (typeof val === 'object' && !Array.isArray(val) && 'in' in val) {
-      mongoWhere[key] = { $in: val.in };
+      if (!val.in.includes(doc[key])) return false;
     }
-    // Handle { not: ... } syntax
+    // { not: ... }
     else if (typeof val === 'object' && !Array.isArray(val) && 'not' in val) {
-      mongoWhere[key] = { $ne: val.not };
+      if (doc[key] === val.not) return false;
     }
-    // Handle plain values
+    // { gte: ..., lte: ..., gt: ..., lt: ... }
+    else if (typeof val === 'object' && !Array.isArray(val)) {
+      for (const [op, opVal] of Object.entries(val)) {
+        if (op === 'gte' && doc[key] < opVal) return false;
+        if (op === 'lte' && doc[key] > opVal) return false;
+        if (op === 'gt' && doc[key] <= opVal) return false;
+        if (op === 'lt' && doc[key] >= opVal) return false;
+      }
+    }
+    // plain value
     else {
-      mongoWhere[key] = val;
+      if (doc[key] !== val) return false;
     }
   }
-
-  return mongoWhere;
+  return true;
 }
 
-// ─── Include/populate helpers for relations ───
-
-interface PopulatedDoc extends Record<string, any> {
-  id?: string;
-  [key: string]: any;
+function applySort(docs: any[], orderBy?: PrismaOrderBy): any[] {
+  if (!orderBy) return docs;
+  const sorted = [...docs];
+  for (const [key, dir] of Object.entries(orderBy)) {
+    sorted.sort((a, b) => {
+      const va = a[key];
+      const vb = b[key];
+      if (va == null && vb == null) return 0;
+      if (va == null) return 1;
+      if (vb == null) return -1;
+      if (va < vb) return dir === 'asc' ? -1 : 1;
+      if (va > vb) return dir === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }
+  return sorted;
 }
 
-async function applyIncludes<T extends PopulatedDoc>(
-  docs: T[],
-  include?: PrismaInclude,
-  select?: PrismaSelect
-): Promise<T[]> {
+function applySelect(doc: Record<string, any>, select?: PrismaSelect): Record<string, any> {
+  if (!select) return doc;
+  const result: Record<string, any> = {};
+  for (const [k, v] of Object.entries(select)) {
+    if (v) result[k] = doc[k];
+  }
+  return result;
+}
+
+function stripInternal(doc: Record<string, any>): Record<string, any> {
+  const { _id, __v, ...rest } = doc;
+  return rest;
+}
+
+// ─── Include / populate logic ───
+
+async function applyIncludes(docs: any[], include?: PrismaInclude): Promise<any[]> {
   if (!include) return docs;
-
-  const populated = await Promise.all(
+  return Promise.all(
     docs.map(async (doc) => {
       const result = { ...doc };
-
       for (const [relation, options] of Object.entries(include)) {
         if (relation === 'user') {
-          // Find user by userId or senderId/receiverId
-          let userId = doc.userId || doc.senderId;
-          if (!userId && relation === 'receiver') userId = doc.receiverId;
+          const userId = doc.userId || doc.senderId;
           if (!userId) continue;
-
-          const userQuery = User.findById(userId);
-          if (options?.select) {
-            const fields: Record<string, number> = {};
-            for (const [k, v] of Object.entries(options.select)) {
-              fields[k] = v ? 1 : 0;
-            }
-            userQuery.select(fields);
+          const users = ensureCollection('user');
+          let user = users.find((u: any) => u.id === userId);
+          if (!user && typeof userId === 'string') {
+            user = users.find((u: any) => u._id === userId);
           }
-          const user = await userQuery.lean();
-          result.user = user ? toPlain(user) : null;
           if (user) {
-            result.user.id = user._id?.toString();
-            delete result.user._id;
+            user = stripInternal({ ...user });
+            if (options?.select) user = applySelect(user, options.select);
+            result.user = user;
           }
         }
         if (relation === 'lot') {
           const lotId = doc.lotId;
           if (!lotId) continue;
-
-          const lotQuery = Lot.findById(lotId);
-          if (options?.select) {
-            const fields: Record<string, number> = {};
-            for (const [k, v] of Object.entries(options.select)) {
-              fields[k] = v ? 1 : 0;
-            }
-            lotQuery.select(fields);
-          }
-          const lot = await lotQuery.lean();
-          result.lot = lot ? toPlain(lot) : null;
+          const lots = ensureCollection('lot');
+          let lot = lots.find((l: any) => l.id === lotId);
           if (lot) {
-            result.lot.id = lot._id?.toString();
-            delete result.lot._id;
+            lot = stripInternal({ ...lot });
+            if (options?.select) lot = applySelect(lot, options.select);
+            result.lot = lot;
           }
         }
         if (relation === 'payments') {
-          const payments = await Payment.find({ userId: doc.id || doc._id?.toString() }).lean();
-          result.payments = toPlainArray(payments);
+          const payments = ensureCollection('payment').filter((p: any) => p.userId === doc.id);
+          result.payments = payments.map(stripInternal);
         }
         if (relation === 'reservations') {
-          const reservations = await Reservation.find({ userId: doc.id || doc._id?.toString() }).lean();
-          result.reservations = toPlainArray(reservations);
+          const reservations = ensureCollection('reservation').filter((r: any) => r.userId === doc.id);
+          result.reservations = reservations.map(stripInternal);
         }
         if (relation === 'sender') {
-          const sender = await User.findById(doc.senderId).lean();
-          result.sender = sender ? toPlain(sender) : null;
+          const senders = ensureCollection('user');
+          let sender = senders.find((u: any) => u.id === doc.senderId);
           if (sender) {
-            result.sender.id = sender._id?.toString();
-            delete result.sender._id;
+            sender = stripInternal({ ...sender });
+            result.sender = sender;
           }
         }
         if (relation === 'receiver') {
-          const receiver = await User.findById(doc.receiverId).lean();
-          result.receiver = receiver ? toPlain(receiver) : null;
+          const receivers = ensureCollection('user');
+          let receiver = receivers.find((u: any) => u.id === doc.receiverId);
           if (receiver) {
-            result.receiver.id = receiver._id?.toString();
-            delete result.receiver._id;
+            receiver = stripInternal({ ...receiver });
+            result.receiver = receiver;
           }
         }
       }
-
-      return result as T;
+      return result;
     })
   );
-
-  return populated;
 }
 
-// ─── Model wrapper helpers ───
+// ─── Model wrapper ───
 
-function createModelWrapper<T extends PopulatedDoc>(model: any) {
+function createModelWrapper(collectionName: string) {
   return {
-    findUnique: async (args: { where: Record<string, string> }): Promise<T | null> => {
-      await ensureConnection();
+    findUnique: async (args: { where: Record<string, string>; include?: PrismaInclude; select?: PrismaSelect }): Promise<any | null> => {
+      const col = ensureCollection(collectionName);
       const { where } = args;
-
-      // Find by any unique field
       let doc: any = null;
+
       if (where.id) {
-        doc = await model.findById(where.id).lean();
-      } else if (where.phone) {
-        doc = await model.findOne({ phone: where.phone }).lean();
-      } else if (where.email) {
-        doc = await model.findOne({ email: where.email }).lean();
+        doc = col.find((d: any) => d.id === where.id);
       } else if (where.pseudo) {
-        doc = await model.findOne({ pseudo: where.pseudo }).lean();
+        doc = col.find((d: any) => d.pseudo === where.pseudo);
+      } else if (where.phone) {
+        doc = col.find((d: any) => d.phone === where.phone);
+      } else if (where.email) {
+        doc = col.find((d: any) => d.email === where.email);
+      } else if (where.referralCode) {
+        doc = col.find((d: any) => d.referralCode === where.referralCode);
+      } else if (where.type) {
+        doc = col.find((d: any) => d.type === where.type);
+      } else if (where.resetToken) {
+        doc = col.find((d: any) => d.resetToken === where.resetToken);
       } else {
-        // Try other fields
+        // Try matching on all keys
         const keys = Object.keys(where);
         if (keys.length > 0) {
-          doc = await model.findOne(where).lean();
+          doc = col.find((d: any) => matchesWhere(d, where));
         }
       }
 
-      if (doc) {
-        doc.id = doc._id?.toString();
-        delete doc._id;
-        if (doc.__v !== undefined) delete doc.__v;
-      }
+      if (!doc) return null;
+      doc = stripInternal({ ...doc });
+      if (args.select) doc = applySelect(doc, args.select);
 
-      // Apply includes if present
-      if (doc && args.include) {
-        const populated = await applyIncludes([doc as T], args.include, args.select);
+      if (args.include) {
+        const populated = await applyIncludes([doc], args.include);
         return populated[0] || null;
       }
 
-      return toPlain<T>(doc);
+      return doc;
     },
 
-    findFirst: async (args?: QueryOptions): Promise<T | null> => {
-      await ensureConnection();
-      const mongoWhere = buildMongoWhere(args?.where);
-      const sort = buildSort(args?.orderBy);
+    findFirst: async (args?: QueryOptions): Promise<any | null> => {
+      const col = ensureCollection(collectionName);
+      let results = col.filter((d: any) => args?.where ? matchesWhere(d, args.where) : true);
+      results = applySort(results, args?.orderBy);
+      if (args?.skip) results = results.slice(args.skip);
+      if (args?.take) results = results.slice(0, args.take);
 
-      let query = model.findOne(mongoWhere);
-      if (sort) query = query.sort(sort);
-      if (args?.select) {
-        const fields: Record<string, number> = {};
-        for (const [k, v] of Object.entries(args.select)) {
-          fields[k] = v ? 1 : 0;
-        }
-        query = query.select(fields);
-      }
-
-      const doc = await query.lean();
-      if (!doc) return null;
-
-      doc.id = doc._id?.toString();
-      delete doc._id;
-      if (doc.__v !== undefined) delete doc.__v;
+      if (results.length === 0) return null;
+      let doc = stripInternal({ ...results[0] });
+      if (args?.select) doc = applySelect(doc, args.select);
 
       if (args?.include) {
-        const populated = await applyIncludes([doc as T], args.include, args.select);
+        const populated = await applyIncludes([doc], args.include);
         return populated[0] || null;
       }
 
-      return toPlain<T>(doc);
+      return doc;
     },
 
-    findMany: async (args?: QueryOptions): Promise<T[]> => {
-      await ensureConnection();
-      const mongoWhere = buildMongoWhere(args?.where);
-      const sort = buildSort(args?.orderBy);
+    findMany: async (args?: QueryOptions): Promise<any[]> => {
+      const col = ensureCollection(collectionName);
+      let results = col.filter((d: any) => args?.where ? matchesWhere(d, args.where) : true);
+      results = applySort(results, args?.orderBy);
+      if (args?.skip) results = results.slice(args.skip);
+      if (args?.take) results = results.slice(0, args.take);
 
-      let query = model.find(mongoWhere);
-      if (sort) query = query.sort(sort);
-      if (args?.skip) query = query.skip(args.skip);
-      if (args?.take) query = query.limit(args.take);
-
-      let docs = await query.lean();
-      docs = docs.map((d: any) => {
-        d.id = d._id?.toString();
-        delete d._id;
-        if (d.__v !== undefined) delete d.__v;
-        return d;
+      let docs = results.map((d: any) => {
+        const doc = stripInternal({ ...d });
+        return args?.select ? applySelect(doc, args.select) : doc;
       });
 
       if (args?.include) {
-        return applyIncludes(docs as T[], args.include, args.select);
+        docs = await applyIncludes(docs, args.include);
       }
 
-      return toPlainArray<T>(docs);
+      return docs;
     },
 
-    create: async (args: { data: Record<string, any> }): Promise<T> => {
-      await ensureConnection();
+    create: async (args: CreateArgs): Promise<any> => {
+      const col = ensureCollection(collectionName);
       const { data } = args;
-
-      // Remove id from data (MongoDB generates _id)
-      const createData = { ...data };
-      if (createData.id) delete createData.id;
-
-      // Remove null/undefined values so sparse unique indexes don't conflict
-      for (const key of Object.keys(createData)) {
-        if (createData[key] === null || createData[key] === undefined) {
-          delete createData[key];
-        }
+      const now = new Date().toISOString();
+      const doc: Record<string, any> = {
+        ...data,
+        id: genId(),
+        createdAt: data.createdAt || now,
+        updatedAt: data.updatedAt || now,
+      };
+      // Remove undefined/null values (like Mongoose sparse)
+      for (const key of Object.keys(doc)) {
+        if (doc[key] === undefined) delete doc[key];
       }
-
-      const doc = await model.create(createData);
-      return toPlain<T>(doc)!;
+      col.push(doc);
+      saveStore();
+      return stripInternal({ ...doc });
     },
 
-    update: async (args: { where: Record<string, string>; data: Record<string, any>; select?: Record<string, boolean> }): Promise<T> => {
-      await ensureConnection();
+    update: async (args: UpdateArgs): Promise<any> => {
+      const col = ensureCollection(collectionName);
       const { where, data, select } = args;
+      const now = new Date().toISOString();
 
-      const updateData = { ...data };
-      if (updateData.id) delete updateData.id;
-
-      // Separate null values (use $unset) from real values (use $set)
-      const setData: Record<string, any> = {};
-      const unsetData: Record<string, any> = {};
-      for (const [key, val] of Object.entries(updateData)) {
-        if (val === null || val === undefined) {
-          unsetData[key] = 1;
-        } else {
-          setData[key] = val;
-        }
-      }
-
-      const updateOp: Record<string, any> = {};
-      if (Object.keys(setData).length > 0) updateOp.$set = setData;
-      if (Object.keys(unsetData).length > 0) updateOp.$unset = unsetData;
-
-      let query: any;
+      let idx = -1;
       if (where.id) {
-        query = model.findByIdAndUpdate(where.id, updateOp, { new: true, runValidators: true });
+        idx = col.findIndex((d: any) => d.id === where.id);
       } else {
-        const filter = buildMongoWhere(where);
-        query = model.findOneAndUpdate(filter, updateOp, { new: true, runValidators: true });
+        idx = col.findIndex((d: any) => matchesWhere(d, where));
       }
 
-      if (select) {
-        const fields: Record<string, number> = {};
-        for (const [k, v] of Object.entries(select)) {
-          fields[k] = v ? 1 : 0;
+      if (idx === -1) {
+        // Return a minimal object to not crash callers
+        const notFound: Record<string, any> = { id: where.id || 'unknown', ...data, updatedAt: now };
+        return stripInternal(notFound);
+      }
+
+      const updateData = { ...data, updatedAt: now };
+      // Handle null = delete field
+      for (const [k, v] of Object.entries(updateData)) {
+        if (v === null || v === undefined) {
+          delete col[idx][k];
+        } else {
+          col[idx][k] = v;
         }
-        query = query.select(fields);
       }
 
-      const doc = await query.lean();
-      doc.id = doc._id?.toString();
-      delete doc._id;
-      if (doc.__v !== undefined) delete doc.__v;
-
-      return toPlain<T>(doc)!;
+      saveStore();
+      let doc = stripInternal({ ...col[idx] });
+      if (select) doc = applySelect(doc, select);
+      return doc;
     },
 
-    updateMany: async (args: { where: Record<string, any>; data: Record<string, any> }): Promise<{ count: number }> => {
-      await ensureConnection();
+    updateMany: async (args: { where?: Record<string, any>; data: Record<string, any> }): Promise<{ count: number }> => {
+      const col = ensureCollection(collectionName);
       const { where, data } = args;
+      const now = new Date().toISOString();
 
-      const filter = buildMongoWhere(where);
-      const updateData = { ...data };
-      if (updateData.id) delete updateData.id;
+      let count = 0;
+      for (const doc of col) {
+        if (!where || matchesWhere(doc, where)) {
+          for (const [k, v] of Object.entries(data)) {
+            if (v === null || v === undefined) {
+              delete doc[k];
+            } else {
+              doc[k] = v;
+            }
+          }
+          doc.updatedAt = now;
+          count++;
+        }
+      }
 
-      const result = await model.updateMany(filter, { $set: updateData });
-      return { count: result.modifiedCount };
+      if (count > 0) saveStore();
+      return { count };
     },
 
-    delete: async (args: { where: Record<string, string> }): Promise<T> => {
-      await ensureConnection();
-      let doc: any;
+    delete: async (args: DeleteArgs): Promise<any> => {
+      const col = ensureCollection(collectionName);
+      let idx = -1;
       if (args.where.id) {
-        doc = await model.findByIdAndDelete(args.where.id).lean();
+        idx = col.findIndex((d: any) => d.id === args.where.id);
       } else {
-        doc = await model.findOneAndDelete(buildMongoWhere(args.where)).lean();
+        idx = col.findIndex((d: any) => matchesWhere(d, args.where));
       }
 
-      if (doc) {
-        doc.id = doc._id?.toString();
-        delete doc._id;
-        if (doc.__v !== undefined) delete doc.__v;
+      if (idx === -1) {
+        return {} as any;
       }
 
-      return toPlain<T>(doc)!;
+      const removed = col.splice(idx, 1)[0];
+      saveStore();
+      return stripInternal({ ...removed });
     },
 
     deleteMany: async (args?: { where?: Record<string, any> }): Promise<{ count: number }> => {
-      await ensureConnection();
-      const filter = args?.where ? buildMongoWhere(args.where) : {};
-      const result = await model.deleteMany(filter);
-      return { count: result.deletedCount };
+      const col = ensureCollection(collectionName);
+      const before = col.length;
+      const after = col.filter((d: any) => !args?.where || !matchesWhere(d, args.where));
+      const removed = before - after.length;
+      // Replace in store
+      const s = loadStore();
+      s[collectionName] = after;
+      if (removed > 0) saveStore();
+      return { count: removed };
     },
 
     count: async (args?: { where?: Record<string, any> }): Promise<number> => {
-      await ensureConnection();
-      const filter = args?.where ? buildMongoWhere(args.where) : {};
-      return model.countDocuments(filter);
+      const col = ensureCollection(collectionName);
+      if (!args?.where) return col.length;
+      return col.filter((d: any) => matchesWhere(d, args.where)).length;
     },
   };
 }
 
-// ─── Export db object with Prisma-like API ───
+// ─── Export db object ───
 
 export const db = {
-  user: createModelWrapper(User),
-  lot: createModelWrapper(Lot),
-  reservation: createModelWrapper(Reservation),
-  payment: createModelWrapper(Payment),
-  message: createModelWrapper(Message),
-  settings: createModelWrapper(Settings),
-  logo: createModelWrapper(Logo),
-  adminFile: createModelWrapper(AdminFile),
-  notification: createModelWrapper(Notification),
-  progressUpdate: createModelWrapper(ProgressUpdate),
-  expertApplication: createModelWrapper(ExpertApplication),
-  uploadedFile: createModelWrapper(UploadedFile),
+  user: createModelWrapper('user'),
+  lot: createModelWrapper('lot'),
+  reservation: createModelWrapper('reservation'),
+  payment: createModelWrapper('payment'),
+  message: createModelWrapper('message'),
+  settings: createModelWrapper('settings'),
+  logo: createModelWrapper('logo'),
+  adminFile: createModelWrapper('adminFile'),
+  notification: createModelWrapper('notification'),
+  progressUpdate: createModelWrapper('progressUpdate'),
+  expertApplication: createModelWrapper('expertApplication'),
+  uploadedFile: createModelWrapper('uploadedFile'),
 };
