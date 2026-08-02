@@ -17,7 +17,7 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
   const menuItems = [
     { icon: Home, label: 'Accueil', screen: 'home' },
     { icon: Map, label: 'Plan des lots', screen: 'map' },
-    { icon: Wallet, label: 'Mes réservations', screen: 'dashboard', requireAuth: true },
+    { icon: Wallet, label: 'Mes réservations', screen: 'dashboard', requireAuthRedirect: true },
     { icon: MessageSquare, label: 'Discussions', screen: 'chat', requireAuth: true },
     { icon: Users, label: 'Comité de Gestion des Lots', screen: 'management-committee', requireAuth: true, isAdminOnly: true },
     { icon: User, label: 'Mon profil', screen: 'profile', requireAuth: true },
@@ -162,7 +162,11 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
                       variant="ghost"
                       className="w-full justify-start px-4 py-3 h-auto text-foreground hover:bg-accent hover:text-accent-foreground rounded-xl transition-all group"
                       onClick={() => {
-                        onNavigate(item.screen);
+                        if ('requireAuthRedirect' in item && item.requireAuthRedirect && !currentUser) {
+                          onNavigate('login');
+                        } else {
+                          onNavigate(item.screen);
+                        }
                         onClose();
                       }}
                     >
