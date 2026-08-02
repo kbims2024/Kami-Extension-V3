@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowLeft, ArrowRight, CheckCircle, Home, Users, Shield, Eye, EyeOff, Menu, MapPin } from 'lucide-react';
 
 interface TwoStepRegistrationProps {
-  onComplete: (userData: { name: string; pseudo: string; phone: string; isResident: boolean; password: string; quartier?: string; villageOrigine?: string }) => void;
+  onComplete: (userData: { name: string; pseudo: string; phone?: string; isResident: boolean; password: string; quartier?: string; villageOrigine?: string }) => void;
   onBack: () => void;
   setIsMenuOpen?: (open: boolean) => void;
 }
@@ -50,8 +50,8 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
   };
 
   const handleStep2Submit = () => {
-    if (!formData.name || !formData.pseudo || !formData.phone || !formData.password) {
-      alert('Veuillez remplir tous les champs');
+    if (!formData.name || !formData.pseudo || !formData.password) {
+      alert('Veuillez remplir le nom, le pseudo et le mot de passe');
       return;
     }
 
@@ -70,7 +70,7 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
       return;
     }
 
-    if (formData.phone.length < 8) {
+    if (formData.phone && formData.phone.length < 8) {
       alert('Veuillez entrer un numéro de téléphone valide');
       return;
     }
@@ -88,7 +88,7 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
     onComplete({
       name: formData.name,
       pseudo: formData.pseudo.trim(),
-      phone: formData.phone,
+      phone: formData.phone || undefined,
       isResident: isResident!,
       password: formData.password,
       quartier: isResident ? quartier : undefined,
@@ -318,7 +318,7 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
                     <Label htmlFor="pseudo" className="text-sm font-semibold text-foreground mb-2 block">
                       Pseudo <span className="text-red-500">*</span>
                     </Label>
-                    <p className="text-xs text-muted-foreground mb-2">Ce pseudo sera visible par tous sur la plateforme (réservations, etc.)</p>
+                    <p className="text-xs text-muted-foreground mb-2">Ce pseudo sera votre identifiant de connexion et sera visible par tous</p>
                     <Input
                       id="pseudo"
                       type="text"
@@ -331,7 +331,7 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
 
                   <div>
                     <Label htmlFor="phone" className="text-sm font-semibold text-foreground mb-2 block">
-                      Numéro de téléphone
+                      Numéro de téléphone <span className="text-muted-foreground text-xs font-normal">(optionnel)</span>
                     </Label>
                     <Input
                       id="phone"

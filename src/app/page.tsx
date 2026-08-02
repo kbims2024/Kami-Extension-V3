@@ -159,14 +159,15 @@ export default function KamiExtensionPage() {
     }
   }, [currentUser, sendHeartbeat]);
 
-  const handleLogin = async (name: string, phone: string, password?: string) => {
+  const handleLogin = async (name: string, identifier: string, password?: string) => {
     try {
+      // Determine if identifier is a pseudo or phone
+      const isPhone = /^\d/.test(identifier);
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name,
-          phone,
+          [isPhone ? 'phone' : 'pseudo']: identifier,
           password: password || undefined,
         }),
       });
@@ -174,7 +175,7 @@ export default function KamiExtensionPage() {
       if (response.ok) {
         const user = await response.json();
         setCurrentUser(user);
-        toast.success(`Bienvenue ${user.name} !`);
+        toast.success(`Bienvenue ${user.pseudo || user.name} !`);
         setCurrentScreen('home');
       } else {
         const data = await response.json();
@@ -258,7 +259,7 @@ export default function KamiExtensionPage() {
     toast.success('Lien copié !');
   };
 
-  const handleRegistrationComplete = async (userData: { name: string; pseudo: string; phone: string; isResident: boolean; password: string; quartier?: string; villageOrigine?: string }) => {
+  const handleRegistrationComplete = async (userData: { name: string; pseudo: string; phone?: string; isResident: boolean; password: string; quartier?: string; villageOrigine?: string }) => {
     try {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
@@ -266,7 +267,7 @@ export default function KamiExtensionPage() {
         body: JSON.stringify({
           name: userData.name,
           pseudo: userData.pseudo,
-          phone: userData.phone,
+          phone: userData.phone || undefined,
           isResident: userData.isResident,
           password: userData.password,
           quartier: userData.quartier,

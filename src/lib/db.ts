@@ -195,6 +195,8 @@ function createModelWrapper<T extends PopulatedDoc>(model: any) {
         doc = await model.findOne({ phone: where.phone }).lean();
       } else if (where.email) {
         doc = await model.findOne({ email: where.email }).lean();
+      } else if (where.pseudo) {
+        doc = await model.findOne({ pseudo: where.pseudo }).lean();
       } else {
         // Try other fields
         const keys = Object.keys(where);

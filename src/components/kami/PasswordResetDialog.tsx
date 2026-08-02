@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Eye, EyeOff, Lock, ArrowRight, RefreshCw } from 'lucide-react';
+import { Eye, EyeOff, Lock, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface PasswordResetDialogProps {
@@ -17,7 +17,7 @@ type Step = 'request' | 'reset';
 
 export function PasswordResetDialog({ open, onOpenChange }: PasswordResetDialogProps) {
   const [step, setStep] = useState<Step>('request');
-  const [phone, setPhone] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [resetToken, setResetToken] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -26,34 +26,30 @@ export function PasswordResetDialog({ open, onOpenChange }: PasswordResetDialogP
   const [isLoading, setIsLoading] = useState(false);
 
   const handleRequestReset = async () => {
-    if (!phone) {
-      toast.error('Veuillez entrer votre numéro de téléphone');
-      return;
-    }
-
-    if (phone.length < 8) {
-      toast.error('Veuillez entrer un numéro de téléphone valide');
+    if (!identifier) {
+      toast.error('Veuillez entrer votre pseudo ou numéro de téléphone');
       return;
     }
 
     setIsLoading(true);
     try {
+      const isPhone = /^\d/.test(identifier);
       const response = await fetch('/api/auth/request-reset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone }),
+        body: JSON.stringify({
+          [isPhone ? 'phone' : 'pseudo']: identifier,
+        }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // For demo purposes, show the token
-        // In production, this would be sent via SMS/email
         if (data.resetToken) {
           toast.success(`Code de réinitialisation: ${data.resetToken}`);
           setResetToken(data.resetToken);
         } else {
-          toast.success('Code envoyé à votre numéro de téléphone');
+          toast.success('Si cet identifiant est associé à un compte, un code a été envoyé');
         }
         setStep('reset');
       } else {
@@ -87,7 +83,7 @@ export function PasswordResetDialog({ open, onOpenChange }: PasswordResetDialogP
       const response = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, password, resetToken }),
+        body: JSON.stringify({ password, resetToken }),
       });
 
       if (response.ok) {
@@ -106,7 +102,7 @@ export function PasswordResetDialog({ open, onOpenChange }: PasswordResetDialogP
   };
 
   const resetForm = () => {
-    setPhone('');
+    setIdentifier('');
     setResetToken('');
     setPassword('');
     setConfirmPassword('');
@@ -130,24 +126,23 @@ export function PasswordResetDialog({ open, onOpenChange }: PasswordResetDialogP
           </DialogTitle>
           <DialogDescription>
             {step === 'request'
-              ? 'Entrez votre numéro de téléphone pour recevoir un code de réinitialisation'
-              : 'Entrez le code reçu et votre nouveau mot de passe'
-            }
+              ? 'Entrez votre pseudo ou numéro de téléphone'
+              : 'Entrez le code reçu et votre nouveau mot de passe'}
           </DialogDescription>
         </DialogHeader>
 
         {step === 'request' ? (
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="reset-phone" className="text-sm font-semibold mb-2 block">
-                Numéro de téléphone
+              <Label htmlFor="reset-id" className="text-sm font-semibold mb-2 block">
+                Pseudo ou téléphone
               </Label>
               <Input
-                id="reset-phone"
-                type="tel"
-                placeholder="Ex: 07 58 42 10"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                id="reset-id"
+                type="text"
+                placeholder="Ex: JeanK ou 07 58 42 10"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
                 className="h-11"
               />
             </div>

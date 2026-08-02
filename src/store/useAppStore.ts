@@ -5,7 +5,7 @@ interface User {
   id?: string;
   name: string;
   pseudo?: string | null;
-  phone: string;
+  phone?: string;
   email?: string | null;
   isResident: boolean;
   quartier?: string | null;

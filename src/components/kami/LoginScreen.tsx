@@ -5,24 +5,24 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, LogIn, Menu, Eye, EyeOff, Lock, Mail, Phone } from 'lucide-react';
+import { ArrowLeft, LogIn, Menu, Eye, EyeOff, Lock, Phone, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { PasswordResetDialog } from './PasswordResetDialog';
 import { LogoDisplay } from '@/components/kami/LogoDisplay';
 
 interface LoginScreenProps {
-  onLogin: (name: string, phone: string, password?: string) => void;
+  onLogin: (name: string, identifier: string, password?: string) => void;
   onBack: () => void;
   setIsMenuOpen?: (open: boolean) => void;
 }
 
-type LoginMethod = 'phone' | 'email';
+type LoginMethod = 'phone' | 'pseudo';
 
 export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps) {
-  const [loginMethod, setLoginMethod] = useState<LoginMethod>('phone');
+  const [loginMethod, setLoginMethod] = useState<LoginMethod>('pseudo');
   const [formData, setFormData] = useState({
     phone: '',
-    email: '',
+    pseudo: '',
     password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -40,8 +40,8 @@ export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps
       return;
     }
 
-    if (loginMethod === 'email' && !formData.email) {
-      toast.error('Veuillez entrer votre adresse email');
+    if (loginMethod === 'pseudo' && !formData.pseudo) {
+      toast.error('Veuillez entrer votre pseudo');
       return;
     }
 
@@ -50,8 +50,8 @@ export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps
       return;
     }
 
-    if (loginMethod === 'email' && !formData.email.includes('@')) {
-      toast.error('Veuillez entrer une adresse email valide');
+    if (loginMethod === 'pseudo' && formData.pseudo.trim().length < 2) {
+      toast.error('Le pseudo doit contenir au moins 2 caractères');
       return;
     }
 
@@ -61,15 +61,16 @@ export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          pseudo: loginMethod === 'pseudo' ? formData.pseudo.trim() : undefined,
           phone: loginMethod === 'phone' ? formData.phone : undefined,
-          email: loginMethod === 'email' ? formData.email : undefined,
           password: formData.password,
         }),
       });
 
       if (response.ok) {
         const user = await response.json();
-        onLogin(user.name, user.phone || user.email || formData.phone, formData.password);
+        const identifier = loginMethod === 'pseudo' ? formData.pseudo.trim() : formData.phone;
+        onLogin(user.name, identifier, formData.password);
       } else {
         const data = await response.json();
         toast.error(data.error || 'Erreur de connexion');
@@ -135,6 +136,15 @@ export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps
               <div className="flex gap-2 mb-4">
                 <Button
                   type="button"
+                  variant={loginMethod === 'pseudo' ? 'default' : 'outline'}
+                  onClick={() => setLoginMethod('pseudo')}
+                  className={`flex-1 ${loginMethod === 'pseudo' ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
+                >
+                  <User className="h-4 w-4 mr-2" />
+                  Pseudo
+                </Button>
+                <Button
+                  type="button"
                   variant={loginMethod === 'phone' ? 'default' : 'outline'}
                   onClick={() => setLoginMethod('phone')}
                   className={`flex-1 ${loginMethod === 'phone' ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
@@ -142,18 +152,23 @@ export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps
                   <Phone className="h-4 w-4 mr-2" />
                   Téléphone
                 </Button>
-                <Button
-                  type="button"
-                  variant={loginMethod === 'email' ? 'default' : 'outline'}
-                  onClick={() => setLoginMethod('email')}
-                  className={`flex-1 ${loginMethod === 'email' ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
-                >
-                  <Mail className="h-4 w-4 mr-2" />
-                  Email
-                </Button>
               </div>
 
-              {loginMethod === 'phone' ? (
+              {loginMethod === 'pseudo' ? (
+                <div>
+                  <Label htmlFor="pseudo" className="text-sm font-semibold text-foreground mb-2 block">
+                    Pseudo
+                  </Label>
+                  <Input
+                    id="pseudo"
+                    type="text"
+                    placeholder="Ex: JeanK"
+                    value={formData.pseudo}
+                    onChange={(e) => setFormData({ ...formData, pseudo: e.target.value })}
+                    className="h-11 text-base border-border focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400"
+                  />
+                </div>
+              ) : (
                 <div>
                   <Label htmlFor="phone" className="text-sm font-semibold text-foreground mb-2 block">
                     Numéro de téléphone
@@ -164,20 +179,6 @@ export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps
                     placeholder="Ex: 07 58 42 10"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="h-11 text-base border-border focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400"
-                  />
-                </div>
-              ) : (
-                <div>
-                  <Label htmlFor="email" className="text-sm font-semibold text-foreground mb-2 block">
-                    Adresse email
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="Ex: jean.kone@email.com"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="h-11 text-base border-border focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400"
                   />
                 </div>

@@ -6,15 +6,19 @@ import { hashPassword } from '@/lib/password';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, pseudo, phone, email, password, isResident, quartier, villageOrigine } = body;
+    const { name, pseudo, phone, password, isResident, quartier, villageOrigine } = body;
 
-    // Validation des champs
+    // Validation des champs obligatoires
     if (!name || !pseudo || !password) {
       return NextResponse.json({ error: 'Nom, pseudo et mot de passe sont requis' }, { status: 400 });
     }
 
-    if (!phone && !email) {
-      return NextResponse.json({ error: 'Numéro de téléphone ou email requis' }, { status: 400 });
+    if (pseudo.trim().length < 2) {
+      return NextResponse.json({ error: 'Le pseudo doit contenir au moins 2 caractères' }, { status: 400 });
+    }
+
+    if (password.length < 6) {
+      return NextResponse.json({ error: 'Le mot de passe doit contenir au moins 6 caractères' }, { status: 400 });
     }
 
     // Validation pour les résidents KAMI
@@ -27,31 +31,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Le village d\'origine est requis pour les non-résidents' }, { status: 400 });
     }
 
-    // Vérifier si l'utilisateur existe déjà
-    let existingUser = null;
-    if (phone) {
-      existingUser = await db.user.findUnique({
-        where: { phone },
-      });
-    } else if (email) {
-      existingUser = await db.user.findUnique({
-        where: { email },
-      });
+    // Vérifier si le pseudo est déjà pris
+    const existingPseudo = await db.user.findUnique({
+      where: { pseudo: pseudo.trim() },
+    });
+    if (existingPseudo) {
+      return NextResponse.json({ error: 'Ce pseudo est déjà utilisé' }, { status: 409 });
     }
 
-    if (existingUser) {
-      return NextResponse.json({ error: 'Un utilisateur avec ces identifiants existe déjà' }, { status: 409 });
+    // Vérifier si le téléphone est déjà utilisé (si fourni)
+    if (phone) {
+      const existingPhone = await db.user.findUnique({
+        where: { phone },
+      });
+      if (existingPhone) {
+        return NextResponse.json({ error: 'Ce numéro de téléphone est déjà utilisé' }, { status: 409 });
+      }
     }
 
     // Créer le nouvel utilisateur
-    const referralCode = `${name.substring(0, 3).toUpperCase()}${Math.floor(Math.random() * 900 + 100)}`;
+    const referralCode = `${pseudo.substring(0, 3).toUpperCase()}${Math.floor(Math.random() * 900 + 100)}`;
 
     const newUser = await db.user.create({
       data: {
         name,
-        pseudo,
+        pseudo: pseudo.trim(),
         phone: phone || null,
-        email: email || null,
         isResident: isResident !== undefined ? isResident : true,
         quartier: isResident ? quartier : null,
         villageOrigine: !isResident ? villageOrigine : null,

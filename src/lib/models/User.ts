@@ -3,8 +3,8 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IUserDocument extends Document {
   id: string;
   name: string;
-  pseudo?: string;
-  phone: string;
+  pseudo: string;
+  phone?: string;
   email?: string;
   password?: string;
   role: string;
@@ -27,8 +27,8 @@ export interface IUserDocument extends Document {
 const UserSchema = new Schema<IUserDocument>(
   {
     name: { type: String, required: true },
-    pseudo: { type: String, default: '' },
-    phone: { type: String, required: true, unique: true },
+    pseudo: { type: String, required: true, unique: true, sparse: true },
+    phone: { type: String, unique: true, sparse: true },
     email: { type: String, unique: true, sparse: true },
     password: { type: String, default: null },
     role: { type: String, default: 'USER', enum: ['USER', 'ADMIN', 'MANAGEMENT_COMMITTEE'] },
