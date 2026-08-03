@@ -150,7 +150,7 @@ export function AdminFiles({ onBack }: AdminFilesProps) {
                         {formatFileSize(currentFile.size)} • {currentFile.mimeType}
                       </p>
                       <a
-                        href={currentFile.path}
+                        href={currentFile.url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm text-blue-600 hover:underline mt-2 inline-block"

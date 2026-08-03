@@ -1,0 +1,35 @@
+{
+  "user": [],
+  "lot": [],
+  "reservation": [],
+  "payment": [],
+  "message": [],
+  "settings": [
+    {
+      "id": "settings-default",
+      "heroBackground": null,
+      "savPhone": "+225 27 22 49 00 00",
+      "savWhatsapp": "+225 07 58 42 10 00",
+      "savEmail": "sav@kami-extension.com",
+      "savHoraires": "[{\"day\":\"Lundi - Vendredi\",\"hours\":\"08h00 - 18h00\"},{\"day\":\"Samedi\",\"hours\":\"09h00 - 13h00\"},{\"day\":\"Dimanche & jours fériés\",\"hours\":\"Fermé\"}]",
+      "savFaq": "[{\"question\":\"Comment suivre l'avancée de mon paiement ?\",\"answer\":\"Connectez-vous à votre espace client pour voir l'historique complet de vos versements et le solde restant. Vous pouvez aussi contacter notre SAV par téléphone ou WhatsApp.\"},{\"question\":\"Comment obtenir mon reçu de paiement ?\",\"answer\":\"Les reçus sont disponibles dans la section « Documents & attestations » de votre espace client. Vous pouvez les télécharger en PDF ou demander une copie physique au bureau.\"},{\"question\":\"Quand recevrai-je mes documents de propriété ?\",\"answer\":\"Après le paiement intégral du lot, les documents sont préparés sous 15 à 30 jours. Vous serez notifié par message dès qu'ils seront disponibles au retrait.\"},{\"question\":\"Que faire si j'ai un litige ou une réclamation ?\",\"answer\":\"Adressez votre réclamation par email au service après-vente ou via WhatsApp. Un conseiller vous recontactera sous 48h ouvrées avec un accusé de réception et un numéro de ticket.\"}]",
+      "createdAt": "2026-08-03T06:51:52.224Z",
+      "updatedAt": "2026-08-03T06:51:52.224Z"
+    }
+  ],
+  "logo": [
+    {
+      "text": "KAMI-EXTENSION",
+      "textColor": "#8B5E3C",
+      "backgroundColor": "#ffffff",
+      "id": "279dcefd-8fb5-4035-a7ba-5d89bef304ee",
+      "createdAt": "2026-08-03T06:51:52.313Z",
+      "updatedAt": "2026-08-03T06:51:52.313Z"
+    }
+  ],
+  "adminFile": [],
+  "notification": [],
+  "progressUpdate": [],
+  "expertApplication": [],
+  "uploadedFile": []
+}

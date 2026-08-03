@@ -209,3 +209,26 @@ Stage Summary:
 - All 41 API routes work without MongoDB
 - Auth (register + login) fully functional
 - When ready to deploy on Vercel, swap db.ts back to Mongoose version and set MONGODB_URI
+---
+Task ID: 2
+Agent: Main Agent
+Task: Welcome message for new CGL members + Fix logo/hero image editing
+
+Work Log:
+- Modified POST /api/admin/management-committee to send automatic welcome message from admin when a user is added to the committee
+- Message includes: welcome greeting, role description, main responsibilities, and CGL access info
+- Set committeeAddedAt timestamp on the user record when added
+- Fixed AdminLogo.tsx: changed upload endpoint from non-existent /api/upload to /api/admin-files?type=LOGO
+- Fixed AdminLogo.tsx: changed response field from data.url to data.file?.url
+- Fixed AdminHeroImage.tsx: changed .path to .url in 3 locations (state type, setPreviewUrl, href)
+- Fixed PersuasiveLandingPage.tsx: changed data.file.path to data.file.url for hero background
+- Fixed AdminFiles.tsx: changed currentFile.path to currentFile.url for file view link
+- Fixed EspaceCGL.tsx: profile card only shows when chatMessages[0]?.senderId !== adminId
+
+Stage Summary:
+- Welcome message now sent automatically when admin adds a CGL member
+- Logo upload works via the existing admin-files API (base64 storage)
+- Hero image display works on landing page (.path → .url fix)
+- Hero image admin preview and view link work (.path → .url fix)
+- Plan file view link works (.path → .url fix)
+- Profile initialization card only shows for user-initiated conversations

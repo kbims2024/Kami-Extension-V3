@@ -15,7 +15,7 @@ interface AdminHeroImageProps {
 export function AdminHeroImage({ onBack }: AdminHeroImageProps) {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [currentImage, setCurrentImage] = useState<{ filename: string; mimeType: string; size: number; path: string } | null>(null);
+  const [currentImage, setCurrentImage] = useState<{ filename: string; mimeType: string; size: number; url: string } | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export function AdminHeroImage({ onBack }: AdminHeroImageProps) {
         const data = await response.json();
         if (data.file) {
           setCurrentImage(data.file);
-          setPreviewUrl(data.file.path);
+          setPreviewUrl(data.file.url);
         }
       }
     } catch (error) {
@@ -177,7 +177,7 @@ export function AdminHeroImage({ onBack }: AdminHeroImageProps) {
                         )}
                         {currentImage && (
                           <a
-                            href={currentImage.path}
+                            href={currentImage.url}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-sm text-blue-600 hover:underline mt-2 inline-block"

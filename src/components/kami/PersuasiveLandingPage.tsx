@@ -81,8 +81,8 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
         const response = await fetch('/api/admin-files?type=HERO');
         if (response.ok) {
           const data = await response.json();
-          if (data.file && data.file.path) {
-            setHeroBackground(data.file.path);
+          if (data.file && data.file.url) {
+            setHeroBackground(data.file.url);
           }
         }
       } catch (error) {

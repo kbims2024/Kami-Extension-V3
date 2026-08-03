@@ -58,7 +58,10 @@ export async function POST(request: NextRequest) {
     // Mettre à jour le rôle de l'utilisateur
     const updatedUser = await db.user.update({
       where: { id: userId },
-      data: { role: 'MANAGEMENT_COMMITTEE' },
+      data: {
+        role: 'MANAGEMENT_COMMITTEE',
+        committeeAddedAt: new Date().toISOString(),
+      },
       select: {
         id: true,
         name: true,
@@ -67,6 +70,40 @@ export async function POST(request: NextRequest) {
         role: true
       }
     });
+
+    // Envoyer un message de bienvenue de l'admin au nouveau membre
+    try {
+      let admin = await db.user.findFirst({ where: { phone: 'ADMIN' } });
+      if (!admin) {
+        admin = await db.user.create({
+          data: { name: 'Administrateur', phone: 'ADMIN', isResident: true },
+        });
+      }
+
+      const welcomeMessage =
+        `👋 Bienvenue dans le Comité de Gestion des Lots de KAMI-EXTENSION !\n\n` +
+        `Cher(e) ${user.name},\n\n` +
+        `Nous sommes ravis de vous compter parmi les membres du Comité de Gestion des Lots (CGL). ` +
+        `Votre rôle est essentiel pour le bon fonctionnement et la transparence de la gestion de notre village.\n\n` +
+        `📁 Vos attributions principales :\n` +
+        `• Valider les paiements des souscripteurs\n` +
+        `• Gérer les lots disponibles\n` +
+        `• Répondre aux questions des résidents\n` +
+        `• Suivre l'avancement des travaux\n\n` +
+        `N'hésitez pas à consulter l'Espace CGL pour accéder à vos outils de gestion.\n\n` +
+        `Cordialement,\nLe Comité de Gestion KAMI-EXTENSION`;
+
+      await db.message.create({
+        data: {
+          content: welcomeMessage,
+          senderId: admin.id,
+          receiverId: userId,
+        },
+      });
+    } catch (msgErr) {
+      console.error('Could not send welcome message:', msgErr);
+      // Non-bloquant : le membre est déjà ajouté même si le message échoue
+    }
 
     return NextResponse.json({
       message: 'Utilisateur ajouté au comité de gestion',

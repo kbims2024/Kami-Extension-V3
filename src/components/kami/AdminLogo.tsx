@@ -99,16 +99,17 @@ export function AdminLogo({ onClose }: AdminLogoProps) {
 
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('type', 'LOGO');
 
     try {
-      const response = await fetch('/api/upload', {
+      const response = await fetch('/api/admin-files', {
         method: 'POST',
         body: formData,
       });
 
       if (response.ok) {
         const data = await response.json();
-        setLogo({ ...logo, imageUrl: data.url });
+        setLogo({ ...logo, imageUrl: data.file?.url || null });
         toast.success('Image téléchargée avec succès !');
       } else {
         toast.error('Erreur lors du téléchargement de l\'image');
@@ -298,7 +299,7 @@ export function AdminLogo({ onClose }: AdminLogoProps) {
                 {logo.text}
               </h1>
             ) : (
-              <img src={logo.imageUrl} alt="Logo" className="max-h-16 object-contain" />
+              <img src={logo.imageUrl} alt="Logo" className="max-h-16 object-contain" crossOrigin="anonymous" />
             )}
           </div>
           <p className="text-xs text-muted-foreground mt-2 text-center">
