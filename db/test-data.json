@@ -2,11 +2,32 @@
   "user": [
     {
       "name": "Administrateur",
+      "pseudo": "admin",
       "phone": "ADMIN",
+      "role": "ADMIN",
       "isResident": true,
+      "password": "2edef69b361a40f22ed8ffb2d9f8742d:fb97ea77e329ff73a0eebf9dc5a48d14f169d8d0d08e18da53e8a27e0de06b23",
+      "status": "ACTIVE",
       "id": "d2fb21f1-6b0d-480d-aca5-f63588d58368",
-      "createdAt": "2026-08-03T19:21:06.385Z",
-      "updatedAt": "2026-08-03T19:21:06.385Z"
+      "createdAt": "2026-08-03T22:04:18.535Z",
+      "updatedAt": "2026-08-03T22:06:30.614Z",
+      "isOnline": true,
+      "lastSeen": "2026-08-03T22:06:30.614Z"
+    },
+    {
+      "name": "Jean Kamga",
+      "pseudo": "jeanK",
+      "phone": "0758421000",
+      "isResident": true,
+      "quartier": "Cocody",
+      "referralCode": "JEK421",
+      "status": "ACTIVE",
+      "password": "2027a9183b6491a018e163a29eec8be8:8ff197f06e440b9f5f89d4c9f12d62f587674dc657c1447cec38ee3ea2268f61",
+      "id": "cmpobcsf90000pvkijykyz2cq",
+      "createdAt": "2026-08-03T22:04:18.535Z",
+      "updatedAt": "2026-08-03T22:14:14.042Z",
+      "isOnline": true,
+      "lastSeen": "2026-08-03T22:14:14.042Z"
     }
   ],
   "lot": [],
@@ -21,9 +42,9 @@
       "savWhatsapp": "+225 07 58 42 10 00",
       "savEmail": "sav@kami-extension.com",
       "savHoraires": "[{\"day\":\"Lundi - Vendredi\",\"hours\":\"08h00 - 18h00\"},{\"day\":\"Samedi\",\"hours\":\"09h00 - 13h00\"},{\"day\":\"Dimanche & jours fériés\",\"hours\":\"Fermé\"}]",
-      "savFaq": "[{\"question\":\"Comment suivre l'avancée de mon paiement ?\",\"answer\":\"Connectez-vous à votre espace client pour voir l'historique complet de vos versements et le solde restant. Vous pouvez aussi contacter notre SAV par téléphone ou WhatsApp.\"},{\"question\":\"Comment obtenir mon reçu de paiement ?\",\"answer\":\"Les reçus sont disponibles dans la section « Documents & attestations » de votre espace client. Vous pouvez les télécharger en PDF ou demander une copie physique au bureau.\"},{\"question\":\"Quand recevrai-je mes documents de propriété ?\",\"answer\":\"Après le paiement intégral du lot, les documents sont préparés sous 15 à 30 jours. Vous serez notifié par message dès qu'ils seront disponibles au retrait.\"},{\"question\":\"Que faire si j'ai un litige ou une réclamation ?\",\"answer\":\"Adressez votre réclamation par email au service après-vente ou via WhatsApp. Un conseiller vous recontactera sous 48h ouvrées avec un accusé de réception et un numéro de ticket.\"}]",
-      "createdAt": "2026-08-03T06:51:52.224Z",
-      "updatedAt": "2026-08-03T06:51:52.224Z"
+      "savFaq": "[{\"question\":\"Comment suivre l'avancée de mon paiement ?\",\"answer\":\"Connectez-vous à votre espace client.\"},{\"question\":\"Comment obtenir mon reçu ?\",\"answer\":\"Dans la section Documents.\"},{\"question\":\"Quand recevrai-je mes documents ?\",\"answer\":\"Sous 15 à 30 jours.\"}]",
+      "createdAt": "2026-08-03T22:04:18.535Z",
+      "updatedAt": "2026-08-03T22:04:18.535Z"
     }
   ],
   "logo": [
@@ -32,8 +53,8 @@
       "textColor": "#8B5E3C",
       "backgroundColor": "#ffffff",
       "id": "279dcefd-8fb5-4035-a7ba-5d89bef304ee",
-      "createdAt": "2026-08-03T06:51:52.313Z",
-      "updatedAt": "2026-08-03T06:51:52.313Z"
+      "createdAt": "2026-08-03T22:04:18.535Z",
+      "updatedAt": "2026-08-03T22:04:18.535Z"
     }
   ],
   "adminFile": [],

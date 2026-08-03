@@ -257,3 +257,25 @@ Stage Summary:
 - Both ChatPage.tsx and AdminChatPage.tsx fully restored with blue palette
 - Dark mode now works correctly in both chat pages (11 isDark refs in ChatPage, 13 in AdminChatPage)
 - All text colors, bubble colors, input colors, background patterns adapt to dark mode
+
+---
+Task ID: 4
+Agent: Main Agent
+Task: Restore database and verify all functionality works
+
+Work Log:
+- Diagnosed that db/test-data.json was wiped (0 lots, 0 messages, admin without credentials)
+- Seeded database with proper users:
+  - Admin: pseudo=admin, password=admin123, role=ADMIN
+  - User: pseudo=jeanK, password=user123, phone=0758421000
+- Preserved existing settings (SAV contacts, horaires, FAQ) and logo
+- Killed conflicting server processes, restarted dev server cleanly
+- Verified login API works for both admin and user
+- Verified browser login flow: landing → auth choice → login → home screen with all menu items
+- Verified registration API creates users correctly
+
+Stage Summary:
+- Database restored with 2 users (admin + jeanK), settings, and logo
+- Login: pseudo=admin, password=admin123 (admin) | pseudo=jeanK, password=user123 (user)
+- All navigation verified: home, plan des lots, mes réservations, discussions, mon profil, règlément, SAV, paramètres, déconnexion
+- Chat pages (ChatPage.tsx + AdminChatPage.tsx) have blue palette + dark mode
