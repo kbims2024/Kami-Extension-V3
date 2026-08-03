@@ -10,9 +10,9 @@
       "status": "ACTIVE",
       "id": "d2fb21f1-6b0d-480d-aca5-f63588d58368",
       "createdAt": "2026-08-03T22:04:18.535Z",
-      "updatedAt": "2026-08-03T22:06:30.614Z",
+      "updatedAt": "2026-08-03T22:41:14.945Z",
       "isOnline": true,
-      "lastSeen": "2026-08-03T22:06:30.614Z"
+      "lastSeen": "2026-08-03T22:41:14.945Z"
     },
     {
       "name": "Jean Kamga",
@@ -25,9 +25,42 @@
       "password": "2027a9183b6491a018e163a29eec8be8:8ff197f06e440b9f5f89d4c9f12d62f587674dc657c1447cec38ee3ea2268f61",
       "id": "cmpobcsf90000pvkijykyz2cq",
       "createdAt": "2026-08-03T22:04:18.535Z",
-      "updatedAt": "2026-08-03T22:14:14.042Z",
+      "updatedAt": "2026-08-03T22:41:57.738Z",
       "isOnline": true,
-      "lastSeen": "2026-08-03T22:14:14.042Z"
+      "lastSeen": "2026-08-03T22:41:57.738Z"
+    },
+    {
+      "name": "Koffi yves",
+      "pseudo": "Yvo",
+      "phone": "0101020203",
+      "isResident": true,
+      "quartier": "N'ZOKLOH",
+      "villageOrigine": null,
+      "referralCode": "YVO723",
+      "status": "ACTIVE",
+      "password": "bf74bd119788d29aab3d134f1d3d1047:d77d03a809fb449d2b5751f8dfa2cbc867539627e200c9cc435122f1a82e2696",
+      "id": "8f7f4ebf-901a-4ceb-b4d0-6cc63ab06686",
+      "createdAt": "2026-08-03T22:15:47.330Z",
+      "updatedAt": "2026-08-03T22:25:33.745Z",
+      "isOnline": true,
+      "lastSeen": "2026-08-03T22:25:33.745Z"
+    },
+    {
+      "name": "Koffi innocent",
+      "pseudo": "Ainnoce",
+      "phone": "0749615701",
+      "isResident": true,
+      "quartier": "N'ZOKLOH",
+      "villageOrigine": null,
+      "referralCode": "AIN881",
+      "status": "ACTIVE",
+      "password": "95ccae97331bb8b5dc140167b44a24dd:b1abce0a426d91cb25d3f0b507c7486497f777d433a77310f31ecccd82842ee7",
+      "id": "0fd35ddd-6267-493a-af04-e410ae919093",
+      "createdAt": "2026-08-03T22:26:43.782Z",
+      "updatedAt": "2026-08-03T22:38:02.920Z",
+      "isOnline": true,
+      "lastSeen": "2026-08-03T22:38:02.920Z",
+      "role": "ADMIN"
     }
   ],
   "lot": [],
