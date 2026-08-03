@@ -15,17 +15,18 @@ import {
 } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTheme } from 'next-themes';
 
 // ─── WhatsApp colour palette ───
 const WA = {
-  headerDark: '#075E54',
-  headerTeal: '#128C7E',
-  outgoing: '#DCF8C6',
-  outgoingDark: '#005C4B',
+  headerDark: '#1E3A5F',
+  headerTeal: '#2563EB',
+  outgoing: '#DBEAFE',
+  outgoingDark: '#1E3A5F',
   incoming: '#FFFFFF',
   incomingDark: '#1F2C34',
-  chatBg: '#ECE5DD',
-  chatBgDark: '#0B141A',
+  chatBg: '#E8EEF6',
+  chatBgDark: '#0B1120',
   inputBg: '#F0F0F0',
   inputBgDark: '#2A3942',
   textDark: '#111B21',
@@ -58,6 +59,8 @@ interface ChatPageProps {
 
 export function ChatPage({ setCurrentScreen, setIsMenuOpen }: ChatPageProps) {
   const { currentUser } = useAppStore();
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -187,7 +190,7 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen }: ChatPageProps) {
           <h1 className="text-[15px] font-semibold text-white truncate leading-tight">
             Comité de Gestion
           </h1>
-          <p className="text-[12px] text-green-300/80 leading-tight">en ligne</p>
+          <p className="text-[12px] text-blue-300/80 leading-tight">en ligne</p>
         </div>
 
         <div className="flex items-center gap-1">
@@ -204,15 +207,17 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen }: ChatPageProps) {
       <div
         className="flex-1 overflow-y-auto px-3 py-2 space-y-1"
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          backgroundImage: isDark
+            ? `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23FFFFFF' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+            : `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
         }}
       >
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 px-6">
-            <div className="w-20 h-20 rounded-full bg-white/80 dark:bg-[#1F2C34] flex items-center justify-center mb-4 shadow-sm">
+            <div className="w-20 h-20 rounded-full bg-white/80 dark:bg-[#182229] flex items-center justify-center mb-4 shadow-sm">
               <span className="text-3xl">💬</span>
             </div>
-            <p className="text-sm font-medium" style={{ color: WA.textDark }}>
+            <p className="text-sm font-medium" style={{ color: isDark ? '#E9EDEF' : WA.textDark }}>
               Aucun message pour le moment
             </p>
             <p className="text-xs mt-1 text-center max-w-[260px]" style={{ color: WA.timeSent }}>
@@ -227,8 +232,8 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen }: ChatPageProps) {
                 <span
                   className="px-3 py-1 rounded-lg text-[11px] font-medium shadow-sm"
                   style={{
-                    backgroundColor: WA.dateBubble,
-                    color: WA.dateText,
+                    backgroundColor: isDark ? WA.dateBubbleDark : WA.dateBubble,
+                    color: isDark ? '#8696A0' : WA.dateText,
                   }}
                 >
                   {group.date}
@@ -257,8 +262,10 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen }: ChatPageProps) {
                         ${!isMyMessage && isConsecutive ? 'rounded-tr-md' : ''}
                       `}
                       style={{
-                        backgroundColor: isMyMessage ? WA.outgoing : WA.incoming,
-                        color: WA.textDark,
+                        backgroundColor: isMyMessage
+                          ? (isDark ? WA.outgoingDark : WA.outgoing)
+                          : (isDark ? WA.incomingDark : WA.incoming),
+                        color: isDark ? '#E9EDEF' : WA.textDark,
                       }}
                     >
                       {/* Message content */}
@@ -291,7 +298,7 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen }: ChatPageProps) {
       </div>
 
       {/* ─── Input bar (WhatsApp style) ─── */}
-      <div className="shrink-0 flex items-end gap-1 px-1 py-1" style={{ backgroundColor: WA.chatBg }}>
+      <div className="shrink-0 flex items-end gap-1 px-1 py-1" style={{ backgroundColor: isDark ? WA.chatBgDark : WA.chatBg }}>
         {/* Emoji */}
         <Button
           variant="ghost"
@@ -321,8 +328,8 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen }: ChatPageProps) {
             disabled={isLoading}
             className="w-full rounded-full px-4 py-2.5 text-[15px] outline-none resize-none border-none"
             style={{
-              backgroundColor: WA.inputBg,
-              color: WA.textDark,
+              backgroundColor: isDark ? WA.inputBgDark : WA.inputBg,
+              color: isDark ? '#E9EDEF' : WA.textDark,
               minHeight: '42px',
               maxHeight: '120px',
             }}
@@ -359,6 +366,8 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen }: ChatPageProps) {
       <style jsx global>{`
         .dark {
           --wa-bg: ${WA.chatBgDark};
+          --wa-input-bg: ${WA.inputBgDark};
+          --wa-header: ${WA.headerDark};
         }
       `}</style>
     </div>

@@ -1,5 +1,14 @@
 {
-  "user": [],
+  "user": [
+    {
+      "name": "Administrateur",
+      "phone": "ADMIN",
+      "isResident": true,
+      "id": "d2fb21f1-6b0d-480d-aca5-f63588d58368",
+      "createdAt": "2026-08-03T19:21:06.385Z",
+      "updatedAt": "2026-08-03T19:21:06.385Z"
+    }
+  ],
   "lot": [],
   "reservation": [],
   "payment": [],

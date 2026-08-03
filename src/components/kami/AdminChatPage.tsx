@@ -16,17 +16,18 @@ import {
 } from 'lucide-react';
 import { CommitteeNotificationBell } from './CommitteeNotificationBell';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTheme } from 'next-themes';
 
 // ─── WhatsApp colour palette ───
 const WA = {
-  headerDark: '#075E54',
-  headerTeal: '#128C7E',
-  outgoing: '#DCF8C6',
-  outgoingDark: '#005C4B',
+  headerDark: '#1E3A5F',
+  headerTeal: '#2563EB',
+  outgoing: '#DBEAFE',
+  outgoingDark: '#1E3A5F',
   incoming: '#FFFFFF',
   incomingDark: '#1F2C34',
-  chatBg: '#ECE5DD',
-  chatBgDark: '#0B141A',
+  chatBg: '#E8EEF6',
+  chatBgDark: '#0B1120',
   inputBg: '#F0F0F0',
   inputBgDark: '#2A3942',
   textDark: '#111B21',
@@ -79,6 +80,8 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen }: AdminChatPage
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -327,7 +330,7 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen }: AdminChatPage
             CONTACT LIST (WhatsApp sidebar style)
            ════════════════════════════════════════════ */}
         {!selectedUser && (
-          <div className="w-full flex flex-col bg-white dark:bg-[#111B21]">
+          <div className="w-full flex flex-col bg-white dark:bg-[#0B1120]">
             {/* Search bar */}
             <div className="px-2 py-2">
               <div className="relative">
@@ -337,7 +340,7 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen }: AdminChatPage
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 rounded-full text-[15px] outline-none"
-                  style={{ backgroundColor: WA.inputBg, color: WA.textDark }}
+                  style={{ backgroundColor: isDark ? WA.inputBgDark : WA.inputBg, color: isDark ? '#E9EDEF' : WA.textDark }}
                 />
               </div>
             </div>
@@ -364,7 +367,7 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen }: AdminChatPage
                       }}
                       className="w-full flex items-center gap-3 px-3 py-2.5 text-left border-b transition-colors"
                       style={{
-                        borderColor: WA.borderLight,
+                        borderColor: isDark ? '#2A3942' : WA.borderLight,
                       }}
                     >
                       {/* Avatar */}
@@ -378,7 +381,7 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen }: AdminChatPage
                       {/* Name + last message */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <p className="text-[16.5px] font-normal truncate pr-2" style={{ color: WA.textDark }}>
+                          <p className="text-[16.5px] font-normal truncate pr-2" style={{ color: isDark ? '#E9EDEF' : WA.textDark }}>
                             {user.name}
                           </p>
                           <span
@@ -426,7 +429,7 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen }: AdminChatPage
             CHAT VIEW (WhatsApp conversation)
            ════════════════════════════════════════════ */}
         {selectedUser && (
-          <div className="flex-1 flex flex-col" style={{ backgroundColor: WA.chatBg }}>
+          <div className="flex-1 flex flex-col" style={{ backgroundColor: isDark ? WA.chatBgDark : WA.chatBg }}>
             {/* Chat header */}
             <div
               className="flex items-center gap-2 px-1 py-1 shrink-0"
@@ -457,7 +460,7 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen }: AdminChatPage
                 <p className="text-[15px] font-semibold text-white truncate leading-tight">
                   {selectedUser.name}
                 </p>
-                <p className="text-[12px] text-green-300/80 leading-tight">en ligne</p>
+                <p className="text-[12px] text-blue-300/80 leading-tight">en ligne</p>
               </div>
 
               <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
@@ -469,15 +472,17 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen }: AdminChatPage
             <div
               className="flex-1 overflow-y-auto px-3 py-2 space-y-1"
               style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                backgroundImage: isDark
+                  ? `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23FFFFFF' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+                  : `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
               }}
             >
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 px-6">
-                  <div className="w-20 h-20 rounded-full bg-white/80 flex items-center justify-center mb-4 shadow-sm">
+                  <div className="w-20 h-20 rounded-full bg-white/80 dark:bg-[#182229] flex items-center justify-center mb-4 shadow-sm">
                     <span className="text-3xl">💬</span>
                   </div>
-                  <p className="text-sm font-medium" style={{ color: WA.textDark }}>
+                  <p className="text-sm font-medium" style={{ color: isDark ? '#E9EDEF' : WA.textDark }}>
                     Aucun message avec {selectedUser.name}
                   </p>
                   <p className="text-xs mt-1" style={{ color: WA.timeSent }}>
@@ -491,7 +496,7 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen }: AdminChatPage
                     <div className="flex justify-center my-3">
                       <span
                         className="px-3 py-1 rounded-lg text-[11px] font-medium shadow-sm"
-                        style={{ backgroundColor: WA.dateBubble, color: WA.dateText }}
+                        style={{ backgroundColor: isDark ? WA.dateBubbleDark : WA.dateBubble, color: isDark ? '#8696A0' : WA.dateText }}
                       >
                         {group.date}
                       </span>
@@ -518,8 +523,10 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen }: AdminChatPage
                               ${!isMyMessage && isConsecutive ? 'rounded-tl-md' : ''}
                             `}
                             style={{
-                              backgroundColor: isMyMessage ? WA.outgoing : WA.incoming,
-                              color: WA.textDark,
+                              backgroundColor: isMyMessage
+                                ? (isDark ? WA.outgoingDark : WA.outgoing)
+                                : (isDark ? WA.incomingDark : WA.incoming),
+                              color: isDark ? '#E9EDEF' : WA.textDark,
                             }}
                           >
                             <p className="text-[14.2px] leading-[19px] whitespace-pre-wrap break-words pr-12">
@@ -550,7 +557,7 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen }: AdminChatPage
             </div>
 
             {/* Input bar */}
-            <div className="shrink-0 flex items-end gap-1 px-1 py-1" style={{ backgroundColor: WA.chatBg }}>
+            <div className="shrink-0 flex items-end gap-1 px-1 py-1" style={{ backgroundColor: isDark ? WA.chatBgDark : WA.chatBg }}>
               <Button variant="ghost" size="icon" className="text-gray-500 hover:text-gray-700 rounded-full">
                 <Smile className="h-6 w-6" />
               </Button>
@@ -566,7 +573,7 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen }: AdminChatPage
                   placeholder="Message"
                   disabled={isLoading}
                   className="w-full rounded-full px-4 py-2.5 text-[15px] outline-none resize-none border-none"
-                  style={{ backgroundColor: WA.inputBg, color: WA.textDark, minHeight: '42px', maxHeight: '120px' }}
+                  style={{ backgroundColor: isDark ? WA.inputBgDark : WA.inputBg, color: isDark ? '#E9EDEF' : WA.textDark, minHeight: '42px', maxHeight: '120px' }}
                 />
               </div>
 
@@ -597,6 +604,13 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen }: AdminChatPage
           </div>
         )}
       </div>
+      <style jsx global>{`
+        .dark {
+          --wa-bg: ${WA.chatBgDark};
+          --wa-input-bg: ${WA.inputBgDark};
+          --wa-header: ${WA.headerDark};
+        }
+      `}</style>
     </div>
   );
 }

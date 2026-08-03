@@ -232,3 +232,28 @@ Stage Summary:
 - Hero image admin preview and view link work (.path → .url fix)
 - Plan file view link works (.path → .url fix)
 - Profile initialization card only shows for user-initiated conversations
+
+---
+Task ID: 3
+Agent: Main Agent
+Task: Restore blue chat palette + dark mode in ChatPage.tsx and AdminChatPage.tsx
+
+Work Log:
+- Audited both chat components: found old WhatsApp green palette and zero dark mode support
+- Replaced WA palette in ChatPage.tsx: headerDark '#1E3A5F', headerTeal '#2563EB', outgoing '#DBEAFE', chatBg '#E8EEF6', chatBgDark '#0B1120', inputBgDark '#2A3942'
+- Replaced WA palette in AdminChatPage.tsx with identical blue palette
+- Added useTheme import and isDark detection to both components
+- Fixed all inline color: WA.textDark (5 in AdminChatPage, 3 in ChatPage) to use isDark ? '#E9EDEF' : WA.textDark
+- Fixed message bubble backgrounds: dark mode uses outgoingDark/incomingDark
+- Fixed input backgrounds: dark mode uses inputBgDark
+- Fixed date separators: dark mode uses dateBubbleDark with #8696A0 text
+- Fixed chat area SVG pattern: white 0.02 opacity for dark, black 0.03 for light
+- Fixed contact list borders and backgrounds for dark mode
+- Added comprehensive dark mode CSS variable overrides
+- Changed 'en ligne' text from green-300 to blue-300
+- Verified: 0 remaining broken 'color: WA.textDark' references
+
+Stage Summary:
+- Both ChatPage.tsx and AdminChatPage.tsx fully restored with blue palette
+- Dark mode now works correctly in both chat pages (11 isDark refs in ChatPage, 13 in AdminChatPage)
+- All text colors, bubble colors, input colors, background patterns adapt to dark mode
