@@ -1,9 +1,11 @@
 'use client';
 
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Home, Map, FileText, Wallet, User, Shield, LogOut, LogIn, Building2, X, Settings, MessageSquare, Users, Headset } from 'lucide-react';
+import { Home, Map, FileText, Wallet, User, Shield, LogOut, LogIn, Building2, X, Settings, MessageSquare, Users, Headset, Crown } from 'lucide-react';
+import { useAppStore } from '@/store/useAppStore';
 
 interface ModernSideMenuProps {
   isOpen: boolean;
@@ -14,12 +16,42 @@ interface ModernSideMenuProps {
 }
 
 export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLogout }: ModernSideMenuProps) {
+  const [isCommitteeMember, setIsCommitteeMember] = useState(false);
+  const { setCurrentUser } = useAppStore();
+
+  // Check and refresh user role from server when menu opens
+  const refreshUserRole = useCallback(async () => {
+    if (!currentUser?.id || currentUser.role === 'ADMIN') return;
+    try {
+      const res = await fetch(`/api/user/role?userId=${currentUser.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.role !== currentUser.role) {
+          setCurrentUser({ ...currentUser, role: data.role });
+        }
+      }
+    } catch {
+      // Silent fail — menu still works with cached role
+    }
+  }, [currentUser, setCurrentUser]);
+
+  useEffect(() => {
+    if (isOpen) {
+      refreshUserRole();
+    }
+  }, [isOpen, refreshUserRole]);
+
+  // Derive committee member status from role
+  useEffect(() => {
+    setIsCommitteeMember(currentUser?.role === 'MANAGEMENT_COMMITTEE');
+  }, [currentUser?.role]);
+
   const menuItems = [
     { icon: Home, label: 'Accueil', screen: 'home' },
     { icon: Map, label: 'Plan des lots', screen: 'map' },
     { icon: Wallet, label: 'Mes réservations', screen: 'dashboard', requireAuthRedirect: true },
     { icon: MessageSquare, label: 'Discussions', screen: 'chat', requireAuth: true },
-    { icon: Users, label: 'Comité de Gestion des Lots', screen: 'management-committee', requireAuth: true, isAdminOnly: true },
+    ...(isCommitteeMember ? [{ icon: Crown, label: 'Espace CGL', screen: 'chat', requireAuth: true }] : []),
     { icon: User, label: 'Mon profil', screen: 'profile', requireAuth: true },
     { icon: FileText, label: 'Règlement intérieur', screen: 'rules' },
     { icon: Headset, label: 'Service après-vente', screen: 'sav' },

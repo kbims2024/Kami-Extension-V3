@@ -14,7 +14,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { Building2, Map, Home, Wallet, Users, User, Shield, ArrowLeft, Menu, LogOut, LogIn, CheckCircle, XCircle, AlertCircle, ChartLine, CreditCard, UserPlus, PlusCircle, Wrench, Zap, Droplet, ShieldCheck, FileText, Copy, ClipboardCheck, Upload, Phone, Activity, Construction, TrendingUp, Camera, Share2, Headset, Plus, Trash2 } from 'lucide-react';
+import { Building2, Map, Home, Wallet, Users, User, Shield, ArrowLeft, Menu, LogOut, LogIn, CheckCircle, XCircle, AlertCircle, ChartLine, CreditCard, UserPlus, PlusCircle, Wrench, Zap, Droplet, ShieldCheck, FileText, Copy, ClipboardCheck, Upload, Phone, Activity, Construction, TrendingUp, Camera, Share2, Headset, Plus, Trash2, Image as ImageIcon } from 'lucide-react';
 import { EnhancedMapScreen } from '@/components/kami/EnhancedMapScreen';
 import { PersuasiveLandingPage } from '@/components/kami/PersuasiveLandingPage';
 import { TwoStepRegistration } from '@/components/kami/TwoStepRegistration';
@@ -39,6 +39,7 @@ import { AdminLoginDialog } from '@/components/kami/AdminLoginDialog';
 import { PaymentMethodScreen } from '@/components/kami/PaymentMethodScreen';
 import { ServiceApresVenteScreen } from '@/components/kami/ServiceApresVenteScreen';
 import { ExpertApplicationsAdmin } from '@/components/kami/ExpertApplicationsAdmin';
+import { AdminHeroImage } from '@/components/kami/AdminHeroImage';
 import { CommitteeNotificationBell } from '@/components/kami/CommitteeNotificationBell';
 import { UsersMonitorPanel } from '@/components/kami/UsersMonitorPanel';
 import { PublicProgressSection } from '@/components/kami/PublicProgressSection';
@@ -1771,75 +1772,87 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
 
       {!adminView && (
         <div className="grid grid-cols-2 gap-4">
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('dashboard')}>
-            <CardContent className="p-0 text-center">
-              <ChartLine className="text-[#10B981] h-8 w-8 mx-auto mb-2" />
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('dashboard')}>
+            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
+              <ChartLine className="text-[#10B981] h-8 w-8 mb-2" />
               <p className="text-sm font-bold">Tableau de Bord</p>
             </CardContent>
           </Card>
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('payments')}>
-            <CardContent className="p-0 text-center">
-              <CheckCircle className="text-blue-500 dark:text-blue-400 h-8 w-8 mx-auto mb-2" />
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('payments')}>
+            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
+              <CheckCircle className="text-blue-500 dark:text-blue-400 h-8 w-8 mb-2" />
               <p className="text-sm font-bold">Valider Paiements</p>
             </CardContent>
           </Card>
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('users')}>
-            <CardContent className="p-0 text-center">
-              <UserPlus className="text-purple-500 dark:text-purple-400 h-8 w-8 mx-auto mb-2" />
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('users')}>
+            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
+              <UserPlus className="text-purple-500 dark:text-purple-400 h-8 w-8 mb-2" />
               <p className="text-sm font-bold">Gérer Utilisateurs</p>
             </CardContent>
           </Card>
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('add-lots')}>
-            <CardContent className="p-0 text-center">
-              <PlusCircle className="text-[#8B5E3C] dark:text-[#A5785C] h-8 w-8 mx-auto mb-2" />
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('add-lots')}>
+            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
+              <PlusCircle className="text-[#8B5E3C] dark:text-[#A5785C] h-8 w-8 mb-2" />
               <p className="text-sm font-bold">Ajouter Lots</p>
             </CardContent>
           </Card>
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('logo')}>
-            <CardContent className="p-0 text-center">
-              <FileText className="text-orange-500 dark:text-orange-400 h-8 w-8 mx-auto mb-2" />
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('logo')}>
+            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
+              <FileText className="text-orange-500 dark:text-orange-400 h-8 w-8 mb-2" />
               <p className="text-sm font-bold">Éditer le Logo</p>
             </CardContent>
           </Card>
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('flash-infos')}>
-            <CardContent className="p-0 text-center">
-              <FileText className="text-brand-blue h-8 w-8 mx-auto mb-2" />
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('hero-image')}>
+            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
+              <ImageIcon className="text-pink-500 dark:text-pink-400 h-8 w-8 mb-2" />
+              <p className="text-sm font-bold">Image de Fond</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setCurrentScreen('management-committee')}>
+            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
+              <Shield className="text-purple-600 dark:text-purple-400 h-8 w-8 mb-2" />
+              <p className="text-sm font-bold">Gestion du Comité</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('flash-infos')}>
+            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
+              <FileText className="text-brand-blue h-8 w-8 mb-2" />
               <p className="text-sm font-bold">Flash Infos</p>
             </CardContent>
           </Card>
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('expert-applications')}>
-            <CardContent className="p-0 text-center">
-              <UserPlus className="text-emerald-500 dark:text-emerald-400 h-8 w-8 mx-auto mb-2" />
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('expert-applications')}>
+            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
+              <UserPlus className="text-emerald-500 dark:text-emerald-400 h-8 w-8 mb-2" />
               <p className="text-sm font-bold">Candidatures Experts</p>
             </CardContent>
           </Card>
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('users-monitor')}>
-            <CardContent className="p-0 text-center">
-              <Activity className="text-cyan-500 dark:text-cyan-400 h-8 w-8 mx-auto mb-2" />
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('users-monitor')}>
+            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
+              <Activity className="text-cyan-500 dark:text-cyan-400 h-8 w-8 mb-2" />
               <p className="text-sm font-bold">Surveillance Connexions</p>
             </CardContent>
           </Card>
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition col-span-2" onClick={() => setAdminView('files')}>
-            <CardContent className="p-0 text-center py-4">
-              <Upload className="text-brand-blue h-8 w-8 mx-auto mb-2" />
-              <p className="text-sm font-bold">Gérer Fichiers (Plan du village)</p>
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('files')}>
+            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
+              <Upload className="text-brand-blue h-8 w-8 mb-2" />
+              <p className="text-sm font-bold">Gérer Fichiers</p>
             </CardContent>
           </Card>
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('progress-updates')}>
-            <CardContent className="p-0 text-center">
-              <Construction className="text-orange-500 dark:text-orange-400 h-8 w-8 mx-auto mb-2" />
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('progress-updates')}>
+            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
+              <Construction className="text-orange-500 dark:text-orange-400 h-8 w-8 mb-2" />
               <p className="text-sm font-bold">Avancement Travaux</p>
             </CardContent>
           </Card>
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition" onClick={() => setAdminView('subscriber-tracking')}>
-            <CardContent className="p-0 text-center">
-              <TrendingUp className="text-cyan-500 dark:text-cyan-400 h-8 w-8 mx-auto mb-2" />
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('subscriber-tracking')}>
+            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
+              <TrendingUp className="text-cyan-500 dark:text-cyan-400 h-8 w-8 mb-2" />
               <p className="text-sm font-bold">Suivi Souscripteurs</p>
             </CardContent>
           </Card>
-          <Card onClick={() => setAdminView('sav-settings')} className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition">
-            <CardContent className="p-0 text-center">
-              <Headset className="text-emerald-500 h-8 w-8 mx-auto mb-2" />
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('sav-settings')}>
+            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
+              <Headset className="text-emerald-500 h-8 w-8 mb-2" />
               <p className="text-sm font-bold">Paramètres SAV</p>
             </CardContent>
           </Card>
@@ -2115,6 +2128,12 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
       )}
 
       {adminView === 'sav-settings' && <SavSettingsAdmin onBack={() => setAdminView(null)} />}
+
+      {adminView === 'hero-image' && (
+        <div className="mt-6">
+          <AdminHeroImage onBack={() => setAdminView(null)} />
+        </div>
+      )}
     </div>
   );
 }
