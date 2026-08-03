@@ -34,7 +34,7 @@ export async function GET() {
         status: user.status,
         reservationCount,
         totalPaid,
-        createdAt: user.createdAt.toISOString()
+        createdAt: typeof user.createdAt === 'string' ? user.createdAt : (user.createdAt?.toISOString?.() || new Date().toISOString())
       };
     });
 

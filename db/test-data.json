@@ -10,9 +10,9 @@
       "status": "ACTIVE",
       "id": "d2fb21f1-6b0d-480d-aca5-f63588d58368",
       "createdAt": "2026-08-03T22:04:18.535Z",
-      "updatedAt": "2026-08-03T23:01:16.348Z",
+      "updatedAt": "2026-08-03T23:23:37.695Z",
       "isOnline": true,
-      "lastSeen": "2026-08-03T23:01:16.348Z"
+      "lastSeen": "2026-08-03T23:23:37.695Z"
     },
     {
       "name": "Jean Kamga",
@@ -25,9 +25,9 @@
       "password": "2027a9183b6491a018e163a29eec8be8:8ff197f06e440b9f5f89d4c9f12d62f587674dc657c1447cec38ee3ea2268f61",
       "id": "cmpobcsf90000pvkijykyz2cq",
       "createdAt": "2026-08-03T22:04:18.535Z",
-      "updatedAt": "2026-08-03T22:54:47.754Z",
+      "updatedAt": "2026-08-03T23:23:32.435Z",
       "isOnline": true,
-      "lastSeen": "2026-08-03T22:54:47.754Z"
+      "lastSeen": "2026-08-03T23:23:32.435Z"
     },
     {
       "name": "Koffi yves",
@@ -57,10 +57,26 @@
       "password": "95ccae97331bb8b5dc140167b44a24dd:b1abce0a426d91cb25d3f0b507c7486497f777d433a77310f31ecccd82842ee7",
       "id": "0fd35ddd-6267-493a-af04-e410ae919093",
       "createdAt": "2026-08-03T22:26:43.782Z",
-      "updatedAt": "2026-08-03T22:46:00.070Z",
+      "updatedAt": "2026-08-03T23:23:17.697Z",
       "isOnline": true,
-      "lastSeen": "2026-08-03T22:46:00.070Z",
+      "lastSeen": "2026-08-03T23:23:17.697Z",
       "role": "ADMIN"
+    },
+    {
+      "name": "Basile koffi ",
+      "pseudo": "Baso",
+      "phone": "0505060607",
+      "isResident": false,
+      "quartier": null,
+      "villageOrigine": "Angovia",
+      "referralCode": "BAS653",
+      "status": "ACTIVE",
+      "password": "24af59a32a46b8deb64bdf1ea1b461b2:053d693202fb3c000dd294598d6f5ce91889d0244eebdf898542f0e7b33d45d6",
+      "id": "6ed30ba2-2837-439a-b391-c24fa6ded544",
+      "createdAt": "2026-08-03T23:13:34.024Z",
+      "updatedAt": "2026-08-03T23:13:34.514Z",
+      "isOnline": true,
+      "lastSeen": "2026-08-03T23:13:34.514Z"
     }
   ],
   "lot": [],
