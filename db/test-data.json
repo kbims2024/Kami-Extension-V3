@@ -10,9 +10,9 @@
       "status": "ACTIVE",
       "id": "d2fb21f1-6b0d-480d-aca5-f63588d58368",
       "createdAt": "2026-08-03T22:04:18.535Z",
-      "updatedAt": "2026-08-04T07:30:18.076Z",
+      "updatedAt": "2026-08-04T07:50:30.579Z",
       "isOnline": true,
-      "lastSeen": "2026-08-04T07:30:18.076Z"
+      "lastSeen": "2026-08-04T07:50:30.579Z"
     },
     {
       "name": "Jean Kamga",
@@ -25,9 +25,9 @@
       "password": "2027a9183b6491a018e163a29eec8be8:8ff197f06e440b9f5f89d4c9f12d62f587674dc657c1447cec38ee3ea2268f61",
       "id": "cmpobcsf90000pvkijykyz2cq",
       "createdAt": "2026-08-03T22:04:18.535Z",
-      "updatedAt": "2026-08-04T07:19:18.539Z",
+      "updatedAt": "2026-08-04T07:52:42.746Z",
       "isOnline": true,
-      "lastSeen": "2026-08-04T07:19:18.539Z"
+      "lastSeen": "2026-08-04T07:52:42.746Z"
     },
     {
       "name": "Koffi yves",
@@ -74,9 +74,9 @@
       "password": "24af59a32a46b8deb64bdf1ea1b461b2:053d693202fb3c000dd294598d6f5ce91889d0244eebdf898542f0e7b33d45d6",
       "id": "6ed30ba2-2837-439a-b391-c24fa6ded544",
       "createdAt": "2026-08-03T23:13:34.024Z",
-      "updatedAt": "2026-08-04T07:19:37.201Z",
+      "updatedAt": "2026-08-04T07:52:34.796Z",
       "isOnline": true,
-      "lastSeen": "2026-08-04T07:19:37.201Z",
+      "lastSeen": "2026-08-04T07:52:34.796Z",
       "role": "MANAGEMENT_COMMITTEE",
       "committeeAddedAt": "2026-08-04T06:54:42.441Z"
     }

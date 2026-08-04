@@ -48,6 +48,7 @@ import { SubscriberTrackingPanel } from '@/components/kami/SubscriberTrackingPan
 import { RegulationRulesScreen } from '@/components/kami/RegulationRulesScreen';
 import { CGLPermissionsManager } from '@/components/kami/CGLPermissionsManager';
 import { EspaceCGL } from '@/components/kami/EspaceCGL';
+import { CommitteeChatView } from '@/components/kami/CommitteeChatView';
 
 export default function KamiExtensionPage() {
   const [mounted, setMounted] = useState(false);
@@ -470,6 +471,17 @@ export default function KamiExtensionPage() {
               setCurrentScreen('admin-cgl');
             }}
             onBack={() => setCurrentScreen('home')}
+          />
+        </PageTransition>
+      )}
+
+      {/* Committee Chat — permanent, accessible from Espace CGL */}
+      {currentScreen === 'committee-chat' && (currentUser?.role === 'MANAGEMENT_COMMITTEE' || currentUser?.role === 'ADMIN') && (
+        <PageTransition>
+          <CommitteeChatView
+            setCurrentScreen={setCurrentScreen}
+            onBack={() => setCurrentScreen('espace-cgl')}
+            onHome={() => setCurrentScreen('home')}
           />
         </PageTransition>
       )}

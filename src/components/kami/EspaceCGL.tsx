@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import {
   ChartLine, CheckCircle, PlusCircle, FileText, Image as ImageIcon,
   Shield, Zap, UserPlus, Activity, Upload, Construction, TrendingUp,
-  Headset, Crown, ArrowLeft, Home, Loader2,
+  Headset, Crown, ArrowLeft, Home, Loader2, MessageSquare,
 } from 'lucide-react';
 
 interface FeatureDef {
@@ -108,7 +108,7 @@ export function EspaceCGL({ setCurrentScreen, goToAdminScreen, onBack }: EspaceC
 
       <div className="flex-1 px-4 pb-6">
         {/* Header */}
-        <div className="text-center mb-6">
+        <div className="text-center mb-5">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-purple-100 dark:bg-purple-900/30 mb-3">
             <Crown className="h-7 w-7 text-purple-600 dark:text-purple-400" />
           </div>
@@ -118,15 +118,29 @@ export function EspaceCGL({ setCurrentScreen, goToAdminScreen, onBack }: EspaceC
           </p>
         </div>
 
+        {/* ─── Permanent Discussion Button (always visible) ─── */}
+        <div className="mb-5">
+          <Card
+            className="bg-gradient-to-br from-blue-600 to-indigo-700 p-3 rounded-xl shadow-md cursor-pointer hover:shadow-lg transition-all active:scale-[0.97] h-[100px] border-0"
+            onClick={() => setCurrentScreen('committee-chat')}
+          >
+            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
+              <MessageSquare className="h-7 w-7 mb-2 text-white" />
+              <p className="text-xs font-bold leading-tight text-white">Gestion de Discussion</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* ─── Admin-controlled features ─── */}
         {availableFeatures.length === 0 ? (
           <Card className="bg-muted/30 border-dashed">
             <CardContent className="p-8 text-center">
               <Crown className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
               <p className="text-sm font-medium text-muted-foreground">
-                Aucune fonctionnalité accessible
+                Aucune autre fonctionnalité accessible
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                L&apos;administrateur n&apos;a pas encore activé de fonctionnalités pour le comité.
+                L&apos;administrateur n&apos;a pas encore activé de fonctionnalités supplémentaires.
               </p>
             </CardContent>
           </Card>
