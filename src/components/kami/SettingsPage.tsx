@@ -8,13 +8,14 @@ import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Settings, Shield, Palette, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Home, Settings, Shield, Palette, AlertCircle } from 'lucide-react';
 
 interface SettingsPageProps {
   onBack: () => void;
+  onHome?: () => void;
 }
 
-export function SettingsPage({ onBack }: SettingsPageProps) {
+export function SettingsPage({ onBack, onHome }: SettingsPageProps) {
   // Settings
   const [animationsEnabled, setAnimationsEnabled] = useState(true);
 
@@ -96,6 +97,16 @@ export function SettingsPage({ onBack }: SettingsPageProps) {
         >
           <ArrowLeft className="h-5 w-5 text-muted-foreground" />
         </Button>
+        {onHome && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-0 left-10"
+            onClick={onHome}
+          >
+            <Home className="h-5 w-5 text-muted-foreground" />
+          </Button>
+        )}
 
         <h2 className="text-2xl font-bold text-center text-foreground mb-6 flex items-center justify-center">
           <Settings className="mr-2 h-6 w-6" />

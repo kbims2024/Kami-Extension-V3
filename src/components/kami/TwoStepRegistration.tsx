@@ -11,10 +11,11 @@ import { ArrowLeft, ArrowRight, CheckCircle, Home, Users, Shield, Eye, EyeOff, M
 interface TwoStepRegistrationProps {
   onComplete: (userData: { name: string; pseudo: string; phone?: string; isResident: boolean; password: string; quartier?: string; villageOrigine?: string }) => void;
   onBack: () => void;
+  onHome?: () => void;
   setIsMenuOpen?: (open: boolean) => void;
 }
 
-export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoStepRegistrationProps) {
+export function TwoStepRegistration({ onComplete, onBack, onHome, setIsMenuOpen }: TwoStepRegistrationProps) {
   const [step, setStep] = useState(1);
   const [isResident, setIsResident] = useState<boolean | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -109,6 +110,16 @@ export function TwoStepRegistration({ onComplete, onBack, setIsMenuOpen }: TwoSt
           >
             <ArrowLeft className="h-5 w-5 text-foreground" />
           </Button>
+          {onHome && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onHome}
+              className="hover:bg-blue-50"
+            >
+              <Home className="h-5 w-5 text-foreground" />
+            </Button>
+          )}
           <div>
             <h1 className="text-base font-bold text-foreground leading-tight">Créer un compte</h1>
             <p className="text-xs text-muted-foreground">

@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Check, Shield, AlertCircle, Loader2, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Home, Check, Shield, AlertCircle, Loader2, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import Image from 'next/image';
 
@@ -34,6 +34,7 @@ interface PaymentMethodScreenProps {
   user: PaymentUserInfo;
   onBack: () => void;
   onPaymentComplete?: () => void;
+  onHome?: () => void;
 }
 
 const PAYMENT_METHODS = [
@@ -75,7 +76,7 @@ const PAYMENT_METHODS = [
   },
 ];
 
-export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete }: PaymentMethodScreenProps) {
+export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHome }: PaymentMethodScreenProps) {
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [agreeRules, setAgreeRules] = useState(false);
@@ -170,6 +171,11 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete }: Pa
             <Button variant="ghost" size="icon" onClick={onBack} className="h-9 w-9">
               <ArrowLeft className="h-5 w-5 text-foreground" />
             </Button>
+            {onHome && (
+              <Button variant="ghost" size="icon" onClick={onHome} className="h-9 w-9">
+                <Home className="h-5 w-5 text-foreground" />
+              </Button>
+            )}
             <h1 className="text-base font-bold text-foreground">Paiement</h1>
           </header>
 
@@ -374,6 +380,11 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete }: Pa
         <Button variant="ghost" size="icon" onClick={onBack} className="h-9 w-9">
           <ArrowLeft className="h-5 w-5 text-foreground" />
         </Button>
+        {onHome && (
+          <Button variant="ghost" size="icon" onClick={onHome} className="h-9 w-9">
+            <Home className="h-5 w-5 text-foreground" />
+          </Button>
+        )}
         <h1 className="text-base font-bold text-foreground">Paiement</h1>
       </header>
 

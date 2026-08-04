@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   ArrowLeft,
+  Home,
   Send,
   Check,
   CheckCheck,
@@ -67,9 +68,10 @@ interface SimpleUser {
 interface AdminChatPageProps {
   setCurrentScreen: (screen: string) => void;
   setIsMenuOpen: (open: boolean) => void;
+  onHome?: () => void;
 }
 
-export function AdminChatPage({ setCurrentScreen, setIsMenuOpen }: AdminChatPageProps) {
+export function AdminChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: AdminChatPageProps) {
   const [adminId, setAdminId] = useState<string | null>(null);
   const [users, setUsers] = useState<SimpleUser[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -307,6 +309,16 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen }: AdminChatPage
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
+        {onHome && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onHome}
+            className="text-white hover:bg-white/10"
+          >
+            <Home className="h-5 w-5" />
+          </Button>
+        )}
         <div className="flex-1 ml-2 min-w-0">
           <h1 className="text-[17px] font-semibold text-white truncate leading-tight">
             Discussions

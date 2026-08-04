@@ -27,7 +27,7 @@ import { AdminLogo } from '@/components/kami/AdminLogo';
 import { SettingsPage } from '@/components/kami/SettingsPage';
 import { UserDashboard } from '@/components/kami/UserDashboard';
 import { AdminDashboard } from '@/components/kami/AdminDashboard';
-import { UserManagement } from '@/components/kami/UserManagement';
+import { PageNav } from '@/components/kami/PageNav';
 import { CongratulationNotification } from '@/components/kami/CongratulationNotification';
 import { ChatPage } from '@/components/kami/ChatPage';
 import { AdminChatPage } from '@/components/kami/AdminChatPage';
@@ -334,7 +334,8 @@ export default function KamiExtensionPage() {
         <PageTransition>
           <TwoStepRegistration
             onComplete={handleRegistrationComplete}
-            onBack={() => setCurrentScreen('home')}
+            onBack={() => setCurrentScreen('auth-choice')}
+            onHome={() => setCurrentScreen('home')}
             setIsMenuOpen={setIsMenuOpen}
           />
         </PageTransition>
@@ -348,6 +349,7 @@ export default function KamiExtensionPage() {
             onRegisterClick={() => setCurrentScreen('register')}
             onServiceApresVenteClick={() => setCurrentScreen('sav')}
             onBack={() => setCurrentScreen('home')}
+            onHome={() => setCurrentScreen('home')}
             setIsMenuOpen={setIsMenuOpen}
           />
         </PageTransition>
@@ -359,6 +361,7 @@ export default function KamiExtensionPage() {
           <LoginScreen
             onLogin={(name, phone, password) => handleLogin(name, phone, password)}
             onBack={() => setCurrentScreen('auth-choice')}
+            onHome={() => setCurrentScreen('home')}
             setIsMenuOpen={setIsMenuOpen}
           />
         </PageTransition>
@@ -372,6 +375,7 @@ export default function KamiExtensionPage() {
             onRegisterClick={() => setCurrentScreen('register')}
             onServiceApresVenteClick={() => setCurrentScreen('sav')}
             onBack={() => setCurrentScreen('home')}
+            onHome={() => setCurrentScreen('home')}
             setIsMenuOpen={setIsMenuOpen}
           />
         </PageTransition>
@@ -384,6 +388,7 @@ export default function KamiExtensionPage() {
             handleOpenReservation={handleOpenReservation}
             setCurrentScreen={setCurrentScreen}
             setIsMenuOpen={setIsMenuOpen}
+            onHome={() => setCurrentScreen('home')}
           />
         </PageTransition>
       )}
@@ -394,6 +399,7 @@ export default function KamiExtensionPage() {
             currentUser={currentUser}
             setCurrentScreen={setCurrentScreen}
             setIsMenuOpen={setIsMenuOpen}
+            onHome={() => setCurrentScreen('home')}
             onPayLot={(reservation: any) => {
               // Find the lot from the lots list
               const lot = lots.find((l: any) => l.name === reservation.lotName);
@@ -414,6 +420,7 @@ export default function KamiExtensionPage() {
             copyReferralLink={copyReferralLink}
             setCurrentScreen={setCurrentScreen}
             setIsMenuOpen={setIsMenuOpen}
+            onHome={() => setCurrentScreen('home')}
           />
         </PageTransition>
       )}
@@ -425,6 +432,7 @@ export default function KamiExtensionPage() {
             copyReferralLink={copyReferralLink}
             setCurrentScreen={setCurrentScreen}
             setIsMenuOpen={setIsMenuOpen}
+            onHome={() => setCurrentScreen('home')}
           />
         </PageTransition>
       )}
@@ -433,6 +441,7 @@ export default function KamiExtensionPage() {
         <PageTransition>
           <RegulationRulesScreen
             setCurrentScreen={setCurrentScreen}
+            onHome={() => setCurrentScreen('home')}
           />
         </PageTransition>
       )}
@@ -442,6 +451,7 @@ export default function KamiExtensionPage() {
         <PageTransition>
           <ServiceApresVenteScreen
             onBack={() => setCurrentScreen(currentUser ? 'home' : 'auth-choice')}
+            onHome={() => setCurrentScreen('home')}
             setIsMenuOpen={setIsMenuOpen}
             onLoginClick={() => setCurrentScreen('login-screen')}
           />
@@ -463,13 +473,13 @@ export default function KamiExtensionPage() {
 
       {currentScreen === 'admin-flash-infos' && currentUser?.role === 'ADMIN' && (
         <PageTransition>
-          <FlashInfoAdmin onBack={() => setCurrentScreen('home')} />
+          <FlashInfoAdmin onBack={() => setCurrentScreen('home')} onHome={() => setCurrentScreen('home')} />
         </PageTransition>
       )}
 
       {currentScreen === 'settings' && (
         <PageTransition>
-          <SettingsPage onBack={() => setCurrentScreen('home')} />
+          <SettingsPage onBack={() => setCurrentScreen('home')} onHome={() => setCurrentScreen('home')} />
         </PageTransition>
       )}
 
@@ -478,6 +488,7 @@ export default function KamiExtensionPage() {
           <PlanPage
             setCurrentScreen={setCurrentScreen}
             setIsMenuOpen={setIsMenuOpen}
+            onHome={() => setCurrentScreen('home')}
           />
         </PageTransition>
       )}
@@ -487,6 +498,7 @@ export default function KamiExtensionPage() {
           <ChatPage
             setCurrentScreen={setCurrentScreen}
             setIsMenuOpen={setIsMenuOpen}
+            onHome={() => setCurrentScreen('home')}
           />
         </PageTransition>
       )}
@@ -496,13 +508,8 @@ export default function KamiExtensionPage() {
           <AdminChatPage
             setCurrentScreen={setCurrentScreen}
             setIsMenuOpen={setIsMenuOpen}
+            onHome={() => setCurrentScreen('home')}
           />
-        </PageTransition>
-      )}
-
-      {currentScreen === 'management-committee' && (
-        <PageTransition>
-          <ManagementCommitteeManagement onBack={() => setCurrentScreen('home')} setCurrentScreen={setCurrentScreen} currentUser={currentUser} />
         </PageTransition>
       )}
 
@@ -515,6 +522,7 @@ export default function KamiExtensionPage() {
             onBack={() => {
               setCurrentScreen(currentUser ? 'map' : 'home');
             }}
+            onHome={() => setCurrentScreen('home')}
             onPaymentComplete={() => {
               loadLots();
               loadMyReservations();
@@ -999,7 +1007,7 @@ function DashboardScreen({ myReservations, setCurrentScreen, setIsMenuOpen }: an
 }
 
 // Profile Screen Component
-function ProfileScreen({ currentUser, setCurrentUser, copyReferralLink, setCurrentScreen, setIsMenuOpen }: any) {
+function ProfileScreen({ currentUser, setCurrentUser, copyReferralLink, setCurrentScreen, setIsMenuOpen, onHome }: any) {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [photoUploading, setPhotoUploading] = useState(false);
@@ -1090,17 +1098,12 @@ function ProfileScreen({ currentUser, setCurrentUser, copyReferralLink, setCurre
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-background p-6 pt-16 pb-20">
-      <div className="flex justify-between items-center mb-6">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => { setIsMenuOpen(true); setCurrentScreen('home'); }}
-        >
-          <ArrowLeft className="h-5 w-5 text-foreground" />
-        </Button>
-        <h2 className="text-lg font-bold text-foreground">Mon Profil</h2>
-        {!isEditing ? (
+    <div className="flex-1 flex flex-col bg-background pb-20">
+      <PageNav
+        onBack={() => setIsMenuOpen(true)}
+        onHome={onHome || (() => setCurrentScreen('home'))}
+        title="Mon Profil"
+        titleRight={!isEditing ? (
           <Button
             variant="ghost"
             size="sm"
@@ -1109,10 +1112,10 @@ function ProfileScreen({ currentUser, setCurrentUser, copyReferralLink, setCurre
           >
             Modifier
           </Button>
-        ) : (
-          <div className="w-9" />
-        )}
-      </div>
+        ) : <div className="w-9" />}
+      />
+
+      <div className="flex-1 overflow-y-auto p-4">
 
       {/* Avatar + Statut */}
       <div className="flex flex-col items-center mb-6">
@@ -1365,25 +1368,21 @@ function ProfileScreen({ currentUser, setCurrentUser, copyReferralLink, setCurre
           )}
         </div>
       )}
+      </div>
     </div>
   );
 }
 
 // Affiliation Screen Component
-function AffiliationScreen({ currentUser, copyReferralLink, setCurrentScreen, setIsMenuOpen }: any) {
+function AffiliationScreen({ currentUser, copyReferralLink, setCurrentScreen, setIsMenuOpen, onHome }: any) {
   return (
-    <div className="flex-1 flex flex-col bg-card p-6 pt-16">
-      <Button
-        variant="ghost"
-        size="icon"
-        className="absolute top-4 left-4"
-        onClick={() => { setIsMenuOpen(true); setCurrentScreen('home'); }}
-      >
-        <ArrowLeft className="h-5 w-5 text-muted-foreground" />
-      </Button>
-
-      <h2 className="text-2xl font-bold text-center text-[#8B5E3C] mb-6">Parrainage</h2>
-
+    <div className="flex-1 flex flex-col bg-card">
+      <PageNav
+        onBack={() => setIsMenuOpen(true)}
+        onHome={onHome || (() => setCurrentScreen('home'))}
+        title="Parrainage"
+      />
+      <div className="p-4">
       <Card className="bg-emerald-50 p-6 rounded-2xl text-center border border-emerald-100 dark:bg-emerald-900/20 dark:border-emerald-800 mb-6">
         <p className="text-foreground text-sm">Vos gains totaux</p>
         <h3 className="text-4xl font-extrabold text-[#10B981] dark:text-emerald-400 mt-2">
@@ -1432,12 +1431,13 @@ function AffiliationScreen({ currentUser, copyReferralLink, setCurrentScreen, se
       <p className="text-xs text-muted-foreground text-center">
         Gagnez des commissions quand vos filleuls achètent un lot.
       </p>
+      </div>
     </div>
   );
 }
 
 // Admin Screen Component
-function SavSettingsAdmin({ onBack }: { onBack: () => void }) {
+function SavSettingsAdmin({ onBack }: { onBack?: () => void }) {
   const [savPhone, setSavPhone] = useState('');
   const [savWhatsapp, setSavWhatsapp] = useState('');
   const [savEmail, setSavEmail] = useState('');
@@ -1480,7 +1480,6 @@ function SavSettingsAdmin({ onBack }: { onBack: () => void }) {
   if (loading) {
     return (
       <div className="mt-6">
-        <Button variant="ghost" onClick={onBack} className="mb-4 text-muted-foreground"><ArrowLeft className="mr-2 h-4 w-4" />Retour</Button>
         <Card className="bg-card p-6"><CardContent className="text-center text-muted-foreground"><AlertCircle className="h-8 w-8 mx-auto mb-2 animate-pulse" /><p>Chargement...</p></CardContent></Card>
       </div>
     );
@@ -1488,10 +1487,7 @@ function SavSettingsAdmin({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="mt-6 space-y-4">
-      <div className="flex items-center gap-3 mb-2">
-        <Button variant="ghost" onClick={onBack} className="text-muted-foreground"><ArrowLeft className="mr-2 h-4 w-4" />Retour</Button>
-        <h2 className="text-lg font-bold">Paramètres SAV</h2>
-      </div>
+      <h2 className="text-lg font-bold mb-2">Paramètres SAV</h2>
 
       <Card className="bg-card p-4">
         <CardContent className="p-0 space-y-4">
@@ -1565,10 +1561,6 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
   const [payments, setPayments] = useState<any[]>([]);
   const [paymentsLoading, setPaymentsLoading] = useState(false);
 
-  // Users state
-  const [users, setUsers] = useState<any[]>([]);
-  const [usersLoading, setUsersLoading] = useState(false);
-
   // New lot state
   const [newLot, setNewLot] = useState({ name: '', surface: '', block: '', priceRes: '', priceNon: '' });
 
@@ -1610,22 +1602,6 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
       console.error('Error loading payments:', error);
     } finally {
       setPaymentsLoading(false);
-    }
-  };
-
-  // Load users from API
-  const loadUsers = async () => {
-    setUsersLoading(true);
-    try {
-      const response = await fetch('/api/admin/users');
-      if (response.ok) {
-        const data = await response.json();
-        setUsers(data);
-      }
-    } catch (error) {
-      console.error('Error loading users:', error);
-    } finally {
-      setUsersLoading(false);
     }
   };
 
@@ -1712,27 +1688,6 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
     }
   };
 
-  // Handle delete user
-  const handleDeleteUser = async (userId: string) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) return;
-
-    try {
-      const response = await fetch(`/api/admin/users?id=${userId}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        toast.success('Utilisateur supprimé !');
-        loadUsers();
-        loadStats();
-      } else {
-        toast.error('Erreur lors de la suppression');
-      }
-    } catch (error) {
-      toast.error('Erreur lors de la suppression');
-    }
-  };
-
   // Load data when view changes
   useEffect(() => {
     if (adminView === 'stats') {
@@ -1742,33 +1697,26 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
       return () => clearInterval(interval);
     } else if (adminView === 'payments') {
       loadPayments();
-    } else if (adminView === 'users') {
-      loadUsers();
     }
   }, [adminView]);
 
   return (
-    <div className="flex-1 flex flex-col bg-card p-6 pt-16">
-      <Button
-        variant="ghost"
-        size="icon"
-        className="absolute top-4 left-4"
-        onClick={() => setCurrentScreen('home')}
-      >
-        <ArrowLeft className="h-5 w-5 text-muted-foreground" />
-      </Button>
-
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-center text-red-600 flex-1 flex items-center justify-center">
-          <Shield className="mr-2 h-6 w-6" />
-          Admin
-        </h2>
-        {currentUser?.id && (
-          <div className="absolute top-4 right-4">
-            <CommitteeNotificationBell userId={currentUser.id} />
-          </div>
-        )}
-      </div>
+    <div className="flex-1 flex flex-col bg-card">
+      <PageNav
+        onBack={() => adminView ? setAdminView(null) : setCurrentScreen('home')}
+        onHome={() => setCurrentScreen('home')}
+        title={adminView ? 'Admin' : undefined}
+        titleRight={currentUser?.id ? <CommitteeNotificationBell userId={currentUser.id} /> : undefined}
+      />
+      <div className="p-6 pt-2">
+      {!adminView && (
+        <div className="flex items-center justify-center mb-6">
+          <h2 className="text-2xl font-bold text-red-600 flex items-center justify-center">
+            <Shield className="mr-2 h-6 w-6" />
+            Administration
+          </h2>
+        </div>
+      )}
 
       {!adminView && (
         <div className="grid grid-cols-2 gap-4">
@@ -1782,12 +1730,6 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
             <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
               <CheckCircle className="text-blue-500 dark:text-blue-400 h-8 w-8 mb-2" />
               <p className="text-sm font-bold">Valider Paiements</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('users')}>
-            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
-              <UserPlus className="text-purple-500 dark:text-purple-400 h-8 w-8 mb-2" />
-              <p className="text-sm font-bold">Gérer Utilisateurs</p>
             </CardContent>
           </Card>
           <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('add-lots')}>
@@ -1808,7 +1750,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
               <p className="text-sm font-bold">Image de Fond</p>
             </CardContent>
           </Card>
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setCurrentScreen('management-committee')}>
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('committee')}>
             <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
               <Shield className="text-purple-600 dark:text-purple-400 h-8 w-8 mb-2" />
               <p className="text-sm font-bold">Gestion du Comité</p>
@@ -1860,21 +1802,11 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
       )}
 
       {adminView === 'dashboard' && (
-        <div className="mt-6">
-          <Button variant="ghost" onClick={() => setAdminView(null)} className="mb-4 text-muted-foreground">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Retour
-          </Button>
-          <AdminDashboard onBack={() => setAdminView(null)} />
-        </div>
+        <AdminDashboard />
       )}
 
       {adminView === 'stats' && (
-        <div className="mt-6">
-          <Button variant="ghost" onClick={() => setAdminView(null)} className="mb-4 text-muted-foreground">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Retour
-          </Button>
+        <div className="mt-4">
           {statsLoading ? (
             <Card className="bg-card p-6">
               <CardContent className="text-center text-muted-foreground">
@@ -1918,11 +1850,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
       )}
 
       {adminView === 'add-lots' && (
-        <div className="mt-6">
-          <Button variant="ghost" onClick={() => setAdminView(null)} className="mb-4 text-muted-foreground">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Retour
-          </Button>
+        <div className="mt-4">
           <Card className="bg-card p-4 rounded-xl shadow-sm border border-border">
             <CardContent className="space-y-4">
               <div>
@@ -1988,11 +1916,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
       )}
 
       {adminView === 'payments' && (
-        <div className="mt-6">
-          <Button variant="ghost" onClick={() => setAdminView(null)} className="mb-4 text-muted-foreground">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Retour
-          </Button>
+        <div className="mt-4">
           {paymentsLoading ? (
             <Card className="bg-card p-6">
               <CardContent className="text-center text-muted-foreground">
@@ -2075,65 +1999,44 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
         </div>
       )}
 
-      {adminView === 'users' && (
-        <div className="mt-6">
-          <UserManagement onBack={() => setAdminView(null)} />
-        </div>
+      {adminView === 'committee' && (
+        <ManagementCommitteeManagement setCurrentScreen={setCurrentScreen} currentUser={currentUser} />
       )}
 
       {adminView === 'logo' && (
-        <div className="mt-6">
-          <Button variant="ghost" onClick={() => setAdminView(null)} className="mb-4 text-muted-foreground">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Retour
-          </Button>
-          <AdminLogo />
-        </div>
+        <AdminLogo />
       )}
 
       {adminView === 'flash-infos' && (
-        <FlashInfoAdmin onBack={() => setAdminView(null)} />
+        <FlashInfoAdmin />
       )}
 
       {adminView === 'files' && (
-        <AdminFiles onBack={() => setAdminView(null)} />
+        <AdminFiles />
       )}
 
       {adminView === 'expert-applications' && (
-        <div className="mt-6">
-          <ExpertApplicationsAdmin onBack={() => setAdminView(null)} />
-        </div>
+        <ExpertApplicationsAdmin />
       )}
 
       {adminView === 'users-monitor' && (
-        <div className="mt-6">
-          <Button variant="ghost" onClick={() => setAdminView(null)} className="mb-4 text-muted-foreground">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Retour
-          </Button>
-          <UsersMonitorPanel />
-        </div>
+        <UsersMonitorPanel />
       )}
 
       {adminView === 'progress-updates' && (
-        <div className="mt-6">
-          <ProgressUpdatesAdmin onBack={() => setAdminView(null)} />
-        </div>
+        <ProgressUpdatesAdmin />
       )}
 
       {adminView === 'subscriber-tracking' && (
-        <div className="mt-6">
-          <SubscriberTrackingPanel onBack={() => setAdminView(null)} setCurrentScreen={setCurrentScreen} currentUser={currentUser} />
-        </div>
+        <SubscriberTrackingPanel setCurrentScreen={setCurrentScreen} currentUser={currentUser} />
       )}
 
-      {adminView === 'sav-settings' && <SavSettingsAdmin onBack={() => setAdminView(null)} />}
+      {adminView === 'sav-settings' && <SavSettingsAdmin />}
 
       {adminView === 'hero-image' && (
-        <div className="mt-6">
-          <AdminHeroImage onBack={() => setAdminView(null)} />
-        </div>
+        <AdminHeroImage />
       )}
+      </div>
     </div>
   );
 }

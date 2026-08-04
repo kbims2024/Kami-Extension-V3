@@ -9,6 +9,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import {
   Search,
+  ArrowLeft,
+  Home,
   Wifi,
   WifiOff,
   Clock,
@@ -48,7 +50,12 @@ interface MonitorData {
   };
 }
 
-export function UsersMonitorPanel() {
+interface UsersMonitorPanelProps {
+  onBack?: () => void;
+  onHome?: () => void;
+}
+
+export function UsersMonitorPanel({ onBack, onHome }: UsersMonitorPanelProps) {
   const [data, setData] = useState<MonitorData | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -163,6 +170,20 @@ export function UsersMonitorPanel() {
 
   return (
     <div className="space-y-4">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-md border-b border-border px-4 py-3 -mx-4 -mt-4 mb-4">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={() => onBack?.()}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h2 className="text-lg font-bold text-foreground flex-1">Surveillance Utilisateurs</h2>
+          {onHome && (
+            <Button variant="ghost" size="icon" onClick={onHome}>
+              <Home className="h-5 w-5" />
+            </Button>
+          )}
+        </div>
+      </div>
       {/* ─── Summary Cards ─── */}
       <div className="grid grid-cols-3 gap-3">
         <Card className="border border-border">

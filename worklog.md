@@ -1,43 +1,89 @@
 ---
 Task ID: 1
-Agent: Main
-Task: Fix 'currentUser is not defined' error in AdminScreen when logging in as administrator
+Agent: main
+Task: Create PageNav reusable component with back + home buttons
 
 Work Log:
-- Analyzed user's screenshot showing Runtime ReferenceError: 'currentUser is not defined' at page.tsx:1764 in AdminScreen
-- Identified that AdminScreen component (line 1558) used `currentUser` on line 1764 but didn't receive it as a prop or access it from the store
-- Added `currentUser={currentUser}` prop to AdminScreen JSX call (line 452-458)
-- Added `currentUser` to AdminScreen's destructured props: `function AdminScreen({ ..., currentUser }: any)`
-- Verified ChatPage.tsx and AdminChatPage.tsx were not broken (only color/style changes from prior session, no logic changes)
-- Killed stale dev server processes and restarted clean instance
-- Tested with Agent Browser: admin dashboard renders correctly with all management cards
-- Tested registration flow: auth choice screen and account creation form render correctly
-- Tested login flow: navigation works correctly
+- Created /home/z/my-project/src/components/kami/PageNav.tsx
+- Component accepts onBack, onHome, title, titleRight props
+- Renders sticky header with ArrowLeft back button (left), optional title (center), and Home button (right)
+- Uses shadcn/ui Button with ghost variant
 
 Stage Summary:
-- Fixed the critical ReferenceError that prevented admin login by adding `currentUser` as a prop to `AdminScreen`
-- The fix was a 2-line change: pass prop in parent + destructure in child
-- All core functionality verified: login, registration, admin dashboard
+- PageNav component ready for use across all screens
 
 ---
 Task ID: 2
-Agent: Main
-Task: Restore missing admin buttons + uniform size + Espace CGL for committee members
+Agent: main
+Task: Fix Gestion du Comité - merge user management, remove Gérer Utilisateurs
 
 Work Log:
-- Added 'AdminHeroImage' import and 'Image as ImageIcon' to lucide-react imports in page.tsx
-- Added 'Image de Fond' button (pink ImageIcon, adminView='hero-image') to admin grid
-- Added 'Gestion du Comité' button (purple Shield icon, navigates to management-committee screen) to admin grid
-- Added adminView='hero-image' render case for AdminHeroImage component
-- Made ALL admin buttons uniform size with h-[100px] and flex centering (removed col-span-2 from Gérer Fichiers)
-- Shortened 'Gérer Fichiers (Plan du village)' to 'Gérer Fichiers' to fit uniform cards
-- Modified ModernSideMenu.tsx: added role-refresh mechanism via /api/user/role endpoint when menu opens
-- Added 'Espace CGL' menu item (Crown icon) visible only for MANAGEMENT_COMMITTEE role
-- Created /api/user/role endpoint for lightweight role checking
-- Welcome message already implemented in /api/admin/management-committee POST route
+- Removed 'Gérer Utilisateurs' button from admin grid (was using adminView='users')
+- Changed 'Gestion du Comité' button to use setAdminView('committee') instead of setCurrentScreen('management-committee')
+- Added adminView='committee' render case with ManagementCommitteeManagement component
+- Removed currentScreen='management-committee' render case from main router
+- Removed adminView='users' render case and UserManagement import
+- Removed unused users/usersLoading state, loadUsers function, handleDeleteUser from AdminScreen
+- Removed AdminScreen's old floating ArrowLeft + centered title header
+- Replaced with PageNav that shows 'Admin' title when in sub-view
+- Removed redundant onBack props from admin sub-components (PageNav handles navigation)
+- Rewrote ManagementCommitteeManagement to remove its own header/nav (parent handles it)
 
 Stage Summary:
-- 14 uniform admin buttons in 2-column grid (was 12 + 1 wide)
-- Committee members see 'Espace CGL' with Crown icon in their side menu
-- Role refresh on menu open ensures immediate visibility when admin promotes a user
-- Regular users see neither 'Espace CGL' nor 'Administration'
+- Admin now has 13 buttons (was 14, 'Gérer Utilisateurs' removed)
+- 'Gestion du Comité' shows all registered users with add/remove committee toggle
+- Committee management is now an admin sub-view with PageNav providing back+home navigation
+
+---
+Task ID: 3
+Agent: main
+Task: Add PageNav to inline screens in page.tsx
+
+Work Log:
+- Updated ProfileScreen to use PageNav (back=menu, home=home, title='Mon Profil')
+- Updated AffiliationScreen to use PageNav (back=menu, home=home, title='Parrainage')
+- Updated AdminScreen to use PageNav (back=grid or home, home=always home, title='Admin' when in sub-view)
+- Made SavSettingsAdmin onBack prop optional, removed its internal back button
+
+Stage Summary:
+- Inline screens now use consistent PageNav component
+
+---
+Task ID: 4-a
+Agent: component-modifier
+Task: Add Home button to auth components
+
+Work Log:
+- Modified TwoStepRegistration.tsx, LoginScreen.tsx, AuthChoiceScreen.tsx
+- Added onHome prop and Home icon button next to ArrowLeft in headers
+
+Stage Summary:
+- All 3 auth components now have back + home buttons
+
+---
+Task ID: 4-b
+Agent: component-modifier
+Task: Add Home button to main screen components
+
+Work Log:
+- Modified EnhancedMapScreen.tsx, UserDashboard.tsx, PlanPage.tsx, RegulationRulesScreen.tsx, UsersMonitorPanel.tsx
+- Each received onHome prop and Home button
+- UsersMonitorPanel got a new header with back+home since it had none
+
+Stage Summary:
+- 5 components updated with onHome support
+
+---
+Task ID: 4-c
+Agent: component-modifier  
+Task: Add Home button to remaining 13 components
+
+Work Log:
+- Modified ServiceApresVenteScreen, SettingsPage, PaymentMethodScreen, ChatPage, AdminChatPage
+- Modified AdminHeroImage, AdminFiles, FlashInfoAdmin, AdminDashboard, ExpertApplicationsAdmin
+- Modified ProgressUpdatesAdmin, SubscriberTrackingPanel, AdminLogo
+- All received onHome prop and Home button in their headers
+
+Stage Summary:
+- 13 additional components updated with onHome support
+- All pages in the application now have both back and home navigation buttons

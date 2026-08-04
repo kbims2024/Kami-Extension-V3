@@ -2,14 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Map, Loader2 } from 'lucide-react';
+import { ArrowLeft, Home, Map, Loader2 } from 'lucide-react';
 
 interface PlanPageProps {
   setCurrentScreen: (screen: string) => void;
   setIsMenuOpen: (open: boolean) => void;
+  onHome?: () => void;
 }
 
-export function PlanPage({ setCurrentScreen, setIsMenuOpen }: PlanPageProps) {
+export function PlanPage({ setCurrentScreen, setIsMenuOpen, onHome }: PlanPageProps) {
   const [opened, setOpened] = useState(false);
 
   // Ouvrir le PDF dans la page actuelle
@@ -44,6 +45,16 @@ export function PlanPage({ setCurrentScreen, setIsMenuOpen }: PlanPageProps) {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
+            {onHome && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onHome}
+                className="hover:bg-blue-50 dark:hover:bg-blue-950"
+              >
+                <Home className="h-5 w-5" />
+              </Button>
+            )}
             <div className="flex items-center gap-2">
               <Map className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               <h1 className="text-lg font-bold text-foreground">Plan du Village</h1>

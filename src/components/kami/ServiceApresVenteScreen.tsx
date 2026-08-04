@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 
 import {
   ArrowLeft,
+  Home,
   Menu,
   Headset,
   Phone,
@@ -60,6 +61,7 @@ interface ServiceApresVenteScreenProps {
   onBack: () => void;
   setIsMenuOpen?: (open: boolean) => void;
   onLoginClick?: () => void;
+  onHome?: () => void;
 }
 
 // Default contact info (used as fallback)
@@ -267,6 +269,7 @@ export function ServiceApresVenteScreen({
   onBack,
   setIsMenuOpen,
   onLoginClick,
+  onHome,
 }: ServiceApresVenteScreenProps) {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [showExpertPanel, setShowExpertPanel] = useState(false);
@@ -458,6 +461,16 @@ export function ServiceApresVenteScreen({
         >
           <ArrowLeft className="h-5 w-5 text-foreground" />
         </Button>
+        {onHome && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onHome}
+            className="hover:bg-emerald-50 dark:hover:bg-emerald-950/30 h-9 w-9"
+          >
+            <Home className="h-5 w-5 text-foreground" />
+          </Button>
+        )}
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/40 rounded-lg flex items-center justify-center shrink-0">
             <Headset className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />

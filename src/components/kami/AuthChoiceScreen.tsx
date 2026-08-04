@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, LogIn, UserPlus, Menu, Headset } from 'lucide-react';
+import { ArrowLeft, Home, LogIn, UserPlus, Menu, Headset } from 'lucide-react';
 import { LogoDisplay } from '@/components/kami/LogoDisplay';
 
 interface AuthChoiceScreenProps {
@@ -10,10 +10,11 @@ interface AuthChoiceScreenProps {
   onRegisterClick: () => void;
   onServiceApresVenteClick: () => void;
   onBack: () => void;
+  onHome?: () => void;
   setIsMenuOpen?: (open: boolean) => void;
 }
 
-export function AuthChoiceScreen({ onLoginClick, onRegisterClick, onServiceApresVenteClick, onBack, setIsMenuOpen }: AuthChoiceScreenProps) {
+export function AuthChoiceScreen({ onLoginClick, onRegisterClick, onServiceApresVenteClick, onBack, onHome, setIsMenuOpen }: AuthChoiceScreenProps) {
   return (
     <div className="flex-1 flex flex-col bg-card h-screen">
       {/* Header */}
@@ -27,6 +28,16 @@ export function AuthChoiceScreen({ onLoginClick, onRegisterClick, onServiceApres
           >
             <ArrowLeft className="h-4 w-4 text-foreground" />
           </Button>
+          {onHome && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onHome}
+              className="hover:bg-blue-50 h-8 w-8"
+            >
+              <Home className="h-4 w-4 text-foreground" />
+            </Button>
+          )}
           <h1 className="text-sm font-bold text-foreground leading-tight">Bienvenue</h1>
         </div>
         {setIsMenuOpen && (

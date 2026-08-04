@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Upload, X, Eye, Palette, Type, Image as ImageIcon, Check } from 'lucide-react';
+import { Upload, X, Eye, Palette, Type, Image as ImageIcon, Check, ArrowLeft, Home } from 'lucide-react';
 
 export interface LogoData {
   id?: string;
@@ -19,9 +19,10 @@ export interface LogoData {
 
 interface AdminLogoProps {
   onClose?: () => void;
+  onHome?: () => void;
 }
 
-export function AdminLogo({ onClose }: AdminLogoProps) {
+export function AdminLogo({ onClose, onHome }: AdminLogoProps) {
   const [logo, setLogo] = useState<LogoData>({
     text: 'KAMI-EXTENSION',
     imageUrl: null,
@@ -136,6 +137,20 @@ export function AdminLogo({ onClose }: AdminLogoProps) {
 
   return (
     <div className="space-y-6">
+      {(onClose || onHome) && (
+        <div className="flex items-center gap-1">
+          {onClose && (
+            <Button variant="ghost" size="icon" onClick={onClose} className="text-muted-foreground">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          )}
+          {onHome && (
+            <Button variant="ghost" size="icon" onClick={onHome} className="text-muted-foreground">
+              <Home className="h-5 w-5" />
+            </Button>
+          )}
+        </div>
+      )}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

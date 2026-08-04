@@ -176,9 +176,10 @@ interface UserDashboardProps {
   setCurrentScreen?: (screen: string) => void
   setIsMenuOpen?: (open: boolean) => void
   onPayLot?: (reservation: Reservation) => void
+  onHome?: () => void
 }
 
-export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, setCurrentScreen, setIsMenuOpen, onPayLot }) => {
+export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, setCurrentScreen, setIsMenuOpen, onPayLot, onHome }) => {
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState<UserStats | null>(null)
   const [reservations, setReservations] = useState<Reservation[]>([])
@@ -267,6 +268,11 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, setCu
             Suivez toutes vos opérations et statistiques
           </p>
         </motion.div>
+        {onHome && (
+          <Button variant="ghost" size="icon" onClick={onHome} className="ml-auto">
+            <Home className="h-5 w-5 text-foreground" />
+          </Button>
+        )}
       </motion.header>
 
       <div className="flex-1 p-4 space-y-6">

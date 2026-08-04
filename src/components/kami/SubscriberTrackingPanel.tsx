@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import {
   ArrowLeft,
+  Home,
   Search,
   User,
   Phone,
@@ -76,9 +77,10 @@ interface SubscriberTrackingPanelProps {
   onBack?: () => void;
   setCurrentScreen?: (screen: string) => void;
   currentUser?: { id: string; role: string; name: string; phone: string } | null;
+  onHome?: () => void;
 }
 
-export function SubscriberTrackingPanel({ onBack, setCurrentScreen, currentUser }: SubscriberTrackingPanelProps) {
+export function SubscriberTrackingPanel({ onBack, setCurrentScreen, currentUser, onHome }: SubscriberTrackingPanelProps) {
   const [subscribers, setSubscribers] = useState<SubscriberData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -180,10 +182,17 @@ export function SubscriberTrackingPanel({ onBack, setCurrentScreen, currentUser 
   return (
     <div className="space-y-4">
       {onBack && (
-        <Button variant="ghost" onClick={onBack} className="text-muted-foreground">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Retour
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" onClick={onBack} className="text-muted-foreground">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Retour
+          </Button>
+          {onHome && (
+            <Button variant="ghost" size="icon" onClick={onHome} className="text-muted-foreground">
+              <Home className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       )}
 
       <div>

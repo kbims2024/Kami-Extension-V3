@@ -23,6 +23,7 @@ import {
   Image as ImageIcon,
   Video,
   ArrowLeft,
+  Home,
   Upload,
   Construction,
   Calendar,
@@ -42,9 +43,10 @@ interface ProgressUpdate {
 
 interface ProgressUpdatesAdminProps {
   onBack?: () => void;
+  onHome?: () => void;
 }
 
-export function ProgressUpdatesAdmin({ onBack }: ProgressUpdatesAdminProps) {
+export function ProgressUpdatesAdmin({ onBack, onHome }: ProgressUpdatesAdminProps) {
   const [updates, setUpdates] = useState<ProgressUpdate[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -220,10 +222,17 @@ export function ProgressUpdatesAdmin({ onBack }: ProgressUpdatesAdminProps) {
   return (
     <div className="space-y-6">
       {onBack && (
-        <Button variant="ghost" onClick={onBack} className="text-muted-foreground">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Retour
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" onClick={onBack} className="text-muted-foreground">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Retour
+          </Button>
+          {onHome && (
+            <Button variant="ghost" size="icon" onClick={onHome} className="text-muted-foreground">
+              <Home className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       )}
 
       <div className="flex items-center justify-between">

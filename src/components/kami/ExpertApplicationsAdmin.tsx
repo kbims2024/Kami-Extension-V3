@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft,
+  Home,
   CheckCircle2,
   XCircle,
   Clock,
@@ -54,6 +55,7 @@ interface ExpertApplication {
 
 interface ExpertApplicationsAdminProps {
   onBack: () => void;
+  onHome?: () => void;
 }
 
 const CATEGORY_LABELS: Record<string, { label: string; icon: string; color: string }> = {
@@ -67,7 +69,7 @@ const CATEGORY_LABELS: Record<string, { label: string; icon: string; color: stri
   geometre: { label: 'Géomètre', icon: '📐', color: '#D946EF' },
 };
 
-export function ExpertApplicationsAdmin({ onBack }: ExpertApplicationsAdminProps) {
+export function ExpertApplicationsAdmin({ onBack, onHome }: ExpertApplicationsAdminProps) {
   const [applications, setApplications] = useState<ExpertApplication[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
@@ -195,15 +197,22 @@ export function ExpertApplicationsAdmin({ onBack }: ExpertApplicationsAdminProps
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onBack}
-          className="h-8 text-xs gap-1 text-muted-foreground hover:text-foreground px-2"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          Retour admin
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onBack}
+            className="h-8 text-xs gap-1 text-muted-foreground hover:text-foreground px-2"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Retour admin
+          </Button>
+          {onHome && (
+            <Button variant="ghost" size="icon" onClick={onHome} className="h-8 w-8 text-muted-foreground hover:text-foreground">
+              <Home className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </div>
 
       <div>

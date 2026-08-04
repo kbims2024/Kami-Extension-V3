@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Plus, Edit, Trash2, Save, X, MoveUp, MoveDown, Star, Heart, Settings, Sliders, RotateCw, Eye } from 'lucide-react';
+import { ArrowLeft, Home, Plus, Edit, Trash2, Save, X, MoveUp, MoveDown, Star, Heart, Settings, Sliders, RotateCw, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface FlashInfoItem {
@@ -79,9 +79,10 @@ const textColorPresets = [
 
 interface FlashInfoAdminProps {
   onBack: () => void;
+  onHome?: () => void;
 }
 
-export function FlashInfoAdmin({ onBack }: FlashInfoAdminProps) {
+export function FlashInfoAdmin({ onBack, onHome }: FlashInfoAdminProps) {
   const [data, setData] = useState<FlashInfoData | null>(null);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -428,6 +429,16 @@ export function FlashInfoAdmin({ onBack }: FlashInfoAdminProps) {
       >
         <ArrowLeft className="h-5 w-5 text-muted-foreground" />
       </Button>
+      {onHome && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-4 left-16"
+          onClick={onHome}
+        >
+          <Home className="h-5 w-5 text-muted-foreground" />
+        </Button>
+      )}
 
       <h2 className="text-2xl font-bold text-center text-foreground mb-6">
         Gestion des Flash Infos

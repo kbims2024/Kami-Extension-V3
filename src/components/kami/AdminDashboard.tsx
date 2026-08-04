@@ -20,7 +20,8 @@ import {
   ArrowDownRight,
   BarChart3,
   Activity,
-  MapPin
+  MapPin,
+  Home
 } from 'lucide-react'
 import {
   BarChart,
@@ -125,11 +126,12 @@ const StatCard: React.FC<StatCardProps> = ({
 interface AdminDashboardProps {
   onBack?: () => void
   setCurrentScreen?: (screen: string) => void
+  onHome?: () => void
 }
 
 const COLORS = ['#10B981', '#F59E0B', '#EF4444', '#8B5E3C', '#3B82F6']
 
-export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurrentScreen }) => {
+export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurrentScreen, onHome }) => {
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState<AdminStats | null>(null)
   const [lots, setLots] = useState<Lot[]>([])
@@ -208,9 +210,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
   return (
     <div className="space-y-6">
       {onBack && (
-        <Button variant="ghost" onClick={onBack} className="text-muted-foreground">
-          Retour
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" onClick={onBack} className="text-muted-foreground">
+            Retour
+          </Button>
+          {onHome && (
+            <Button variant="ghost" size="icon" onClick={onHome} className="text-muted-foreground">
+              <Home className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       )}
 
       <div>

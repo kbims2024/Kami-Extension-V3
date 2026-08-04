@@ -5,14 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Upload, FileText, CheckCircle, AlertCircle, Trash2 } from 'lucide-react';
+import { ArrowLeft, Home, Upload, FileText, CheckCircle, AlertCircle, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface AdminFilesProps {
   onBack: () => void;
+  onHome?: () => void;
 }
 
-export function AdminFiles({ onBack }: AdminFilesProps) {
+export function AdminFiles({ onBack, onHome }: AdminFilesProps) {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [currentFile, setCurrentFile] = useState<{ filename: string; mimeType: string; size: number; path: string } | null>(null);
@@ -125,6 +126,16 @@ export function AdminFiles({ onBack }: AdminFilesProps) {
       >
         <ArrowLeft className="h-5 w-5 text-muted-foreground" />
       </Button>
+      {onHome && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-4 left-16"
+          onClick={onHome}
+        >
+          <Home className="h-5 w-5 text-muted-foreground" />
+        </Button>
+      )}
 
       <h2 className="text-2xl font-bold text-center text-foreground mb-6">
         Gestion des Fichiers

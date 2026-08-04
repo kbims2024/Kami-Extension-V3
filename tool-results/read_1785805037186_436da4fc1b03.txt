@@ -1,0 +1,1460 @@
+     1→'use client';
+     2→
+     3→import { useState } from 'react';
+     4→import { Button } from '@/components/ui/button';
+     5→import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+     6→import { Badge } from '@/components/ui/badge';
+     7→import { Separator } from '@/components/ui/separator';
+     8→import { ScrollArea } from '@/components/ui/scroll-area';
+     9→import {
+    10→  ArrowLeft,
+    11→  ChevronDown,
+    12→  ChevronUp,
+    13→  TreePine,
+    14→  Zap,
+    15→  Car,
+    16→  Trash2,
+    17→  Scale,
+    18→  FileText,
+    19→  Eye,
+    20→  Handshake,
+    21→  ShieldAlert,
+    22→  ShieldCheck,
+    23→  BookOpen,
+    24→  BadgeCheck,
+    25→  Landmark,
+    26→  Wallet,
+    27→  Building,
+    28→  Building2,
+    29→  Store,
+    30→  Wifi,
+    31→  Heart,
+    32→  Droplets,
+    33→  Dumbbell,
+    34→  Users,
+    35→  Gavel,
+    36→} from 'lucide-react';
+    37→
+    38→interface RulesSection {
+    39→  id: string;
+    40→  title: string;
+    41→  icon: React.ReactNode;
+    42→  color: string;
+    43→  bgColor: string;
+    44→  borderColor: string;
+    45→  articles: {
+    46→    title: string;
+    47→    rules: string[];
+    48→  }[];
+    49→}
+    50→
+    51→interface RegulationRulesScreenProps {
+    52→  setCurrentScreen: (screen: string) => void;
+    53→}
+    54→
+    55→const rulesData: RulesSection[] = [
+    56→  {
+    57→    id: 'general',
+    58→    title: 'Dispositions Générales',
+    59→    icon: <BookOpen className="h-6 w-6" />,
+    60→    color: 'text-brand-blue',
+    61→    bgColor: 'bg-blue-50 dark:bg-blue-950/30',
+    62→    borderColor: 'border-l-brand-blue',
+    63→    articles: [
+    64→      {
+    65→        title: 'Objet du règlement',
+    66→        rules: [
+    67→          'Le présent règlement intérieur a pour objet de définir les règles de vie commune au sein du village KAMI-EXTENSION, garantissant à chaque résident et propriétaire un cadre de vie harmonieux, sécurisé et respectueux de l\'environnement.',
+    68→          'Il s\'applique à l\'ensemble des propriétaires de lots, résidents occupants, locataires, visiteurs et toute personne entrant dans le périmètre du village.',
+    69→          'L\'ignorance du règlement ne saurait être invoquée pour justifier un manquement. Chaque propriétaire est tenu de le communiquer à ses locataires et occupants.',
+    70→          'Tout propriétaire acquiert son lot dans le respect des présentes dispositions. La signature du contrat de réservation ou d\'achat vaut acceptation pleine et entière du présent règlement.',
+    71→        ],
+    72→      },
+    73→      {
+    74→        title: 'Définitions',
+    75→        rules: [
+    76→          '« Lot » désigne la parcelle de terrain cadastrée attribuée à un propriétaire au sein du village KAMI-EXTENSION.',
+    77→          '« Résident » désigne toute personne physiquement installée sur un lot du village, qu\'en soit le titre d\'occupation.',
+    78→          '« Comité de gestion des lots » désigne l\'organe chargé de l\'administration, de la coordination et du respect des règles du village.',
+    79→          '« Périmètre du village » désigne l\'ensemble des lots, voies, espaces communs et zones collectives délimitant KAMI-EXTENSION.',
+    80→        ],
+    81→      },
+    82→      {
+    83→        title: 'Publication et modifications',
+    84→        rules: [
+    85→          'Le règlement intérieur est affiché dans les espaces communs et accessible en ligne via la plateforme KAMI-EXTENSION.',
+    86→          'Toute modification du règlement doit être approuvée par le Comité de gestion des lots et communiquée à l\'ensemble des propriétaires au moins 30 jours avant son entrée en vigueur.',
+    87→          'Les propriétaires peuvent formuler des suggestions de modification via le Comité de gestion, qui les examinera lors de ses réunions ordinaires.',
+    88→        ],
+    89→      },
+    90→      {
+    91→        title: 'Champ d\'application territorial',
+    92→        rules: [
+    93→          'Le présent règlement s\'applique à l\'intérieur des bornes cadastrales du lotissement KAMI-EXTENSION, telles que définies par l\'arrêté de lotissement et le plan cadastral en vigueur.',
+    94→          'Les zones tampons situées aux abords immédiats du village, y compris les voies d\'accès principale et secondaire, sont soumises aux dispositions relatives à la circulation, à la sécurité et à l\'environnement du présent règlement.',
+    95→          'Toute extension future du périmètre du village fera l\'objet d\'un avenant au présent règlement, soumis à l\'approbation de l\'assemblée générale.',
+    96→          'Les servitudes de passage, réseaux et équipements traversant le périmètre restent soumises aux conventions passées avec les concessionnaires publics et les autorités locales.',
+    97→        ],
+    98→      },
+    99→      {
+   100→        title: 'Principes directeurs',
+   101→        rules: [
+   102→          'Le village KAMI-EXTENSION est fondé sur les principes de solidarité, de respect mutuel, de développement durable et de préservation du patrimoine commun.',
+   103→          'Toute décision prise dans le cadre du village doit concilier l\'intérêt individuel des propriétaires avec l\'intérêt collectif de la communauté.',
+   104→          'Les valeurs culturelles camerounaises de vivre-ensemble, de tolérance et d\'entraide constituent le socle des relations de voisinage.',
+   105→          'Le développement du village doit intégrer les impératifs d\'adaptation au changement climatique, notamment en matière de gestion des ressources en eau et de lutte contre l\'érosion des sols.',
+   106→        ],
+   107→      },
+   108→    ],
+   109→  },
+   110→  {
+   111→    id: 'acquisition',
+   112→    title: 'Conditions d\'Acquisition et de Cession des Lots',
+   113→    icon: <BadgeCheck className="h-6 w-6" />,
+   114→    color: 'text-teal-600 dark:text-teal-400',
+   115→    bgColor: 'bg-teal-50 dark:bg-teal-950/30',
+   116→    borderColor: 'border-l-teal-500',
+   117→    articles: [
+   118→      {
+   119→        title: 'Modalités d\'acquisition',
+   120→        rules: [
+   121→          'L\'acquisition d\'un lot au sein de KAMI-EXTENSION s\'effectue par la signature d\'un contrat de réservation, suivi d\'un acte de vente définitif établi devant un notaire ou un huissier compétent.',
+   122→          'L\'acquéreur doit fournir les pièces justificatives requises : pièce d\'identité nationale valide, justificatif de domicile, certificat de non-poursuite, et attestations fiscales à jour.',
+   123→          'Le paiement du prix d\'acquisition peut s\'effectuer par virement bancaire, par Mobile Money (MTN Mobile Money, Orange Money, Moov Money) ou par tout autre moyen agréé par le Comité de gestion.',
+   124→          'L\'acquéreur dispose d\'un délai de 90 jours à compter de la signature du contrat de réservation pour procéder à la signature de l\'acte de vente définitif, sous peine de résolution du contrat.',
+   125→          'Tout acquéreur accepte expressément le présent règlement intérieur dont il reconnaît avoir pris connaissance préalablement à la signature.',
+   126→          'En cas de paiement échelonné, l\'acquéreur ne dispose pas du droit de construire tant que la totalité du prix n\'est pas acquittée, sauf accord exprès du Comité de gestion.',
+   127→        ],
+   128→      },
+   129→      {
+   130→        title: 'Droit de préemption',
+   131→        rules: [
+   132→          'En cas de projet de cession d\'un lot par un propriétaire, le Comité de gestion dispose d\'un droit de préemption pour le rétrocéder à un autre propriétaire du village souhaitant agrandir sa parcelle.',
+   133→          'Le propriétaire cédant doit notifier au Comité de gestion son intention de vendre, en précisant les conditions de prix et de modalités de paiement, par lettre recommandée ou message écrit sur la plateforme.',
+   134→          'Le Comité de gestion dispose d\'un délai de 30 jours pour exercer son droit de préemption. Passé ce délai, le propriétaire est libre de céder son lot à un tiers.',
+   135→          'Le droit de préemption ne s\'applique pas aux cessions entre ascendants et descendants directs, ni aux donations familiales.',
+   136→          'En cas d\'exercice du droit de préemption, le Comité de gestion s\'engage à procéder au paiement dans un délai de 60 jours à compter de sa réponse favorable.',
+   137→        ],
+   138→      },
+   139→      {
+   140→        title: 'Cession et revente',
+   141→        rules: [
+   142→          'Toute cession ou revente d\'un lot doit être notifiée au Comité de gestion et faire l\'objet d\'un avenant au contrat d\'origine.',
+   143→          'Le nouveau propriétaire doit souscrire au présent règlement intérieur et s\'acquitter des éventuelles cotisations arriérées du vendeur.',
+   144→          'Les frais de mutation, droits d\'enregistrement et honoraires notariaux sont à la charge de l\'acquéreur, conformément à la législation camerounaise en vigueur.',
+   145→          'Il est interdit de céder un lot grevé de dettes de cotisations non réglées. Le Comité de gestion se réserve le droit d\'opposer son veto à toute transaction portant sur un lot non régularisé.',
+   146→          'Le Comité de gestion se réserve un droit de regard sur l\'identité du nouveau propriétaire afin de préserver l\'harmonie sociale du village.',
+   147→        ],
+   148→      },
+   149→      {
+   150→        title: 'Succession et transmission',
+   151→        rules: [
+   152→          'En cas de décès d\'un propriétaire, les droits attachés au lot sont transmis aux héritiers légaux conformément aux dispositions du droit camerounais des successions.',
+   153→          'Les héritiers doivent se manifester auprès du Comité de gestion dans un délai de six mois à compter du décès pour régulariser la situation administrative du lot.',
+   154→          'Le Comité de gestion accorde aux héritiers un délai de grâce de 12 mois pour le règlement des cotisations arriérées, avant l\'application de toute pénalité.',
+   155→          'En cas de succession litigieuse ou d\'indivision, les parties doivent désigner un mandataire unique pour représenter le lot dans les instances du village.',
+   156→          'Les donations entre vifs et les legs testamentaires sont soumis aux mêmes formalités de notification que les cessions ordinaires.',
+   157→        ],
+   158→      },
+   159→      {
+   160→        title: 'Séquestre et opposition',
+   161→        rules: [
+   162→          'Le Comité de gestion peut prononcer la mise sous séquestre d\'un lot en cas de litige grave entre copropriétaires ou en cas de contestation judiciaire portant sur la propriété.',
+   163→          'Le séquestre entraîne la suspension temporaire des droits d\'usage et de construction sur le lot concerné, jusqu\'à la résolution du litige.',
+   164→          'Le Comité de gestion peut opposer une opposition sur un lot en cas de non-paiement répété des cotisations, de construction non autorisée ou de manquement grave au règlement.',
+   165→          'Toute opposition doit être notifiée par écrit au propriétaire concerné, avec indication des motifs et des voies de recours disponibles.',
+   166→          'L\'opposition est levée de plein droit dès la régularisation de la situation ayant motivé sa mise en place.',
+   167→        ],
+   168→      },
+   169→    ],
+   170→  },
+   171→  {
+   172→    id: 'urbanisme',
+   173→    title: 'Normes d\'Urbanisme et Construction',
+   174→    icon: <Building className="h-6 w-6" />,
+   175→    color: 'text-orange-600 dark:text-orange-400',
+   176→    bgColor: 'bg-orange-50 dark:bg-orange-950/30',
+   177→    borderColor: 'border-l-orange-500',
+   178→    articles: [
+   179→      {
+   180→        title: 'Plan de construction',
+   181→        rules: [
+   182→          'Tout propriétaire souhaitant construire sur son lot doit soumettre un plan de construction au Comité de gestion pour approbation avant le début des travaux.',
+   183→          'Le plan doit inclure : la vue en plan, les élévations, les dimensions, les matériaux envisagés, l\'emprise au sol et la hauteur maximale de la construction.',
+   184→          'Le Comité dispose d\'un délai de 15 jours ouvrés pour donner son accord ou formuler des observations. En l\'absence de réponse dans ce délai, le plan est réputé approuvé.',
+   185→          'Toute construction non conforme au plan approuvé devra être remise en conformité aux frais du propriétaire, sous peine de sanctions.',
+   186→        ],
+   187→      },
+   188→      {
+   189→        title: 'Normes architecturales',
+   190→        rules: [
+   191→          'La hauteur maximale des constructions est fixée à deux niveaux (RDC + 1 étage), sauf dérogation expresse du Comité.',
+   192→          'L\'emprise au sol ne doit pas excéder 60 % de la surface du lot. Les 40 % restants doivent être réservés aux espaces verts, jardins et dégagements.',
+   193→          'Les façades doivent respecter une harmonie chromatique avec l\'environnement du village. Les couleurs criardes ou trop contrastées sont proscrites.',
+   194→          'Les clôtures ne doivent pas dépasser 2 mètres de hauteur. Les murs plein sont déconseillés au profit de clôtures ajourées (grilles, brise-vent végétalisés).',
+   195→          'Les toitures doivent respecter un style homogène avec les constructions avoisinantes. L\'utilisation de matériaux neufs et durables est fortement encouragée.',
+   196→          'Les fondations doivent être réalisées par des professionnels certifiés et respecter les normes parasismiques en vigueur dans la région.',
+   197→        ],
+   198→      },
+   199→      {
+   200→        title: 'Travaux et chantiers',
+   201→        rules: [
+   202→          'Les travaux doivent être réalisés exclusivement pendant les heures autorisées : du lundi au samedi, de 7h00 à 18h00. Les travaux le dimanche et jours fériés sont interdits.',
+   203→          'Le bruit excessif (percussion, utilisation de matériel lourd) est toléré uniquement entre 8h00 et 17h00 en semaine.',
+   204→          'Un panneau de chantier doit être installé avec les coordonnées de l\'entrepreneur et du propriétaire, ainsi que la durée prévue des travaux.',
+   205→          'Le chantier doit être sécurisé : clôture de protection, signalisation, accès interdit aux enfants et aux personnes non autorisées.',
+   206→          'Les déchets de chantier doivent être évacués quotidiennement. L\'accumulation de matériaux sur la voie publique est strictement interdite.',
+   207→          'Les entrepreneurs doivent être couverts par une assurance responsabilité civile professionnelle.',
+   208→        ],
+   209→      },
+   210→      {
+   211→        title: 'Extensions et modifications',
+   212→        rules: [
+   213→          'Toute extension, modification de façade, surélévation ou changement de destination doit faire l\'objet d\'une demande préalable auprès du Comité de gestion.',
+   214→          'Les installations annexes (garages, kiosques, appentis, citernes, panneaux solaires) doivent être intégrées au plan initial ou faire l\'objet d\'une autorisation séparée.',
+   215→          'La démolition partielle ou totale d\'une construction existante nécessite l\'accord préalable du Comité de gestion.',
+   216→        ],
+   217→      },
+   218→      {
+   219→        title: 'Matériaux et techniques de construction',
+   220→        rules: [
+   221→          'L\'utilisation de matériaux locaux (terre stabilisée, briques cuites, bambou traité) est encouragée pour favoriser l\'intégration architecturale et réduire l\'empreinte carbone du village.',
+   222→          'Les matériaux de construction importés doivent être conformes aux normes camerounaises et être accompagnés d\'un certificat de conformité.',
+   223→          'L\'utilisation de parpaings de qualité inférieure ou de matériaux de récupération non certifiés est interdite pour les structures porteuses.',
+   224→          'Les techniques de construction doivent tenir compte des conditions climatiques locales : vents de l\'harmattan, saison des pluies (mars-octobre), et températures élevées.',
+   225→          'Les propriétaires sont encouragés à recourir aux artisans et professionnels référencés par la plateforme KAMI-EXTENSION pour garantir la qualité des travaux.',
+   226→        ],
+   227→      },
+   228→      {
+   229→        title: 'Contrôle de conformité',
+   230→        rules: [
+   231→          'Le Comité de gestion effectue des visites de chantier régulières pour vérifier la conformité des constructions en cours avec les plans approuvés.',
+   232→          'À l\'achèvement des travaux, le propriétaire doit solliciter une visite de réception auprès du Comité, qui délivrera un certificat de conformité.',
+   233→          'Le certificat de conformité est un préalable indispensable à toute mise en habitation ou occupation du lot.',
+   234→          'En cas de non-conformité constatée, le propriétaire dispose de 30 jours pour effectuer les corrections requises, sous peine de sanctions prévues au chapitre des sanctions.',
+   235→        ],
+   236→      },
+   237→    ],
+   238→  },
+   239→  {
+   240→    id: 'equipements',
+   241→    title: 'Réseaux et Équipements',
+   242→    icon: <Zap className="h-6 w-6" />,
+   243→    color: 'text-yellow-600 dark:text-yellow-400',
+   244→    bgColor: 'bg-yellow-50 dark:bg-yellow-950/30',
+   245→    borderColor: 'border-l-yellow-500',
+   246→    articles: [
+   247→      {
+   248→        title: 'Électricité',
+   249→        rules: [
+   250→          'Chaque lot est alimenté en électricité via le réseau du village. Le raccordement doit être réalisé par un électricien certifié.',
+   251→          'Les compteurs individuels sont la responsabilité de chaque propriétaire. Les fraudes de compteur sont passibles de poursuites.',
+   252→          'Les panneaux solaires sont encouragés. Leur installation doit être approuvée par le Comité de gestion.',
+   253→          'Les générateurs de secours doivent être installés dans des locaux ventilés, insonorisés et ne doivent pas dépasser un niveau sonore de 60 décibels à 5 mètres.',
+   254→          'Le passage des câbles aériens sur la voie publique est interdit. Les raccordements doivent être souterrains.',
+   255→        ],
+   256→      },
+   257→      {
+   258→        title: 'Eau et Assainissement',
+   259→        rules: [
+   260→          'L\'eau courante est distribuée via le réseau communal. Toute dérivation non autorisée du réseau est interdite.',
+   261→          'Les fuites sur le réseau individuel doivent être réparées dans les 48 heures de leur détection.',
+   262→          'Les systèmes d\'assainissement individuels (fosses septiques, bacs à graisse) doivent être vidangés régulièrement par des entreprises agréées.',
+   263→          'Il est interdit de connecter directement les eaux pluviales au réseau d\'assainissement.',
+   264→        ],
+   265→      },
+   266→      {
+   267→        title: 'Voirie et espaces publics',
+   268→        rules: [
+   269→          'La voirie du village est entretenue par le Comité de gestion. Les résidents doivent signaler toute dégradation constatée.',
+   270→          'Il est interdit de modifier, obstruer ou dégrader les voies publiques, trottoirs, caniveaux et espaces verts communs.',
+   271→          'Les plantations ornementales sur les espaces communs sont gérées par le Comité. Toute initiative privée doit recevoir son accord.',
+   272→        ],
+   273→      },
+   274→      {
+   275→        title: 'Éclairage public',
+   276→        rules: [
+   277→          'L\'éclairage public du village est assuré par des lampadaires solaires et de connexion au réseau ENEO. Le Comité de gestion est responsable de leur entretien.',
+   278→          'Il est interdit de débrancher, endommager ou modifier les installations d\'éclairage public sous quelque prétexte que ce soit.',
+   279→          'Les propriétaires dont les lots sont situés à proximité des lampadaires doivent veiller à ne pas obstruer leur rayonnement lumineux par des plantations ou constructions.',
+   280→          'Le Comité de gestion pourra installer un éclairage complémentaire dans les zones identifiées comme insuffisamment éclairées, sur proposition des résidents.',
+   281→          'En cas de panne d\'éclairage public, les résidents sont invités à la signaler immédiatement via la plateforme KAMI-EXTENSION ou auprès du Comité.',
+   282→        ],
+   283→      },
+   284→      {
+   285→        title: 'Gaz et combustibles',
+   286→        rules: [
+   287→          'Le stockage de gaz en bouteille doit se faire dans un local ventilé, à l\'abri du soleil et des sources de chaleur, et en respectant les quantités réglementaires.',
+   288→          'Les bonbonnes de gaz vides doivent être évacuées par les fournisseurs agréés. Il est interdit de les stocker en plein air ou sur les espaces communs.',
+   289→          'L\'utilisation de charbon de bois comme combustible domestique est autorisée mais doit se faire dans des foyers appropriés, avec une ventilation adéquate pour éviter les risques d\'intoxication.',
+   290→          'Le stockage de carburant ou de produits inflammables en grande quantité sur un lot est interdit au-delà de 50 litres, sauf autorisation spéciale du Comité de gestion.',
+   291→          'Les réservoirs de gaz domestique (butane, propane) doivent être vérifiés tous les deux ans par un professionnel agréé.',
+   292→        ],
+   293→      },
+   294→    ],
+   295→  },
+   296→  {
+   297→    id: 'eaux-pluviales',
+   298→    title: 'Gestion des Eaux Pluviales et Drainage',
+   299→    icon: <Droplets className="h-6 w-6" />,
+   300→    color: 'text-sky-600 dark:text-sky-400',
+   301→    bgColor: 'bg-sky-50 dark:bg-sky-950/30',
+   302→    borderColor: 'border-l-sky-500',
+   303→    articles: [
+   304→      {
+   305→        title: 'Caniveaux et fossés',
+   306→        rules: [
+   307→          'Chaque propriétaire est responsable de l\'entretien des caniveaux et fossés bordant son lot. Un curage semestriel est obligatoire avant le début de la saison des pluies (mars) et après la fin de celle-ci (novembre).',
+   308→          'Il est strictement interdit de combler, rétrécir ou détourner les caniveaux et fossés de drainage public à des fins privées.',
+   309→          'Les matériaux de construction, déchets végétaux ou tout obstacle ne doivent en aucun cas être déposés dans les caniveaux, sous peine de sanctions immédiates.',
+   310→          'Les propriétaires doivent s\'assurer que les regards de visite et bouches d\'évacuation situés sur ou à proximité de leur lot restent librement accessibles et dégagés en permanence.',
+   311→          'Le Comité de gestion procède à un contrôle annuel de l\'ensemble du réseau de drainage et adresse des mises en demeure aux propriétaires défaillants.',
+   312→          'En cas de bouchage imputable à un lot particulier, les frais de débouchage sont à la charge du propriétaire concerné.',
+   313→        ],
+   314→      },
+   315→      {
+   316→        title: 'Gestion des inondations',
+   317→        rules: [
+   318→          'Le village KAMI-EXTENSION est situé dans une zone soumise aux risques d\'inondation pendant la saison des pluies. Chaque propriétaire doit prendre les mesures préventives nécessaires.',
+   319→          'Les constructions doivent respecter un niveau de seuil minimal par rapport au niveau naturel du terrain, fixé par le plan d\'urbanisme du village, afin de prévenir les infiltrations.',
+   320→          'Le Comité de gestion élabore chaque année, avant le mois de mars, un plan de prévention des inondations incluant les actions de curage, de renforcement des berges et de sensibilisation des résidents.',
+   321→          'En cas de crue ou d\'inondation, le Comité de gestion coordonne les actions de secours et d\'assistance aux résidents sinistrés.',
+   322→          'Les propriétaires sont tenus de signaler immédiatement toute situation de risque d\'inondation (ruissellement anormal, érosion, glissement de terrain) au Comité de gestion.',
+   323→        ],
+   324→      },
+   325→      {
+   326→        title: 'Rétention et infiltration des eaux',
+   327→        rules: [
+   328→          'Les lots doivent être aménagés de manière à favoriser l\'infiltration naturelle des eaux pluviales. Les surfaces imperméabilisées (béton, bitume) ne doivent pas excéder 50 % de la surface du lot.',
+   329→          'Les propriétaires sont encouragés à installer des dispositifs de récupération d\'eau de pluie (citernes, cuves) pour l\'arrosage et les usages domestiques non potables.',
+   330→          'Les noues de rétention, bassins d\'orage et puits d\'infiltration collectifs sont gérés par le Comité de gestion et ne doivent en aucun cas être obstrués ou modifiés.',
+   331→          'Les rejets d\'eaux pluviales provenant d\'un lot ne doivent pas se déverser directement sur le lot voisin. Le propriétaire doit aménager un dispositif de ruissellement conforme.',
+   332→          'Le Comité de gestion peut imposer à tout propriétaire la réalisation de travaux de drainage complémentaires si le lot est identifié comme contributeur à un problème de ruissellement.',
+   333→        ],
+   334→      },
+   335→    ],
+   336→  },
+   337→  {
+   338→    id: 'telecom',
+   339→    title: 'Télécommunications et Numérique',
+   340→    icon: <Wifi className="h-6 w-6" />,
+   341→    color: 'text-cyan-600 dark:text-cyan-400',
+   342→    bgColor: 'bg-cyan-50 dark:bg-cyan-950/30',
+   343→    borderColor: 'border-l-cyan-500',
+   344→    articles: [
+   345→      {
+   346→        title: 'Réseau internet et téléphonie',
+   347→        rules: [
+   348→          'Le village KAMI-EXTENSION encourage le déploiement de l\'accès à internet haut débit. Les propriétaires peuvent souscrire aux offres des opérateurs télécoms locaux (MTN, Orange, Camtel, Nexttel).',
+   349→          'L\'installation de connexions internet par fibre optique, câble ou satellite est libre, sous réserve du respect des règles d\'esthétique et de non-nuisance.',
+   350→          'Les propriétaires sont encouragés à participer au financement d\'un réseau internet communautaire (Wi-Fi partagé) si une telle initiative est proposée par le Comité de gestion.',
+   351→          'Les coupures de ligne téléphonique ou d\'internet affectant les réseaux collectifs doivent être signalées au Comité de gestion, qui coordonnera les interventions avec les opérateurs.',
+   352→          'L\'utilisation de technologies numériques doit respecter la législation camerounaise en vigueur relative aux télécommunications et aux communications électroniques.',
+   353→        ],
+   354→      },
+   355→      {
+   356→        title: 'Antennes et équipements',
+   357→        rules: [
+   358→          'L\'installation d\'antennes de téléphonie mobile, de paraboliques, de répéteurs Wi-Fi ou de tout équipement de transmission sur un lot privé nécessite l\'autorisation du Comité de gestion.',
+   359→          'Les équipements de télécommunication doivent être installés de manière discrète, sans dénaturer l\'aspect extérieur des constructions ni gêner le voisinage.',
+   360→          'Les opérateurs télécoms souhaitant installer des antennes relais dans le périmètre du village doivent obtenir l\'accord préalable du Comité de gestion et respecter les normes d\'émission électromagnétique.',
+   361→          'Les propriétaires ne doivent en aucun cas installer des équipements de télécommunication sur les toits ou façades donnant sur la voie publique sans autorisation.',
+   362→          'En cas de danger ou de dégradation d\'un équipement de télécommunication, le propriétaire doit immédiatement en informer le Comité de gestion et l\'opérateur concerné.',
+   363→        ],
+   364→      },
+   365→      {
+   366→        title: 'Données personnelles et vie privée',
+   367→        rules: [
+   368→          'Les données personnelles des résidents collectées par la plateforme KAMI-EXTENSION sont traitées conformément à la loi n°2010/012 relative à la protection des données personnelles au Cameroun.',
+   369→          'Il est interdit de collecter, stocker ou utiliser les données personnelles d\'un autre résident sans son consentement express.',
+   370→          'Les caméras de surveillance individuelles ne doivent pas filmer les espaces communs ni les lots voisins. Leur orientation doit être strictement limitée au périmètre privé du propriétaire.',
+   371→          'Toute utilisation abusive de données personnelles (harcèlement numérique, divulgation d\'informations privées) sera sanctionnée conformément au présent règlement et aux lois en vigueur.',
+   372→        ],
+   373→      },
+   374→    ],
+   375→  },
+   376→  {
+   377→    id: 'proprete',
+   378→    title: 'Propreté et Hygiène',
+   379→    icon: <Trash2 className="h-6 w-6" />,
+   380→    color: 'text-emerald-600 dark:text-emerald-400',
+   381→    bgColor: 'bg-emerald-50 dark:bg-emerald-950/30',
+   382→    borderColor: 'border-l-emerald-500',
+   383→    articles: [
+   384→      {
+   385→        title: 'Entretien des lots',
+   386→        rules: [
+   387→          'Chaque propriétaire est tenu de maintenir son lot propre, entretenu et exempt de tout déchet, même en l\'absence de construction.',
+   388→          'La végétation doit être régulièrement entretenue. Les herbes hautes (supérieures à 30 cm) doivent être fauchées sous peine de mise en demeure par le Comité.',
+   389→          'Les eaux usées et de pluie doivent être correctement évacuées. Le rejet d\'eaux stagnantes ou polluantes sur la voie publique est formellement interdit.',
+   390→          'En période sèche, le propriétaire doit veiller à prévenir tout risque d\'incendie en maintenant un périmètre de sécurité autour de son lot.',
+   391→        ],
+   392→      },
+   393→      {
+   394→        title: 'Gestion des déchets',
+   395→        rules: [
+   396→          'Le tri sélectif des déchets est obligatoire. Des bacs de tri sont mis à disposition dans les points de collecte désignés par le Comité.',
+   397→          'Les ordures ménagères doivent être déposées dans les bacs prévus à cet effet avant 6h00 du matin. Le dépôt de déchets en dehors des horaires et lieux prévus est sanctionné.',
+   398→          'Les déchets encombrants, gravats et matériaux de construction doivent être évacués par le propriétaire à ses frais dans les décharges agréées.',
+   399→          'Il est formellement interdit d\'enterrer, brûler ou déverser des déchets quelconques dans le village ou à ses abords immédiats.',
+   400→          'Les produits chimiques, peintures, solvants et autres substances dangereuses doivent être éliminés conformément à la réglementation environnementale en vigueur.',
+   401→        ],
+   402→      },
+   403→      {
+   404→        title: 'Espaces communs',
+   405→        rules: [
+   406→          'Les voies, rues et chemins du village doivent rester propres et praticables. Chaque résident doit veiller à ne pas y déposer d\'obstacles ni de déchets.',
+   407→          'Il est interdit de stocker des matériaux, véhicules hors d\'usage, ou tout autre objet sur les espaces communs.',
+   408→          'Les espaces verts communs sont entretenus par le Comité de gestion. Tout résident peut y contribuer volontairement.',
+   409→        ],
+   410→      },
+   411→      {
+   412→        title: 'Lutte antivectorielle et santé publique',
+   413→        rules: [
+   414→          'Les propriétaires doivent veiller à éliminer les gîtes larvaires de moustiques (eaux stagnantes, pneus usés, récipients abandonnés) pour prévenir le paludisme et la dengue, particulièrement endémiques dans la région.',
+   415→          'Le Comité de gestion organise des campagnes régulières de démoustication et de lutte antivectorielle, auxquelles tous les résidents sont tenus de participer.',
+   416→          'L\'utilisation d\'insecticides et de produits de traitement doit se conformer aux normes de l\'Organisation Mondiale de la Santé (OMS) et ne pas nuire à l\'environnement.',
+   417→          'En cas de déclaration d\'épidémie (choléra, fièvre typhoïde, COVID-19 ou autre), les résidents sont tenus de se conformer aux directives des autorités sanitaires et du Comité de gestion.',
+   418→          'Les latrines et systèmes d\'assainissement doivent être maintenus dans un état d\'hygiène irréprochable, avec une vidange régulière par des prestataires agréés.',
+   419→        ],
+   420→      },
+   421→      {
+   422→        title: 'Gestion des eaux usées ménagères',
+   423→        rules: [
+   424→          'Les eaux grises (cuisine, douche, lessive) doivent être dirigées vers un système de filtration ou d\'infiltration conforme avant tout rejet dans le milieu naturel.',
+   425→          'Il est formellement interdit de déverser des eaux usées sur la voie publique, dans les caniveaux pluviaux ou sur les lots voisins.',
+   426→          'Les fosses septiques doivent être construites selon les normes en vigueur, avec une distance minimale de 15 mètres par rapport aux puits et sources d\'eau potable.',
+   427→          'Le Comité de gestion peut imposer la mise en place de bacs à graisse pour les lots abritant des activités de restauration ou de services générant des effluents chargés.',
+   428→          'Les vidanges de fosses septiques doivent être réalisées par des entreprises spécialisées disposant des agréments nécessaires, et les boues doivent être évacuées vers les stations d\'épuration agréées.',
+   429→        ],
+   430→      },
+   431→    ],
+   432→  },
+   433→  {
+   434→    id: 'environnement',
+   435→    title: 'Environnement et Cadre de Vie',
+   436→    icon: <TreePine className="h-6 w-6" />,
+   437→    color: 'text-green-600 dark:text-green-400',
+   438→    bgColor: 'bg-green-50 dark:bg-green-950/30',
+   439→    borderColor: 'border-l-green-500',
+   440→    articles: [
+   441→      {
+   442→        title: 'Protection de la nature',
+   443→        rules: [
+   444→          'L\'abattage d\'arbres existants sur le lot ou les espaces communs est soumis à l\'autorisation du Comité de gestion.',
+   445→          'Le débroussaillement doit respecter un périmètre de sécurité de 3 mètres autour des constructions.',
+   446→          'Il est encouragé de planter des arbres et arbustes locaux pour embellir le cadre de vie et contribuer à la lutte contre l\'érosion.',
+   447→          'Les espèces invasives doivent être signalées au Comité de gestion qui prendra les mesures appropriées.',
+   448→          'La chasse, la pêche et le prélèvement de ressources naturelles sont interdits dans le périmètre du village sans autorisation.',
+   449→        ],
+   450→      },
+   451→      {
+   452→        title: 'Gestion de l\'eau',
+   453→        rules: [
+   454→          'L\'utilisation rationnelle de l\'eau est une obligation pour tous. Le gaspillage d\'eau potable est proscrit.',
+   455→          'Les forages et puits individuels doivent être déclarés au Comité de gestion et respecter les normes sanitaires en vigueur.',
+   456→          'Le rejet d\'eaux usées non traitées dans la nature ou les nappes phréatiques est formellement interdit.',
+   457→          'Chaque propriétaire doit installer un système d\'assainissement conforme aux normes en vigueur avant toute occupation.',
+   458→        ],
+   459→      },
+   460→      {
+   461→        title: 'Pollution sonore et lumineuse',
+   462→        rules: [
+   463→          'Le repos nocturne doit être respecté entre 21h00 et 6h00. Toute nuisance sonore (musique, bruits divers, aboiements) est interdite pendant cette période.',
+   464→          'Les activités bruyantes (fêtes, événements) doivent faire l\'objet d\'une déclaration préalable auprès du Comité et respecter un horaire raisonnable (fin au plus tard à 22h00).',
+   465→          'L\'utilisation d\'éclairages extérieurs excessifs ou directionnels gênant le voisinage doit être évitée.',
+   466→          'Les alarms de véhicules, sirènes et dispositifs sonores d\'alerte doivent être réglés de manière à ne pas perturber le voisinage.',
+   467→        ],
+   468→      },
+   469→      {
+   470→        title: 'Animaux',
+   471→        rules: [
+   472→          'Les animaux de compagnie (chiens, chats) sont autorisés sous réserve d\'être tenus en laisse dans les espaces communs.',
+   473→          'Les propriétaires d\'animaux sont responsables des dégradations et nuisances causées par leurs animaux (aboiements, déjections, agressivité).',
+   474→          'Les animaux errants ou non identifiés seront signalés aux services compétents. L\'abandon d\'animaux dans le village est strictement interdit.',
+   475→          'L\'élevage d\'animaux de ferme (volailles, bétail) sur un lot résidentiel est soumis à l\'autorisation du Comité de gestion.',
+   476→          'Les vaccinations obligatoires doivent être à jour pour tous les animaux détenus dans le village.',
+   477→        ],
+   478→      },
+   479→      {
+   480→        title: 'Lutte contre l\'érosion et la désertification',
+   481→        rules: [
+   482→          'Conscients de la vulnérabilité du contexte sahélo-soudanien, les propriétaires sont tenus de mettre en place des mesures de lutte contre l\'érosion sur leur lot (plantation d\'arbres, diguettes en pierre, banquettes anti-érosives).',
+   483→          'Le défrichage excessif des terrains en pente est interdit. Les pentes supérieures à 15 % doivent conserver une couverture végétale permanente.',
+   484→          'Le Comité de gestion organise annuellement une campagne de reboisement communal à laquelle tous les propriétaires sont invités à participer.',
+   485→          'Les constructions en bordure de ravins ou de cours d\'eau saisonniers doivent respecter un recul minimal de 10 mètres par rapport au lit majeur.',
+   486→          'L\'utilisation de techniques de conservation des eaux et des sols (CES) est fortement encouragée et peut faire l\'objet de subventions par le Comité de gestion.',
+   487→        ],
+   488→      },
+   489→    ],
+   490→  },
+   491→  {
+   492→    id: 'loisirs',
+   493→    title: 'Espaces Récréatifs et Sportifs',
+   494→    icon: <Dumbbell className="h-6 w-6" />,
+   495→    color: 'text-lime-600 dark:text-lime-400',
+   496→    bgColor: 'bg-lime-50 dark:bg-lime-950/30',
+   497→    borderColor: 'border-l-lime-500',
+   498→    articles: [
+   499→      {
+   500→        title: 'Aires de jeux et espaces de détente',
+   501→        rules: [
+   502→          'Le village dispose d\'aires de jeux pour enfants et d\'espaces de détente ouverts à l\'ensemble des résidents. Ces espaces sont entretenus par le Comité de gestion.',
+   503→          'L\'utilisation des aires de jeux est réservée aux mineurs de moins de 14 ans. Les enfants de moins de 8 ans doivent être accompagnés d\'un adulte responsable.',
+   504→          'Il est interdit d\'endommager, vandaliser ou détourner de leur usage les équipements de jeu (balançoires, toboggans, bancs, tables).',
+   505→          'Les animaux ne sont pas admis dans les aires de jeux, à l\'exception des chiens guides d\'aveugle.',
+   506→          'Le Comité de gestion se réserve le droit de fermer temporairement une aire de jeux pour travaux d\'entretien ou en cas de danger constaté.',
+   507→        ],
+   508→      },
+   509→      {
+   510→        title: 'Installations sportives',
+   511→        rules: [
+   512→          'Les terrains de sport (football, basket, volley) mis à disposition par le village sont ouverts à tous les résidents du lundi au samedi, de 7h00 à 18h00.',
+   513→          'L\'utilisation des installations sportives le dimanche est soumise à autorisation préalable, afin de préserver le repos dominical des résidents riverains.',
+   514→          'Les utilisateurs doivent respecter les équipements, nettoyer les installations après usage et signaler toute dégradation constatée.',
+   515→          'Les matchs ou compétitions sportives organisés sur les installations du village doivent être déclarés au Comité de gestion 48 heures à l\'avance.',
+   516→          'Il est interdit d\'installer des équipements sportifs permanents (buts, filets fixes) sans l\'autorisation du Comité de gestion.',
+   517→        ],
+   518→      },
+   519→      {
+   520→        title: 'Règles d\'utilisation',
+   521→        rules: [
+   522→          'Les espaces récréatifs et sportifs sont des biens collectifs. Leur usage doit respecter les principes de partage, de sécurité et de respect d\'autrui.',
+   523→          'La consommation d\'alcool et de substances illicites est strictement interdite dans et aux abords des espaces récréatifs et sportifs.',
+   524→          'Les comportements violents, les insultes et les discriminations lors d\'activités sportives ou récréatives sont passibles de sanctions immédiates et d\'interdiction temporaire.',
+   525→          'Les mineurs non accompagnés ne sont pas autorisés dans les installations sportives après 18h00.',
+   526→          'Le Comité de gestion peut organiser des tournois, animations sportives et événements culturels sur ces espaces, en concertation avec les résidents.',
+   527→          'Toute proposition de création d\'un nouvel espace récréatif ou sportif peut être soumise au Comité de gestion, qui l\'examinera en fonction des ressources disponibles.',
+   528→        ],
+   529→      },
+   530→    ],
+   531→  },
+   532→  {
+   533→    id: 'circulation',
+   534→    title: 'Circulation et Stationnement',
+   535→    icon: <Car className="h-6 w-6" />,
+   536→    color: 'text-violet-600 dark:text-violet-400',
+   537→    bgColor: 'bg-violet-50 dark:bg-violet-950/30',
+   538→    borderColor: 'border-l-violet-500',
+   539→    articles: [
+   540→      {
+   541→        title: 'Règles de circulation',
+   542→        rules: [
+   543→          'Les véhicules doivent circuler sur les voies aménagées. La circulation hors piste est interdite sauf nécessité technique.',
+   544→          'La vitesse est limitée à 20 km/h dans les zones résidentielles et à 30 km/h sur les axes principaux du village.',
+   545→          'Les véhicules lourds (camions, engins de chantier) doivent obtenir une autorisation de circulation du Comité de gestion avant leur entrée dans le village.',
+   546→          'Les véhicules à moteur bruyant (motos sans silencieux, engins modifiés) doivent maintenir un niveau sonore acceptable sous peine d\'interdiction.',
+   547→        ],
+   548→      },
+   549→      {
+   550→        title: 'Stationnement',
+   551→        rules: [
+   552→          'Le stationnement est autorisé uniquement sur les aires prévues à cet effet et devant les lots dans le respect des dégagements.',
+   553→          'Il est interdit de stationner en double file, sur les trottoirs, aux intersections et devant les accès aux voies publiques.',
+   554→          'Les véhicules hors d\'usage, en panne prolongée ou non immatriculés doivent être retirés du village dans un délai de 15 jours sous peine de mise en fourrière.',
+   555→          'Le stationnement des poids lourds, engins de chantier et véhicules commerciaux de grande taille doit se faire dans les zones désignées à cet effet.',
+   556→          'Les deux-roues doivent être stationnés dans les espaces prévus, sans gêner la circulation piétonne ni automobile.',
+   557→        ],
+   558→      },
+   559→      {
+   560→        title: 'Véhicules non motorisés',
+   561→        rules: [
+   562→          'Les vélos, trottinettes et autres véhicules non motorisés sont encouragés et doivent circuler sur les voies prévues.',
+   563→          'Les circulations nocturnes de véhicules non motorisés doivent se faire avec un dispositif d\'éclairage.',
+   564→        ],
+   565→      },
+   566→      {
+   567→        title: 'Motos-taxis et transport informel',
+   568→        rules: [
+   569→          'Les motos-taxis (benskins) et autres véhicules de transport informel sont soumis à une réglementation spécifique au sein du village.',
+   570→          'Les stations d\'attente des motos-taxis doivent être situées dans les zones désignées par le Comité de gestion, à l\'entrée principale du village.',
+   571→          'Il est interdit aux motos-taxis de pénétrer dans les zones strictement résidentielles, sauf pour déposer ou récupérer un client à son domicile.',
+   572→          'Les conducteurs de motos-taxis doivent être en possession de leur permis de conduire et de leur carte professionnelle de transport.',
+   573→          'Le Comité de gestion se réserve le droit de réguler le nombre de motos-taxis autorisées à stationner dans le village, en fonction de la capacité d\'accueil disponible.',
+   574→          'Les courses nocturnes par motos-taxi au sein du village sont interdites entre 22h00 et 6h00, sauf urgences médicales dûment justifiées.',
+   575→        ],
+   576→      },
+   577→      {
+   578→        title: 'Pédestres et trottoirs',
+   579→        rules: [
+   580→          'Les trottoirs et espaces piétonniers sont exclusivement réservés aux piétons, aux personnes à mobilité réduite et aux véhicules non motorisés.',
+   581→          'Il est interdit d\'encombrer les trottoirs avec des objets, matériaux, plantations ou véhicules de quelque nature que ce soit.',
+   582→          'Les descentes d\'eau de toiture ne doivent pas se déverser directement sur les trottoirs mais être raccordées au réseau de drainage.',
+   583→          'Le Comité de gestion veillera à la maintenance et à l\'accessibilité des trottoirs, y compris en saison des pluies où les surfaces peuvent devenir glissantes.',
+   584→        ],
+   585→      },
+   586→    ],
+   587→  },
+   588→  {
+   589→    id: 'securite',
+   590→    title: 'Sécurité et Prévention',
+   591→    icon: <ShieldAlert className="h-6 w-6" />,
+   592→    color: 'text-red-600 dark:text-red-400',
+   593→    bgColor: 'bg-red-50 dark:bg-red-950/30',
+   594→    borderColor: 'border-l-red-500',
+   595→    articles: [
+   596→      {
+   597→        title: 'Sécurité des personnes',
+   598→        rules: [
+   599→          'La circulation des véhicules motorisés dans le village est limitée à 20 km/h dans les zones résidentielles et 30 km/h sur les voies principales.',
+   600→          'Les enfants de moins de 12 ans doivent être accompagnés d\'un adulte lorsqu\'ils circulent sur les voies du village.',
+   601→          'Les terrains vagues, chantiers non sécurisés et zones dangereuses sont interdits d\'accès. Les parents sont responsables de la surveillance de leurs enfants.',
+   602→          'Toute situation de danger immédiat doit être signalée au Comité de gestion ou aux services de secours compétents.',
+   603→        ],
+   604→      },
+   605→      {
+   606→        title: 'Prévention des incendies',
+   607→        rules: [
+   608→          'Les feux de broussailles, feux de joie et brûlages à l\'air libre sont strictement interdits sans autorisation préalable du Comité de gestion.',
+   609→          'Chaque construction doit disposer d\'un extincteur conforme aux normes en vigueur, accessible et régulièrement vérifié.',
+   610→          'Les installations électriques doivent être réalisées par un professionnel certifié et respecter les normes en vigueur. Les raccordements sauvages sont formellement interdits.',
+   611→          'Un plan d\'évacuation doit être affiché dans chaque habitation. Les issues de secours doivent rester dégagées en permanence.',
+   612→          'En saison sèche (novembre à mars), le brûlage de tout débris végétal est interdit sur l\'ensemble du périmètre du village.',
+   613→        ],
+   614→      },
+   615→      {
+   616→        title: 'Sécurité des biens',
+   617→        rules: [
+   618→          'Chaque propriétaire est responsable de la sécurité de son lot et de ses biens. L\'installation de dispositifs de surveillance est encouragée.',
+   619→          'Les systèmes d\'alarme ne doivent pas perturber excessivement le voisinage. Les fausses alarmes répétées pourront faire l\'objet de sanctions.',
+   620→          'Le Comité de gestion se réserve le droit de mettre en place des dispositifs de surveillance collective (caméras, éclairage public) pour la sécurité de tous.',
+   621→          'Tout acte de vandalisme, vol ou dégradation sera signalé aux autorités compétentes et au Comité de gestion.',
+   622→        ],
+   623→      },
+   624→      {
+   625→        title: 'Gardiennage et surveillance',
+   626→        rules: [
+   627→          'Le Comité de gestion peut mettre en place un service de gardiennage communal, dont le financement est assuré par les cotisations des propriétaires.',
+   628→          'Les gardiens communautaires sont habilités à effectuer des rondes de surveillance, contrôler les accès au village et signaler les situations anormales.',
+   629→          'Les résidents doivent coopérer avec les gardiens et leur fournir toute information utile à la sécurité collective.',
+   630→          'En cas de disparition d\'effets ou de suspicion de vol, le résident doit déposer plainte auprès des forces de l\'ordre et en informer simultanément le Comité de gestion.',
+   631→          'L\'accès au village peut être régulé par un système de portail automatique ou de barrière, selon les décisions de l\'assemblée générale.',
+   632→        ],
+   633→      },
+   634→      {
+   635→        title: 'Sécurité pendant les événements',
+   636→        rules: [
+   637→          'Tout événement rassemblant plus de 50 personnes doit faire l\'objet d\'un plan de sécurité incluant les issues de secours, la disponibilité d\'extincteurs et les numéros d\'urgence.',
+   638→          'L\'organisateur d\'un événement privé est responsable de la sécurité des participants pendant la durée de l\'événement.',
+   639→          'Le Comité de gestion peut imposer la présence de vigiles ou de gardiens supplémentaires pour les événements de grande envergure.',
+   640→          'Les issues de secours des lots et espaces communs doivent être clairement signalées et accessibles en permanence, y compris pendant les événements.',
+   641→        ],
+   642→      },
+   643→    ],
+   644→  },
+   645→  {
+   646→    id: 'assurances',
+   647→    title: 'Assurances et Gestion des Risques',
+   648→    icon: <ShieldCheck className="h-6 w-6" />,
+   649→    color: 'text-slate-600 dark:text-slate-400',
+   650→    bgColor: 'bg-slate-50 dark:bg-slate-950/30',
+   651→    borderColor: 'border-l-slate-500',
+   652→    articles: [
+   653→      {
+   654→        title: 'Assurances obligatoires',
+   655→        rules: [
+   656→          'Tout propriétaire d\'un lot construit au sein de KAMI-EXTENSION doit souscrire une assurance multirisque habitation couvrant les risques d\'incendie, de dégât des eaux, de catastrophe naturelle et de responsabilité civile.',
+   657→          'L\'attestation d\'assurance doit être fournie au Comité de gestion dans un délai de 30 jours suivant la fin des travaux ou la mise en habitation.',
+   658→          'Le Comité de gestion se réserve le droit de vérifier la validité des attestations d\'assurance lors des visites de conformité.',
+   659→          'Tout propriétaire non assuré encoure une amende mensuelle de 10 % du montant de la cotisation annuelle, jusqu\'à régularisation de sa situation.',
+   660→          'Les assurances souscrites doivent comporter une clause couvrant les dommages causés aux tiers, y compris aux voisins et aux espaces communs.',
+   661→        ],
+   662→      },
+   663→      {
+   664→        title: 'Responsabilité civile',
+   665→        rules: [
+   666→          'Tout propriétaire est responsable des dommages causés par sa construction, ses installations, ses animaux ou les personnes résidant sur son lot aux tiers et aux espaces communs.',
+   667→          'En cas de dommage causé à un lot voisin (infiltration d\'eau, effondrement, nuisance), le propriétaire responsable doit prendre à sa charge les frais de réparation dans un délai de 30 jours.',
+   668→          'Le Comité de gestion ne saurait être tenu pour responsable des dommages causés individuellement par un propriétaire à un autre propriétaire.',
+   669→          'Les litiges de responsabilité civile entre voisins sont soumis à la procédure de médiation prévue au présent règlement avant tout recours judiciaire.',
+   670→        ],
+   671→      },
+   672→      {
+   673→        title: 'Catastrophes naturelles',
+   674→        rules: [
+   675→          'En cas de catastrophe naturelle (inondation, séisme, tempête), le Comité de gestion active immédiatement le plan d\'urgence communal.',
+   676→          'Un fonds de solidarité catastrophe est alimenté par une contribution annuelle de 2 % du montant des cotisations, destiné à aider les résidents sinistrés.',
+   677→          'Les résidents sinistrés peuvent bénéficier d\'une exonération temporaire de cotisation, sur décision de l\'assemblée générale extraordinaire.',
+   678→          'Le Comité de gestion coordonne l\'aide aux sinistrés avec les services de la protection civile, la Croix-Rouge camerounaise et les organisations humanitaires compétentes.',
+   679→          'Chaque propriétaire est tenu de souscrire une garantie catastrophe naturelle dans le cadre de son assurance multirisque.',
+   680→        ],
+   681→      },
+   682→      {
+   683→        title: 'Garanties des travaux',
+   684→        rules: [
+   685→          'Les travaux de construction réalisés dans le village bénéficient des garanties légales : garantie de parfait achèvement (1 an), garantie biennale (2 ans), et garantie décennale (10 ans).',
+   686→          'Les entrepreneurs et artisans intervenant dans le village doivent être en mesure de justifier de leur assurance décennale pour les travaux de gros œuvre.',
+   687→          'Le Comité de gestion tient un registre des entrepreneurs et artisans agréés, accessible aux propriétaires via la plateforme KAMI-EXTENSION.',
+   688→          'En cas de malfaçon ou de défaut de construction dans le délai de garantie, le propriétaire doit notifier le constructeur et le Comité de gestion pour faire jouer les garanties applicables.',
+   689→          'Les entrepreneurs non assurés ou ne disposant pas des qualifications requises se voient refuser l\'autorisation de travailler dans le village par le Comité de gestion.',
+   690→        ],
+   691→      },
+   692→    ],
+   693→  },
+   694→  {
+   695→    id: 'activites',
+   696→    title: 'Activités Économiques et Artisanales',
+   697→    icon: <Store className="h-6 w-6" />,
+   698→    color: 'text-indigo-600 dark:text-indigo-400',
+   699→    bgColor: 'bg-indigo-50 dark:bg-indigo-950/30',
+   700→    borderColor: 'border-l-indigo-500',
+   701→    articles: [
+   702→      {
+   703→        title: 'Activités commerciales',
+   704→        rules: [
+   705→          'Les activités commerciales (boutiques, épiceries, restaurants, bars, salons de coiffure) exercées au sein du village sont soumises à l\'autorisation préalable du Comité de gestion.',
+   706→          'Le demandeur doit fournir un dossier comprenant : le plan d\'aménagement du local, l\'autorisation d\'exploitation municipale, l\'attestation de patente, et une copie de la pièce d\'identité.',
+   707→          'Les activités commerciales doivent être exercées dans les lots à usage mixte ou commercial identifiés dans le plan d\'urbanisme du village. Les zones purement résidentielles sont exclues.',
+   708→          'Les horaires d\'ouverture des commerces sont fixés par le Comité de gestion. En principe, la fermeture est obligatoire à 22h00 du lundi au samedi et à 20h00 le dimanche.',
+   709→          'Le nombre de commerces de même nature peut être régulé par le Comité pour éviter une concurrence déloyale et préserver l\'équilibre commercial du village.',
+   710→          'Toute modification de l\'activité commerciale initiale nécessite une nouvelle autorisation du Comité de gestion.',
+   711→        ],
+   712→      },
+   713→      {
+   714→        title: 'Professions libérales et services',
+   715→        rules: [
+   716→          'Les professions libérales (avocats, médecins, architectes, experts-comptables) et les services (écoles privées, centres de formation, cabinets) sont autorisés sous réserve d\'autorisation du Comité.',
+   717→          'Les cabinets et bureaux professionnels doivent respecter les normes d\'accessibilité, de sécurité et de stationnement prévues par le présent règlement.',
+   718→          'Les enseignes et plaques professionnelles doivent respecter les dimensions et l\'esthétique fixées par le Comité de gestion. La publicité sauvage est interdite.',
+   719→          'Les activités médicales et paramédicales doivent être exercées dans le strict respect des normes sanitaires camerounaises et disposer des agréments requis par le MINSANTE.',
+   720→          'Les écoles et centres de formation doivent obtenir les autorisations d\'ouverture délivrées par les autorités de l\'éducation nationale et les communiquer au Comité de gestion.',
+   721→        ],
+   722→      },
+   723→      {
+   724→        title: 'Agriculture maraîchère et élevage',
+   725→        rules: [
+   726→          'L\'agriculture maraîchère à petite échelle (jardins potagers) est encouragée sur les lots dans le respect de l\'emprise au sol et des normes d\'assainissement.',
+   727→          'L\'utilisation de pesticides et d\'engrais chimiques doit être conforme aux recommandations du Ministère de l\'Agriculture et du Développement Rural (MINADER).',
+   728→          'L\'élevage d\'animaux de basse-cour (poules, lapins) à des fins familiales est autorisé sous réserve d\'un nombre limité (moins de 20 têtes) et de conditions d\'hygiène satisfaisantes.',
+   729→          'L\'élevage de bétail (bovins, ovins, caprins) est strictement interdit à l\'intérieur du périmètre résidentiel du village.',
+   730→          'Les cultures maraîchères ne doivent pas utiliser l\'eau du réseau d\'assainissement, même traitée, pour l\'irrigation des plantes comestibles.',
+   731→          'Le Comité de gestion peut organiser des formations et des démonstrations d\'agriculture urbaine durable pour les résidents intéressés.',
+   732→        ],
+   733→      },
+   734→      {
+   735→        title: 'Interdictions commerciales',
+   736→        rules: [
+   737→          'Sont interdites au sein du village : la vente d\'alcool non enregistré (sodabi, bière artisanale sans licence), la vente de produits illicites ou contrefaits, et les activités liées au jeu clandestin.',
+   738→          'Les activités de transformation industrielle (fabriques, ateliers de mécanique lourde, briqueteries) sont interdites à l\'intérieur du périmètre résidentiel du village.',
+   739→          'Le commerce ambulant itinérant (vendeurs à domicile non autorisés, colporteurs) est soumis à autorisation préalable du Comité de gestion.',
+   740→          'Les activités générant des nuisances sonores, olfactives ou environnementales excessives (abattoirs, tanneries, fonderies) sont formellement interdites dans le village.',
+   741→          'Tout manquement aux dispositions du présent article entraîne la révocation immédiate de l\'autorisation d\'exercer une activité au sein du village.',
+   742→        ],
+   743→      },
+   744→    ],
+   745→  },
+   746→  {
+   747→    id: 'voisinage',
+   748→    title: 'Vie de Voisinage et Cohésion Sociale',
+   749→    icon: <Handshake className="h-6 w-6" />,
+   750→    color: 'text-pink-600 dark:text-pink-400',
+   751→    bgColor: 'bg-pink-50 dark:bg-pink-950/30',
+   752→    borderColor: 'border-l-pink-500',
+   753→    articles: [
+   754→      {
+   755→        title: 'Respect et bonne conduite',
+   756→        rules: [
+   757→          'Tous les résidents se doivent un respect mutuel, sans distinction d\'origine, de religion, d\'opinion ou de statut social.',
+   758→          'Les injures, menaces, harcèlement moral ou physique, discriminations et comportements antisociaux sont strictement interdits et passibles de sanctions.',
+   759→          'Les conflits entre voisins doivent dans un premier temps faire l\'objet d\'une tentative de résolution à l\'amiable, avec l\'assistance du Comité de gestion si nécessaire.',
+   760→          'L\'entraide et la solidarité entre résidents sont fortement encouragées. Le Comité de gestion organisera des activités de cohésion sociale.',
+   761→        ],
+   762→      },
+   763→      {
+   764→        title: 'Événements et rassemblements',
+   765→        rules: [
+   766→          'Les événements privés (fêtes, cérémonies) doivent être déclarés au Comité de gestion au minimum 72 heures à l\'avance.',
+   767→          'Les événements collectifs sur les espaces communs sont organisés par le Comité de gestion. Les résidents peuvent proposer des initiatives.',
+   768→          'Le nombre de participants aux événements privés ne doit pas causer de nuisance au voisinage (stationnement, bruit, surpeuplement).',
+   769→          'Les commerces, activités économiques et services à domicile exercés dans le village nécessitent l\'autorisation du Comité de gestion.',
+   770→        ],
+   771→      },
+   772→      {
+   773→        title: 'Liberté de culte et coutumes',
+   774→        rules: [
+   775→          'La liberté de culte est garantie à tous les résidents, dans le respect des lois de la République.',
+   776→          'Les activités religieuses doivent se dérouler dans le respect de la tranquillité publique, sans nuisance sonore ni obstruction de la voie publique.',
+   777→          'Les pratiques culturelles et traditionnelles sont respectées dans la mesure où elles ne portent pas atteinte aux droits d\'autrui ni au présent règlement.',
+   778→        ],
+   779→      },
+   780→      {
+   781→        title: 'Célébrations et cérémonies coutumières',
+   782→        rules: [
+   783→          'Les cérémonies coutumières (mariages traditionnels, funérailles, rites initiatiques) peuvent se dérouler dans le village dans le respect des lois camerounaises et du présent règlement.',
+   784→          'Les cérémonies funéraires doivent être déclarées au Comité de gestion dans les 24 heures suivant le décès. Le Comité facilite la logistique et la circulation pendant la cérémonie.',
+   785→          'Les manifestations culturelles collectives (fêtes de village, journées culturelles, festivals) sont organisées par le Comité de gestion en concertation avec les résidents.',
+   786→          'L\'utilisation d\'instruments de musique traditionnels (tam-tams, cors) est autorisée lors de cérémonies coutumières, dans le respect des horaires de tranquillité nocturne.',
+   787→          'Les défilés, processions et marches à caractère coutumier ou religieux doivent emprunter les itinéraires définis par le Comité de gestion et ne pas entraver la circulation.',
+   788→        ],
+   789→      },
+   790→      {
+   791→        title: 'Médiation de voisinage',
+   792→        rules: [
+   793→          'Le Comité de gestion désigne, parmi ses membres ou des résidents volontaires formés, des médiateurs de voisinage chargés de faciliter la résolution des conflits.',
+   794→          'Tout résident peut solliciter l\'intervention d\'un médiateur en cas de conflit avec un voisin, sans frais et de manière confidentielle.',
+   795→          'La médiation est un préalable obligatoire à toute procédure contentieuse entre résidents, sauf en cas d\'urgence ou de danger grave.',
+   796→          'Les médiateurs rendent compte de leurs interventions au Comité de gestion de manière anonymisée, dans le respect de la vie privée des parties.',
+   797→        ],
+   798→      },
+   799→    ],
+   800→  },
+   801→  {
+   802→    id: 'solidarite',
+   803→    title: 'Accessibilité et Solidarité',
+   804→    icon: <Heart className="h-6 w-6" />,
+   805→    color: 'text-rose-600 dark:text-rose-400',
+   806→    bgColor: 'bg-rose-50 dark:bg-rose-950/30',
+   807→    borderColor: 'border-l-rose-500',
+   808→    articles: [
+   809→      {
+   810→        title: 'Personnes à mobilité réduite',
+   811→        rules: [
+   812→          'Les constructions neuves doivent respecter les normes d\'accessibilité pour les personnes à mobilité réduite (PMR) : seuils de porte adaptés, rampes d\'accès, sanitaires accessibles, largeur de circulation minimale de 90 cm.',
+   813→          'Les espaces publics et communs du village (voies, trottoirs, aires de jeux, installations sportives) doivent être aménagés pour permettre l\'accès et la circulation des PMR.',
+   814→          'Les places de stationnement réservées aux PMR doivent être signalées et situées à proximité des accès principaux des lots et des espaces communs.',
+   815→          'Le Comité de gestion veillera à la prise en compte des besoins spécifiques des personnes âgées et des PMR lors de l\'aménagement des infrastructures collectives.',
+   816→          'Toute discrimination fondée sur le handicap ou l\'état de santé est formellement interdite et passible de sanctions.',
+   817→        ],
+   818→      },
+   819→      {
+   820→        title: 'Aide sociale et solidarité',
+   821→        rules: [
+   822→          'Le village KAMI-EXTENSION encourage la solidarité entre résidents. Le Comité de gestion peut créer un fonds de solidarité pour venir en aide aux résidents en situation de difficulté.',
+   823→          'Les résidents confrontés à des difficultés financières temporaires peuvent solliciter un étalement de paiement de leurs cotisations, sur décision du Comité de gestion.',
+   824→          'Le Comité de gestion organise des actions de solidarité en faveur des résidents sinistrés, malades ou en situation de précarité, notamment lors des périodes de soudure.',
+   825→          'Les résidents sont encouragés à participer aux œuvres caritatives et aux initiatives communautaires de soutien aux plus démunis.',
+   826→          'Le Comité de gestion peut conclure des partenariats avec des ONG, des associations caritatives et des institutions publiques pour renforcer l\'aide sociale dans le village.',
+   827→        ],
+   828→      },
+   829→      {
+   830→        title: 'Associations et groupements',
+   831→        rules: [
+   832→          'Les associations de résidents (groupements de femmes, associations de jeunes, tontines, coopératives) sont encouragées et doivent se faire enregistrer auprès du Comité de gestion.',
+   833→          'Le Comité de gestion met à disposition des associations enregistrées les espaces communs pour la tenue de leurs réunions et activités, sous réserve de disponibilité.',
+   834→          'Les tontines et systèmes d\'épargne rotative sont autorisés dans le village. Le Comité de gestion n\'intervient pas dans leur fonctionnement interne mais encourage la transparence.',
+   835→          'Les associations de résidents peuvent élire des représentants qui siègent avec voix consultative aux réunions du Comité de gestion.',
+   836→          'Les associations sont tenues de communiquer annuellement au Comité de gestion un rapport d\'activités et un bilan financier de leurs opérations.',
+   837→          'Toute association dont les activités portent atteinte à l\'ordre public ou aux droits d\'autrui se verra retirer son agrément par le Comité de gestion.',
+   838→        ],
+   839→      },
+   840→    ],
+   841→  },
+   842→  {
+   843→    id: 'locataires',
+   844→    title: 'Droits et Devoirs des Locataires',
+   845→    icon: <Users className="h-6 w-6" />,
+   846→    color: 'text-amber-600 dark:text-amber-400',
+   847→    bgColor: 'bg-amber-50 dark:bg-amber-950/30',
+   848→    borderColor: 'border-l-amber-500',
+   849→    articles: [
+   850→      {
+   851→        title: 'Conditions de location',
+   852→        rules: [
+   853→          'La mise en location d\'un lot ou d\'une habitation au sein du village est soumise à l\'autorisation préalable du Comité de gestion.',
+   854→          'Le propriétaire bailleur doit communiquer au Comité de gestion l\'identité du locataire, la durée du bail et le montant du loyer dans un délai de 15 jours après la signature du contrat.',
+   855→          'Le locataire doit prendre connaissance du présent règlement intérieur et s\'engager à le respecter. Sa signature du bail de location vaut acceptation du règlement.',
+   856→          'Le contrat de location doit inclure une clause référençant le présent règlement intérieur et rappelant l\'obligation de conformité aux règles de vie commune du village.',
+   857→          'Le propriétaire reste solidairement responsable du respect du présent règlement par son locataire, notamment en matière de cotisations, de propreté et de nuisances.',
+   858→        ],
+   859→      },
+   860→      {
+   861→        title: 'Obligations du locataire',
+   862→        rules: [
+   863→          'Le locataire est tenu de payer son loyer aux termes convenus dans le contrat de location et de s\'acquitter des charges locatives qui lui incombent.',
+   864→          'Le locataire doit maintenir les lieux loués en bon état de propreté et d\'entretien, et effectuer les réparations locatives définies par la loi camerounaise.',
+   865→          'Le locataire ne doit en aucun cas procéder à des modifications de la construction, de la clôture ou de l\'aménagement du lot sans l\'accord exprès du propriétaire et du Comité de gestion.',
+   866→          'Le locataire doit respecter les règles de tranquillité, de voisinage et de sécurité prévues par le présent règlement, sous peine de résiliation de son bail.',
+   867→          'Le locataire est tenu de reverser au propriétaire ou directement au Comité de gestion la quote-part de cotisation prévue dans son contrat de location.',
+   868→        ],
+   869→      },
+   870→      {
+   871→        title: 'Droits du locataire',
+   872→        rules: [
+   873→          'Le locataire bénéficie des mêmes droits d\'usage des espaces communs que les propriétaires occupants, dans le respect du présent règlement.',
+   874→          'Le locataire a le droit de recevoir de la part du propriétaire un logement décent, conforme aux normes de sécurité, de salubrité et d\'habitabilité.',
+   875→          'Le locataire peut participer aux assemblées générales du village avec voix consultative, sur invitation du Comité de gestion.',
+   876→          'Le locataire a le droit de former des réclamations auprès du Comité de gestion en cas de manquement du propriétaire à ses obligations (carences d\'entretien, défauts de sécurité).',
+   877→          'Le locataire a le droit d\'être informé de toute décision du Comité de gestion affectant directement ses conditions de logement ou d\'occupation.',
+   878→        ],
+   879→      },
+   880→      {
+   881→        title: 'Résiliation et fin de bail',
+   882→        rules: [
+   883→          'La résiliation du bail par le propriétaire doit respecter le préavis légal fixé par la législation camerounaise, sauf clause résolutoire pour manquement du locataire.',
+   884→          'En cas de non-respect du présent règlement par le locataire, le Comité de gestion peut adresser une mise en demeure au locataire et, en cas de persistance, requérir du propriétaire la résiliation du bail.',
+   885→          'Le locataire doit restituer les lieux dans l\'état initial, sous réserve de la vétusté normale. Un état des lieux contradictoire est établi à l\'entrée et à la sortie.',
+   886→          'Le propriétaire doit signaler le départ de son locataire au Comité de gestion dans les 48 heures suivant la fin du bail.',
+   887→          'En cas de litige locatif, les parties sont invitées à recourir à la procédure de médiation prévue par le présent règlement avant toute action judiciaire.',
+   888→        ],
+   889→      },
+   890→    ],
+   891→  },
+   892→  {
+   893→    id: 'cotisations',
+   894→    title: 'Cotisations et Finances',
+   895→    icon: <Wallet className="h-6 w-6" />,
+   896→    color: 'text-amber-600 dark:text-amber-400',
+   897→    bgColor: 'bg-amber-50 dark:bg-amber-950/30',
+   898→    borderColor: 'border-l-amber-500',
+   899→    articles: [
+   900→      {
+   901→        title: 'Cotisations obligatoires',
+   902→        rules: [
+   903→          'Chaque propriétaire est redevable d\'une cotisation annuelle pour l\'entretien des espaces communs, la voirie, l\'éclairage public et les services collectifs du village.',
+   904→          'Le montant de la cotisation est fixé par le Comité de gestion en assemblée générale, en fonction des besoins du village et des charges réelles.',
+   905→          'La cotisation est due dès la prise de possession du lot, même en l\'absence de construction.',
+   906→          'Le défaut de paiement de la cotisation dans les délais impartis entraînera des pénalités de retard et, le cas échéant, des poursuites.',
+   907→        ],
+   908→      },
+   909→      {
+   910→        title: 'Charges de copropriété',
+   911→        rules: [
+   912→          'Les frais d\'entretien des équipements collectifs (éclairage, adduction d\'eau, assainissement, voirie) sont répartis entre les propriétaires au prorata de la surface de leur lot.',
+   913→          'Les travaux d\'intérêt général décidés par le Comité de gestion peuvent faire l\'objet d\'une contribution supplémentaire temporaire.',
+   914→          'Le Comité de gestion doit publier annuellement un rapport financier détaillant les dépenses et recettes, accessible à tous les propriétaires.',
+   915→        ],
+   916→      },
+   917→      {
+   918→        title: 'Redevances spéciales',
+   919→        rules: [
+   920→          'Une redevance spéciale pourra être demandée aux propriétaires dont les projets de construction nécessitent des adaptations des réseaux ou équipements collectifs.',
+   921→          'Les frais de raccordement aux réseaux (eau, électricité) sont à la charge du propriétaire du lot.',
+   922→        ],
+   923→      },
+   924→      {
+   925→        title: 'Moyens de paiement',
+   926→        rules: [
+   927→          'Les cotisations, amendes et redevances peuvent être réglées par virement bancaire, Mobile Money (MTN Mobile Money, Orange Money, Moov Money), chèque ou espèces.',
+   928→          'Le Comité de gestion émet des reçus officiels pour tout paiement effectué, qui tiennent lieu de quitus de paiement.',
+   929→          'Les paiements par Mobile Money doivent être effectués sur le numéro de téléphone officiel du Comité de gestion, communiqué via la plateforme KAMI-EXTENSION.',
+   930→          'Le Comité de gestion peut proposer des facilités de paiement échelonné aux propriétaires en difficulté financière temporaire, sur demande motivée et après examen du dossier.',
+   931→          'Les cotisations annuelles sont dues au plus tard le 31 janvier de chaque année. Au-delà de cette date, les pénalités de retard s\'appliquent automatiquement.',
+   932→        ],
+   933→      },
+   934→      {
+   935→        title: 'Transparence et contrôle financier',
+   936→        rules: [
+   937→          'Le Comité de gestion tient une comptabilité rigoureuse de toutes les recettes et dépenses du village, vérifiable à tout moment par tout propriétaire en faisant la demande.',
+   938→          'Un commissaire aux comptes (bénévole ou professionnel) peut être désigné par l\'assemblée générale pour contrôler la gestion financière du Comité.',
+   939→          'Le rapport financier annuel doit être présenté lors de l\'assemblée générale et comprendre : le bilan, le compte de résultat, l\'état des encaissements et des restes à recouvrer.',
+   940→          'Toute dépense supérieure à un montant fixé par l\'assemblée générale doit être approuvée par vote en assemblée ou par délégation du Comité de gestion.',
+   941→          'Les fonds du village sont déposés sur un compte bancaire ouvert au nom du village KAMI-EXTENSION. Les retraits nécessitent la signature conjointe d\'au moins deux membres du bureau du Comité.',
+   942→        ],
+   943→      },
+   944→    ],
+   945→  },
+   946→  {
+   947→    id: 'autorites',
+   948→    title: 'Relations avec les Autorités Publiques',
+   949→    icon: <Building2 className="h-6 w-6" />,
+   950→    color: 'text-gray-600 dark:text-gray-400',
+   951→    bgColor: 'bg-gray-50 dark:bg-gray-950/30',
+   952→    borderColor: 'border-l-gray-500',
+   953→    articles: [
+   954→      {
+   955→        title: 'Conformité légale',
+   956→        rules: [
+   957→          'Le village KAMI-EXTENSION et l\'ensemble de ses occupants doivent se conformer aux lois et règlements en vigueur de la République du Cameroun, y compris le Code de l\'Urbanisme, le Code de l\'Environnement et le Code pénal.',
+   958→          'Le Comité de gestion veille au respect des obligations légales incombant au village et informe les résidents de toute nouvelle législation ou réglementation applicable.',
+   959→          'Les propriétaires doivent obtenir les autorisations de construire (permis de construire) délivrées par les services municipaux compétents avant tout démarrage de travaux.',
+   960→          'Le Comité de gestion entretient des relations régulières avec la mairie, la sous-préfecture, les services de l\'urbanisme et les autres autorités administratives concernées.',
+   961→          'Tout propriétaire doit se conformer aux obligations déclaratives et fiscales liées à la propriété foncière au Cameroun (titre foncier, impôt foncier, taxe d\'habitation).',
+   962→        ],
+   963→      },
+   964→      {
+   965→        title: 'Impôts et taxes',
+   966→        rules: [
+   967→          'Chaque propriétaire est personnellement responsable de l\'acquittement de ses impôts et taxes (impôt foncier, taxe d\'encombrement, patente pour les activités commerciales).',
+   968→          'Le Comité de gestion n\'est en aucun cas responsable du non-paiement par un propriétaire de ses obligations fiscales envers l\'État.',
+   969→          'Le Comité de gestion peut, à la demande d\'un propriétaire, fournir une attestation de propriété ou de résidence utile aux démarches fiscales.',
+   970→          'Les résidents exerçant une activité économique au sein du village doivent être en règle avec l\'administration fiscale et fournir leur attestation de patente au Comité de gestion.',
+   971→          'En cas de contentieux fiscal, le propriétaire concerné doit en informer le Comité de gestion, qui pourra l\'orienter vers les services compétents ou les professionnels agréés.',
+   972→        ],
+   973→      },
+   974→      {
+   975→        title: 'Droits de passage et servitudes',
+   976→        rules: [
+   977→          'Les droits de passage existants sur le périmètre du village (lignes électriques haute tension, canalisations d\'eau, gazoducs, voies ferrées) sont respectés et maintenus.',
+   978→          'Aucune construction ne doit être édifiée sous ou sur les servitudes publiques (emprise des routes, réseaux ENEO, Camwater, câbles fibre optique) sans l\'accord des concessionnaires.',
+   979→          'Le Comité de gestion représente les intérêts collectifs du village lors des procédures d\'expropriation, d\'occupation temporaire ou de modification de tracé des servitudes.',
+   980→          'Les résidents doivent permettre l\'accès aux agents des services publics (ENEO, Camwater, Camtel, CREDO) pour l\'entretien des réseaux traversant leur lot, sous réserve d\'un préavis raisonnable.',
+   981→        ],
+   982→      },
+   983→      {
+   984→        title: 'Urbanisme municipal',
+   985→        rules: [
+   986→          'Le village KAMI-EXTENSION est soumis au Plan d\'Urbanisme de la commune d\'implantation. Tout aménagement doit être compatible avec les orientations du Schéma Directeur d\'Aménagement et d\'Urbanisme (SDAU).',
+   987→          'Le Comité de gestion participe aux consultations publiques organisées par la mairie sur les projets d\'aménagement affectant le village ou son environnement.',
+   988→          'Les modifications du plan de lotissement du village doivent être approuvées par les services de l\'urbanisme municipal et faire l\'objet d\'une mise à jour cadastrale.',
+   989→          'Le Comité de gestion adresse annuellement au maire un rapport sur l\'état du village, les travaux réalisés et les projets en cours, afin de maintenir une coordination étroite avec les autorités municipales.',
+   990→        ],
+   991→      },
+   992→    ],
+   993→  },
+   994→  {
+   995→    id: 'sanctions',
+   996→    title: 'Sanctions et Procédures',
+   997→    icon: <Scale className="h-6 w-6" />,
+   998→    color: 'text-red-700 dark:text-red-500',
+   999→    bgColor: 'bg-red-50 dark:bg-red-950/30',
+  1000→    borderColor: 'border-l-red-600',
+  1001→    articles: [
+  1002→      {
+  1003→        title: 'Types de manquements',
+  1004→        rules: [
+  1005→          'Sont considérés comme manquements : le non-respect de toute disposition du présent règlement, les nuisances de voisinage, les dégradations des espaces communs, les constructions non autorisées, le non-paiement des cotisations, et tout comportement portant atteinte à la sécurité ou à la tranquillité publique.',
+  1006→          'Les manquements sont classés en trois catégories : légers (première infraction mineure), moyens (répétition ou infraction significative), graves (infraction mettant en danger la sécurité ou portant atteinte aux droits d\'autrui).',
+  1007→        ],
+  1008→      },
+  1009→      {
+  1010→        title: 'Procédure de sanction',
+  1011→        rules: [
+  1012→          'En cas de manquement constaté, le Comité de gestion adressera au contrevenant un avertissement écrit, lui enjoignant de régulariser la situation dans un délai de 15 jours.',
+  1013→          'Si le manquement persiste après avertissement, le Comité pourra prononcer une amende dont le montant est fixé en fonction de la gravité de l\'infraction.',
+  1014→          'Pour les manquements graves (construction non autorisée, nuisance grave, dégradation volontaire), le Comité pourra saisir les autorités compétentes.',
+  1015→          'Tout propriétaire a le droit d\'être entendu avant toute décision de sanction. Il peut faire appel auprès du Comité de gestion dans un délai de 30 jours.',
+  1016→        ],
+  1017→      },
+  1018→      {
+  1019→        title: 'Amendes et pénalités',
+  1020→        rules: [
+  1021→          'Le barème des amendes est fixé par le Comité de gestion et communiqué à l\'ensemble des propriétaires.',
+  1022→          'Les pénalités de retard sur les cotisations sont fixées à 2 % par mois de retard sur le montant dû.',
+  1023→          'Les frais de remise en conformité (nettoyage, démolition, replantation, etc.) sont intégralement à la charge du contrevenant.',
+  1024→          'Le non-paiement répété des cotisations et amendes peut entraîner des poursuites judiciaires et, en dernier recours, la mise en vente forcée du lot.',
+  1025→        ],
+  1026→      },
+  1027→      {
+  1028→        title: 'Recours et appel',
+  1029→        rules: [
+  1030→          'Tout contrevenant dispose d\'un délai de 30 jours à compter de la notification de la sanction pour exercer un recours auprès du Comité de gestion.',
+  1031→          'Le recours doit être formulé par écrit, avec indication des motifs de contestation et des pièces justificatives éventuelles.',
+  1032→          'Le Comité de gestion statue sur le recours dans un délai de 30 jours. En cas de confirmation de la sanction, le contrevenant peut saisir la commission de médiation et d\'arbitrage.',
+  1033→          'L\'exécution de la sanction est suspendue pendant la durée de l\'examen du recours, sauf en cas d\'urgence liée à la sécurité publique.',
+  1034→          'Les décisions définitives du Comité de gestion sont exécutoires et peuvent, le cas échéant, être portées devant les tribunaux compétents.',
+  1035→        ],
+  1036→      },
+  1037→      {
+  1038→        title: 'Sanctions particulières',
+  1039→        rules: [
+  1040→          'En cas de construction sans autorisation, le Comité de gestion peut ordonner l\'interruption immédiate des travaux et, le cas échéant, la démolition aux frais du propriétaire.',
+  1041→          'En cas de nuisance sonore ou olfactive persistante, le Comité de gestion peut imposer la fermeture temporaire de l\'installation à l\'origine de la nuisance.',
+  1042→          'En cas de non-paiement des cotisations pendant plus de 12 mois consécutifs, le Comité de gestion peut saisir la juridiction compétente pour le recouvrement forcé.',
+  1043→          'Les sanctions disciplinaires peuvent aller jusqu\'à l\'interdiction temporaire ou définitive d\'accéder aux espaces communs du village.',
+  1044→        ],
+  1045→      },
+  1046→    ],
+  1047→  },
+  1048→  {
+  1049→    id: 'mediation',
+  1050→    title: 'Médiation et Arbitrage',
+  1051→    icon: <Gavel className="h-6 w-6" />,
+  1052→    color: 'text-stone-600 dark:text-stone-400',
+  1053→    bgColor: 'bg-stone-50 dark:bg-stone-950/30',
+  1054→    borderColor: 'border-l-stone-500',
+  1055→    articles: [
+  1056→      {
+  1057→        title: 'Procédure de médiation',
+  1058→        rules: [
+  1059→          'La médiation est le mode prioritaire de résolution des litiges entre résidents au sein du village KAMI-EXTENSION. Elle est gratuite, confidentielle et volontaire.',
+  1060→          'Toute partie à un litige peut saisir le Comité de gestion d\'une demande de médiation, par écrit ou via la plateforme KAMI-EXTENSION.',
+  1061→          'Le Comité de gestion désigne un médiateur dans un délai de 7 jours ouvrés. Le médiateur doit être indépendant des parties en cause et n\'avoir aucun intérêt dans l\'issue du litige.',
+  1062→          'La médiation doit aboutir dans un délai de 30 jours à compter de la désignation du médiateur. Un accord trouvé entre les parties est consigné dans un procès-verbal signé.',
+  1063→          'Les parties sont libres d\'interrompre la médiation à tout moment et de recourir aux voies de droit ordinaires.',
+  1064→        ],
+  1065→      },
+  1066→      {
+  1067→        title: 'Commission de conciliation',
+  1068→        rules: [
+  1069→          'Le Comité de gestion institue une commission de conciliation composée de trois membres élus parmi les résidents reconnus pour leur sagesse et leur expérience.',
+  1070→          'La commission de conciliation intervient en cas d\'échec de la médiation ou lorsque le litige oppose un résident au Comité de gestion lui-même.',
+  1071→          'La commission dispose d\'un délai de 45 jours pour rendre un avis motivé, qui n\'est pas contraignant mais fortement incitatif pour les parties.',
+  1072→          'Les séances de la commission sont publiques, sauf demande de huis clos motivée par l\'une des parties.',
+  1073→          'L\'avis de la commission est transmis par écrit aux parties et au Comité de gestion, avec recommandations sur les suites à donner.',
+  1074→        ],
+  1075→      },
+  1076→      {
+  1077→        title: 'Arbitrage',
+  1078→        rules: [
+  1079→          'Lorsque la médiation et la conciliation ont échoué, les parties peuvent convenir de recourir à l\'arbitrage pour trancher leur litige de manière définitive.',
+  1080→          'L\'arbitre est désigné d\'un commun accord entre les parties, ou à défaut par le Comité de gestion sur proposition du Tribunal de Première Instance compétent.',
+  1081→          'La sentence arbitrale est rendue dans un délai de 60 jours et a force obligatoire entre les parties, conformément à l\'acte uniforme de l\'OHADA portant organisation des procédures simplifiées de recouvrement et des voies d\'exécution.',
+  1082→          'Les frais d\'arbitrage sont répartis entre les parties sauf décision contraire de l\'arbitre. Une provision peut être demandée avant le début de la procédure.',
+  1083→        ],
+  1084→      },
+  1085→      {
+  1086→        title: 'Recours judiciaire',
+  1087→        rules: [
+  1088→          'En dernier recours, toute partie insatisfaite de l\'issue de la médiation, de la conciliation ou de l\'arbitrage peut saisir la juridiction judiciaire compétente.',
+  1089→          'Le tribunal compétent est celui du ressort du siège du village KAMI-EXTENSION, conformément aux règles de compétence territoriale en vigueur au Cameroun.',
+  1090→          'Les décisions de justice sont communiquées au Comité de gestion et inscrites au registre des litiges du village.',
+  1091→          'Le Comité de gestion peut, avec l\'accord des parties, proposer l\'assistance d\'un avocat commis d\'office pour les résidents en situation de vulnérabilité financière.',
+  1092→          'Les frais de justice sont à la charge de la partie perdante, sauf décision contraire du tribunal. Le fonds de solidarité du village peut intervenir en cas de besoin.',
+  1093→        ],
+  1094→      },
+  1095→    ],
+  1096→  },
+  1097→  {
+  1098→    id: 'comite',
+  1099→    title: 'Comité de Gestion des Lots',
+  1100→    icon: <Landmark className="h-6 w-6" />,
+  1101→    color: 'text-purple-600 dark:text-purple-400',
+  1102→    bgColor: 'bg-purple-50 dark:bg-purple-950/30',
+  1103→    borderColor: 'border-l-purple-500',
+  1104→    articles: [
+  1105→      {
+  1106→        title: 'Rôle et missions',
+  1107→        rules: [
+  1108→          'Le Comité de gestion des lots est l\'organe de direction et de coordination du village KAMI-EXTENSION.',
+  1109→          'Il est chargé de : veiller au respect du présent règlement, gérer les espaces et équipements communs, organiser les assemblées générales, administrer les finances du village, coordonner les travaux d\'intérêt général.',
+  1110→          'Le Comité représente les propriétaires auprès des autorités locales et des tiers.',
+  1111→        ],
+  1112→      },
+  1113→      {
+  1114→        title: 'Composition et fonctionnement',
+  1115→        rules: [
+  1116→          'Le Comité est composé de membres élus parmi les propriétaires pour un mandat de 2 ans renouvelable.',
+  1117→          'Le Comité se réunit en session ordinaire une fois par trimestre. Des sessions extraordinaires peuvent être convoquées en cas de nécessité.',
+  1118→          'Les décisions du Comité sont prises à la majorité simple des membres présents. Les décisions modifiant le règlement nécessitent une majorité des deux tiers.',
+  1119→          'Les comptes rendus de réunions sont communiqués à l\'ensemble des propriétaires via la plateforme KAMI-EXTENSION.',
+  1120→        ],
+  1121→      },
+  1122→      {
+  1123→        title: 'Assemblée générale',
+  1124→        rules: [
+  1125→          'Une assemblée générale des propriétaires est convoquée au moins une fois par an pour l\'approbation des comptes, le vote du budget et les décisions importantes.',
+  1126→          'Chaque propriétaire dispose d\'une voix par lot possédé. Le vote peut se faire en présentiel ou par procuration.',
+  1127→          'L\'assemblée générale a le pouvoir de modifier le règlement intérieur, d\'approuver les dépenses exceptionnelles, et de révoquer les membres du Comité.',
+  1128→        ],
+  1129→      },
+  1130→      {
+  1131→        title: 'Bureau du Comité',
+  1132→        rules: [
+  1133→          'Le Comité de gestion élit en son sein un bureau composé d\'un président, d\'un vice-président, d\'un secrétaire et d\'un trésorier.',
+  1134→          'Le président représente le Comité à l\'égard des tiers et des autorités. Il convoque les réunions et préside les assemblées générales.',
+  1135→          'Le trésorier est responsable de la gestion financière du village : encaissement des cotisations, paiement des dépenses, tenue de la comptabilité et élaboration du rapport financier annuel.',
+  1136→          'Le secrétaire est responsable de la rédaction des procès-verbaux, de la conservation des archives du village et de la communication avec les propriétaires.',
+  1137→          'En cas de vacance d\'un poste du bureau, une élection partielle est organisée dans un délai de 30 jours.',
+  1138→        ],
+  1139→      },
+  1140→      {
+  1141→        title: 'Commissions spécialisées',
+  1142→        rules: [
+  1143→          'Le Comité de gestion peut créer des commissions spécialisées pour traiter de questions spécifiques : commission d\'urbanisme, commission environnement, commission sécurité, commission financière, commission sociale.',
+  1144→          'Chaque commission est composée d\'au moins trois membres, dont au moins un membre du bureau du Comité.',
+  1145→          'Les commissions rendent compte de leurs travaux au Comité de gestion lors de chaque session ordinaire.',
+  1146→          'Les résidents intéressés peuvent proposer leur candidature pour intégrer une commission spécialisée, sous réserve de l\'approbation du Comité.',
+  1147→          'Les commissions ont un rôle consultatif. Leurs recommandations sont soumises à l\'approbation du Comité de gestion pour être exécutées.',
+  1148→        ],
+  1149→      },
+  1150→    ],
+  1151→  },
+  1152→  {
+  1153→    id: 'dispositions',
+  1154→    title: 'Dispositions Finales',
+  1155→    icon: <FileText className="h-6 w-6" />,
+  1156→    color: 'text-slate-600 dark:text-slate-400',
+  1157→    bgColor: 'bg-slate-50 dark:bg-slate-950/30',
+  1158→    borderColor: 'border-l-slate-500',
+  1159→    articles: [
+  1160→      {
+  1161→        title: 'Entrée en vigueur',
+  1162→        rules: [
+  1163→          'Le présent règlement intérieur entre en vigueur dès son approbation par le Comité de gestion des lots.',
+  1164→          'Il s\'applique immédiatement à l\'ensemble des propriétaires et résidents actuels, ainsi qu\'à tout futur propriétaire ou résident.',
+  1165→        ],
+  1166→      },
+  1167→      {
+  1168→        title: 'Litiges',
+  1169→        rules: [
+  1170→          'En cas de litige entre résidents, une médiation sera proposée par le Comité de gestion avant tout recours judiciaire.',
+  1171→          'Si la médiation échoue, les parties pourront saisir la juridiction compétente.',
+  1172→          'Les litiges entre un résident et le Comité de gestion seront soumis à l\'arbitrage d\'un tiers indépendant désigné d\'un commun accord.',
+  1173→        ],
+  1174→      },
+  1175→      {
+  1176→        title: 'Révision',
+  1177→        rules: [
+  1178→          'Le présent règlement pourra être révisé par le Comité de gestion à tout moment, sur proposition d\'un membre ou d\'un groupe de propriétaires représentant au moins 10 % des lots.',
+  1179→          'Toute proposition de révision doit être notifiée à l\'ensemble des propriétaires 30 jours avant la tenue de l\'assemblée générale chargée de l\'examiner.',
+  1180→        ],
+  1181→      },
+  1182→      {
+  1183→        title: 'Abrogation et textes antérieurs',
+  1184→        rules: [
+  1185→          'Le présent règlement intérieur abroge et remplace toute disposition antérieure relative au fonctionnement et à la vie commune du village KAMI-EXTENSION.',
+  1186→          'Les actes, décisions et autorisations délivrés sous le régime du règlement antérieur demeurent valables jusqu\'à leur expiration naturelle, sauf incompatibilité avec le présent règlement.',
+  1187→          'Les procédures en cours à la date d\'entrée en vigueur du présent règlement sont poursuivies conformément aux dispositions applicables au moment de leur initiation.',
+  1188→        ],
+  1189→      },
+  1190→      {
+  1191→        title: 'Adhésion et engagement',
+  1192→        rules: [
+  1193→          'L\'achat d\'un lot au sein du village KAMI-EXTENSION vaut adhésion pleine et entière au présent règlement intérieur et à ses éventuels avenants modificatifs.',
+  1194→          'Chaque propriétaire s\'engage à respecter le présent règlement et à veiller à son respect par ses locataires, employés, prestataires et visiteurs.',
+  1195→          'Le présent règlement constitue un engagement de vie commune qui prime sur les accords individuels entre propriétaires lorsqu\'ils sont contraires à l\'intérêt collectif.',
+  1196→          'Tout propriétaire qui n\'accepte pas les dispositions du présent règlement dispose d\'un délai de 30 jours pour céder son lot avec l\'accord du Comité de gestion, sans pénalité.',
+  1197→        ],
+  1198→      },
+  1199→      {
+  1200→        title: 'Contacts et informations',
+  1201→        rules: [
+  1202→          'Le secrétariat du Comité de gestion est joignable via la plateforme en ligne KAMI-EXTENSION, par courriel et par téléphone, aux coordonnées communiquées lors de l\'acquisition du lot.',
+  1203→          'Le Comité de gestion tient un registre des propriétaires et résidents à jour, consultable sur demande auprès du secrétariat.',
+  1204→          'Toute modification des coordonnées d\'un propriétaire ou résident doit être communiquée au Comité de gestion dans un délai de 15 jours.',
+  1205→          'Le Comité de gestion publie régulièrement des informations sur la vie du village via la plateforme, les panneaux d\'affichage communs et, le cas échéant, par message SMS ou WhatsApp groupé.',
+  1206→        ],
+  1207→      },
+  1208→    ],
+  1209→  },
+  1210→];
+  1211→
+  1212→export function RegulationRulesScreen({ setCurrentScreen }: RegulationRulesScreenProps) {
+  1213→  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+  1214→  const [expandedArticles, setExpandedArticles] = useState<Record<string, boolean>>({});
+  1215→  const [searchQuery, setSearchQuery] = useState('');
+  1216→
+  1217→  // Expand first section by default
+  1218→  useState(() => {
+  1219→    if (rulesData.length > 0) {
+  1220→      setExpandedSections({ [rulesData[0].id]: true });
+  1221→    }
+  1222→  });
+  1223→
+  1224→  const toggleSection = (sectionId: string) => {
+  1225→    setExpandedSections((prev) => ({ ...prev, [sectionId]: !prev[sectionId] }));
+  1226→  };
+  1227→
+  1228→  const toggleArticle = (articleKey: string) => {
+  1229→    setExpandedArticles((prev) => ({ ...prev, [articleKey]: !prev[articleKey] }));
+  1230→  };
+  1231→
+  1232→  const expandAll = () => {
+  1233→    const all: Record<string, boolean> = {};
+  1234→    rulesData.forEach((s) => {
+  1235→      all[s.id] = true;
+  1236→      s.articles.forEach((a, i) => {
+  1237→        all[`${s.id}-${i}`] = true;
+  1238→      });
+  1239→    });
+  1240→    setExpandedSections(all);
+  1241→    setExpandedArticles(all);
+  1242→  };
+  1243→
+  1244→  const collapseAll = () => {
+  1245→    setExpandedSections({});
+  1246→    setExpandedArticles({});
+  1247→  };
+  1248→
+  1249→  // Filter based on search
+  1250→  const filteredData = searchQuery
+  1251→    ? rulesData.map((section) => ({
+  1252→        ...section,
+  1253→        articles: section.articles.map((article) => ({
+  1254→          ...article,
+  1255→          rules: article.rules.filter(
+  1256→            (rule) =>
+  1257→              rule.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  1258→              article.title.toLowerCase().includes(searchQuery.toLowerCase())
+  1259→          ),
+  1260→        })).filter((article) => article.rules.length > 0),
+  1261→      })).filter((section) => section.articles.length > 0)
+  1262→    : rulesData;
+  1263→
+  1264→  const totalArticles = rulesData.reduce((sum, s) => sum + s.articles.length, 0);
+  1265→  const totalRules = rulesData.reduce(
+  1266→    (sum, s) => sum + s.articles.reduce((aSum, a) => aSum + a.rules.length, 0),
+  1267→    0
+  1268→  );
+  1269→
+  1270→  return (
+  1271→    <div className="flex-1 flex flex-col bg-card pt-4 pb-8">
+  1272→      {/* Header */}
+  1273→      <div className="sticky top-0 z-10 bg-card/95 backdrop-blur-md border-b border-border px-4 py-3">
+  1274→        <div className="flex items-center gap-3 mb-3">
+  1275→          <Button
+  1276→            variant="ghost"
+  1277→            size="icon"
+  1278→            onClick={() => setCurrentScreen('home')}
+  1279→          >
+  1280→            <ArrowLeft className="h-5 w-5 text-muted-foreground" />
+  1281→          </Button>
+  1282→          <div className="flex-1">
+  1283→            <h2 className="text-xl font-bold text-[#8B5E3C] flex items-center justify-center gap-2">
+  1284→              <Scale className="h-5 w-5" />
+  1285→              Règlement Intérieur
+  1286→            </h2>
+  1287→            <p className="text-xs text-muted-foreground text-center">
+  1288→              KAMI-EXTENSION — {rulesData.length} chapitres • {totalArticles} articles • {totalRules} dispositions
+  1289→            </p>
+  1290→          </div>
+  1291→        </div>
+  1292→
+  1293→        {/* Search + Controls */}
+  1294→        <div className="flex items-center gap-2">
+  1295→          <div className="relative flex-1">
+  1296→            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+  1297→            <input
+  1298→              placeholder="Rechercher dans le règlement..."
+  1299→              value={searchQuery}
+  1300→              onChange={(e) => setSearchQuery(e.target.value)}
+  1301→              className="w-full pl-10 pr-4 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-[#8B5E3C]"
+  1302→            />
+  1303→          </div>
+  1304→          <Button
+  1305→            variant="outline"
+  1306→            size="sm"
+  1307→            onClick={expandAll}
+  1308→            className="text-xs whitespace-nowrap"
+  1309→          >
+  1310→            Tout ouvrir
+  1311→          </Button>
+  1312→          <Button
+  1313→            variant="outline"
+  1314→            size="sm"
+  1315→            onClick={collapseAll}
+  1316→            className="text-xs whitespace-nowrap"
+  1317→          >
+  1318→            Tout fermer
+  1319→          </Button>
+  1320→        </div>
+  1321→      </div>
+  1322→
+  1323→      {/* Content */}
+  1324→      <ScrollArea className="flex-1">
+  1325→        <div className="px-4 py-4 space-y-4">
+  1326→          {searchQuery && filteredData.length === 0 && (
+  1327→            <div className="text-center py-12">
+  1328→              <Eye className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
+  1329→              <p className="text-muted-foreground">Aucun résultat pour « {searchQuery} »</p>
+  1330→            </div>
+  1331→          )}
+  1332→
+  1333→          {filteredData.map((section) => (
+  1334→            <Card key={section.id} className={`border-l-4 ${section.borderColor} overflow-hidden`}>
+  1335→              {/* Section Header */}
+  1336→              <button
+  1337→                onClick={() => toggleSection(section.id)}
+  1338→                className="w-full text-left"
+  1339→              >
+  1340→                <CardHeader className="p-4 pb-2 cursor-pointer hover:bg-muted/30 transition-colors">
+  1341→                  <div className="flex items-center gap-3">
+  1342→                    <div className={`p-2 rounded-lg ${section.bgColor}`}>
+  1343→                      <span className={section.color}>{section.icon}</span>
+  1344→                    </div>
+  1345→                    <div className="flex-1">
+  1346→                      <CardTitle className={`text-base ${section.color}`}>
+  1347→                        {section.title}
+  1348→                      </CardTitle>
+  1349→                      <p className="text-xs text-muted-foreground mt-0.5">
+  1350→                        {section.articles.length} article{section.articles.length > 1 ? 's' : ''}
+  1351→                      </p>
+  1352→                    </div>
+  1353→                    {expandedSections[section.id] ? (
+  1354→                      <ChevronUp className="h-5 w-5 text-muted-foreground" />
+  1355→                    ) : (
+  1356→                      <ChevronDown className="h-5 w-5 text-muted-foreground" />
+  1357→                    )}
+  1358→                  </div>
+  1359→                </CardHeader>
+  1360→              </button>
+  1361→
+  1362→              {/* Articles */}
+  1363→              {expandedSections[section.id] && (
+  1364→                <CardContent className="pt-0 pb-4 px-4">
+  1365→                  <div className="space-y-3 mt-2">
+  1366→                    {section.articles.map((article, articleIdx) => {
+  1367→                      const articleKey = `${section.id}-${articleIdx}`;
+  1368→                      const isExpanded = expandedArticles[articleKey] !== false; // expanded by default
+  1369→
+  1370→                      return (
+  1371→                        <div
+  1372→                          key={articleKey}
+  1373→                          className="border border-border rounded-lg overflow-hidden"
+  1374→                        >
+  1375→                          {/* Article Header */}
+  1376→                          <button
+  1377→                            onClick={() => toggleArticle(articleKey)}
+  1378→                            className="w-full text-left px-3 py-2.5 flex items-center gap-2 hover:bg-muted/30 transition-colors"
+  1379→                          >
+  1380→                            <Badge variant="outline" className="text-xs font-mono flex-shrink-0">
+  1381→                              Art. {articleIdx + 1}
+  1382→                            </Badge>
+  1383→                            <span className="text-sm font-semibold text-foreground flex-1">
+  1384→                              {article.title}
+  1385→                            </span>
+  1386→                            {isExpanded ? (
+  1387→                              <ChevronUp className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+  1388→                            ) : (
+  1389→                              <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+  1390→                            )}
+  1391→                          </button>
+  1392→
+  1393→                          {/* Article Content */}
+  1394→                          {isExpanded && (
+  1395→                            <div className="px-3 pb-3 space-y-2">
+  1396→                              {article.rules.map((rule, ruleIdx) => (
+  1397→                                <div
+  1398→                                  key={ruleIdx}
+  1399→                                  className="flex items-start gap-2 text-sm text-foreground/90 leading-relaxed"
+  1400→                                >
+  1401→                                  <span className="text-xs text-muted-foreground mt-1 flex-shrink-0 font-mono min-w-[16px]">
+  1402→                                    {ruleIdx + 1}.
+  1403→                                  </span>
+  1404→                                  <p>{rule}</p>
+  1405→                                </div>
+  1406→                              ))}
+  1407→                            </div>
+  1408→                          )}
+  1409→                        </div>
+  1410→                      );
+  1411→                    })}
+  1412→                  </div>
+  1413→                </CardContent>
+  1414→              )}
+  1415→            </Card>
+  1416→          ))}
+  1417→
+  1418→          {/* Footer */}
+  1419→          <div className="mt-8 text-center">
+  1420→            <Separator className="mb-6" />
+  1421→            <div className="flex items-center justify-center gap-2 text-muted-foreground">
+  1422→              <BadgeCheck className="h-4 w-4" />
+  1423→              <p className="text-xs">
+  1424→                Règlement Intérieur du Village KAMI-EXTENSION
+  1425→              </p>
+  1426→            </div>
+  1427→            <p className="text-xs text-muted-foreground/60 mt-1">
+  1428→              Document adopté par le Comité de Gestion des Lots
+  1429→            </p>
+  1430→            <p className="text-xs text-muted-foreground/60">
+  1431→              Pour toute question, contactez le Comité de Gestion via la plateforme.
+  1432→            </p>
+  1433→          </div>
+  1434→        </div>
+  1435→      </ScrollArea>
+  1436→    </div>
+  1437→  );
+  1438→}
+  1439→
+  1440→// Search icon (since we're not importing from lucide here to keep it self-contained)
+  1441→function SearchIcon({ className }: { className?: string }) {
+  1442→  return (
+  1443→    <svg
+  1444→      xmlns="http://www.w3.org/2000/svg"
+  1445→      width="24"
+  1446→      height="24"
+  1447→      viewBox="0 0 24 24"
+  1448→      fill="none"
+  1449→      stroke="currentColor"
+  1450→      strokeWidth="2"
+  1451→      strokeLinecap="round"
+  1452→      strokeLinejoin="round"
+  1453→      className={className}
+  1454→    >
+  1455→      <circle cx="11" cy="11" r="8" />
+  1456→      <path d="m21 21-4.3-4.3" />
+  1457→    </svg>
+  1458→  );
+  1459→}
+  1460→

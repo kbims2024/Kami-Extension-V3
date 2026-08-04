@@ -21,9 +21,10 @@ interface EnhancedMapScreenProps {
   handleOpenReservation: (lot: Lot) => void;
   setCurrentScreen: (screen: string) => void;
   setIsMenuOpen: (open: boolean) => void;
+  onHome?: () => void;
 }
 
-export function EnhancedMapScreen({ lots, handleOpenReservation, setCurrentScreen, setIsMenuOpen }: EnhancedMapScreenProps) {
+export function EnhancedMapScreen({ lots, handleOpenReservation, setCurrentScreen, setIsMenuOpen, onHome }: EnhancedMapScreenProps) {
   const [activeFilter, setActiveFilter] = useState('all');
 
   const availableCount = lots.filter((l) => l.status === 'AVAILABLE').length;
@@ -54,6 +55,11 @@ export function EnhancedMapScreen({ lots, handleOpenReservation, setCurrentScree
             </Button>
             <h2 className="text-lg font-bold text-foreground ml-2">Plan du Village</h2>
           </div>
+          {onHome && (
+            <Button variant="ghost" size="icon" onClick={onHome}>
+              <Home className="h-5 w-5" />
+            </Button>
+          )}
         </div>
         <LotFilters
           activeFilter={activeFilter}

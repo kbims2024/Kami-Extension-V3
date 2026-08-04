@@ -8,6 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   ArrowLeft,
+  Home,
   ChevronDown,
   ChevronUp,
   TreePine,
@@ -50,6 +51,7 @@ interface RulesSection {
 
 interface RegulationRulesScreenProps {
   setCurrentScreen: (screen: string) => void;
+  onHome?: () => void;
 }
 
 const rulesData: RulesSection[] = [
@@ -1209,7 +1211,7 @@ const rulesData: RulesSection[] = [
   },
 ];
 
-export function RegulationRulesScreen({ setCurrentScreen }: RegulationRulesScreenProps) {
+export function RegulationRulesScreen({ setCurrentScreen, onHome }: RegulationRulesScreenProps) {
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [expandedArticles, setExpandedArticles] = useState<Record<string, boolean>>({});
   const [searchQuery, setSearchQuery] = useState('');
@@ -1279,6 +1281,15 @@ export function RegulationRulesScreen({ setCurrentScreen }: RegulationRulesScree
           >
             <ArrowLeft className="h-5 w-5 text-muted-foreground" />
           </Button>
+          {onHome && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onHome}
+            >
+              <Home className="h-5 w-5 text-muted-foreground" />
+            </Button>
+          )}
           <div className="flex-1">
             <h2 className="text-xl font-bold text-[#8B5E3C] flex items-center justify-center gap-2">
               <Scale className="h-5 w-5" />

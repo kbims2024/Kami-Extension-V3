@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   ArrowLeft,
+  Home,
   Send,
   Check,
   CheckCheck,
@@ -55,9 +56,10 @@ interface Message {
 interface ChatPageProps {
   setCurrentScreen: (screen: string) => void;
   setIsMenuOpen: (open: boolean) => void;
+  onHome?: () => void;
 }
 
-export function ChatPage({ setCurrentScreen, setIsMenuOpen }: ChatPageProps) {
+export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPageProps) {
   const { currentUser } = useAppStore();
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
@@ -180,6 +182,16 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen }: ChatPageProps) {
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
+        {onHome && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onHome}
+            className="text-white hover:bg-white/10"
+          >
+            <Home className="h-5 w-5" />
+          </Button>
+        )}
 
         {/* Avatar */}
         <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center ml-1 flex-shrink-0">

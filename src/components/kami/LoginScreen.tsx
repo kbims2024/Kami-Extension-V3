@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, LogIn, Menu, Eye, EyeOff, Lock, Phone, User } from 'lucide-react';
+import { ArrowLeft, Home, LogIn, Menu, Eye, EyeOff, Lock, Phone, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { PasswordResetDialog } from './PasswordResetDialog';
 import { LogoDisplay } from '@/components/kami/LogoDisplay';
@@ -13,12 +13,13 @@ import { LogoDisplay } from '@/components/kami/LogoDisplay';
 interface LoginScreenProps {
   onLogin: (name: string, identifier: string, password?: string) => void;
   onBack: () => void;
+  onHome?: () => void;
   setIsMenuOpen?: (open: boolean) => void;
 }
 
 type LoginMethod = 'phone' | 'pseudo';
 
-export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps) {
+export function LoginScreen({ onLogin, onBack, onHome, setIsMenuOpen }: LoginScreenProps) {
   const [loginMethod, setLoginMethod] = useState<LoginMethod>('pseudo');
   const [formData, setFormData] = useState({
     phone: '',
@@ -96,6 +97,16 @@ export function LoginScreen({ onLogin, onBack, setIsMenuOpen }: LoginScreenProps
           >
             <ArrowLeft className="h-5 w-5 text-foreground" />
           </Button>
+          {onHome && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onHome}
+              className="hover:bg-blue-50"
+            >
+              <Home className="h-5 w-5 text-foreground" />
+            </Button>
+          )}
           <div>
             <h1 className="text-lg font-bold text-foreground leading-tight">Se connecter</h1>
             <LogoDisplay size="sm" showBackground={false} className="text-xs text-muted-foreground" />
