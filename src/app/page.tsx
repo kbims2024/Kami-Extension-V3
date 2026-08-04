@@ -42,6 +42,7 @@ import { ExpertApplicationsAdmin } from '@/components/kami/ExpertApplicationsAdm
 import { AdminHeroImage } from '@/components/kami/AdminHeroImage';
 import { CommitteeNotificationBell } from '@/components/kami/CommitteeNotificationBell';
 import { UsersMonitorPanel } from '@/components/kami/UsersMonitorPanel';
+import { UserManagement } from '@/components/kami/UserManagement';
 import { PublicProgressSection } from '@/components/kami/PublicProgressSection';
 import { ProgressUpdatesAdmin } from '@/components/kami/ProgressUpdatesAdmin';
 import { SubscriberTrackingPanel } from '@/components/kami/SubscriberTrackingPanel';
@@ -1819,6 +1820,12 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
               <p className="text-sm font-bold">Surveillance Connexions</p>
             </CardContent>
           </Card>
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('user-management')}>
+            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
+              <Users className="text-blue-500 dark:text-blue-400 h-8 w-8 mb-2" />
+              <p className="text-sm font-bold">Gestion Utilisateurs</p>
+            </CardContent>
+          </Card>
           <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('files')}>
             <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
               <Upload className="text-brand-blue h-8 w-8 mb-2" />
@@ -2072,6 +2079,10 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
 
       {adminView === 'users-monitor' && (
         <UsersMonitorPanel />
+      )}
+
+      {adminView === 'user-management' && (
+        <UserManagement />
       )}
 
       {adminView === 'progress-updates' && (
