@@ -10,9 +10,9 @@
       "status": "ACTIVE",
       "id": "d2fb21f1-6b0d-480d-aca5-f63588d58368",
       "createdAt": "2026-08-03T22:04:18.535Z",
-      "updatedAt": "2026-08-03T23:23:37.695Z",
+      "updatedAt": "2026-08-04T00:18:07.693Z",
       "isOnline": true,
-      "lastSeen": "2026-08-03T23:23:37.695Z"
+      "lastSeen": "2026-08-04T00:18:07.693Z"
     },
     {
       "name": "Jean Kamga",
@@ -25,9 +25,9 @@
       "password": "2027a9183b6491a018e163a29eec8be8:8ff197f06e440b9f5f89d4c9f12d62f587674dc657c1447cec38ee3ea2268f61",
       "id": "cmpobcsf90000pvkijykyz2cq",
       "createdAt": "2026-08-03T22:04:18.535Z",
-      "updatedAt": "2026-08-03T23:23:32.435Z",
+      "updatedAt": "2026-08-04T00:18:09.571Z",
       "isOnline": true,
-      "lastSeen": "2026-08-03T23:23:32.435Z"
+      "lastSeen": "2026-08-04T00:18:09.571Z"
     },
     {
       "name": "Koffi yves",
@@ -57,9 +57,9 @@
       "password": "95ccae97331bb8b5dc140167b44a24dd:b1abce0a426d91cb25d3f0b507c7486497f777d433a77310f31ecccd82842ee7",
       "id": "0fd35ddd-6267-493a-af04-e410ae919093",
       "createdAt": "2026-08-03T22:26:43.782Z",
-      "updatedAt": "2026-08-03T23:23:17.697Z",
+      "updatedAt": "2026-08-04T00:14:01.339Z",
       "isOnline": true,
-      "lastSeen": "2026-08-03T23:23:17.697Z",
+      "lastSeen": "2026-08-04T00:14:01.339Z",
       "role": "ADMIN"
     },
     {
