@@ -2000,7 +2000,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
       )}
 
       {adminView === 'committee' && (
-        <ManagementCommitteeManagement setCurrentScreen={setCurrentScreen} currentUser={currentUser} />
+        <ManagementCommitteeManagement setAdminView={setAdminView} setCurrentScreen={setCurrentScreen} currentUser={currentUser} />
       )}
 
       {adminView === 'logo' && (

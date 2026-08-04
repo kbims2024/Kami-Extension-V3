@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Users, UserPlus, UserMinus, Search, Shield, User, MessageSquare, Crown } from 'lucide-react';
+import { Users, UserPlus, UserMinus, Search, Shield, User, MessageSquare, Crown, ArrowLeft, Home, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface CommitteeMember {
@@ -28,10 +28,11 @@ interface AllUser {
 interface ManagementCommitteeManagementProps {
   onBack?: () => void;
   setCurrentScreen?: (screen: string) => void;
+  setAdminView?: (view: string) => void;
   currentUser?: { id: string; role: string; name: string; phone: string } | null;
 }
 
-export function ManagementCommitteeManagement({ onBack, setCurrentScreen, currentUser }: ManagementCommitteeManagementProps) {
+export function ManagementCommitteeManagement({ onBack, setCurrentScreen, setAdminView, currentUser }: ManagementCommitteeManagementProps) {
   const [committeeMembers, setCommitteeMembers] = useState<CommitteeMember[]>([]);
   const [allUsers, setAllUsers] = useState<AllUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -82,10 +83,10 @@ export function ManagementCommitteeManagement({ onBack, setCurrentScreen, curren
         loadAllUsers();
       } else {
         const data = await response.json();
-        toast.error(data.error || 'Erreur lors de l\'ajout');
+        toast.error(data.error || "Erreur lors de l'ajout");
       }
     } catch (error) {
-      toast.error('Erreur lors de l\'ajout');
+      toast.error("Erreur lors de l'ajout");
     }
   };
 
@@ -115,6 +116,20 @@ export function ManagementCommitteeManagement({ onBack, setCurrentScreen, curren
     }
   };
 
+  const handleBack = () => {
+    if (setAdminView) {
+      setAdminView('main');
+    } else if (onBack) {
+      onBack();
+    }
+  };
+
+  const handleHome = () => {
+    if (setCurrentScreen) {
+      setCurrentScreen('admin-chat');
+    }
+  };
+
   const isCommitteeMember = (userId: string) => {
     return committeeMembers.some(member => member.id === userId);
   };
@@ -137,7 +152,29 @@ export function ManagementCommitteeManagement({ onBack, setCurrentScreen, curren
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
+      {/* Navigation buttons */}
+      <div className="flex items-center justify-between">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleBack}
+          className="flex items-center gap-1.5 text-xs"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Retour
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleHome}
+          className="flex items-center gap-1.5 text-xs"
+        >
+          <Home className="h-4 w-4" />
+          Accueil
+        </Button>
+      </div>
+
       <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
         <Shield className="h-5 w-5 text-purple-600 dark:text-purple-400" />
         Gestion du Comité de Gestion des Lots
@@ -154,13 +191,13 @@ export function ManagementCommitteeManagement({ onBack, setCurrentScreen, curren
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="relative mb-4">
+          <div className="relative mb-3">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <input
               placeholder="Rechercher un utilisateur..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
 
@@ -181,78 +218,94 @@ export function ManagementCommitteeManagement({ onBack, setCurrentScreen, curren
                   return (
                     <div
                       key={user.id || `committee-user-${index}`}
-                      className={`flex items-center justify-between p-3 bg-card rounded-lg border ${
-                        isMember 
-                          ? 'border-purple-400 dark:border-purple-500 bg-purple-50/50 dark:bg-purple-950/20' 
-                          : 'border-border'
-                      } transition-colors`}
+                      className={`rounded-lg border p-3 transition-colors ${
+                        isMember
+                          ? 'border-purple-400 dark:border-purple-500 bg-purple-50/50 dark:bg-purple-950/20'
+                          : 'border-border bg-card'
+                      }`}
                     >
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                          isMember 
-                            ? 'bg-purple-100 dark:bg-purple-900/30' 
+                      {/* User info row - always visible */}
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
+                          isMember
+                            ? 'bg-purple-100 dark:bg-purple-900/30'
                             : 'bg-muted'
                         }`}>
-                          <User className={`h-5 w-5 ${
-                            isMember 
-                              ? 'text-purple-600 dark:text-purple-400' 
+                          <User className={`h-4 w-4 ${
+                            isMember
+                              ? 'text-purple-600 dark:text-purple-400'
                               : 'text-muted-foreground'
                           }`} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="font-semibold text-foreground truncate">{user.name}</p>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="font-semibold text-foreground text-sm truncate">{user.name}</p>
                             {isAdmin && (
-                              <Badge className="bg-red-600 hover:bg-red-700 text-xs">
+                              <Badge className="bg-red-600 hover:bg-red-700 text-[10px] px-1.5 py-0">
                                 Admin
                               </Badge>
                             )}
                             {isMember && !isAdmin && (
-                              <Badge className="bg-purple-600 hover:bg-purple-700 text-xs flex items-center gap-1">
-                                <Crown className="h-3 w-3" />
-                                Membre
+                              <Badge className="bg-purple-600 hover:bg-purple-700 text-[10px] px-1.5 py-0 flex items-center gap-0.5">
+                                <Crown className="h-2.5 w-2.5" />
+                                Comité
                               </Badge>
                             )}
                           </div>
-                          <p className="text-sm text-muted-foreground truncate">{user.phone}</p>
+                          <p className="text-xs text-muted-foreground truncate">{user.phone}</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        {!isMember && !isAdmin && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => startChat(user.id, user.name)}
-                            className="hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-950 dark:hover:text-blue-400"
-                            title="Discuter"
-                          >
-                            <MessageSquare className="h-4 w-4" />
-                          </Button>
-                        )}
+
+                      {/* Action buttons row - full width below user info */}
+                      <div className="mt-2 flex items-center gap-2">
                         {isAdmin ? (
-                          <Badge className="bg-muted text-muted-foreground text-xs px-2 py-1">
-                            Non modifiable
-                          </Badge>
+                          <div className="w-full text-center">
+                            <span className="text-[11px] text-muted-foreground bg-muted px-3 py-1.5 rounded-md inline-block">
+                              Administrateur — non modifiable
+                            </span>
+                          </div>
                         ) : isMember ? (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeFromCommittee(user.id)}
-                            className="hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 dark:hover:text-red-400"
-                            title="Retirer du comité"
-                          >
-                            <UserMinus className="h-4 w-4" />
-                          </Button>
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => startChat(user.id, user.name)}
+                              className="flex-1 flex items-center justify-center gap-1.5 text-xs h-9"
+                            >
+                              <MessageSquare className="h-3.5 w-3.5" />
+                              Discuter
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => removeFromCommittee(user.id)}
+                              className="flex-1 flex items-center justify-center gap-1.5 text-xs h-9 text-red-600 border-red-300 hover:bg-red-50 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-950/50"
+                            >
+                              <UserMinus className="h-3.5 w-3.5" />
+                              Retirer du comité
+                            </Button>
+                          </>
                         ) : (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => addToCommittee(user.id)}
-                            className="hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-950 dark:hover:text-purple-400"
-                            title="Ajouter au comité"
-                          >
-                            <UserPlus className="h-4 w-4" />
-                          </Button>
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => startChat(user.id, user.name)}
+                              className="flex-1 flex items-center justify-center gap-1.5 text-xs h-9"
+                            >
+                              <MessageSquare className="h-3.5 w-3.5" />
+                              Discuter
+                            </Button>
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => addToCommittee(user.id)}
+                              className="flex-1 flex items-center justify-center gap-1.5 text-xs h-9 bg-purple-600 hover:bg-purple-700"
+                            >
+                              <UserPlus className="h-3.5 w-3.5" />
+                              Ajouter au comité
+                            </Button>
+                          </>
                         )}
                       </div>
                     </div>
@@ -266,22 +319,22 @@ export function ManagementCommitteeManagement({ onBack, setCurrentScreen, curren
 
       <Card className="bg-muted/50 border-border">
         <CardContent className="p-3">
-          <div className="flex flex-wrap gap-3 text-xs">
+          <div className="grid grid-cols-2 gap-2 text-xs">
             <div className="flex items-center gap-1.5">
-              <Badge className="bg-purple-600 hover:bg-purple-700 text-[10px]">Membre</Badge>
-              <span className="text-muted-foreground">= Comité</span>
+              <Badge className="bg-purple-600 hover:bg-purple-700 text-[10px]">Comité</Badge>
+              <span className="text-muted-foreground">= Membre du comité</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Badge className="bg-red-600 hover:bg-red-700 text-[10px]">Admin</Badge>
+              <span className="text-muted-foreground">= Non modifiable</span>
             </div>
             <div className="flex items-center gap-1.5">
               <UserPlus className="h-3 w-3 text-purple-600" />
-              <span className="text-muted-foreground">= Ajouter</span>
+              <span className="text-muted-foreground">= Ajouter au comité</span>
             </div>
             <div className="flex items-center gap-1.5">
               <UserMinus className="h-3 w-3 text-red-500" />
-              <span className="text-muted-foreground">= Retirer</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <MessageSquare className="h-3 w-3 text-blue-500" />
-              <span className="text-muted-foreground">= Discuter</span>
+              <span className="text-muted-foreground">= Retirer du comité</span>
             </div>
           </div>
         </CardContent>
