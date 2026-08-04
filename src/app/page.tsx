@@ -14,7 +14,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { Building2, Map, Home, Wallet, Users, User, Shield, ArrowLeft, Menu, LogOut, LogIn, CheckCircle, XCircle, AlertCircle, ChartLine, CreditCard, UserPlus, PlusCircle, Wrench, Zap, Droplet, ShieldCheck, FileText, Copy, ClipboardCheck, Upload, Phone, Activity, Construction, TrendingUp, Camera, Share2, Headset, Plus, Trash2, Image as ImageIcon } from 'lucide-react';
+import { Building2, Map, Home, Wallet, Users, User, Shield, ArrowLeft, Menu, LogOut, LogIn, CheckCircle, XCircle, AlertCircle, ChartLine, CreditCard, UserPlus, PlusCircle, Wrench, Zap, Droplet, ShieldCheck, FileText, Copy, ClipboardCheck, Upload, Phone, Activity, Construction, TrendingUp, Camera, Share2, Headset, Plus, Trash2, Image as ImageIcon, Crown } from 'lucide-react';
 import { EnhancedMapScreen } from '@/components/kami/EnhancedMapScreen';
 import { PersuasiveLandingPage } from '@/components/kami/PersuasiveLandingPage';
 import { TwoStepRegistration } from '@/components/kami/TwoStepRegistration';
@@ -46,6 +46,8 @@ import { PublicProgressSection } from '@/components/kami/PublicProgressSection';
 import { ProgressUpdatesAdmin } from '@/components/kami/ProgressUpdatesAdmin';
 import { SubscriberTrackingPanel } from '@/components/kami/SubscriberTrackingPanel';
 import { RegulationRulesScreen } from '@/components/kami/RegulationRulesScreen';
+import { CGLPermissionsManager } from '@/components/kami/CGLPermissionsManager';
+import { EspaceCGL } from '@/components/kami/EspaceCGL';
 
 export default function KamiExtensionPage() {
   const [mounted, setMounted] = useState(false);
@@ -454,6 +456,37 @@ export default function KamiExtensionPage() {
             onHome={() => setCurrentScreen('home')}
             setIsMenuOpen={setIsMenuOpen}
             onLoginClick={() => setCurrentScreen('login-screen')}
+          />
+        </PageTransition>
+      )}
+
+      {currentScreen === 'espace-cgl' && (currentUser?.role === 'MANAGEMENT_COMMITTEE' || currentUser?.role === 'ADMIN') && (
+        <PageTransition>
+          <EspaceCGL
+            setCurrentScreen={setCurrentScreen}
+            setAdminView={setAdminView}
+            goToAdminScreen={(view: string) => {
+              setAdminView(view);
+              setCurrentScreen('admin-cgl');
+            }}
+            onBack={() => setCurrentScreen('home')}
+          />
+        </PageTransition>
+      )}
+
+      {/* CGL member accessing admin sub-views through Espace CGL */}
+      {currentScreen === 'admin-cgl' && (currentUser?.role === 'MANAGEMENT_COMMITTEE' || currentUser?.role === 'ADMIN') && (
+        <PageTransition>
+          <AdminScreen
+            adminView={adminView}
+            setAdminView={(v: string | null) => {
+              if (v === null) setCurrentScreen('espace-cgl');
+              else setAdminView(v);
+            }}
+            lots={lots}
+            loadLots={loadLots}
+            setCurrentScreen={setCurrentScreen}
+            currentUser={currentUser}
           />
         </PageTransition>
       )}
@@ -1798,6 +1831,12 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
               <p className="text-sm font-bold">Paramètres SAV</p>
             </CardContent>
           </Card>
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('cgl-permissions')}>
+            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
+              <Crown className="text-purple-600 dark:text-purple-400 h-8 w-8 mb-2" />
+              <p className="text-sm font-bold">Permissions CGL</p>
+            </CardContent>
+          </Card>
         </div>
       )}
 
@@ -2035,6 +2074,10 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
 
       {adminView === 'hero-image' && (
         <AdminHeroImage />
+      )}
+
+      {adminView === 'cgl-permissions' && (
+        <CGLPermissionsManager setAdminView={setAdminView} />
       )}
       </div>
     </div>

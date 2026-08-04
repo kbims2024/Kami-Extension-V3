@@ -51,7 +51,7 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
     { icon: Map, label: 'Plan des lots', screen: 'map' },
     { icon: Wallet, label: 'Mes réservations', screen: 'dashboard', requireAuthRedirect: true },
     { icon: MessageSquare, label: 'Discussions', screen: 'chat', requireAuth: true },
-    ...(isCommitteeMember ? [{ icon: Crown, label: 'Espace CGL', screen: 'chat', requireAuth: true }] : []),
+    ...(isCommitteeMember ? [{ icon: Crown, label: 'Espace CGL', screen: 'espace-cgl', requireAuth: true }] : []),
     { icon: User, label: 'Mon profil', screen: 'profile', requireAuth: true },
     { icon: FileText, label: 'Règlement intérieur', screen: 'rules' },
     { icon: Headset, label: 'Service après-vente', screen: 'sav' },
