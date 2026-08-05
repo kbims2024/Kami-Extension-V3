@@ -33,12 +33,12 @@ export function TwoStepRegistration({ onComplete, onBack, onHome, setIsMenuOpen 
   const quartiersKami = ['ASSAKLA', "N'GLOH", "N'ZOKLOH", "N'GUOUAH"];
 
   const residentBenefits = [
-    { icon: Home, text: "Prix : 100 000 FCFA" },
+    { icon: Home, text: "Accès réservé aux résidents" },
     { icon: Shield, text: "Sécurisé par mot de passe" },
   ];
 
   const nonResidentBenefits = [
-    { icon: Users, text: "Prix : 150 000 FCFA" },
+    { icon: Users, text: "Accès aux non-résidents" },
     { icon: Shield, text: "Sécurisé par mot de passe" },
   ];
 
@@ -157,7 +157,7 @@ export function TwoStepRegistration({ onComplete, onBack, onHome, setIsMenuOpen 
                   Quel est votre statut ?
                 </h2>
                 <p className="text-xs md:text-sm text-muted-foreground">
-                  Sélectionnez votre situation pour bénéficier du tarif adapté
+                  Sélectionnez votre situation pour finaliser l'inscription
                 </p>
               </div>
 
@@ -191,8 +191,7 @@ export function TwoStepRegistration({ onComplete, onBack, onHome, setIsMenuOpen 
                   </div>
 
                   <div className="mb-1 md:mb-4">
-                    <span className="text-2xl md:text-3xl font-bold text-blue-600 dark:text-blue-400">100 000</span>
-                    <span className="text-base md:text-lg text-foreground ml-1">FCFA</span>
+                    <p className="text-sm md:text-base text-muted-foreground">Statut résident</p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-1 md:gap-2">
@@ -239,8 +238,7 @@ export function TwoStepRegistration({ onComplete, onBack, onHome, setIsMenuOpen 
                   </div>
 
                   <div className="mb-1 md:mb-4">
-                    <span className="text-2xl md:text-3xl font-bold text-foreground">150 000</span>
-                    <span className="text-base md:text-lg text-foreground ml-1">FCFA</span>
+                    <p className="text-sm md:text-base text-muted-foreground">Statut non-résident</p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-1 md:gap-2">
@@ -299,9 +297,9 @@ export function TwoStepRegistration({ onComplete, onBack, onHome, setIsMenuOpen 
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-muted-foreground">Prix du lot</p>
+                      <p className="text-xs text-muted-foreground">Votre choix</p>
                       <p className="font-bold text-blue-600">
-                        {isResident ? '100 000' : '150 000'} FCFA
+                        {isResident ? 'Résident KAMI' : 'Non-Résident'}
                       </p>
                     </div>
                   </div>

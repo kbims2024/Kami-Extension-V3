@@ -3,10 +3,11 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { PageNav } from './PageNav';
 import {
   ChartLine, CheckCircle, PlusCircle, FileText, Image as ImageIcon,
   Shield, Zap, UserPlus, Activity, Upload, Construction, TrendingUp,
-  Headset, Crown, ArrowLeft, Home, Loader2, MessageSquare,
+  Headset, Crown, Home, Loader2, MessageSquare,
 } from 'lucide-react';
 
 interface FeatureDef {
@@ -84,27 +85,11 @@ export function EspaceCGL({ setCurrentScreen, goToAdminScreen, onBack }: EspaceC
 
   return (
     <div className="flex-1 flex flex-col bg-card">
-      {/* Navigation */}
-      <div className="flex items-center justify-between px-4 py-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onBack || (() => setCurrentScreen('home'))}
-          className="flex items-center gap-1.5 text-xs"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Retour
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setCurrentScreen('home')}
-          className="flex items-center gap-1.5 text-xs"
-        >
-          <Home className="h-4 w-4" />
-          Accueil
-        </Button>
-      </div>
+      <PageNav
+        onBack={onBack || (() => setCurrentScreen('home'))}
+        onHome={() => setCurrentScreen('home')}
+        title="Espace CGL"
+      />
 
       <div className="flex-1 px-4 pb-6">
         {/* Header */}
