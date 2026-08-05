@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
-const CGL_PERMISSIONS_ID = 'cgl-permissions-default';
+const CGL_PERMISSIONS_ID = 'settings-default';
 
 const AVAILABLE_FEATURES = [
   { id: 'dashboard', label: 'Tableau de Bord', icon: 'chart' },
@@ -67,10 +67,17 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    await db.settings.update({
-      where: { id: 'settings-default' },
-      data: { cglPermissions: JSON.stringify(cleaned) },
-    });
+    const existing = await db.settings.findFirst({ where: { id: CGL_PERMISSIONS_ID } });
+    if (existing) {
+      await db.settings.update({
+        where: { id: CGL_PERMISSIONS_ID },
+        data: { cglPermissions: JSON.stringify(cleaned) },
+      });
+    } else {
+      await db.settings.create({
+        data: { id: CGL_PERMISSIONS_ID, cglPermissions: JSON.stringify(cleaned) },
+      });
+    }
 
     return NextResponse.json({ success: true, permissions: cleaned });
   } catch (error) {
