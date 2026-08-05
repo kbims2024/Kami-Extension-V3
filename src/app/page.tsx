@@ -1769,7 +1769,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
           <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('dashboard')}>
             <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
               <ChartLine className="text-[#10B981] h-8 w-8 mb-2" />
-              <p className="text-sm font-bold">Tableau de Bord</p>
+              <p className="text-sm font-bold">Tableau de Bord Global</p>
             </CardContent>
           </Card>
           <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('payments')}>

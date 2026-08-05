@@ -73,11 +73,34 @@ export function EspaceCGL({ setCurrentScreen, goToAdminScreen, onBack }: EspaceC
     enabledFeatures.includes(f.id)
   );
 
+  const isAccessAllowed = enabledFeatures.includes('committee');
+
   if (isLoading) {
     return (
       <div className="flex-1 flex flex-col bg-card">
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAccessAllowed) {
+    return (
+      <div className="flex-1 flex flex-col bg-card">
+        <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
+          <Shield className="h-12 w-12 text-purple-600 dark:text-purple-400 mb-4" />
+          <h2 className="text-xl font-bold text-foreground mb-2">Accès refusé</h2>
+          <p className="text-sm text-muted-foreground mb-6">
+            Votre compte n'a pas la permission d'accéder à cet espace. Seul l'administrateur peut activer cette fonctionnalité.
+          </p>
+          <Button
+            variant="outline"
+            onClick={onBack || (() => setCurrentScreen('home'))}
+            className="px-5"
+          >
+            Retour
+          </Button>
         </div>
       </div>
     );

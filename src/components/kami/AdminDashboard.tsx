@@ -176,7 +176,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Chargement du tableau de bord administrateur...</p>
+          <p className="text-muted-foreground">Chargement du tableau de bord global...</p>
         </div>
       </div>
     )
@@ -187,9 +187,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
   }
 
   const lotStatsData = [
-    { name: 'Disponibles', value: stats?.availableLots || 0, color: '#10B981' },
-    { name: 'Réservés', value: stats?.reservedLots || 0, color: '#F59E0B' },
-    { name: 'Soldés', value: stats?.paidLots || 0, color: '#EF4444' }
+    { name: 'Lots Disponibles', value: stats?.availableLots || 0, color: '#10B981' },
+    { name: 'Lots Réservés', value: stats?.reservedLots || 0, color: '#F59E0B' },
+    { name: 'Lots Achetés', value: stats?.paidLots || 0, color: '#EF4444' }
   ]
 
   const paymentStatusData = [
@@ -223,12 +223,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
       )}
 
       <div>
-        <h2 className="text-3xl font-bold text-foreground mb-2">Tableau de Bord Administrateur</h2>
+        <h2 className="text-3xl font-bold text-foreground mb-2">Tableau de Bord Global</h2>
         <p className="text-muted-foreground">Aperçu global de la plateforme</p>
       </div>
 
       {/* Cartes de statistiques principales */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
         <StatCard
           title="Utilisateurs"
           value={stats?.totalUsers || 0}
@@ -244,19 +244,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
           icon={<Building2 className="h-5 w-5 text-emerald-500" />}
         />
         <StatCard
+          title="Lots Réservés"
+          value={stats?.reservedLots || 0}
+          description="En attente de finalisation"
+          icon={<Calendar className="h-5 w-5 text-orange-500" />}
+        />
+        <StatCard
+          title="Lots Achetés"
+          value={stats?.paidLots || 0}
+          description="Transactions finalisées"
+          icon={<CheckCircle2 className="h-5 w-5 text-red-500" />}
+        />
+        <StatCard
           title="Chiffre d'Affaires"
           value={formatCurrency(stats?.totalRevenue || 0)}
           description={`${stats?.paymentsThisMonth || 0} paiements ce mois`}
           icon={<Wallet className="h-5 w-5 text-[#8B5E3C]" />}
           change={'+23%'}
-          changePositive={true}
-        />
-        <StatCard
-          title="Réservations"
-          value={stats?.reservationsThisMonth || 0}
-          description="Ce mois-ci"
-          icon={<Calendar className="h-5 w-5 text-blue-500" />}
-          change={'+8%'}
           changePositive={true}
         />
       </div>
@@ -297,15 +301,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
             <div className="grid grid-cols-3 gap-4 mt-4">
               <div className="text-center p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/20">
                 <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{stats?.availableLots || 0}</div>
-                <div className="text-xs text-muted-foreground">Disponibles</div>
+                <div className="text-xs text-muted-foreground">Lots Disponibles</div>
               </div>
               <div className="text-center p-3 rounded-lg bg-orange-50 dark:bg-orange-950/20">
                 <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{stats?.reservedLots || 0}</div>
-                <div className="text-xs text-muted-foreground">Réservés</div>
+                <div className="text-xs text-muted-foreground">Lots Réservés</div>
               </div>
               <div className="text-center p-3 rounded-lg bg-red-50 dark:bg-red-950/20">
                 <div className="text-2xl font-bold text-red-600 dark:text-red-400">{stats?.paidLots || 0}</div>
-                <div className="text-xs text-muted-foreground">Soldés</div>
+                <div className="text-xs text-muted-foreground">Lots Achetés</div>
               </div>
             </div>
           </CardContent>

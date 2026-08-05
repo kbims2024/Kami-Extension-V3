@@ -17,7 +17,27 @@ interface ModernSideMenuProps {
 
 export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLogout }: ModernSideMenuProps) {
   const [isCommitteeMember, setIsCommitteeMember] = useState(false);
+  const [hasCglAccess, setHasCglAccess] = useState(false);
   const { setCurrentUser } = useAppStore();
+
+  const loadCglPermissions = useCallback(async () => {
+    if (currentUser?.role !== 'MANAGEMENT_COMMITTEE') {
+      setHasCglAccess(false);
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/cgl-permissions');
+      if (res.ok) {
+        const data = await res.json();
+        setHasCglAccess(Array.isArray(data.enabledFeatures) && data.enabledFeatures.includes('committee'));
+      } else {
+        setHasCglAccess(false);
+      }
+    } catch {
+      setHasCglAccess(false);
+    }
+  }, [currentUser?.role]);
 
   // Check and refresh user role from server when menu opens
   const refreshUserRole = useCallback(async () => {
@@ -38,8 +58,9 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
   useEffect(() => {
     if (isOpen) {
       refreshUserRole();
+      loadCglPermissions();
     }
-  }, [isOpen, refreshUserRole]);
+  }, [isOpen, refreshUserRole, loadCglPermissions]);
 
   // Derive committee member status from role
   useEffect(() => {
@@ -53,6 +74,7 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
     { icon: MessageSquare, label: 'Discussions', screen: 'chat', requireAuth: true },
     ...(isCommitteeMember ? [{ icon: Crown, label: 'Espace CGL', screen: 'espace-cgl', requireAuth: true }] : []),
     { icon: User, label: 'Mon profil', screen: 'profile', requireAuth: true },
+    ...(isCommitteeMember && hasCglAccess ? [{ icon: Crown, label: 'Espace CGL', screen: 'espace-cgl', requireAuth: true }] : []),
     { icon: FileText, label: 'Règlement intérieur', screen: 'rules' },
     { icon: Headset, label: 'Service après-vente', screen: 'sav' },
   ];
