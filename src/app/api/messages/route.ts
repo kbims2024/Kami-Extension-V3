@@ -117,7 +117,7 @@ export async function GET(request: NextRequest) {
       };
     }
 
-    const messages = await db.message.findMany({
+    let messages = await db.message.findMany({
       where: whereClause,
       include: {
         sender: {
