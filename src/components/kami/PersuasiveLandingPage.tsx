@@ -6,6 +6,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { FlashInfoBand } from '@/components/flash-info-band';
 import { Menu, Map, TrendingUp, Clock, Award, ArrowRight, ChevronRight, Headset, Building2, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useTheme } from 'next-themes';
 import { PublicProgressSection } from './PublicProgressSection';
 
@@ -266,42 +267,36 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
           </div>
         </div>
 
-        {isProjectWindowOpen && (
-          <div className="fixed inset-0 z-50 bg-slate-950/95 text-white backdrop-blur-sm overflow-auto">
-            <div className="relative mx-auto flex h-full max-w-7xl flex-col px-6 py-6 lg:px-10 lg:py-10">
-              <button
-                type="button"
-                onClick={() => setIsProjectWindowOpen(false)}
-                className="absolute top-5 right-5 rounded-full bg-white/10 p-3 text-white hover:bg-white/20 transition"
+        <AnimatePresence>
+          {isProjectWindowOpen && (
+            <motion.div
+              className="fixed inset-0 z-50 bg-slate-950/95 text-white backdrop-blur-sm overflow-auto"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+            >
+              <motion.div
+                className="relative mx-auto min-h-screen max-w-[1600px] px-4 py-6 lg:px-10 lg:py-10"
+                initial={{ y: 40, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 40, opacity: 0 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
               >
-                <X className="h-5 w-5" />
-              </button>
-              <div className="mt-12 flex-1 rounded-3xl border border-white/10 bg-slate-950/95 p-8 shadow-2xl shadow-black/40">
-                <h2 className="text-4xl font-bold text-white">Notre village prend vie</h2>
-                <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-300">
-                  Découvrez les publications publiques, les grands événements, l’avancement des travaux et bien plus encore.
-                </p>
-                <div className="mt-8 grid gap-6 lg:grid-cols-2">
-                  <div className="rounded-3xl border border-white/10 bg-slate-900/90 p-6">
-                    <p className="text-sm uppercase tracking-[0.3em] text-slate-400">Étapes clés</p>
-                    <ul className="mt-4 space-y-3 text-slate-200">
-                      <li>• Choix du terrain confirmé</li>
-                      <li>• Paiement en cours</li>
-                      <li>• Préparation du dossier de construction</li>
-                      <li>• Lancement des travaux à venir</li>
-                    </ul>
-                  </div>
-                  <div className="rounded-3xl border border-white/10 bg-slate-900/90 p-6">
-                    <p className="text-sm uppercase tracking-[0.3em] text-slate-400">Alerte personnelle</p>
-                    <p className="mt-4 text-slate-200 leading-7">
-                      Cette fenêtre vous permet de suivre votre projet dans une vue dédiée, avec toutes vos informations importantes réunies au même endroit.
-                    </p>
-                  </div>
+                <button
+                  type="button"
+                  onClick={() => setIsProjectWindowOpen(false)}
+                  className="absolute top-5 right-5 rounded-full bg-white/10 p-3 text-white hover:bg-white/20 transition"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+                <div className="rounded-3xl border border-white/10 bg-slate-950/95 shadow-2xl shadow-black/40">
+                  <PublicProgressSection />
                 </div>
-              </div>
-            </div>
-          </div>
-        )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Wave Bottom */}
         <div className="hidden md:block absolute bottom-0 left-0 right-0 -mt-4">
@@ -384,9 +379,6 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
           </div>
         </div>
       </section>
-
-      {/* Public Progress Section */}
-      <PublicProgressSection />
 
       {/* Final CTA */}
       <section className="py-20 bg-gradient-to-br from-brand-yellow to-yellow-500 text-gray-900 relative overflow-hidden">
