@@ -61,25 +61,24 @@ export async function POST(request: NextRequest) {
         senderId,
         receiverId: finalReceiverId,
       },
-      include: {
-        sender: {
-          select: {
-            id: true,
-            name: true,
-            phone: true,
-          },
-        },
-        receiver: {
-          select: {
-            id: true,
-            name: true,
-            phone: true,
-          },
-        },
-      },
     });
 
-    return NextResponse.json(message);
+    // Populate sender and receiver fields manually
+    const senderData = await db.user.findUnique({
+      where: { id: senderId },
+      select: { id: true, name: true, phone: true },
+    });
+
+    const receiverData = await db.user.findUnique({
+      where: { id: finalReceiverId },
+      select: { id: true, name: true, phone: true },
+    });
+
+    return NextResponse.json({
+      ...message,
+      sender: senderData,
+      receiver: receiverData,
+    });
   } catch (error) {
     console.error('Error creating message:', error);
     return NextResponse.json({ error: 'Erreur lors de l\'envoi du message' }, { status: 500 });
