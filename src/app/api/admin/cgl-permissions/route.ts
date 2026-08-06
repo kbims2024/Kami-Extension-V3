@@ -75,7 +75,7 @@ export async function PUT(request: NextRequest) {
       });
     } else {
       await db.settings.create({
-        data: { id: CGL_PERMISSIONS_ID, cglPermissions: JSON.stringify(cleaned) },
+        data: { _id: CGL_PERMISSIONS_ID, cglPermissions: JSON.stringify(cleaned) },
       });
     }
 

@@ -183,7 +183,7 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
 
             {/* ===== Image de fond : titre + sous-titre uniquement ===== */}
             <div
-              className="relative rounded-2xl overflow-hidden"
+              className="relative rounded-2xl overflow-hidden -mx-4 md:-mx-6"
               style={heroBackground ? {
                 backgroundImage: `url(${heroBackground})`,
                 backgroundSize: 'cover',

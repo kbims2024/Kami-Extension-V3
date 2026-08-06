@@ -70,10 +70,11 @@ export function CGLPermissionsManager({ setAdminView }: CGLPermissionsManagerPro
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ permissions }),
       });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
         toast.success('Permissions du comité mises à jour avec succès');
       } else {
-        toast.error('Erreur lors de la mise à jour');
+        toast.error(data?.error || 'Erreur lors de la mise à jour');
       }
     } catch {
       toast.error('Erreur serveur');
@@ -104,28 +105,6 @@ export function CGLPermissionsManager({ setAdminView }: CGLPermissionsManagerPro
 
   return (
     <div className="space-y-4">
-      {/* Navigation */}
-      <div className="flex items-center justify-between">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setAdminView?.(null)}
-          className="flex items-center gap-1.5 text-xs"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Retour
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setAdminView?.(null)}
-          className="flex items-center gap-1.5 text-xs"
-        >
-          <Home className="h-4 w-4" />
-          Accueil
-        </Button>
-      </div>
-
       {/* Header */}
       <div className="text-center">
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 mb-3">
