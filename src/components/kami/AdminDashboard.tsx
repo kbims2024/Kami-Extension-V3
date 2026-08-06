@@ -304,7 +304,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
                 <Legend />
               </RechartsPieChart>
             </ResponsiveContainer>
-            <div className="grid grid-cols-3 gap-4 mt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
               <div className="text-center p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/20">
                 <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{stats?.availableLots || 0}</div>
                 <div className="text-xs text-muted-foreground">Lots Disponibles</div>

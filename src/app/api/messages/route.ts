@@ -94,24 +94,22 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'ID utilisateur requis' }, { status: 400 });
     }
 
-    // Get admin ID
+    // Get admin ID and support legacy ADMIN string
     const adminId = await getAdminId();
+    const adminKeys = [adminId, 'ADMIN'];
 
     // For admin view, userId is the target user
     // For user view, userId is the current user
     let whereClause: any = {};
 
-    // Check if we're querying as admin or as user
-    if (userId === adminId) {
-      // Admin viewing all messages with any user - not supported in this simple version
-      // Admin should use userId parameter to see conversation with specific user
+    if (userId === adminId || userId === 'ADMIN') {
+      // Admin viewing all messages with any user is not supported here.
       return NextResponse.json([]);
     } else {
-      // User view or admin viewing specific conversation
       whereClause = {
         OR: [
-          { senderId: userId, receiverId: adminId },
-          { senderId: adminId, receiverId: userId },
+          { senderId: userId, receiverId: { in: adminKeys } },
+          { senderId: { in: adminKeys }, receiverId: userId },
         ],
       };
     }
@@ -141,9 +139,9 @@ export async function GET(request: NextRequest) {
 
     const markAdminAsRead = searchParams.get('markAdminAsRead') === 'true';
 
-    if (markAdminAsRead && userId !== adminId) {
+    if (markAdminAsRead && userId !== adminId && userId !== 'ADMIN') {
       const unreadMessages = messages.filter(
-        (m) => m.receiverId === adminId && m.senderId === userId && !m.read
+        (m) => adminKeys.includes(m.receiverId) && m.senderId === userId && !m.read
       );
 
       if (unreadMessages.length > 0) {

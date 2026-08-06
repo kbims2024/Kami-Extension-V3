@@ -7,12 +7,14 @@ export async function GET() {
   try {
     const adminId = await getAdminId();
 
+    const adminKeys = [adminId, 'ADMIN'];
+
     // Get all messages involving the admin (committee)
     const allMessages = await db.message.findMany({
       where: {
         OR: [
-          { senderId: adminId },
-          { receiverId: adminId },
+          { senderId: { in: adminKeys } },
+          { receiverId: { in: adminKeys } },
         ],
       },
       include: {
@@ -39,8 +41,8 @@ export async function GET() {
 
     for (const msg of allMessages) {
       // Determine the other party (non-admin)
-      const otherId = msg.senderId === adminId ? msg.receiverId : msg.senderId;
-      if (!otherId || otherId === adminId) continue;
+      const otherId = adminKeys.includes(msg.senderId) ? msg.receiverId : msg.senderId;
+      if (!otherId || adminKeys.includes(otherId)) continue;
 
       if (!userGroups[otherId]) {
         // Fetch full user info for the initiative card
