@@ -228,7 +228,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
       </div>
 
       {/* Cartes de statistiques principales */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <StatCard
           title="Utilisateurs"
           value={stats?.totalUsers || 0}
@@ -236,6 +236,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
           icon={<Users className="h-5 w-5 text-primary" />}
           change={'+12%'}
           changePositive={true}
+        />
+        <StatCard
+          title="Souscripteurs"
+          value={stats?.subscribers || 0}
+          description="Utilisateurs ayant réservé ou acheté"
+          icon={<TrendingUp className="h-5 w-5 text-cyan-500" />}
         />
         <StatCard
           title="Lots Disponibles"
@@ -279,8 +285,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <RechartsPieChart>
+            <ResponsiveContainer width="100%" height={300}>
+              <RechartsPieChart margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
                 <Pie
                   data={lotStatsData}
                   cx="50%"
@@ -327,8 +333,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={monthlyData}>
+            <ResponsiveContainer width="100%" height={320}>
+              <LineChart data={monthlyData} margin={{ top: 20, right: 20, left: 10, bottom: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis
                   dataKey="month"
@@ -346,7 +352,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
                     borderRadius: '8px',
                   }}
                 />
-                <Legend />
+                <Legend verticalAlign="top" height={36} />
                 <Line type="monotone" dataKey="reservations" stroke={COLORS[4]} strokeWidth={2} name="Réservations" />
               </LineChart>
             </ResponsiveContainer>

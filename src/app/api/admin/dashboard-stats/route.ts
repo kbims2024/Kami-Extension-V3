@@ -35,6 +35,11 @@ export async function GET(request: NextRequest) {
     const pendingPayments = allPayments.filter(p => p.status === 'PENDING').length
     const totalRevenue = validatedPayments.reduce((sum, p) => sum + p.amount, 0)
 
+    const subscriberUserIds = new Set<string>()
+    allReservations.forEach((r) => { if (r.userId) subscriberUserIds.add(r.userId) })
+    validatedPayments.forEach((p) => { if (p.userId) subscriberUserIds.add(p.userId) })
+    const subscribersCount = subscriberUserIds.size
+
     // Calculate statistics for current month
     const now = new Date()
     const currentMonth = now.getMonth()
@@ -66,6 +71,7 @@ export async function GET(request: NextRequest) {
       paidLots,
       totalUsers,
       activeUsers,
+      subscribers: subscribersCount,
       totalRevenue,
       pendingPayments,
       reservationsThisMonth,

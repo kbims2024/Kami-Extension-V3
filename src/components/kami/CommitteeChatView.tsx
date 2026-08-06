@@ -86,6 +86,7 @@ interface CommitteeChatViewProps {
 export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: CommitteeChatViewProps) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConv, setSelectedConv] = useState<Conversation | null>(null);
+  const [selectedConvLoading, setSelectedConvLoading] = useState(false);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
@@ -146,6 +147,33 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
     }
   };
 
+  const loadConversationMessages = async (otherUserId: string) => {
+    if (!adminId) return;
+    setSelectedConvLoading(true);
+    try {
+      const res = await fetch(`/api/messages?userId=${encodeURIComponent(otherUserId)}&markAdminAsRead=true`);
+      if (!res.ok) return;
+      const messages: Message[] = await res.json();
+      const updatedConv = conversations.find((c) => c.user.id === otherUserId);
+      if (updatedConv) {
+        setSelectedConv({
+          ...updatedConv,
+          messages,
+          lastMessageAt: messages[messages.length - 1]?.createdAt || updatedConv.lastMessageAt,
+          unreadCount: 0,
+        });
+      } else {
+        const user = updatedConv?.user || { id: otherUserId, name: 'Utilisateur', phone: '' } as UserInfo;
+        setSelectedConv({ user, messages, lastMessageAt: messages[messages.length - 1]?.createdAt || '', unreadCount: 0 });
+      }
+      await loadConversations();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSelectedConvLoading(false);
+    }
+  };
+
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !selectedConv || isSending || !adminId) return;
     setIsSending(true);
@@ -161,7 +189,7 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
       });
       if (res.ok) {
         setNewMessage('');
-        await loadConversations();
+        await loadConversationMessages(selectedConv.user.id);
       }
     } catch (e) {
       console.error(e);
@@ -414,8 +442,8 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
                   <motion.button
                     key={conv.user.id}
                     whileTap={{ backgroundColor: 'rgba(0,0,0,0.05)' }}
-                    onClick={() => setSelectedConv(conv)}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 text-left border-b transition-colors"
+                    onClick={() => loadConversationMessages(conv.user.id)}
+                    className={`w-full flex items-center gap-3 px-3 py-3 text-left transition-all ${conv.unreadCount > 0 ? 'bg-slate-50 dark:bg-slate-950/50 rounded-2xl' : 'border-b'} ${selectedConv?.user.id === conv.user.id ? 'border border-blue-200 dark:border-blue-600 bg-blue-50/50' : ''}`}
                     style={{ borderColor: isDark ? '#2A3942' : WA.borderLight }}
                   >
                     <div
@@ -426,7 +454,7 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <p className="text-[16.5px] font-normal truncate pr-2" style={{ color: isDark ? '#E9EDEF' : WA.textDark }}>
+                        <p className={`text-[16.5px] truncate pr-2 ${conv.unreadCount > 0 ? 'font-semibold' : 'font-normal'}`} style={{ color: isDark ? '#E9EDEF' : WA.textDark }}>
                           {conv.user.name}
                         </p>
                         <span className="text-[12px] shrink-0" style={{ color: conv.unreadCount > 0 ? WA.headerTeal : WA.timeSent }}>
@@ -452,6 +480,11 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
                             style={{ backgroundColor: WA.headerTeal }}
                           >
                             {conv.unreadCount}
+                          </span>
+                        )}
+                        {conv.unreadCount > 0 && (
+                          <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-blue-600 dark:text-blue-300 ml-2">
+                            Nouveau
                           </span>
                         )}
                       </div>

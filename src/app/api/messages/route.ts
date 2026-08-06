@@ -133,20 +133,28 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // If the user is receiver of admin messages, mark them as read
-    const unreadMessages = messages.filter(
-      m => m.receiverId === userId && !m.read
-    );
+    const markAdminAsRead = searchParams.get('markAdminAsRead') === 'true';
 
-    if (unreadMessages.length > 0) {
-      await db.message.updateMany({
-        where: {
-          id: { in: unreadMessages.map(m => m.id) },
-        },
-        data: {
-          read: true,
-        },
-      });
+    if (markAdminAsRead && userId !== adminId) {
+      const unreadMessages = messages.filter(
+        (m) => m.receiverId === adminId && m.senderId === userId && !m.read
+      );
+
+      if (unreadMessages.length > 0) {
+        await db.message.updateMany({
+          where: {
+            id: { in: unreadMessages.map((m) => m.id) },
+          },
+          data: {
+            read: true,
+          },
+        });
+
+        const unreadIds = new Set(unreadMessages.map((m) => m.id));
+        messages = messages.map((m) =>
+          unreadIds.has(m.id) ? { ...m, read: true } : m
+        );
+      }
     }
 
     return NextResponse.json(messages);

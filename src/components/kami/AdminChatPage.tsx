@@ -174,7 +174,7 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: Admin
 
   const loadMessages = async (userId: string) => {
     try {
-      const response = await fetch(`/api/messages?userId=${userId}`);
+      const response = await fetch(`/api/messages?userId=${userId}&markAdminAsRead=true`);
       if (response.ok) {
         const data = await response.json();
         setMessages(data);
