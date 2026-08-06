@@ -15,6 +15,7 @@ export interface ISettingsDocument extends Document {
 
 const SettingsSchema = new Schema<ISettingsDocument>(
   {
+    _id: { type: String, default: 'settings-default' },
     heroBackground: { type: String, default: null },
     savPhone: { type: String, default: '+225 27 22 49 00 00' },
     savWhatsapp: { type: String, default: '+225 07 58 42 10 00' },

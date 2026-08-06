@@ -1752,7 +1752,12 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
         onBack={() => adminView ? setAdminView(null) : setCurrentScreen('home')}
         onHome={() => setCurrentScreen('home')}
         title={adminView ? 'Admin' : undefined}
-        titleRight={currentUser?.id ? <CommitteeNotificationBell userId={currentUser.id} /> : undefined}
+        titleRight={currentUser?.id ? (
+          <CommitteeNotificationBell
+            userId={currentUser.id}
+            onNavigate={() => setCurrentScreen('espace-cgl')}
+          />
+        ) : undefined}
       />
       <div className="p-6 pt-2">
       {!adminView && (

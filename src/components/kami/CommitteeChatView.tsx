@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { PageNav } from './PageNav';
 import {
   ArrowLeft,
   Home,
@@ -386,28 +387,16 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
   if (!selectedConv) {
     return (
       <div className="flex-1 flex flex-col h-screen max-h-screen">
-        {/* Header */}
-        <header
-          className="flex items-center px-2 py-1.5 shrink-0 relative z-30"
-          style={{ backgroundColor: WA.headerDark }}
-        >
-          <Button variant="ghost" size="icon" onClick={onBack || (() => setCurrentScreen('espace-cgl'))} className="text-white hover:bg-white/10">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          {onHome && (
-            <Button variant="ghost" size="icon" onClick={onHome} className="text-white hover:bg-white/10">
-              <Home className="h-5 w-5" />
-            </Button>
-          )}
-          <div className="flex-1 ml-2">
-            <h1 className="text-[17px] font-semibold text-white">Gestion de Discussion</h1>
-          </div>
-          <div className="flex items-center gap-1">
+        <PageNav
+          onBack={onBack || (() => setCurrentScreen('espace-cgl'))}
+          onHome={onHome || (() => setCurrentScreen('home'))}
+          title="Gestion de Discussion"
+          titleRight={
             <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
               <Crown className="h-4 w-4 text-purple-300" />
             </div>
-          </div>
-        </header>
+          }
+        />
 
         <div className="flex-1 flex flex-col bg-white dark:bg-[#0B1120]">
           {/* Search */}
@@ -504,29 +493,32 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
   // ════════════════════════════════════════════
   return (
     <div className="flex-1 flex flex-col h-screen max-h-screen">
-      {/* Chat header */}
-      <header
-        className="flex items-center gap-2 px-1 py-1 shrink-0"
-        style={{ backgroundColor: WA.headerDark }}
-      >
-        <Button
-          variant="ghost" size="icon"
-          onClick={() => { setSelectedConv(null); loadConversations(); }}
-          className="text-white hover:bg-white/10"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <div
-          className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-white font-semibold text-sm"
-          style={{ backgroundColor: getAvatarColor(selectedConv.user.name) }}
-        >
-          {getInitials(selectedConv.user.name)}
+      <PageNav
+        onBack={() => { setSelectedConv(null); loadConversations(); }}
+        onHome={onHome || (() => setCurrentScreen('home'))}
+        title="Discussion CGL"
+        titleRight={
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-white font-semibold text-sm"
+            style={{ backgroundColor: getAvatarColor(selectedConv.user.name) }}
+          >
+            {getInitials(selectedConv.user.name)}
+          </div>
+        }
+        className="bg-[#1E3A5F] border-none"
+      />
+
+      <div className="px-4 py-3 bg-[#1E3A5F]">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm" style={{ backgroundColor: getAvatarColor(selectedConv.user.name) }}>
+            {getInitials(selectedConv.user.name)}
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-white truncate">{selectedConv.user.name}</p>
+            <p className="text-xs text-blue-200/90">Discussion CGL</p>
+          </div>
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-[15px] font-semibold text-white truncate">{selectedConv.user.name}</p>
-          <p className="text-[12px] text-blue-300/80">Discussion CGL</p>
-        </div>
-      </header>
+      </div>
 
       {/* Messages area with initiative card at top */}
       <div

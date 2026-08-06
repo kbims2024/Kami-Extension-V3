@@ -26,6 +26,7 @@ import { Separator } from '@/components/ui/separator';
 
 interface CommitteeNotificationBellProps {
   userId: string;
+  onNavigate?: () => void;
 }
 
 interface CommitteeNotification {
@@ -125,7 +126,7 @@ function formatTimeAgo(dateStr: string): string {
 // Component
 // ---------------------------------------------------------------------------
 
-export function CommitteeNotificationBell({ userId }: CommitteeNotificationBellProps) {
+export function CommitteeNotificationBell({ userId, onNavigate }: CommitteeNotificationBellProps) {
   const [notifications, setNotifications] = useState<CommitteeNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
@@ -208,6 +209,37 @@ export function CommitteeNotificationBell({ userId }: CommitteeNotificationBellP
 
   // ---- Render ------------------------------------------------------------
 
+  if (onNavigate) {
+    return (
+      <Button
+        variant="ghost"
+        size="icon"
+        className="relative h-10 w-10 rounded-full"
+        aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} non lues)` : ''}`}
+        onClick={onNavigate}
+      >
+        <Bell className="h-5 w-5" />
+        {unreadCount > 0 && (
+          <motion.span
+            key={unreadCount}
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="absolute -top-0.5 -right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold leading-none text-destructive-foreground"
+          >
+            {badgeLabel}
+            {unreadCount > 99 && (
+              <motion.span
+                className="absolute inset-0 rounded-full bg-destructive"
+                animate={{ scale: [1, 1.6], opacity: [0.5, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: 'easeOut' }}
+              />
+            )}
+          </motion.span>
+        )}
+      </Button>
+    );
+  }
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -252,17 +284,32 @@ export function CommitteeNotificationBell({ userId }: CommitteeNotificationBellP
             Notifications
           </h3>
 
-          {unreadCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-auto gap-1.5 px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
-              onClick={markAllAsRead}
-            >
-              <CheckCheck className="h-3.5 w-3.5" />
-              Tout marquer comme lu
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {unreadCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-auto gap-1.5 px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
+                onClick={markAllAsRead}
+              >
+                <CheckCheck className="h-3.5 w-3.5" />
+                Tout marquer comme lu
+              </Button>
+            )}
+            {onNavigate && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-auto gap-1.5 px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
+                onClick={() => {
+                  setOpen(false);
+                  onNavigate();
+                }}
+              >
+                Aller à l&apos;Espace CGL
+              </Button>
+            )}
+          </div>
         </div>
 
         <Separator />

@@ -73,6 +73,7 @@ export function CGLPermissionsManager({ setAdminView }: CGLPermissionsManagerPro
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
         toast.success('Permissions du comité mises à jour avec succès');
+        await loadPermissions();
       } else {
         toast.error(data?.error || 'Erreur lors de la mise à jour');
       }

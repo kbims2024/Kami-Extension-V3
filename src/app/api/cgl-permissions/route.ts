@@ -1,29 +1,39 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
+const SETTINGS_ID = 'settings-default';
+
+async function findSettings() {
+  let settings = await db.settings.findFirst({ where: { id: SETTINGS_ID } });
+  if (!settings) {
+    settings = await db.settings.findFirst({ where: { _id: SETTINGS_ID } });
+  }
+  return settings;
+}
+
+function parseEnabledFeatures(settings: any): string[] {
+  const enabled: string[] = [];
+  if (settings?.cglPermissions) {
+    try {
+      const parsed =
+        typeof settings.cglPermissions === 'string'
+          ? JSON.parse(settings.cglPermissions)
+          : settings.cglPermissions;
+      for (const [key, val] of Object.entries(parsed)) {
+        if (val === true) enabled.push(key);
+      }
+    } catch {
+      // ignore
+    }
+  }
+  return enabled;
+}
+
 // GET — public endpoint for CGL members to fetch their enabled features
 export async function GET() {
   try {
-    const settings = await db.settings.findFirst({
-      where: { id: 'settings-default' },
-    });
-
-    const enabled: string[] = [];
-    if (settings?.cglPermissions) {
-      try {
-        const parsed =
-          typeof settings.cglPermissions === 'string'
-            ? JSON.parse(settings.cglPermissions)
-            : settings.cglPermissions;
-        for (const [key, val] of Object.entries(parsed)) {
-          if (val === true) enabled.push(key);
-        }
-      } catch {
-        // ignore
-      }
-    }
-
-    return NextResponse.json({ enabledFeatures: enabled });
+    const settings = await findSettings();
+    return NextResponse.json({ enabledFeatures: parseEnabledFeatures(settings) });
   } catch (error) {
     console.error('Error fetching CGL permissions:', error);
     return NextResponse.json({ enabledFeatures: [] });

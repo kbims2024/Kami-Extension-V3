@@ -325,7 +325,12 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: Admin
           </h1>
         </div>
         <div className="flex items-center gap-1">
-          {adminId && <CommitteeNotificationBell userId={adminId} />}
+          {adminId && (
+            <CommitteeNotificationBell
+              userId={adminId}
+              onNavigate={() => setCurrentScreen('espace-cgl')}
+            />
+          )}
           <Button
             variant="ghost"
             size="icon"
