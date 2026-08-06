@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { FlashInfoBand } from '@/components/flash-info-band';
-import { Menu, Map, TrendingUp, Clock, Award, ArrowRight, ChevronRight, Headset, Building2 } from 'lucide-react';
+import { Menu, Map, TrendingUp, Clock, Award, ArrowRight, ChevronRight, Headset, Building2, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
 import { PublicProgressSection } from './PublicProgressSection';
@@ -27,6 +27,7 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
   const [animatedNumbers, setAnimatedNumbers] = useState({ available: 0, reservedRate: 0, purchasedRate: 0 });
   const [heroBackground, setHeroBackground] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [isProjectWindowOpen, setIsProjectWindowOpen] = useState(false);
 
   const handleViewPlan = () => {
     window.location.href = '/view-plan';
@@ -242,6 +243,14 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
                 Voir le plan
               </Button>
               <Button
+                onClick={() => setIsProjectWindowOpen(true)}
+                variant="outline"
+                className="bg-white/10 hover:bg-white/20 text-white border-2 border-white/30 font-semibold py-3 md:py-4 px-8 md:px-10 rounded-lg md:rounded-xl text-base md:text-lg backdrop-blur-sm transition-all hover:scale-105"
+              >
+                <Building2 className="mr-2 h-5 w-5" />
+                Mon chantier
+              </Button>
+              <Button
                 onClick={() => setCurrentScreen('sav')}
                 className="bg-emerald-500 dark:bg-emerald-600 hover:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-bold py-3 md:py-4 px-8 md:px-10 rounded-lg md:rounded-xl text-base md:text-lg shadow-2xl shadow-emerald-500/40 dark:shadow-emerald-500/30 transition-all hover:scale-105"
               >
@@ -256,6 +265,43 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
             </div>
           </div>
         </div>
+
+        {isProjectWindowOpen && (
+          <div className="fixed inset-0 z-50 bg-slate-950/95 text-white backdrop-blur-sm overflow-auto">
+            <div className="relative mx-auto flex h-full max-w-7xl flex-col px-6 py-6 lg:px-10 lg:py-10">
+              <button
+                type="button"
+                onClick={() => setIsProjectWindowOpen(false)}
+                className="absolute top-5 right-5 rounded-full bg-white/10 p-3 text-white hover:bg-white/20 transition"
+              >
+                <X className="h-5 w-5" />
+              </button>
+              <div className="mt-12 flex-1 rounded-3xl border border-white/10 bg-slate-950/95 p-8 shadow-2xl shadow-black/40">
+                <h2 className="text-4xl font-bold text-white">Mon chantier</h2>
+                <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-300">
+                  Retrouvez ici votre suivi personnel, vos étapes de construction et les dernières informations sur l’avancement de votre projet.
+                </p>
+                <div className="mt-8 grid gap-6 lg:grid-cols-2">
+                  <div className="rounded-3xl border border-white/10 bg-slate-900/90 p-6">
+                    <p className="text-sm uppercase tracking-[0.3em] text-slate-400">Étapes clés</p>
+                    <ul className="mt-4 space-y-3 text-slate-200">
+                      <li>• Choix du terrain confirmé</li>
+                      <li>• Paiement en cours</li>
+                      <li>• Préparation du dossier de construction</li>
+                      <li>• Lancement des travaux à venir</li>
+                    </ul>
+                  </div>
+                  <div className="rounded-3xl border border-white/10 bg-slate-900/90 p-6">
+                    <p className="text-sm uppercase tracking-[0.3em] text-slate-400">Alerte personnelle</p>
+                    <p className="mt-4 text-slate-200 leading-7">
+                      Cette fenêtre vous permet de suivre votre projet dans une vue dédiée, avec toutes vos informations importantes réunies au même endroit.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Wave Bottom */}
         <div className="hidden md:block absolute bottom-0 left-0 right-0 -mt-4">
