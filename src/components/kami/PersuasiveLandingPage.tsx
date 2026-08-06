@@ -248,7 +248,7 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
                 className="bg-white/10 hover:bg-white/20 text-white border-2 border-white/30 font-semibold py-3 md:py-4 px-8 md:px-10 rounded-lg md:rounded-xl text-base md:text-lg backdrop-blur-sm transition-all hover:scale-105"
               >
                 <Building2 className="mr-2 h-5 w-5" />
-                Mon chantier
+                Notre village prend vie
               </Button>
               <Button
                 onClick={() => setCurrentScreen('sav')}
@@ -277,9 +277,9 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
                 <X className="h-5 w-5" />
               </button>
               <div className="mt-12 flex-1 rounded-3xl border border-white/10 bg-slate-950/95 p-8 shadow-2xl shadow-black/40">
-                <h2 className="text-4xl font-bold text-white">Mon chantier</h2>
+                <h2 className="text-4xl font-bold text-white">Notre village prend vie</h2>
                 <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-300">
-                  Retrouvez ici votre suivi personnel, vos étapes de construction et les dernières informations sur l’avancement de votre projet.
+                  Découvrez les publications publiques, les grands événements, l’avancement des travaux et bien plus encore.
                 </p>
                 <div className="mt-8 grid gap-6 lg:grid-cols-2">
                   <div className="rounded-3xl border border-white/10 bg-slate-900/90 p-6">
