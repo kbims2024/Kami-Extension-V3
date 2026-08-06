@@ -31,6 +31,11 @@ export async function GET(request: NextRequest) {
           const congratulatedLots = user.congratulatedLots ? JSON.parse(user.congratulatedLots) : [];
           if (!congratulatedLots.includes(reservation.lotId)) {
             // User has not been congratulated yet for this lot
+            const updatedLots = [...congratulatedLots, reservation.lotId];
+            await db.user.update({
+              where: { id: userId },
+              data: { congratulatedLots: JSON.stringify(updatedLots) },
+            });
             return NextResponse.json({
               shouldShow: true,
               lotName: reservation.lot.name,

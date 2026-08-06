@@ -92,6 +92,25 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Mark congratulated lot so the user only sees the notification once
+    if (newStatus === 'PAID') {
+      try {
+        const user = await db.user.findUnique({ where: { id: userId } });
+        if (user) {
+          const congratulatedLots = user.congratulatedLots ? JSON.parse(user.congratulatedLots) : [];
+          if (!congratulatedLots.includes(lotId)) {
+            congratulatedLots.push(lotId);
+            await db.user.update({
+              where: { id: userId },
+              data: { congratulatedLots: JSON.stringify(congratulatedLots) },
+            });
+          }
+        }
+      } catch (markErr) {
+        console.warn('Could not mark congratulated lot:', markErr);
+      }
+    }
+
     // Notify all management committee members and admins about the new reservation
     try {
       const user = await db.user.findUnique({ where: { id: userId } });
