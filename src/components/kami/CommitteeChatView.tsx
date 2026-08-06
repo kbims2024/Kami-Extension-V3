@@ -103,12 +103,20 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
   }, []);
 
   useEffect(() => {
-    if (adminId) {
-      loadConversations();
-      const interval = setInterval(loadConversations, 8000);
-      return () => clearInterval(interval);
-    }
-  }, [adminId]);
+    if (!adminId) return;
+
+    const refreshLoop = async () => {
+      if (selectedConv) {
+        await loadConversationMessages(selectedConv.user.id);
+      } else {
+        await loadConversations();
+      }
+    };
+
+    loadConversations();
+    const interval = setInterval(refreshLoop, 8000);
+    return () => clearInterval(interval);
+  }, [adminId, selectedConv]);
 
   useEffect(() => {
     if (selectedConv) {

@@ -13,7 +13,10 @@ import {
   Paperclip,
   Phone,
   MoreVertical,
+  Mic,
+  StopCircle,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useAppStore } from '@/store/useAppStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
@@ -66,8 +69,11 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<any>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -82,6 +88,64 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
     const interval = setInterval(loadMessages, 5000);
     return () => clearInterval(interval);
   }, [currentUser]);
+
+  useEffect(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setSpeechSupported(false);
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'fr-FR';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = (event: any) => {
+      const transcript = Array.from(event.results)
+        .map((result: any) => result[0].transcript)
+        .join(' ')
+        .trim();
+      if (transcript) {
+        setNewMessage((prev) => `${prev ? `${prev} ` : ''}${transcript}`);
+      }
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error);
+      setIsListening(false);
+      toast.error('Erreur de reconnaissance vocale');
+    };
+
+    recognitionRef.current = recognition;
+    setSpeechSupported(true);
+  }, []);
+
+  const handleVoiceInput = () => {
+    const recognition = recognitionRef.current;
+    if (!recognition) {
+      toast.error('Reconnaissance vocale non compatible avec ce navigateur');
+      return;
+    }
+
+    if (isListening) {
+      recognition.stop();
+      return;
+    }
+
+    try {
+      recognition.start();
+      setIsListening(true);
+    } catch (error) {
+      console.error('Speech recognition start failed:', error);
+      setIsListening(false);
+      toast.error('Impossible de démarrer l’enregistrement vocal');
+    }
+  };
 
   const loadMessages = async () => {
     if (!currentUser?.id) return;
@@ -350,8 +414,8 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
 
         {/* Send / Mic */}
         <Button
-          onClick={handleSendMessage}
-          disabled={isLoading || !newMessage.trim()}
+          onClick={newMessage.trim() ? handleSendMessage : handleVoiceInput}
+          disabled={isLoading || (!newMessage.trim() && !speechSupported)}
           className="rounded-full shrink-0"
           style={{
             width: '42px',
@@ -363,13 +427,10 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
         >
           {newMessage.trim() ? (
             <Send className="h-5 w-5" />
+          ) : isListening ? (
+            <StopCircle className="h-5 w-5" />
           ) : (
-            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-              <line x1="12" y1="19" x2="12" y2="23" />
-              <line x1="8" y1="23" x2="16" y2="23" />
-            </svg>
+            <Mic className="h-5 w-5" />
           )}
         </Button>
       </div>
