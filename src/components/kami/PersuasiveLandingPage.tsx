@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { FlashInfoBand } from '@/components/flash-info-band';
 import { Menu, Map, TrendingUp, Clock, Award, ArrowRight, ChevronRight, Headset, Building2, X } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTheme } from 'next-themes';
 import { PublicProgressSection } from './PublicProgressSection';
@@ -39,6 +39,18 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
     hidden: { opacity: 0, y: 8 },
     show: { opacity: 1, y: 0 },
   };
+
+  const firstBtnRef = useRef<HTMLDivElement | null>(null);
+  const [firstBtnWidth, setFirstBtnWidth] = useState<number | null>(null);
+
+  useLayoutEffect(() => {
+    function measure() {
+      if (firstBtnRef.current) setFirstBtnWidth(firstBtnRef.current.offsetWidth);
+    }
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, []);
 
   const handleViewPlan = () => {
     window.location.href = '/view-plan';
@@ -237,18 +249,18 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
             </div>
 
             {/* CTA Buttons — uniform size and shape */}
-            <motion.div variants={btnContainerVariants} initial="hidden" animate="show" className="flex flex-row flex-wrap items-center justify-center gap-3 md:gap-4 w-full">
-              <motion.div variants={btnChildVariants} className="flex-1 min-w-[180px] max-w-[340px]">
+            <motion.div variants={btnContainerVariants} initial="hidden" animate="show" className="grid grid-cols-1 sm:grid-cols-2 md:flex flex-row flex-wrap items-center justify-center gap-3 md:gap-4 w-full">
+              <motion.div ref={firstBtnRef} variants={btnChildVariants} className="inline-block">
                 <Button
                   onClick={handleViewPlan}
-                  className="w-full bg-white/90 dark:bg-slate-900/90 hover:bg-white dark:hover:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 font-semibold py-3 md:py-4 px-6 md:px-8 rounded-lg md:rounded-xl text-sm md:text-base backdrop-blur-sm transition-all"
+                  className="inline-flex items-center bg-white/90 dark:bg-slate-900/90 hover:bg-white dark:hover:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 font-semibold py-3 md:py-4 px-6 md:px-8 rounded-lg md:rounded-xl text-sm md:text-base backdrop-blur-sm transition-all"
                 >
                   <Map className="mr-2 h-5 w-5" />
                   Voir le plan de lotissement
                 </Button>
               </motion.div>
 
-              <motion.div variants={btnChildVariants} className="flex-1 min-w-[180px] max-w-[340px]" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} transition={{ type: 'spring', stiffness: 260, damping: 18 }}>
+              <motion.div variants={btnChildVariants} className="" style={firstBtnWidth ? { width: firstBtnWidth } : undefined} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} transition={{ type: 'spring', stiffness: 260, damping: 18 }}>
                 <Button
                   onClick={onReserveClick}
                   className="w-full bg-gradient-to-r from-amber-300 via-amber-400 to-orange-400 dark:from-amber-500 dark:via-orange-500 dark:to-orange-500 text-slate-900 font-bold py-3 md:py-4 px-6 md:px-8 rounded-lg md:rounded-xl text-sm md:text-base shadow-2xl shadow-amber-400/30 dark:shadow-amber-500/30 transition-all"
@@ -258,7 +270,7 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
                 </Button>
               </motion.div>
 
-              <motion.div variants={btnChildVariants} className="flex-1 min-w-[180px] max-w-[340px]">
+              <motion.div variants={btnChildVariants} className="" style={firstBtnWidth ? { width: firstBtnWidth } : undefined}>
                 <Button
                   onClick={() => setIsProjectWindowOpen(true)}
                   className="w-full bg-slate-900/95 dark:bg-white/10 hover:bg-slate-800 dark:hover:bg-white/20 text-white dark:text-white border border-white/10 font-semibold py-3 md:py-4 px-6 md:px-8 rounded-lg md:rounded-xl text-sm md:text-base backdrop-blur-sm transition-all"
@@ -268,7 +280,7 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
                 </Button>
               </motion.div>
 
-              <motion.div variants={btnChildVariants} className="flex-1 min-w-[180px] max-w-[340px]">
+              <motion.div variants={btnChildVariants} className="" style={firstBtnWidth ? { width: firstBtnWidth } : undefined}>
                 <Button
                   onClick={() => setCurrentScreen('sav')}
                   className="w-full bg-emerald-500 dark:bg-emerald-600 hover:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-bold py-3 md:py-4 px-6 md:px-8 rounded-lg md:rounded-xl text-sm md:text-base shadow-2xl shadow-emerald-500/40 dark:shadow-emerald-500/30 transition-all"
