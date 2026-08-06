@@ -126,6 +126,13 @@ export async function GET(request: NextRequest) {
             phone: true,
           },
         },
+        receiver: {
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+          },
+        },
       },
       orderBy: {
         createdAt: 'asc',

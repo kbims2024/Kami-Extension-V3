@@ -9,6 +9,7 @@ import {
   Shield, Zap, UserPlus, Activity, Upload, Construction, TrendingUp,
   Headset, Crown, Home, Loader2, MessageSquare,
 } from 'lucide-react';
+import { CGL_ADMIN_FEATURES } from '@/lib/cgl-features';
 
 interface FeatureDef {
   id: string;
@@ -18,21 +19,7 @@ interface FeatureDef {
   adminView: string;
 }
 
-const ALL_FEATURES: FeatureDef[] = [
-  { id: 'dashboard', label: 'Tableau de Bord', icon: ChartLine, color: 'text-[#10B981]', adminView: 'dashboard' },
-  { id: 'payments', label: 'Valider Paiements', icon: CheckCircle, color: 'text-blue-500 dark:text-blue-400', adminView: 'payments' },
-  { id: 'add-lots', label: 'Ajouter Lots', icon: PlusCircle, color: 'text-[#8B5E3C] dark:text-[#A5785C]', adminView: 'add-lots' },
-  { id: 'logo', label: 'Éditer le Logo', icon: FileText, color: 'text-orange-500 dark:text-orange-400', adminView: 'logo' },
-  { id: 'hero-image', label: 'Image de Fond', icon: ImageIcon, color: 'text-pink-500 dark:text-pink-400', adminView: 'hero-image' },
-  { id: 'committee', label: 'Gestion du Comité', icon: Shield, color: 'text-purple-600 dark:text-purple-400', adminView: 'committee' },
-  { id: 'flash-infos', label: 'Flash Infos', icon: Zap, color: 'text-brand-blue', adminView: 'flash-infos' },
-  { id: 'expert-applications', label: 'Candidatures Experts', icon: UserPlus, color: 'text-emerald-500 dark:text-emerald-400', adminView: 'expert-applications' },
-  { id: 'users-monitor', label: 'Surveillance Connexions', icon: Activity, color: 'text-cyan-500 dark:text-cyan-400', adminView: 'users-monitor' },
-  { id: 'files', label: 'Gérer Fichiers', icon: Upload, color: 'text-brand-blue', adminView: 'files' },
-  { id: 'progress-updates', label: 'Avancement Travaux', icon: Construction, color: 'text-orange-500 dark:text-orange-400', adminView: 'progress-updates' },
-  { id: 'subscriber-tracking', label: 'Suivi Souscripteurs', icon: TrendingUp, color: 'text-cyan-500 dark:text-cyan-400', adminView: 'subscriber-tracking' },
-  { id: 'sav-settings', label: 'Paramètres SAV', icon: Headset, color: 'text-emerald-500', adminView: 'sav-settings' },
-];
+const ALL_FEATURES = CGL_ADMIN_FEATURES;
 
 interface EspaceCGLProps {
   setCurrentScreen: (screen: string) => void;

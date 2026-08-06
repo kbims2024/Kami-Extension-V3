@@ -1,23 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { CGL_ADMIN_FEATURES } from '@/lib/cgl-features';
 
 const CGL_PERMISSIONS_ID = 'settings-default';
-
-const AVAILABLE_FEATURES = [
-  { id: 'dashboard', label: 'Tableau de Bord', icon: 'chart' },
-  { id: 'payments', label: 'Valider Paiements', icon: 'payment' },
-  { id: 'add-lots', label: 'Ajouter Lots', icon: 'plus' },
-  { id: 'logo', label: 'Éditer le Logo', icon: 'logo' },
-  { id: 'hero-image', label: 'Image de Fond', icon: 'image' },
-  { id: 'committee', label: 'Gestion du Comité', icon: 'shield' },
-  { id: 'flash-infos', label: 'Flash Infos', icon: 'flash' },
-  { id: 'expert-applications', label: 'Candidatures Experts', icon: 'expert' },
-  { id: 'users-monitor', label: 'Surveillance Connexions', icon: 'activity' },
-  { id: 'files', label: 'Gérer Fichiers', icon: 'files' },
-  { id: 'progress-updates', label: 'Avancement Travaux', icon: 'construction' },
-  { id: 'subscriber-tracking', label: 'Suivi Souscripteurs', icon: 'trending' },
-  { id: 'sav-settings', label: 'Paramètres SAV', icon: 'headset' },
-];
+const AVAILABLE_FEATURES = CGL_ADMIN_FEATURES.map((f) => ({ id: f.id, label: f.label }));
 
 async function findSettings() {
   let settings = await db.settings.findFirst({ where: { id: CGL_PERMISSIONS_ID } });
