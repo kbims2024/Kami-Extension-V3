@@ -23,18 +23,29 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate file type
-    const validMimeTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+    const validMimeTypes = [
+      'application/pdf',
+      'image/png',
+      'image/jpeg',
+      'image/jpg',
+      'image/webp',
+      'video/mp4',
+      'video/webm',
+      'video/quicktime',
+      'video/ogg',
+      'video/x-msvideo',
+    ];
     if (!validMimeTypes.includes(file.type)) {
       return NextResponse.json(
-        { error: 'Type de fichier non supporté (PDF, PNG ou JPEG requis)' },
+        { error: 'Type de fichier non supporté (PDF, image ou vidéo requis)' },
         { status: 400 }
       );
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    const maxSize = file.type.startsWith('video/') ? 50 * 1024 * 1024 : 5 * 1024 * 1024;
+    if (file.size > maxSize) {
       return NextResponse.json(
-        { error: 'Le fichier ne doit pas dépasser 5 Mo' },
+        { error: `Le fichier ne doit pas dépasser ${file.type.startsWith('video/') ? '50' : '5'} Mo` },
         { status: 400 }
       );
     }

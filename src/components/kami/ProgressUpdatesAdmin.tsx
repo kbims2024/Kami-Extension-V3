@@ -91,6 +91,7 @@ export function ProgressUpdatesAdmin({ onBack, onHome }: ProgressUpdatesAdminPro
       for (const file of Array.from(files)) {
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('type', `PROGRESS_IMAGE_${Date.now()}_${file.name}`);
         try {
           const res = await fetch('/api/admin-files', {
             method: 'POST',
@@ -98,7 +99,11 @@ export function ProgressUpdatesAdmin({ onBack, onHome }: ProgressUpdatesAdminPro
           });
           if (res.ok) {
             const data = await res.json();
-            setImages((prev) => [...prev, data.path]);
+            if (data.file?.url) {
+              setImages((prev) => [...prev, data.file.url]);
+            } else {
+              console.error('Upload response missing file URL', data);
+            }
           }
         } catch (err) {
           console.error('Upload error:', err);
@@ -118,6 +123,7 @@ export function ProgressUpdatesAdmin({ onBack, onHome }: ProgressUpdatesAdminPro
       for (const file of Array.from(files)) {
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('type', `PROGRESS_VIDEO_${Date.now()}_${file.name}`);
         try {
           const res = await fetch('/api/admin-files', {
             method: 'POST',
@@ -125,7 +131,11 @@ export function ProgressUpdatesAdmin({ onBack, onHome }: ProgressUpdatesAdminPro
           });
           if (res.ok) {
             const data = await res.json();
-            setVideos((prev) => [...prev, data.path]);
+            if (data.file?.url) {
+              setVideos((prev) => [...prev, data.file.url]);
+            } else {
+              console.error('Upload response missing file URL', data);
+            }
           }
         } catch (err) {
           console.error('Upload error:', err);

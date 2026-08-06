@@ -179,7 +179,7 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
         </div>
 
         <div className="container mx-auto px-4 md:px-6 relative z-10 h-full pt-20">
-          <div className="max-w-4xl mx-auto text-center w-full flex flex-col justify-start gap-6 py-6">
+          <div className="max-w-4xl mx-auto text-center w-full flex flex-col justify-start gap-6 py-4">
 
             {/* ===== Image de fond : titre + sous-titre uniquement ===== */}
             <div
@@ -196,87 +196,87 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
               )}
 
               <div className="relative z-10 py-6 md:py-10 px-4 md:px-10">
-                {/* Main Heading */}
-                <h1 className="text-4xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 md:mb-4 leading-tight text-slate-900 dark:text-white">
-                  Construisez Votre
-                  <span className="text-yellow-400 block">Avenir à KAMI</span>
-                </h1>
-
-                <div className="mx-auto inline-flex items-center bg-white/90 dark:bg-slate-900/90 border border-border px-4 py-2 rounded-full text-slate-900 dark:text-white shadow-sm shadow-slate-200/30 dark:shadow-black/40 max-w-max">
+                <div className="mx-auto inline-flex items-center bg-white/90 dark:bg-slate-900/90 border border-border px-4 py-2 rounded-full text-slate-900 dark:text-white shadow-sm shadow-slate-200/30 dark:shadow-black/40 max-w-max mb-4">
                   <div className="w-2 h-2 bg-yellow-400 rounded-full mr-2 animate-pulse" />
                   <span className="text-sm md:text-sm font-medium text-yellow-300">
                     Opportunité unique à KAMI
                   </span>
                 </div>
 
+                {/* Main Heading */}
+                <h1 className="text-4xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 md:mb-4 leading-tight text-slate-900 dark:text-white">
+                  Construisez Votre
+                  <span className="text-yellow-400 block">Avenir à KAMI</span>
+                </h1>
+
                 {/* Subtitle */}
-                <div className="mt-6 text-base md:text-xl lg:text-2xl text-slate-900 dark:text-slate-100 leading-relaxed max-w-2xl mx-auto">
+                <div className="mt-4 text-base md:text-xl lg:text-2xl text-slate-900 dark:text-slate-100 leading-relaxed max-w-2xl mx-auto">
                   Le nouveau village moderne.
                 </div>
                 <div className="text-base md:text-xl lg:text-2xl text-slate-900 dark:text-slate-100 leading-relaxed max-w-2xl mx-auto">
                   Réservez votre lot.
                 </div>
+
+                {/* CTA Buttons — uniform size and shape */}
+                <motion.div variants={btnContainerVariants} initial="hidden" animate="show" className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 w-full items-stretch mt-6">
+                  <motion.div variants={btnChildVariants} className="w-full">
+                    <Button
+                      onClick={handleViewPlan}
+                      className="w-full inline-flex items-center justify-center bg-white/90 dark:bg-slate-900/90 hover:bg-white dark:hover:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 font-semibold py-3 md:py-4 px-6 md:px-8 rounded-lg md:rounded-xl text-sm md:text-base backdrop-blur-sm transition-all"
+                    >
+                      <Map className="mr-2 h-5 w-5" />
+                      Voir le plan de lotissement
+                    </Button>
+                  </motion.div>
+
+                  <motion.div variants={btnChildVariants} className="w-full" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} transition={{ type: 'spring', stiffness: 260, damping: 18 }}>
+                    <Button
+                      onClick={onReserveClick}
+                      className="w-full bg-gradient-to-r from-amber-300 via-amber-400 to-orange-400 dark:from-amber-500 dark:via-orange-500 dark:to-orange-500 text-slate-900 font-bold py-3 md:py-4 px-6 md:px-8 rounded-lg md:rounded-xl text-sm md:text-base shadow-2xl shadow-amber-400/30 dark:shadow-amber-500/30 transition-all"
+                    >
+                      Je réserve mon lot
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  </motion.div>
+
+                  <motion.div variants={btnChildVariants} className="w-full">
+                    <Button
+                      onClick={() => setIsProjectWindowOpen(true)}
+                      className="w-full bg-slate-900/95 dark:bg-white/10 hover:bg-slate-800 dark:hover:bg-white/20 text-white dark:text-white border border-white/10 font-semibold py-3 md:py-4 px-6 md:px-8 rounded-lg md:rounded-xl text-sm md:text-base backdrop-blur-sm transition-all"
+                    >
+                      <Building2 className="mr-2 h-5 w-5" />
+                      Notre village prend vie
+                    </Button>
+                  </motion.div>
+
+                  <motion.div variants={btnChildVariants} className="w-full">
+                    <Button
+                      onClick={() => setCurrentScreen('sav')}
+                      className="w-full bg-emerald-500 dark:bg-emerald-600 hover:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-bold py-3 md:py-4 px-6 md:px-8 rounded-lg md:rounded-xl text-sm md:text-base shadow-2xl shadow-emerald-500/40 dark:shadow-emerald-500/30 transition-all"
+                    >
+                      <Headset className="mr-2 h-5 w-5" />
+                      Service après-vente
+                    </Button>
+                  </motion.div>
+                </motion.div>
               </div>
             </div>
 
             {/* Stats — hors de l'image de fond (alignés côte à côte) */}
-            <div className="flex flex-row gap-2 md:gap-6 justify-center items-center mt-4 md:mt-6 mb-5 md:mb-7 w-full">
-              <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-xl md:rounded-2xl px-4 md:px-8 py-4 md:py-6 border border-border flex-1 max-w-[320px] text-center">
+            <div className="flex flex-row gap-2 md:gap-5 justify-center items-center mt-4 md:mt-5 mb-4 md:mb-6 w-full">
+              <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-xl md:rounded-2xl px-3 md:px-6 py-3 md:py-4 border border-border flex-1 max-w-[300px] text-center">
                 <p className="text-xl md:text-4xl font-bold text-yellow-400">{animatedNumbers.available}</p>
                 <p className="text-[10px] md:text-sm text-slate-700 dark:text-slate-300 mt-1">Disponibles</p>
               </div>
-              <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-xl md:rounded-2xl px-4 md:px-8 py-4 md:py-6 border border-border flex-1 max-w-[320px] text-center">
+              <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-xl md:rounded-2xl px-3 md:px-6 py-3 md:py-4 border border-border flex-1 max-w-[300px] text-center">
                 <p className="text-xl md:text-4xl font-bold text-yellow-400">{animatedNumbers.reservedRate}%</p>
                 <p className="text-[10px] md:text-sm text-slate-700 dark:text-slate-300 mt-1">Réservés</p>
               </div>
-              <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-xl md:rounded-2xl px-4 md:px-8 py-4 md:py-6 border border-border flex-1 max-w-[320px] text-center">
+              <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-xl md:rounded-2xl px-3 md:px-6 py-3 md:py-4 border border-border flex-1 max-w-[300px] text-center">
                 <p className="text-xl md:text-4xl font-bold text-yellow-400">{animatedNumbers.purchasedRate}%</p>
                 <p className="text-[10px] md:text-sm text-slate-700 dark:text-slate-300 mt-1">Achetés</p>
               </div>
             </div>
-
-            {/* CTA Buttons — uniform size and shape */}
-            <motion.div variants={btnContainerVariants} initial="hidden" animate="show" className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 w-full items-stretch">
-              <motion.div variants={btnChildVariants} className="w-full">
-                <Button
-                  onClick={handleViewPlan}
-                  className="w-full inline-flex items-center justify-center bg-white/90 dark:bg-slate-900/90 hover:bg-white dark:hover:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 font-semibold py-3 md:py-4 px-6 md:px-8 rounded-lg md:rounded-xl text-sm md:text-base backdrop-blur-sm transition-all"
-                >
-                  <Map className="mr-2 h-5 w-5" />
-                  Voir le plan de lotissement
-                </Button>
-              </motion.div>
-
-              <motion.div variants={btnChildVariants} className="w-full" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} transition={{ type: 'spring', stiffness: 260, damping: 18 }}>
-                <Button
-                  onClick={onReserveClick}
-                  className="w-full bg-gradient-to-r from-amber-300 via-amber-400 to-orange-400 dark:from-amber-500 dark:via-orange-500 dark:to-orange-500 text-slate-900 font-bold py-3 md:py-4 px-6 md:px-8 rounded-lg md:rounded-xl text-sm md:text-base shadow-2xl shadow-amber-400/30 dark:shadow-amber-500/30 transition-all"
-                >
-                  Je réserve mon lot
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </motion.div>
-
-              <motion.div variants={btnChildVariants} className="w-full">
-                <Button
-                  onClick={() => setIsProjectWindowOpen(true)}
-                  className="w-full bg-slate-900/95 dark:bg-white/10 hover:bg-slate-800 dark:hover:bg-white/20 text-white dark:text-white border border-white/10 font-semibold py-3 md:py-4 px-6 md:px-8 rounded-lg md:rounded-xl text-sm md:text-base backdrop-blur-sm transition-all"
-                >
-                  <Building2 className="mr-2 h-5 w-5" />
-                  Notre village prend vie
-                </Button>
-              </motion.div>
-
-              <motion.div variants={btnChildVariants} className="w-full">
-                <Button
-                  onClick={() => setCurrentScreen('sav')}
-                  className="w-full bg-emerald-500 dark:bg-emerald-600 hover:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-bold py-3 md:py-4 px-6 md:px-8 rounded-lg md:rounded-xl text-sm md:text-base shadow-2xl shadow-emerald-500/40 dark:shadow-emerald-500/30 transition-all"
-                >
-                  <Headset className="mr-2 h-5 w-5" />
-                  Service après-vente
-                </Button>
-              </motion.div>
-            </motion.div>
 
             {/* Scroll Indicator - only on desktop */}
             <div className="hidden md:block absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce">

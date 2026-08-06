@@ -118,12 +118,6 @@ export function PublicProgressSection() {
       <div className="container mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 mb-4">
-            <Construction className="h-6 w-6 text-brand-blue" />
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-              Avancement des Travaux
-            </h2>
-          </div>
           <p className="text-sm text-muted-foreground max-w-xl mx-auto">
             Suivez en temps réel l&apos;évolution du village KAMI-EXTENSION et les événements marquants
           </p>
