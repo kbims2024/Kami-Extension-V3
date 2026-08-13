@@ -174,7 +174,12 @@ const COLORS = ['#10B981', '#F59E0B', '#EF4444', '#8B5E3C', '#3B82F6']
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurrentScreen, setAdminView, onHome }) => {
   const [loading, setLoading] = useState(true)
+  const [isClient, setIsClient] = useState(false)
   const [stats, setStats] = useState<AdminStats | null>(null)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
   const [lots, setLots] = useState<Lot[]>([])
   const [recentPayments, setRecentPayments] = useState<RecentPayment[]>([])
   const [users, setUsers] = useState<UserSummary[]>([])
@@ -560,99 +565,101 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack, setCurre
       </Dialog>
 
       {/* Graphiques */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Répartition des lots */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              Répartition des Lots
-            </CardTitle>
-            <CardDescription>
-              État actuel de tous les lots
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <RechartsPieChart margin={{ top: 20, right: 10, left: 10, bottom: 20 }}>
-                <Pie
-                  data={lotStatsData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-                  outerRadius={70}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {lotStatsData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} verticalAlign="bottom" height={36} />
-              </RechartsPieChart>
-            </ResponsiveContainer>
-            <div className="grid grid-cols-3 gap-3 mt-4 min-w-0 overflow-hidden">
-              <div className="text-center p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/20">
-                <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{stats?.availableLots || 0}</div>
-                <div className="text-xs text-muted-foreground">Lots Disponibles</div>
+      {isClient && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Répartition des lots */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" />
+                Répartition des Lots
+              </CardTitle>
+              <CardDescription>
+                État actuel de tous les lots
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <RechartsPieChart margin={{ top: 20, right: 10, left: 10, bottom: 20 }}>
+                  <Pie
+                    data={lotStatsData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                    outerRadius={70}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {lotStatsData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Legend wrapperStyle={{ fontSize: 12, paddingTop: 10 }} verticalAlign="bottom" height={36} />
+                </RechartsPieChart>
+              </ResponsiveContainer>
+              <div className="grid grid-cols-3 gap-3 mt-4 min-w-0 overflow-hidden">
+                <div className="text-center p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/20">
+                  <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{stats?.availableLots || 0}</div>
+                  <div className="text-xs text-muted-foreground">Lots Disponibles</div>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-orange-50 dark:bg-orange-950/20">
+                  <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{stats?.reservedLots || 0}</div>
+                  <div className="text-xs text-muted-foreground">Lots Réservés</div>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-red-50 dark:bg-red-950/20">
+                  <div className="text-2xl font-bold text-red-600 dark:text-red-400">{stats?.paidLots || 0}</div>
+                  <div className="text-xs text-muted-foreground">Lots Achetés</div>
+                </div>
               </div>
-              <div className="text-center p-3 rounded-lg bg-orange-50 dark:bg-orange-950/20">
-                <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{stats?.reservedLots || 0}</div>
-                <div className="text-xs text-muted-foreground">Lots Réservés</div>
-              </div>
-              <div className="text-center p-3 rounded-lg bg-red-50 dark:bg-red-950/20">
-                <div className="text-2xl font-bold text-red-600 dark:text-red-400">{stats?.paidLots || 0}</div>
-                <div className="text-xs text-muted-foreground">Lots Achetés</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Évolution mensuelle */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Évolution Mensuelle
-            </CardTitle>
-            <CardDescription>
-              Réservations et revenus des 6 derniers mois
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={320}>
-              <LineChart data={monthlyData} margin={{ top: 20, right: 10, left: 10, bottom: 10 }}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis
-                  dataKey="month"
-                  interval={0}
-                  tick={{ fontSize: 10, fill: 'currentColor' }}
-                  stroke="currentColor"
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  tick={{ fontSize: 10, fill: 'currentColor' }}
-                  stroke="currentColor"
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px',
-                    fontSize: '12px'
-                  }}
-                />
-                <Legend verticalAlign="top" height={30} wrapperStyle={{ fontSize: 11, paddingBottom: 6 }} />
-                <Line type="monotone" dataKey="reservations" stroke={COLORS[4]} strokeWidth={2} name="Réservations" />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
+          {/* Évolution mensuelle */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Évolution Mensuelle
+              </CardTitle>
+              <CardDescription>
+                Réservations et revenus des 6 derniers mois
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={320}>
+                <LineChart data={monthlyData} margin={{ top: 20, right: 10, left: 10, bottom: 10 }}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis
+                    dataKey="month"
+                    interval={0}
+                    tick={{ fontSize: 10, fill: 'currentColor' }}
+                    stroke="currentColor"
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 10, fill: 'currentColor' }}
+                    stroke="currentColor"
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px',
+                      fontSize: '12px'
+                    }}
+                  />
+                  <Legend verticalAlign="top" height={30} wrapperStyle={{ fontSize: 11, paddingBottom: 6 }} />
+                  <Line type="monotone" dataKey="reservations" stroke={COLORS[4]} strokeWidth={2} name="Réservations" />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Détails avec onglets */}
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'lots' | 'payments')} className="space-y-4">
