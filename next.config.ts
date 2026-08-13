@@ -7,8 +7,6 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Correction pour Recharts
-  transpilePackages: ['recharts'],
   reactStrictMode: false,
   images: {
     unoptimized: true,
