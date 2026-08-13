@@ -1,0 +1,36 @@
+{
+  "items": [
+    {
+      "id": "1",
+      "text": "🎉 Promotion spéciale : -10% sur tous les lots de l'Îlot A jusqu'au 31 décembre !",
+      "icon": "AlertCircle",
+      "textColor": "#ffffff",
+      "bgColor": "#1e40af",
+      "urgent": true,
+      "position": 0
+    },
+    {
+      "id": "2",
+      "text": "📈 15 lots déjà réservés cette semaine ! Ne manquez pas cette opportunité.",
+      "icon": "TrendingUp",
+      "textColor": "#ffffff",
+      "bgColor": "#1e40af",
+      "urgent": false,
+      "position": 1
+    },
+    {
+      "id": "3",
+      "text": "📅 Journée portes ouvertes : Samedi 15 Décembre de 9h à 17h sur le site.",
+      "icon": "Calendar",
+      "textColor": "#ffffff",
+      "bgColor": "#1e40af",
+      "urgent": false,
+      "position": 2
+    }
+  ],
+  "settings": {
+    "scrollSpeed": 30,
+    "bgColor": "#1e40af",
+    "textColor": "#ffffff"
+  }
+}

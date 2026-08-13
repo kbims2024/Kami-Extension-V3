@@ -1,0 +1,125 @@
+{
+  "user": [
+    {
+      "name": "Administrateur",
+      "pseudo": "admin",
+      "phone": "ADMIN",
+      "role": "ADMIN",
+      "isResident": true,
+      "password": "2edef69b361a40f22ed8ffb2d9f8742d:fb97ea77e329ff73a0eebf9dc5a48d14f169d8d0d08e18da53e8a27e0de06b23",
+      "status": "ACTIVE",
+      "id": "d2fb21f1-6b0d-480d-aca5-f63588d58368",
+      "createdAt": "2026-08-03T22:04:18.535Z",
+      "updatedAt": "2026-08-04T07:50:30.579Z",
+      "isOnline": true,
+      "lastSeen": "2026-08-04T07:50:30.579Z"
+    },
+    {
+      "name": "Jean Kamga",
+      "pseudo": "jeanK",
+      "phone": "0758421000",
+      "isResident": true,
+      "quartier": "Cocody",
+      "referralCode": "JEK421",
+      "status": "ACTIVE",
+      "password": "2027a9183b6491a018e163a29eec8be8:8ff197f06e440b9f5f89d4c9f12d62f587674dc657c1447cec38ee3ea2268f61",
+      "id": "cmpobcsf90000pvkijykyz2cq",
+      "createdAt": "2026-08-03T22:04:18.535Z",
+      "updatedAt": "2026-08-04T07:52:42.746Z",
+      "isOnline": true,
+      "lastSeen": "2026-08-04T07:52:42.746Z"
+    },
+    {
+      "name": "Koffi yves",
+      "pseudo": "Yvo",
+      "phone": "0101020203",
+      "isResident": true,
+      "quartier": "N'ZOKLOH",
+      "villageOrigine": null,
+      "referralCode": "YVO723",
+      "status": "ACTIVE",
+      "password": "bf74bd119788d29aab3d134f1d3d1047:d77d03a809fb449d2b5751f8dfa2cbc867539627e200c9cc435122f1a82e2696",
+      "id": "8f7f4ebf-901a-4ceb-b4d0-6cc63ab06686",
+      "createdAt": "2026-08-03T22:15:47.330Z",
+      "updatedAt": "2026-08-03T22:25:33.745Z",
+      "isOnline": true,
+      "lastSeen": "2026-08-03T22:25:33.745Z"
+    },
+    {
+      "name": "Koffi innocent",
+      "pseudo": "Ainnoce",
+      "phone": "0749615701",
+      "isResident": true,
+      "quartier": "N'ZOKLOH",
+      "villageOrigine": null,
+      "referralCode": "AIN881",
+      "status": "ACTIVE",
+      "password": "95ccae97331bb8b5dc140167b44a24dd:b1abce0a426d91cb25d3f0b507c7486497f777d433a77310f31ecccd82842ee7",
+      "id": "0fd35ddd-6267-493a-af04-e410ae919093",
+      "createdAt": "2026-08-03T22:26:43.782Z",
+      "updatedAt": "2026-08-04T06:55:23.147Z",
+      "isOnline": true,
+      "lastSeen": "2026-08-04T06:55:23.147Z",
+      "role": "ADMIN"
+    },
+    {
+      "name": "Basile koffi ",
+      "pseudo": "Baso",
+      "phone": "0505060607",
+      "isResident": false,
+      "quartier": null,
+      "villageOrigine": "Angovia",
+      "referralCode": "BAS653",
+      "status": "ACTIVE",
+      "password": "24af59a32a46b8deb64bdf1ea1b461b2:053d693202fb3c000dd294598d6f5ce91889d0244eebdf898542f0e7b33d45d6",
+      "id": "6ed30ba2-2837-439a-b391-c24fa6ded544",
+      "createdAt": "2026-08-03T23:13:34.024Z",
+      "updatedAt": "2026-08-04T07:52:34.796Z",
+      "isOnline": true,
+      "lastSeen": "2026-08-04T07:52:34.796Z",
+      "role": "MANAGEMENT_COMMITTEE",
+      "committeeAddedAt": "2026-08-04T06:54:42.441Z"
+    }
+  ],
+  "lot": [],
+  "reservation": [],
+  "payment": [],
+  "message": [
+    {
+      "content": "👋 Bienvenue dans le Comité de Gestion des Lots de KAMI-EXTENSION !\n\nCher(e) Basile koffi ,\n\nNous sommes ravis de vous compter parmi les membres du Comité de Gestion des Lots (CGL). Votre rôle est essentiel pour le bon fonctionnement et la transparence de la gestion de notre village.\n\n📁 Vos attributions principales :\n• Valider les paiements des souscripteurs\n• Gérer les lots disponibles\n• Répondre aux questions des résidents\n• Suivre l'avancement des travaux\n\nN'hésitez pas à consulter l'Espace CGL pour accéder à vos outils de gestion.\n\nCordialement,\nLe Comité de Gestion KAMI-EXTENSION",
+      "senderId": "d2fb21f1-6b0d-480d-aca5-f63588d58368",
+      "receiverId": "6ed30ba2-2837-439a-b391-c24fa6ded544",
+      "id": "b51c5f4a-d2ae-491f-899c-c5870f622074",
+      "createdAt": "2026-08-04T06:54:42.442Z",
+      "updatedAt": "2026-08-04T06:54:42.442Z"
+    }
+  ],
+  "settings": [
+    {
+      "id": "settings-default",
+      "heroBackground": null,
+      "savPhone": "+225 27 22 49 00 00",
+      "savWhatsapp": "+225 07 58 42 10 00",
+      "savEmail": "sav@kami-extension.com",
+      "savHoraires": "[{\"day\":\"Lundi - Vendredi\",\"hours\":\"08h00 - 18h00\"},{\"day\":\"Samedi\",\"hours\":\"09h00 - 13h00\"},{\"day\":\"Dimanche & jours fériés\",\"hours\":\"Fermé\"}]",
+      "savFaq": "[{\"question\":\"Comment suivre l'avancée de mon paiement ?\",\"answer\":\"Connectez-vous à votre espace client.\"},{\"question\":\"Comment obtenir mon reçu ?\",\"answer\":\"Dans la section Documents.\"},{\"question\":\"Quand recevrai-je mes documents ?\",\"answer\":\"Sous 15 à 30 jours.\"}]",
+      "createdAt": "2026-08-03T22:04:18.535Z",
+      "updatedAt": "2026-08-03T22:04:18.535Z"
+    }
+  ],
+  "logo": [
+    {
+      "text": "KAMI-EXTENSION",
+      "textColor": "#8B5E3C",
+      "backgroundColor": "#ffffff",
+      "id": "279dcefd-8fb5-4035-a7ba-5d89bef304ee",
+      "createdAt": "2026-08-03T22:04:18.535Z",
+      "updatedAt": "2026-08-03T22:04:18.535Z"
+    }
+  ],
+  "adminFile": [],
+  "notification": [],
+  "progressUpdate": [],
+  "expertApplication": [],
+  "uploadedFile": []
+}

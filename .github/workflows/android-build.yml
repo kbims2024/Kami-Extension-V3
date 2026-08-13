@@ -1,0 +1,50 @@
+name: Android Build & GitHub Sync
+
+on:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Build Web (Next.js)
+        run: |
+          # Masquer temporairement le dossier api pour l'export
+          mv src/app/api src/app/_api_hidden
+          npm run static
+          mv src/app/_api_hidden src/app/api
+        env:
+          MONGO_URI: "mongodb://localhost:27017/dummy"
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Build Android APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Kami-Ext-V3-Latest
+          path: android/app/build/outputs/apk/debug/Kami-Ext V3.apk
