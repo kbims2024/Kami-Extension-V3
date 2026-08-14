@@ -26,8 +26,8 @@ UploadedFileSchema.set('toJSON', {
   virtuals: true,
   versionKey: false,
   transform: (_doc, ret) => {
-    ret.id = ret._id;
-    delete ret._id;
+    ret.id = String(ret._id);
+    delete (ret as any)._id;
     return ret;
   },
 });

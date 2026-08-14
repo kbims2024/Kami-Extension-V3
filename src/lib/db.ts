@@ -287,7 +287,7 @@ function createWrapper(model: Model<any>) {
       if (Object.keys(unsetData).length > 0) updateObject.$unset = unsetData;
 
       const result = await model.updateMany(query, updateObject);
-      return { count: result.modifiedCount ?? result.nModified ?? 0 };
+      return { count: result.modifiedCount ?? (result as any).nModified ?? 0 };
     },
 
     delete: async (args: DeleteArgs): Promise<any> => {

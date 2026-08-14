@@ -75,7 +75,7 @@ export function AnimatedScreen({ children, isActive, animationType = 'slideUp', 
           initial={animationVariants[animationType].initial}
           animate={animationVariants[animationType].animate}
           exit={animationVariants[animationType].exit}
-          transition={animationVariants[animationType].transition}
+          transition={animationVariants[animationType].transition as any}
           className={`w-full h-full ${className}`}
         >
           {children}
@@ -149,11 +149,11 @@ export function AnimatedButton({ children, className = '', onClick, disabled = f
   };
 
   return (
-    <motion.button
+      <motion.button
       onClick={onClick}
       disabled={disabled}
       animate={getAnimate()}
-      transition={getTransition()}
+      transition={getTransition() as any}
       whileHover={disabled ? {} : { scale: 1.05 }}
       whileTap={disabled ? {} : { scale: 0.95 }}
       className={className}

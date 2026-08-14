@@ -231,7 +231,7 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
   // ─── Render ───
 
   return (
-    <div className="flex-1 flex flex-col h-screen max-h-screen bg-[var(--wa-bg)]" style={{ '--wa-bg': WA.chatBg }}>
+    <div className="flex-1 flex flex-col h-screen max-h-screen bg-[var(--wa-bg)]" style={{ ['--wa-bg' as any]: WA.chatBg } as React.CSSProperties}>
       {/* ─── Header (WhatsApp green bar) ─── */}
       <header
         className="flex items-center px-2 py-1.5 shrink-0 relative z-20"

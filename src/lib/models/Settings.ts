@@ -13,7 +13,7 @@ export interface ISettingsDocument extends Document {
   updatedAt: Date;
 }
 
-const SettingsSchema = new Schema<ISettingsDocument>(
+const SettingsSchema = new Schema<any>(
   {
     _id: { type: String, default: 'settings-default' },
     heroBackground: { type: String, default: null },
@@ -58,8 +58,8 @@ SettingsSchema.set('toJSON', {
   virtuals: true,
   versionKey: false,
   transform: (_doc, ret) => {
-    ret.id = ret._id;
-    delete ret._id;
+    ret.id = String(ret._id);
+    delete (ret as any)._id;
     return ret;
   },
 });

@@ -9,7 +9,7 @@ interface PageTransitionProps {
   className?: string;
 }
 
-const pageVariants = {
+const pageVariants: any = {
   initial: {
     opacity: 0,
     x: 50,
@@ -27,13 +27,13 @@ const pageVariants = {
   },
 };
 
-const pageTransition = {
+const pageTransition: any = {
   type: 'tween',
   ease: 'anticipate',
   duration: 0.4,
 };
 
-const slideUpVariants = {
+const slideUpVariants: any = {
   initial: {
     opacity: 0,
     y: 60,
@@ -51,13 +51,13 @@ const slideUpVariants = {
   },
 };
 
-const slideUpTransition = {
+const slideUpTransition: any = {
   type: 'spring',
   bounce: 0.4,
   duration: 0.6,
 };
 
-const fadeVariants = {
+const fadeVariants: any = {
   initial: {
     opacity: 0,
   },
@@ -69,11 +69,11 @@ const fadeVariants = {
   },
 };
 
-const fadeTransition = {
+const fadeTransition: any = {
   duration: 0.3,
 };
 
-const scaleVariants = {
+const scaleVariants: any = {
   initial: {
     opacity: 0,
     scale: 0.9,
@@ -88,7 +88,7 @@ const scaleVariants = {
   },
 };
 
-const scaleTransition = {
+const scaleTransition: any = {
   type: 'spring',
   stiffness: 300,
   damping: 25,
@@ -171,7 +171,7 @@ export function ScaleTransition({ children, isActive = true, className = '' }: P
 }
 
 export function StaggerContainer({ children, className = '' }: { children: ReactNode; className?: string }) {
-  const containerVariants = {
+  const containerVariants: any = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
@@ -180,8 +180,7 @@ export function StaggerContainer({ children, className = '' }: { children: React
       },
     },
   };
-
-  const itemVariants = {
+  const itemVariants: any = {
     hidden: { opacity: 0, y: 20 },
     show: {
       opacity: 1,
@@ -202,7 +201,7 @@ export function StaggerContainer({ children, className = '' }: { children: React
       className={className}
     >
       {React.Children.map(children, (child) => (
-        <motion.div variants={itemVariants}>{child}</motion.div>
+        <motion.div variants={itemVariants as any}>{child}</motion.div>
       ))}
     </motion.div>
   );

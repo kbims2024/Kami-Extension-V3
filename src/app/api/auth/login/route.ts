@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Rechercher l'utilisateur par pseudo ou par téléphone
-    let user = null;
+    let user: any = null;
     if (pseudo) {
       user = await db.user.findUnique({
         where: { pseudo },
@@ -35,8 +35,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Vérifier le mot de passe
-    if (user.password && password) {
-      const isPasswordValid = verifyPassword(password, user.password);
+    if ((user as any).password && password) {
+      const isPasswordValid = verifyPassword(password, (user as any).password);
       if (!isPasswordValid) {
         return NextResponse.json({ error: 'Mot de passe incorrect' }, { status: 401 });
       }
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
 
     // Update lastSeen and set user as online
     await db.user.update({
-      where: { id: user.id },
+      where: { id: (user as any).id },
       data: { isOnline: true, lastSeen: new Date() },
     });
 

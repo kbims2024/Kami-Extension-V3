@@ -1,6 +1,6 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
-const config: CapacitorConfig = {
+const config = {
   appId: 'com.kami.extension',
   appName: 'KAMI-EXT',
   webDir: 'out',

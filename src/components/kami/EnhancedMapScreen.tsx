@@ -8,7 +8,7 @@ import { LotBlock } from './LotBlock';
 interface Lot {
   id: string;
   name: string;
-  block: string;
+  block?: string;
   surface: string;
   priceRes: number;
   priceNon: number;

@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user by pseudo or phone
-    let user = null;
+    let user: any = null;
     if (pseudo) {
       user = await db.user.findUnique({ where: { pseudo } });
     } else if (phone) {
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     const resetTokenExpires = new Date(Date.now() + 60 * 60 * 1000);
 
     await db.user.update({
-      where: { id: user.id },
+      where: { id: (user as any).id },
       data: { resetToken, resetTokenExpires }
     });
 

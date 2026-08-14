@@ -194,7 +194,7 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
           unreadCount: 0,
         });
       } else {
-        const user = updatedConv?.user || ({ id: otherUserId, name: 'Utilisateur', phone: '' } as UserInfo);
+        const user: UserInfo = { id: otherUserId, name: 'Utilisateur', phone: '', email: null, isResident: false, role: null, quartier: null, villageOrigine: null, createdAt: new Date().toISOString() };
         setSelectedConv({ user, messages, lastMessageAt: messages[messages.length - 1]?.createdAt || '', unreadCount: 0 });
       }
       await loadConversations();
@@ -456,9 +456,9 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
                 <p className="text-sm" style={{ color: WA.timeSent }}>Aucune discussion</p>
               </div>
             ) : (
-              filteredConversations.map((conv) => {
+              filteredConversations.map((conv: Conversation) => {
                 const lastMsg = conv.messages[conv.messages.length - 1];
-                const isSelected = selectedConv?.user.id === conv.user.id;
+                const isSelected = (selectedConv as any)?.user?.id === conv.user.id;
                 return (
                   <motion.button
                     key={conv.user.id}

@@ -437,7 +437,7 @@ export default function KamiExtensionPage() {
               // Find the lot from the lots list
               const lot = lots.find((l: any) => l.name === reservation.lotName);
               if (lot) {
-                setSelectedLot({ ...lot, paidAmount: reservation.paidAmount });
+                setSelectedLot({ ...(lot as any), paidAmount: reservation.paidAmount } as any);
                 setCurrentScreen('payment-method');
               }
             }}
@@ -592,8 +592,8 @@ export default function KamiExtensionPage() {
       {currentScreen === 'payment-method' && selectedLot && currentUser && (
         <PageTransition>
           <PaymentMethodScreen
-            lot={selectedLot}
-            user={currentUser}
+            lot={selectedLot as any}
+            user={currentUser as any}
             onBack={() => {
               setCurrentScreen(currentUser ? 'map' : 'home');
             }}
@@ -2096,19 +2096,19 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
       )}
 
       {adminView === 'logo' && (
-        <AdminLogo />
+        <AdminLogo onClose={() => setAdminView('dashboard')} />
       )}
 
       {adminView === 'flash-infos' && (
-        <FlashInfoAdmin />
+        <FlashInfoAdmin onBack={() => setAdminView('dashboard')} />
       )}
 
       {adminView === 'files' && (
-        <AdminFiles />
+        <AdminFiles onBack={() => setAdminView('dashboard')} />
       )}
 
       {adminView === 'expert-applications' && (
-        <ExpertApplicationsAdmin />
+        <ExpertApplicationsAdmin onBack={() => setAdminView('dashboard')} />
       )}
 
       {adminView === 'users-monitor' && (
@@ -2130,7 +2130,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
       {adminView === 'sav-settings' && <SavSettingsAdmin />}
 
       {adminView === 'hero-image' && (
-        <AdminHeroImage />
+        <AdminHeroImage onBack={() => setAdminView('dashboard')} />
       )}
 
       {adminView === 'cgl-permissions' && (

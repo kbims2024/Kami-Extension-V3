@@ -16,7 +16,7 @@ interface AdminFilesProps {
 export function AdminFiles({ onBack, onHome }: AdminFilesProps) {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [currentFile, setCurrentFile] = useState<{ filename: string; mimeType: string; size: number; path: string } | null>(null);
+  const [currentFile, setCurrentFile] = useState<{ filename: string; mimeType: string; size: number; path: string; url?: string } | null>(null);
 
   useEffect(() => {
     loadCurrentFile();

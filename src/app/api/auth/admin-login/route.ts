@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Rechercher l'utilisateur
-    let user = null;
+    let user: any = null;
     if (phone) {
       user = await db.user.findUnique({ where: { phone } });
     } else if (email) {
@@ -44,8 +44,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Vérifier le mot de passe
-    if (user.password && password) {
-      const isPasswordValid = verifyPassword(password, user.password);
+    if ((user as any).password && password) {
+      const isPasswordValid = verifyPassword(password, (user as any).password);
       if (!isPasswordValid) {
         return NextResponse.json({ error: 'Mot de passe incorrect' }, { status: 401 });
       }
@@ -54,16 +54,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Promouvoir l'utilisateur en ADMIN si ce n'est pas déjà le cas
-    if (user.role !== 'ADMIN') {
+    if ((user as any).role !== 'ADMIN') {
       await db.user.update({
-        where: { id: user.id },
+        where: { id: (user as any).id },
         data: { role: 'ADMIN' },
       });
     }
 
     // Retourner l'utilisateur avec le rôle ADMIN
     return NextResponse.json({
-      ...user,
+      ...(user as any),
       role: 'ADMIN',
     });
   } catch (error) {

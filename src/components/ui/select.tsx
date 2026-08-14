@@ -118,15 +118,15 @@ function SelectItem({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Item>) {
   const handleSelect = React.useCallback(
-    (e: Event) => {
+    (e: any) => {
       if (!disabled) playClickSound('success');
-      onSelect?.(e)
+      onSelect?.(e as any)
     },
     [onSelect, disabled]
   )
   return (
     <SelectPrimitive.Item
-      onSelect={handleSelect}
+      onSelect={handleSelect as any}
       disabled={disabled}
       data-slot="select-item"
       className={cn(

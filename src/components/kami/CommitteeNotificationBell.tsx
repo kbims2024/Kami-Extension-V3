@@ -303,7 +303,7 @@ export function CommitteeNotificationBell({ userId, onNavigate }: CommitteeNotif
                 className="h-auto gap-1.5 px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
                 onClick={() => {
                   setOpen(false);
-                  onNavigate();
+                  (onNavigate as any)?.();
                 }}
               >
                 Aller à l&apos;Espace CGL

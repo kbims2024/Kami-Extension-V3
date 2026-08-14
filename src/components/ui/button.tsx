@@ -39,7 +39,7 @@ const buttonVariants = cva(
 )
 
 // Mapping variant → sound type
-function getSoundForVariant(variant?: string): ClickSoundType {
+function getSoundForVariant(variant?: string | null): ClickSoundType {
   switch (variant) {
     case 'destructive':
       return 'error';
@@ -64,11 +64,11 @@ function Button({
   const Comp = asChild ? Slot : "button"
 
   const handleClick = React.useCallback(
-    (e: React.MouseEvent<HTMLButtonElement> | React.MouseEvent<HTMLAnchorElement>) => {
+    (e: React.MouseEvent<any>) => {
       if (!props.disabled) {
         playClickSound(soundType ?? getSoundForVariant(variant))
       }
-      onClick?.(e)
+      onClick?.(e as any)
     },
     [onClick, soundType, variant, props.disabled]
   )

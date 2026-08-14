@@ -15,15 +15,16 @@ export async function GET() {
     // For each user, determine real online status based on lastSeen
     const usersWithStatus = allUsers.map((user: any) => {
       let isOnline = false;
-      let lastSeen = null;
+      let lastSeen: Date | null = null;
       let lastSeenRelative = 'Jamais connecté';
 
-      if (user.lastSeen) {
-        lastSeen = user.lastSeen instanceof Date ? user.lastSeen : new Date(user.lastSeen);
-        isOnline = (now - lastSeen.getTime()) < ONLINE_THRESHOLD_MS;
+        if (user.lastSeen) {
+          const lastSeenDate = user.lastSeen instanceof Date ? user.lastSeen : new Date(user.lastSeen);
+          lastSeen = lastSeenDate;
+          isOnline = (now - lastSeenDate.getTime()) < ONLINE_THRESHOLD_MS;
 
-        // Format relative time in French
-        const diffMs = now - lastSeen.getTime();
+          // Format relative time in French
+          const diffMs = now - lastSeenDate.getTime();
         const diffSecs = Math.floor(diffMs / 1000);
         const diffMins = Math.floor(diffMs / 60000);
         const diffHours = Math.floor(diffMs / 3600000);

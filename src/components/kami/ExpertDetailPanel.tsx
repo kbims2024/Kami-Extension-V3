@@ -734,7 +734,7 @@ export function ExpertDetailPanel({ initialCategoryId, onBack }: ExpertDetailPan
           // Group by categoryId
           const grouped = new Map<string, Expert[]>();
           for (const expert of approved) {
-            const catId = expert.categoryId || expert.specialty?.toLowerCase() || 'other';
+            const catId = (expert as any).categoryId || expert.specialty?.toLowerCase() || 'other';
             if (!grouped.has(catId)) grouped.set(catId, []);
             grouped.get(catId)!.push(expert);
           }

@@ -3,10 +3,8 @@ import { db } from '@/lib/db';
 
 
 // PUT /api/admin/users/[userId]/status - Bloquer ou débloquer un utilisateur
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { userId: string } }
-) {
+export async function PUT(request: NextRequest, ctx: any) {
+  const { params } = ctx || {};
   try {
     const { userId } = params;
     const body = await request.json();

@@ -67,6 +67,14 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
     setIsCommitteeMember(currentUser?.role === 'MANAGEMENT_COMMITTEE');
   }, [currentUser?.role]);
 
+  const handleWhatsAppClick = () => {
+    try {
+      window.open('https://chat.whatsapp.com/', '_blank');
+    } catch (e) {
+      console.error('Unable to open WhatsApp link', e);
+    }
+  };
+
   const menuItems = [
     { icon: Home, label: 'Accueil', screen: 'home' },
     { icon: Map, label: 'Plan des lots', screen: 'map' },

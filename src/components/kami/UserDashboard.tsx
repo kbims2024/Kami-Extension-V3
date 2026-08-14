@@ -422,7 +422,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, setCu
                     <span className="text-sm text-foreground">En cours de paiement</span>
                   </div>
                   <Badge variant="secondary">
-                    {stats?.totalReserved - stats?.totalPurchased || 0}
+                    {(stats?.totalReserved ?? 0) - (stats?.totalPurchased ?? 0) || 0}
                   </Badge>
                 </motion.div>
                 <motion.div 
