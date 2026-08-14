@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,6 +18,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "KAMI-EXTENSION",
   description: "Plateforme de réservation de lots",
+  manifest: "/manifest.webmanifest",
 };
 
 export default function RootLayout({
@@ -28,6 +30,7 @@ export default function RootLayout({
     <html lang="fr" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <ServiceWorkerRegistrar />
           {children}
           <Toaster />
         </ThemeProvider>

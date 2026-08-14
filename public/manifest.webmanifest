@@ -1,0 +1,16 @@
+{
+  "name": "KAMI-EXTENSION",
+  "short_name": "KAMI",
+  "description": "Plateforme de réservation et de suivi du village KAMI-EXTENSION",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#10B981",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
