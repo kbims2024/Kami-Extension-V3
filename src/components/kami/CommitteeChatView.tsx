@@ -18,9 +18,12 @@ import {
   Crown,
   Search,
   Mail,
+  Trash2,
+  AlertCircle,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
+import { toast } from 'sonner';
 
 // WhatsApp palette
 const WA = {
@@ -204,6 +207,37 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
     }
   };
 
+  const handleDeleteMessage = async (messageId: string) => {
+    if (!confirm('Supprimer ce message ?')) return;
+    try {
+      const res = await fetch(`/api/messages?messageId=${messageId}`, { method: 'DELETE' });
+      if (res.ok) {
+        toast.success('Message supprimé');
+        if (selectedConv) await loadConversationMessages(selectedConv.user.id);
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error('Erreur lors de la suppression');
+    }
+  };
+
+  const handleDeleteConversation = async () => {
+    if (!selectedConv) return;
+    if (!confirm(`Voulez-vous supprimer toute la discussion avec ${selectedConv.user.name} ? Cette action est irréversible.`)) return;
+
+    try {
+      const res = await fetch(`/api/messages?userId=${selectedConv.user.id}`, { method: 'DELETE' });
+      if (res.ok) {
+        toast.success('Discussion supprimée');
+        setSelectedConv(null);
+        await loadConversations();
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error('Erreur lors de la suppression');
+    }
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -371,15 +405,21 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
           <p className="text-[14.2px] leading-[19px] whitespace-pre-wrap break-words pr-12">
             {message.content}
           </p>
-          <span className="absolute bottom-[3px] right-[5px] flex items-center gap-0.5 float-right ml-2 -mt-[14px]">
-            <span className="text-[11px]" style={{ color: WA.timeSent }}>
+          <span className="absolute bottom-[3px] right-[5px] flex items-center gap-1 float-right ml-2 -mt-[14px]">
+            <span className="text-[10px]" style={{ color: WA.timeSent }}>
               {formatTime(message.createdAt)}
             </span>
             {isMyMessage && (
               message.read
-                ? <CheckCheck className="h-[16px] w-[16px]" style={{ color: WA.checkRead }} />
-                : <Check className="h-[16px] w-[16px]" style={{ color: WA.timeSent }} />
+                ? <CheckCheck className="h-[14px] w-[16px]" style={{ color: WA.checkRead }} />
+                : <Check className="h-[14px] w-[16px]" style={{ color: WA.timeSent }} />
             )}
+            <button
+              onClick={() => handleDeleteMessage(message.id)}
+              className="ml-1 opacity-40 hover:opacity-100 hover:text-red-500 transition-opacity"
+            >
+              <Trash2 className="h-[12px] w-[12px]" />
+            </button>
           </span>
         </div>
       </motion.div>
@@ -523,6 +563,15 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
               <MessageSquare className="h-3.5 w-3.5" />
               {selectedConv.messages.length} messages
             </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-red-300 hover:text-red-500 hover:bg-white/10"
+              onClick={handleDeleteConversation}
+              title="Supprimer la discussion"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </div>
