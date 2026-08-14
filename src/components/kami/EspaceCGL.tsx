@@ -32,12 +32,19 @@ export function EspaceCGL({ setCurrentScreen, goToAdminScreen, onBack }: EspaceC
   const [enabledFeatures, setEnabledFeatures] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [unreadChatCount, setUnreadChatCount] = useState(0);
+  const [pendingPaymentsCount, setPendingPaymentsCount] = useState(0);
+  const [expertApplicationsCount, setExpertApplicationsCount] = useState(0);
+  const [progressUpdatesCount, setProgressUpdatesCount] = useState(0);
 
   useEffect(() => {
     loadPermissions();
     loadUnreadCount();
+    loadNotifications();
 
-    const interval = setInterval(loadUnreadCount, 15000);
+    const interval = setInterval(() => {
+      loadUnreadCount();
+      loadNotifications();
+    }, 15000);
     return () => clearInterval(interval);
   }, []);
 
@@ -51,6 +58,33 @@ export function EspaceCGL({ setCurrentScreen, goToAdminScreen, onBack }: EspaceC
       }
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const loadNotifications = async () => {
+    try {
+      // Charger les paiements non validés
+      const paymentsRes = await fetch('/api/reservations?status=pending');
+      if (paymentsRes.ok) {
+        const payments = await paymentsRes.json();
+        setPendingPaymentsCount(Array.isArray(payments) ? payments.length : 0);
+      }
+
+      // Charger les candidatures d'experts
+      const expertRes = await fetch('/api/expert-applications?status=pending');
+      if (expertRes.ok) {
+        const experts = await expertRes.json();
+        setExpertApplicationsCount(Array.isArray(experts) ? experts.length : 0);
+      }
+
+      // Charger les mises à jour de progression non approuvées
+      const progressRes = await fetch('/api/progress-updates?status=pending');
+      if (progressRes.ok) {
+        const updates = await progressRes.json();
+        setProgressUpdatesCount(Array.isArray(updates) ? updates.length : 0);
+      }
+    } catch (e) {
+      console.error('Error loading notifications:', e);
     }
   };
 
@@ -143,12 +177,28 @@ export function EspaceCGL({ setCurrentScreen, goToAdminScreen, onBack }: EspaceC
           <div className="grid grid-cols-2 gap-3">
             {availableFeatures.map((feature) => {
               const Icon = feature.icon;
+              let notificationCount = 0;
+
+              // Déterminer le nombre de notifications selon le type de bouton
+              if (feature.id === 'payments') {
+                notificationCount = pendingPaymentsCount;
+              } else if (feature.id === 'expert-applications') {
+                notificationCount = expertApplicationsCount;
+              } else if (feature.id === 'progress-updates') {
+                notificationCount = progressUpdatesCount;
+              }
+
               return (
                 <Card
                   key={feature.id}
-                  className="bg-card p-3 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition-all active:scale-[0.97] h-[100px]"
+                  className="bg-card p-3 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition-all active:scale-[0.97] h-[100px] relative overflow-hidden"
                   onClick={() => handleFeatureClick(feature)}
                 >
+                  {notificationCount > 0 && (
+                    <div className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm animate-bounce">
+                      {notificationCount}
+                    </div>
+                  )}
                   <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
                     <Icon className={`${feature.color} h-7 w-7 mb-2`} />
                     <p className="text-xs font-bold leading-tight">{feature.label}</p>

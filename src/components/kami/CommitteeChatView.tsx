@@ -18,6 +18,7 @@ import {
   Crown,
   Search,
   Mail,
+  Trash2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
@@ -236,6 +237,26 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
     }
   };
 
+  const handleDeleteMessage = async (messageId: string) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer ce message ?')) return;
+    
+    try {
+      const res = await fetch(`/api/messages/${messageId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        if (selectedConv) {
+          await loadConversationMessages(selectedConv.user.id);
+        }
+      } else {
+        alert('Erreur lors de la suppression du message');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Erreur lors de la suppression du message');
+    }
+  };
+
   const scrollToBottom = () => {
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -371,41 +392,58 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
   const MessageBubble = ({ message, prevMsg }: { message: Message; prevMsg: Message | null }) => {
     const isMyMessage = message.senderId === adminId;
     const isConsecutive = prevMsg && prevMsg.senderId === message.senderId;
+    const [isHovering, setIsHovering] = useState(false);
 
     return (
       <motion.div
         initial={{ opacity: 0, y: 8, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.15 }}
-        className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} ${isConsecutive ? 'mt-[2px]' : 'mt-1'}`}
+        className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} ${isConsecutive ? 'mt-[2px]' : 'mt-1'} group`}
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
       >
-        <div
-          className={`
-            relative max-w-[85%] md:max-w-[65%] rounded-lg px-2.5 py-1 shadow-sm
-            ${isMyMessage ? 'rounded-tr-none' : 'rounded-tl-none'}
-            ${isMyMessage && isConsecutive ? 'rounded-tr-md' : ''}
-            ${!isMyMessage && isConsecutive ? 'rounded-tl-md' : ''}
-          `}
-          style={{
-            backgroundColor: isMyMessage
-              ? (isDark ? WA.outgoingDark : WA.outgoing)
-              : (isDark ? WA.incomingDark : WA.incoming),
-            color: isDark ? '#E9EDEF' : WA.textDark,
-          }}
-        >
-          <p className="text-[14.2px] leading-[19px] whitespace-pre-wrap break-words pr-12">
-            {message.content}
-          </p>
-          <span className="absolute bottom-[3px] right-[5px] flex items-center gap-0.5 float-right ml-2 -mt-[14px]">
-            <span className="text-[11px]" style={{ color: WA.timeSent }}>
-              {formatTime(message.createdAt)}
+        <div className="flex items-end gap-2">
+          <div
+            className={`
+              relative max-w-[85%] md:max-w-[65%] rounded-lg px-2.5 py-1 shadow-sm
+              ${isMyMessage ? 'rounded-tr-none' : 'rounded-tl-none'}
+              ${isMyMessage && isConsecutive ? 'rounded-tr-md' : ''}
+              ${!isMyMessage && isConsecutive ? 'rounded-tl-md' : ''}
+            `}
+            style={{
+              backgroundColor: isMyMessage
+                ? (isDark ? WA.outgoingDark : WA.outgoing)
+                : (isDark ? WA.incomingDark : WA.incoming),
+              color: isDark ? '#E9EDEF' : WA.textDark,
+            }}
+          >
+            <p className="text-[14.2px] leading-[19px] whitespace-pre-wrap break-words pr-12">
+              {message.content}
+            </p>
+            <span className="absolute bottom-[3px] right-[5px] flex items-center gap-0.5 float-right ml-2 -mt-[14px]">
+              <span className="text-[11px]" style={{ color: WA.timeSent }}>
+                {formatTime(message.createdAt)}
+              </span>
+              {isMyMessage && (
+                message.read
+                  ? <CheckCheck className="h-[16px] w-[16px]" style={{ color: WA.checkRead }} />
+                  : <Check className="h-[16px] w-[16px]" style={{ color: WA.timeSent }} />
+              )}
             </span>
-            {isMyMessage && (
-              message.read
-                ? <CheckCheck className="h-[16px] w-[16px]" style={{ color: WA.checkRead }} />
-                : <Check className="h-[16px] w-[16px]" style={{ color: WA.timeSent }} />
-            )}
-          </span>
+          </div>
+          {isMyMessage && isHovering && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              onClick={() => handleDeleteMessage(message.id)}
+              className="p-1.5 rounded-lg hover:bg-red-500/20 transition-colors"
+              title="Supprimer le message"
+            >
+              <Trash2 className="h-4 w-4 text-red-500" />
+            </motion.button>
+          )}
         </div>
       </motion.div>
     );
@@ -589,13 +627,15 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
                     {group.date}
                   </span>
                 </div>
-                {group.messages.map((msg, idx) => (
-                  <MessageBubble
-                    key={msg.id || `msg-${gi}-${idx}`}
-                    message={msg}
-                    prevMsg={idx > 0 ? group.messages[idx - 1] : null}
-                  />
-                ))}
+                <div className="px-4">
+                  {group.messages.map((msg, idx) => (
+                    <MessageBubble
+                      key={msg.id || `msg-${gi}-${idx}`}
+                      message={msg}
+                      prevMsg={idx > 0 ? group.messages[idx - 1] : null}
+                    />
+                  ))}
+                </div>
               </div>
             ))
           )}

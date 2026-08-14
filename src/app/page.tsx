@@ -2076,9 +2076,9 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
 
               {(() => {
                 const filteredPayments = payments.filter((payment: any) => {
-                  const isValidated = (payment.paidAmount || 0) >= (payment.totalPrice || 0);
-                  if (paymentFilter === 'validated') return isValidated;
-                  if (paymentFilter === 'pending') return !isValidated;
+                  const paymentStatus = payment.status || 'PENDING';
+                  if (paymentFilter === 'validated') return paymentStatus === 'VALIDATED';
+                  if (paymentFilter === 'pending') return paymentStatus !== 'VALIDATED';
                   return true;
                 });
 
