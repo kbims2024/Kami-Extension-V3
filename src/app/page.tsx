@@ -1671,7 +1671,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
   // Payments state
   const [payments, setPayments] = useState<any[]>([]);
   const [paymentsLoading, setPaymentsLoading] = useState(false);
-  const [paymentFilter, setPaymentFilter] = useState<'all' | 'validated' | 'pending'>('all');
+  const [paymentFilter, setPaymentFilter] = useState<'all' | 'reserved' | 'paid' | 'rejected'>('all');
 
   // New lot state
   const [newLot, setNewLot] = useState({ name: '', surface: '', block: '', priceRes: '', priceNon: '' });
@@ -2058,8 +2058,9 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
               <div className="flex flex-wrap gap-2 mb-4">
                 {[
                   { key: 'all', label: 'Tout' },
-                  { key: 'validated', label: 'Validé' },
-                  { key: 'pending', label: 'Non validé' },
+                  { key: 'reserved', label: 'En cours' },
+                  { key: 'paid', label: 'Validé' },
+                  { key: 'rejected', label: 'Non validé' },
                 ].map((filter) => (
                   <Button
                     key={filter.key}
@@ -2067,7 +2068,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
                     size="sm"
                     variant={paymentFilter === filter.key ? 'default' : 'outline'}
                     className={paymentFilter === filter.key ? 'bg-[#10B981] hover:bg-[#059669] text-white' : ''}
-                    onClick={() => setPaymentFilter(filter.key as 'all' | 'validated' | 'pending')}
+                    onClick={() => setPaymentFilter(filter.key as 'all' | 'reserved' | 'paid' | 'rejected')}
                   >
                     {filter.label}
                   </Button>
@@ -2076,9 +2077,10 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
 
               {(() => {
                 const filteredPayments = payments.filter((payment: any) => {
-                  const paymentStatus = payment.status || 'PENDING';
-                  if (paymentFilter === 'validated') return paymentStatus === 'VALIDATED';
-                  if (paymentFilter === 'pending') return paymentStatus !== 'VALIDATED';
+                  const paymentStatus = payment.status || 'RESERVED';
+                  if (paymentFilter === 'reserved') return paymentStatus === 'RESERVED';
+                  if (paymentFilter === 'paid') return paymentStatus === 'PAID';
+                  if (paymentFilter === 'rejected') return paymentStatus === 'REJECTED';
                   return true;
                 });
 
@@ -2089,8 +2091,10 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
                         <AlertCircle className="h-8 w-8 mx-auto mb-2" />
                         <p>
                           {paymentFilter === 'all'
-                            ? 'Aucun paiement en attente.'
-                            : paymentFilter === 'validated'
+                            ? 'Aucun paiement.'
+                            : paymentFilter === 'reserved'
+                            ? 'Aucun paiement en cours.'
+                            : paymentFilter === 'paid'
                             ? 'Aucun paiement validé.'
                             : 'Aucun paiement non validé.'}
                         </p>
