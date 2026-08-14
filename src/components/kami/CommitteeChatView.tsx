@@ -108,8 +108,8 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
       }
     };
 
-    loadConversations();
-    const interval = setInterval(refreshLoop, 8000);
+    loadConversations(true);
+    const interval = setInterval(refreshLoop, 5000);
     return () => clearInterval(interval);
   }, [adminId, selectedConv]);
 
@@ -131,50 +131,52 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
     }
   };
 
-  const loadConversations = async () => {
-    setIsLoading(true);
+  const loadConversations = async (firstLoad = false) => {
+    if (firstLoad) setIsLoading(true);
     try {
       const res = await fetch('/api/committee-chat');
       if (res.ok) {
         const data = await res.json();
         setConversations(data);
-        // Update selected conv if it exists
-        if (selectedConv) {
-          const updated = data.find((c: Conversation) => c.user.id === selectedConv.user.id);
-          if (updated) setSelectedConv(updated);
-        }
       }
     } catch (e) {
       console.error(e);
     } finally {
-      setIsLoading(false);
+      if (firstLoad) setIsLoading(false);
     }
   };
 
-  const loadConversationMessages = async (otherUserId: string) => {
+  const loadConversationMessages = async (otherUserId: string, quiet = false) => {
     if (!adminId) return;
-    setSelectedConvLoading(true);
+    if (!quiet) setSelectedConvLoading(true);
     try {
       const res = await fetch(`/api/messages?userId=${encodeURIComponent(otherUserId)}&markAdminAsRead=true`);
       if (!res.ok) return;
       const messages: Message[] = await res.json();
+
       const updatedConv = conversations.find((c) => c.user.id === otherUserId);
-      if (updatedConv) {
-        setSelectedConv({
-          ...updatedConv,
-          messages,
-          lastMessageAt: messages[messages.length - 1]?.createdAt || updatedConv.lastMessageAt,
-          unreadCount: 0,
-        });
-      } else {
-        const user = updatedConv?.user || ({ id: otherUserId, name: 'Utilisateur', phone: '' } as UserInfo);
-        setSelectedConv({ user, messages, lastMessageAt: messages[messages.length - 1]?.createdAt || '', unreadCount: 0 });
-      }
-      await loadConversations();
+      const user = updatedConv?.user || ({ id: otherUserId, name: 'Utilisateur', phone: '' } as UserInfo);
+
+      setSelectedConv({
+        user,
+        messages,
+        lastMessageAt: messages[messages.length - 1]?.createdAt || updatedConv?.lastMessageAt || '',
+        unreadCount: 0
+      });
+
+      if (!quiet) loadConversations(false);
     } catch (e) {
       console.error(e);
     } finally {
-      setSelectedConvLoading(false);
+      if (!quiet) setSelectedConvLoading(false);
+    }
+  };
+
+  const refreshLoop = async () => {
+    if (selectedConv) {
+      await loadConversationMessages(selectedConv.user.id, true);
+    } else {
+      await loadConversations(false);
     }
   };
 
