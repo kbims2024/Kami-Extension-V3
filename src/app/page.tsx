@@ -357,6 +357,7 @@ export default function KamiExtensionPage() {
           <PublicProgressSection
             onBack={() => setCurrentScreen('home')}
             onHome={() => setCurrentScreen('home')}
+            setCurrentScreen={setCurrentScreen}
           />
         </PageTransition>
       )}

@@ -27,6 +27,7 @@ import {
 interface PublicProgressSectionProps {
   onBack?: () => void;
   onHome?: () => void;
+  setCurrentScreen?: (s: string) => void;
 }
 
 interface ProgressUpdate {
@@ -57,7 +58,32 @@ const CATEGORY_FILTERS = [
   { key: 'AUTRE', label: 'Autre' },
 ];
 
-export function PublicProgressSection({ onBack, onHome }: PublicProgressSectionProps) {
+export function PublicProgressSection({ onBack, onHome, setCurrentScreen }: PublicProgressSectionProps) {
+  const [isOnline, setIsOnline] = useState<boolean>(typeof navigator !== 'undefined' ? navigator.onLine : true);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  const handleGoLogin = () => {
+    if (setCurrentScreen) {
+      setCurrentScreen('auth-choice');
+      return;
+    }
+    if (typeof window !== 'undefined') {
+      try {
+        const evt = new CustomEvent('navigateToAuth');
+        window.dispatchEvent(evt);
+      } catch {}
+    }
+  };
   const [updates, setUpdates] = useState<ProgressUpdate[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('TOUS');
@@ -169,7 +195,18 @@ export function PublicProgressSection({ onBack, onHome }: PublicProgressSectionP
         </div>
 
         {/* Content */}
-        {loading ? (
+        {(!isOnline) ? (
+          <div className="flex flex-col items-center justify-center py-24 px-6">
+            <div className="w-full max-w-md bg-card border border-border rounded-xl p-6 text-center">
+              <h3 className="text-lg font-bold mb-2">Connexion requise</h3>
+              <p className="text-sm text-muted-foreground mb-4">Vous êtes hors-ligne. Connectez-vous pour accéder aux mises à jour complètes du village.</p>
+              <div className="flex gap-3 justify-center">
+                <Button onClick={() => { setIsOnline(navigator.onLine); loadUpdates(); }} className="px-4">Réessayer</Button>
+                <Button onClick={() => { handleGoLogin(); }} variant="outline" className="px-4">Se connecter</Button>
+              </div>
+            </div>
+          </div>
+        ) : loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue" />
           </div>
