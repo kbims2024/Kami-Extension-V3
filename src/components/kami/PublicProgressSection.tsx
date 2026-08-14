@@ -22,6 +22,7 @@ import {
   X,
   ArrowLeft,
   Home as HomeIcon,
+  WifiOff,
 } from 'lucide-react';
 
 interface PublicProgressSectionProps {
@@ -97,6 +98,12 @@ export function PublicProgressSection({ onBack, onHome, setCurrentScreen }: Publ
   const loadUpdates = async () => {
     setLoading(true);
     try {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        setIsOnline(false);
+        setUpdates([]);
+        return;
+      }
+
       const params = activeFilter !== 'TOUS' ? `?category=${activeFilter}` : '';
       const response = await fetch(`/api/progress-updates${params}`);
       if (response.ok) {
@@ -105,6 +112,7 @@ export function PublicProgressSection({ onBack, onHome, setCurrentScreen }: Publ
       }
     } catch (error) {
       console.error('Error loading progress updates:', error);
+      setIsOnline(false);
     } finally {
       setLoading(false);
     }
@@ -196,13 +204,35 @@ export function PublicProgressSection({ onBack, onHome, setCurrentScreen }: Publ
 
         {/* Content */}
         {(!isOnline) ? (
-          <div className="flex flex-col items-center justify-center py-24 px-6">
-            <div className="w-full max-w-md bg-card border border-border rounded-xl p-6 text-center">
-              <h3 className="text-lg font-bold mb-2">Connexion requise</h3>
-              <p className="text-sm text-muted-foreground mb-4">Vous êtes hors-ligne. Connectez-vous pour accéder aux mises à jour complètes du village.</p>
-              <div className="flex gap-3 justify-center">
-                <Button onClick={() => { setIsOnline(navigator.onLine); loadUpdates(); }} className="px-4">Réessayer</Button>
-                <Button onClick={() => { handleGoLogin(); }} variant="outline" className="px-4">Se connecter</Button>
+          <div className="flex min-h-[60vh] items-center justify-center px-4 sm:px-6">
+            <div className="w-full max-w-md rounded-3xl border border-border bg-card/90 p-5 shadow-sm sm:p-8">
+              <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                <WifiOff className="h-8 w-8" />
+              </div>
+
+              <p className="text-center text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                Mode hors ligne
+              </p>
+              <h3 className="mt-3 text-center text-2xl font-bold text-foreground sm:text-3xl">
+                Connectez-vous pour voir le contenu
+              </h3>
+              <p className="mt-3 text-center text-sm leading-6 text-muted-foreground sm:text-base">
+                Vous êtes actuellement hors ligne. Connectez-vous à internet ou ouvrez votre session pour accéder aux mises à jour du village et aux informations complètes.
+              </p>
+
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+                <Button
+                  onClick={() => {
+                    setIsOnline(typeof navigator !== 'undefined' ? navigator.onLine : true);
+                    loadUpdates();
+                  }}
+                  className="w-full sm:w-auto"
+                >
+                  Réessayer
+                </Button>
+                <Button onClick={handleGoLogin} variant="outline" className="w-full sm:w-auto">
+                  Se connecter
+                </Button>
               </div>
             </div>
           </div>
