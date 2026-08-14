@@ -310,14 +310,30 @@ export default function KamiExtensionPage() {
 
   if (!mounted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background px-4">
-        <div className="w-full max-w-md rounded-3xl border border-border bg-card p-6 text-center shadow-sm">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-blue/10 text-brand-blue">
-            <WifiOff className="h-8 w-8" />
+      <div className="min-h-screen flex items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.08),_transparent_40%),linear-gradient(135deg,#f8fafc_0%,#eefbf6_45%,#f5f3ff_100%)] px-4 dark:bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.12),_transparent_40%),linear-gradient(135deg,#020817_0%,#0f172a_45%,#111827_100%)]">
+        <div className="w-full max-w-md rounded-[2rem] border border-border/60 bg-card/80 p-6 text-center shadow-[0_25px_80px_rgba(15,23,42,0.12)] backdrop-blur-sm sm:p-8">
+          <div className="relative mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-[2rem] bg-gradient-to-br from-[#10B981]/15 via-[#8B5E3C]/10 to-[#2563EB]/10 shadow-inner">
+            <div className="absolute inset-2 animate-pulse rounded-[1.5rem] bg-white/20 dark:bg-slate-900/20" />
+            <div className="relative scale-110">
+              <LogoDisplay size="lg" showBackground={true} />
+            </div>
           </div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">KAMI-EXTENSION</p>
-          <h1 className="mt-3 text-2xl font-bold text-foreground">Chargement de l&apos;application</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Initialisation de votre espace en cours...</p>
+
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground">KAMI-EXTENSION</p>
+          <h1 className="mt-4 text-3xl font-black tracking-tight text-foreground sm:text-4xl">Bienvenue</h1>
+          <p className="mt-2 text-sm text-muted-foreground sm:text-base">
+            Préparation de votre espace de réservation et de suivi...
+          </p>
+
+          <div className="mt-6 flex items-center justify-center gap-2">
+            {[0, 1, 2].map((dot) => (
+              <span
+                key={dot}
+                className="h-2.5 w-2.5 rounded-full bg-[#10B981] animate-pulse"
+                style={{ animationDelay: `${dot * 180}ms` }}
+              />
+            ))}
+          </div>
         </div>
       </div>
     );
