@@ -230,18 +230,30 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
 
                   <motion.div
                     variants={btnChildVariants}
-                    className="w-full"
-                    animate={shouldReduceMotion ? undefined : { scale: [1, 1.03, 1], y: [0, -6, 0] }}
-                    transition={shouldReduceMotion ? undefined : { duration: 2.4, repeat: Infinity, repeatType: 'loop', ease: 'easeInOut' }}
-                    whileHover={shouldReduceMotion ? { scale: 1.02 } : { scale: 1.08, y: -4 }}
-                    whileTap={{ scale: 0.95 }}
+                    className="w-full relative"
+                    whileHover={shouldReduceMotion ? { scale: 1.02 } : { scale: 1.03 }}
+                    whileTap={{ scale: 0.96 }}
                   >
                     <Button
                       onClick={onReserveClick}
-                      className="w-full bg-gradient-to-r from-amber-300 via-amber-400 to-orange-400 dark:from-amber-500 dark:via-orange-500 dark:to-orange-500 text-slate-900 font-bold py-3 md:py-4 px-6 md:px-8 rounded-lg md:rounded-xl text-sm md:text-base shadow-2xl shadow-amber-400/30 dark:shadow-amber-500/30 transition-all"
+                      className="w-full bg-gradient-to-r from-amber-300 via-amber-400 to-orange-400 dark:from-amber-500 dark:via-orange-500 dark:to-orange-500 text-slate-900 font-bold py-3 md:py-4 px-6 md:px-8 rounded-lg md:rounded-xl text-sm md:text-base shadow-2xl shadow-amber-400/30 dark:shadow-amber-500/30 transition-all relative overflow-visible"
                     >
                       Je réserve mon lot
                     </Button>
+                    {/* Halo element */}
+                    {!shouldReduceMotion && (
+                      <motion.span
+                        aria-hidden
+                        className="pointer-events-none absolute inset-0 rounded-lg"
+                        style={{
+                          boxShadow: '0 10px 30px rgba(253, 224, 71, 0.12)',
+                          borderRadius: 12,
+                        }}
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        whileHover={{ opacity: 1, scale: 1.02 }}
+                        transition={{ ease: 'easeOut', duration: 0.25 }}
+                      />
+                    )}
                   </motion.div>
 
                   <motion.div variants={btnChildVariants} className="w-full">
