@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PageNav } from './PageNav';
@@ -77,6 +77,33 @@ interface CommitteeChatViewProps {
  setCurrentScreen: (screen: string) => void;
   onBack?: () => void;
   onHome?: () => void;
+}
+
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { error: any }> {
+  constructor(props: any) {
+    super(props);
+    this.state = { error: null };
+  }
+
+  static getDerivedStateFromError(error: any) {
+    return { error };
+  }
+
+  componentDidCatch(error: any, info: any) {
+    console.error('ErrorBoundary caught:', error, info);
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="p-4">
+          <h3 className="text-red-600 font-bold">Erreur lors du rendu</h3>
+          <pre className="text-sm text-red-500">{String(this.state.error)}</pre>
+        </div>
+      );
+    }
+    return this.props.children as React.ReactElement;
+  }
 }
 
 export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: CommitteeChatViewProps) {
@@ -389,6 +416,7 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
   // ════════════════════════════════════════════
   if (!selectedConv) {
     return (
+      <ErrorBoundary>
       <div className="flex-1 flex flex-col h-screen max-h-screen">
         <PageNav
           onBack={onBack || (() => setCurrentScreen('espace-cgl'))}
@@ -484,6 +512,7 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
           </div>
         </div>
       </div>
+      </ErrorBoundary>
     );
   }
 
@@ -491,6 +520,7 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
   //    CHAT VIEW (initiative card + messages)
   // ════════════════════════════════════════════
   return (
+    <ErrorBoundary>
     <div className="flex-1 flex flex-col h-screen max-h-screen">
       <PageNav
         onBack={() => { setSelectedConv(null); loadConversations(); }}
@@ -601,6 +631,7 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
           <Send className="h-5 w-5" />
         </Button>
       </div>
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }
