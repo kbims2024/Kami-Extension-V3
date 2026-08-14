@@ -6,7 +6,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { FlashInfoBand } from '@/components/flash-info-band';
 import { Menu, Map, TrendingUp, Clock, Award, ArrowRight, ChevronRight, Headset, Building2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useTheme } from 'next-themes';
 
 interface PersuasiveLandingPageProps {
@@ -18,6 +18,7 @@ interface PersuasiveLandingPageProps {
 
 export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, setCurrentScreen }: PersuasiveLandingPageProps) {
   const { theme } = useTheme();
+  const shouldReduceMotion = useReducedMotion();
   const availableCount = lots.filter((l) => l.status === 'AVAILABLE').length;
   const reservedCount = lots.filter((l) => l.status === 'RESERVED').length;
   const paidCount = lots.filter((l) => l.status === 'PAID').length;
@@ -230,15 +231,9 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
                   <motion.div
                     variants={btnChildVariants}
                     className="w-full"
-                    animate={{
-                      scale: [1, 1.05, 1],
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                    whileHover={{ scale: 1.08 }}
+                    animate={shouldReduceMotion ? undefined : { scale: [1, 1.03, 1], y: [0, -6, 0] }}
+                    transition={shouldReduceMotion ? undefined : { duration: 2.4, repeat: Infinity, repeatType: 'loop', ease: 'easeInOut' }}
+                    whileHover={shouldReduceMotion ? { scale: 1.02 } : { scale: 1.08, y: -4 }}
                     whileTap={{ scale: 0.95 }}
                   >
                     <Button
