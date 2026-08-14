@@ -249,15 +249,30 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
                     transition={shouldReduceMotion ? undefined : { duration: 0.35, ease: 'easeOut' }}
                   >
                     <div className="relative overflow-visible rounded-lg">
-                      <Button
+                      <motion.button
                         onClick={(e: any) => {
                           createRipple(e);
                           onReserveClick();
                         }}
-                        className="w-full bg-gradient-to-r from-amber-300 via-amber-400 to-orange-400 dark:from-amber-500 dark:via-orange-500 dark:to-orange-500 text-slate-900 font-bold py-3 md:py-4 px-6 md:px-8 rounded-lg md:rounded-xl text-sm md:text-base shadow-2xl shadow-amber-400/30 dark:shadow-amber-500/30 transition-all relative overflow-hidden"
+                        whileHover={shouldReduceMotion ? undefined : { scale: 1.02, y: -1 }}
+                        whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
+                        className="group relative w-full bg-gradient-to-r from-amber-300 via-amber-400 to-orange-400 dark:from-amber-500 dark:via-orange-500 dark:to-orange-500 text-slate-900 font-bold py-3 md:py-4 px-6 md:px-8 rounded-lg md:rounded-xl text-sm md:text-base shadow-2xl shadow-amber-400/30 dark:shadow-amber-500/30 transition-all overflow-hidden"
                       >
-                        Je réserve mon lot
-                      </Button>
+                        <span className="relative z-10 inline-flex items-center justify-center gap-2">
+                          <span className="inline-block h-2.5 w-2.5 rounded-full bg-slate-900/80 group-hover:scale-125 transition-transform" />
+                          Je réserve mon lot
+                        </span>
+
+                        {!shouldReduceMotion && (
+                          <motion.span
+                            aria-hidden="true"
+                            initial={{ x: '-120%' }}
+                            animate={{ x: '120%' }}
+                            transition={{ duration: 1.8, ease: 'linear', repeat: Infinity, repeatDelay: 0.4 }}
+                            className="absolute inset-y-0 left-0 w-1/2 skew-x-[-18deg] bg-gradient-to-r from-transparent via-white/70 to-transparent"
+                          />
+                        )}
+                      </motion.button>
 
                       {!shouldReduceMotion && (
                         <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-lg">

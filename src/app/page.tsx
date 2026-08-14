@@ -309,34 +309,7 @@ export default function KamiExtensionPage() {
   };
 
   if (!mounted) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.08),_transparent_40%),linear-gradient(135deg,#f8fafc_0%,#eefbf6_45%,#f5f3ff_100%)] px-4 dark:bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.12),_transparent_40%),linear-gradient(135deg,#020817_0%,#0f172a_45%,#111827_100%)]">
-        <div className="w-full max-w-md rounded-[2rem] border border-border/60 bg-card/80 p-6 text-center shadow-[0_25px_80px_rgba(15,23,42,0.12)] backdrop-blur-sm sm:p-8">
-          <div className="relative mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-[2rem] bg-gradient-to-br from-[#10B981]/15 via-[#8B5E3C]/10 to-[#2563EB]/10 shadow-inner">
-            <div className="absolute inset-2 animate-pulse rounded-[1.5rem] bg-white/20 dark:bg-slate-900/20" />
-            <div className="relative scale-110">
-              <LogoDisplay size="lg" showBackground={true} />
-            </div>
-          </div>
-
-          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground">KAMI-EXTENSION</p>
-          <h1 className="mt-4 text-3xl font-black tracking-tight text-foreground sm:text-4xl">Bienvenue</h1>
-          <p className="mt-2 text-sm text-muted-foreground sm:text-base">
-            Préparation de votre espace de réservation et de suivi...
-          </p>
-
-          <div className="mt-6 flex items-center justify-center gap-2">
-            {[0, 1, 2].map((dot) => (
-              <span
-                key={dot}
-                className="h-2.5 w-2.5 rounded-full bg-[#10B981] animate-pulse"
-                style={{ animationDelay: `${dot * 180}ms` }}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   if (typeof navigator !== 'undefined' && !navigator.onLine) {
@@ -1698,6 +1671,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
   // Payments state
   const [payments, setPayments] = useState<any[]>([]);
   const [paymentsLoading, setPaymentsLoading] = useState(false);
+  const [paymentFilter, setPaymentFilter] = useState<'all' | 'validated' | 'pending'>('all');
 
   // New lot state
   const [newLot, setNewLot] = useState({ name: '', surface: '', block: '', priceRes: '', priceNon: '' });
@@ -2079,76 +2053,114 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
                 <p>Chargement...</p>
               </CardContent>
             </Card>
-          ) : payments.length === 0 ? (
-            <Card className="bg-card p-6">
-              <CardContent className="text-center text-muted-foreground">
-                <AlertCircle className="h-8 w-8 mx-auto mb-2" />
-                <p>Aucun paiement en attente.</p>
-              </CardContent>
-            </Card>
           ) : (
             <div className="space-y-4">
-              {payments.map((payment: any) => {
-                const progress = ((payment.paidAmount || 0) / (payment.totalPrice || 1)) * 100;
-                const remaining = (payment.totalPrice || 0) - (payment.paidAmount || 0);
-                const isPaid = payment.paidAmount >= payment.totalPrice;
+              <div className="flex flex-wrap gap-2 mb-4">
+                {[
+                  { key: 'all', label: 'Tout' },
+                  { key: 'validated', label: 'Validé' },
+                  { key: 'pending', label: 'Non validé' },
+                ].map((filter) => (
+                  <Button
+                    key={filter.key}
+                    type="button"
+                    size="sm"
+                    variant={paymentFilter === filter.key ? 'default' : 'outline'}
+                    className={paymentFilter === filter.key ? 'bg-[#10B981] hover:bg-[#059669] text-white' : ''}
+                    onClick={() => setPaymentFilter(filter.key as 'all' | 'validated' | 'pending')}
+                  >
+                    {filter.label}
+                  </Button>
+                ))}
+              </div>
 
-                return (
-                  <Card key={payment.id || `pay-${payment.lotId}`} className="bg-card rounded-xl shadow-sm border border-border">
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <h3 className="font-bold text-foreground">Lot {payment.lot?.name || payment.lotName}</h3>
-                          <p className="text-xs text-muted-foreground">{payment.user?.name || 'Utilisateur inconnu'}</p>
-                        </div>
-                        <Badge className={isPaid ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'}>
-                          {isPaid ? 'Soldé' : 'En cours'}
-                        </Badge>
-                      </div>
-                      
-                      <div className="mb-3">
-                        <div className="flex justify-between text-sm mb-1">
-                          <span className="text-muted-foreground">Payé</span>
-                          <span className="font-bold text-[#10B981]">{(payment.paidAmount || 0).toLocaleString('fr-FR')} F</span>
-                        </div>
-                        <div className="flex justify-between text-sm mb-2">
-                          <span className="text-muted-foreground">Total</span>
-                          <span className="font-bold text-foreground">{(payment.totalPrice || 0).toLocaleString('fr-FR')} F</span>
-                        </div>
-                        {!isPaid && (
-                          <div className="flex justify-between text-sm mb-2">
-                            <span className="text-muted-foreground">Reste</span>
-                            <span className="font-bold text-red-500 dark:text-red-400">{remaining.toLocaleString('fr-FR')} F</span>
+              {(() => {
+                const filteredPayments = payments.filter((payment: any) => {
+                  const isValidated = (payment.paidAmount || 0) >= (payment.totalPrice || 0);
+                  if (paymentFilter === 'validated') return isValidated;
+                  if (paymentFilter === 'pending') return !isValidated;
+                  return true;
+                });
+
+                if (filteredPayments.length === 0) {
+                  return (
+                    <Card className="bg-card p-6">
+                      <CardContent className="text-center text-muted-foreground">
+                        <AlertCircle className="h-8 w-8 mx-auto mb-2" />
+                        <p>
+                          {paymentFilter === 'all'
+                            ? 'Aucun paiement en attente.'
+                            : paymentFilter === 'validated'
+                            ? 'Aucun paiement validé.'
+                            : 'Aucun paiement non validé.'}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  );
+                }
+
+                return filteredPayments.map((payment: any) => {
+                  const progress = ((payment.paidAmount || 0) / (payment.totalPrice || 1)) * 100;
+                  const remaining = (payment.totalPrice || 0) - (payment.paidAmount || 0);
+                  const isPaid = (payment.paidAmount || 0) >= (payment.totalPrice || 0);
+
+                  return (
+                    <Card key={payment.id || `pay-${payment.lotId}`} className="bg-card rounded-xl shadow-sm border border-border">
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h3 className="font-bold text-foreground">Lot {payment.lot?.name || payment.lotName}</h3>
+                            <p className="text-xs text-muted-foreground">{payment.user?.name || 'Utilisateur inconnu'}</p>
                           </div>
-                        )}
-                        <div className="w-full bg-border rounded-full h-2">
-                          <div className="bg-[#10B981] h-2 rounded-full transition-all" style={{ width: `${Math.min(progress, 100)}%` }} />
+                          <Badge className={isPaid ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'}>
+                            {isPaid ? 'Soldé' : 'En cours'}
+                          </Badge>
                         </div>
-                      </div>
 
-                      <div className="flex gap-2 mt-3">
-                        <Button
-                          size="sm"
-                          className="flex-1 bg-[#10B981] hover:bg-[#059669] text-white"
-                          onClick={() => handleValidatePayment(payment.id)}
-                        >
-                          <CheckCircle className="mr-1 h-4 w-4" />
-                          Valider
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          className="flex-1"
-                          onClick={() => handleDeleteReservation(payment.id)}
-                        >
-                          <XCircle className="mr-1 h-4 w-4" />
-                          Supprimer
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+                        <div className="mb-3">
+                          <div className="flex justify-between text-sm mb-1">
+                            <span className="text-muted-foreground">Payé</span>
+                            <span className="font-bold text-[#10B981]">{(payment.paidAmount || 0).toLocaleString('fr-FR')} F</span>
+                          </div>
+                          <div className="flex justify-between text-sm mb-2">
+                            <span className="text-muted-foreground">Total</span>
+                            <span className="font-bold text-foreground">{(payment.totalPrice || 0).toLocaleString('fr-FR')} F</span>
+                          </div>
+                          {!isPaid && (
+                            <div className="flex justify-between text-sm mb-2">
+                              <span className="text-muted-foreground">Reste</span>
+                              <span className="font-bold text-red-500 dark:text-red-400">{remaining.toLocaleString('fr-FR')} F</span>
+                            </div>
+                          )}
+                          <div className="w-full bg-border rounded-full h-2">
+                            <div className="bg-[#10B981] h-2 rounded-full transition-all" style={{ width: `${Math.min(progress, 100)}%` }} />
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 mt-3">
+                          <Button
+                            size="sm"
+                            className="flex-1 bg-[#10B981] hover:bg-[#059669] text-white"
+                            onClick={() => handleValidatePayment(payment.id)}
+                          >
+                            <CheckCircle className="mr-1 h-4 w-4" />
+                            Valider
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="flex-1"
+                            onClick={() => handleDeleteReservation(payment.id)}
+                          >
+                            <XCircle className="mr-1 h-4 w-4" />
+                            Supprimer
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                });
+              })()}
             </div>
           )}
         </div>
