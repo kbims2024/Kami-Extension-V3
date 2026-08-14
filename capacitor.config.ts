@@ -7,6 +7,7 @@ const config = {
   server: {
     // Cette option transforme l'APK en un "navigateur" direct vers votre site
     url: 'https://kami-extension-v3.vercel.app/',
+    errorPath: 'offline.html',
     cleartext: true,
     androidScheme: 'https'
   },

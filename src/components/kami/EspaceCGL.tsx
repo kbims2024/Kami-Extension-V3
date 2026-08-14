@@ -31,10 +31,28 @@ interface EspaceCGLProps {
 export function EspaceCGL({ setCurrentScreen, goToAdminScreen, onBack }: EspaceCGLProps) {
   const [enabledFeatures, setEnabledFeatures] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
 
   useEffect(() => {
     loadPermissions();
+    loadUnreadCount();
+
+    const interval = setInterval(loadUnreadCount, 15000);
+    return () => clearInterval(interval);
   }, []);
+
+  const loadUnreadCount = async () => {
+    try {
+      const res = await fetch('/api/committee-chat');
+      if (res.ok) {
+        const data = await res.json();
+        const count = data.reduce((acc: number, conv: any) => acc + (conv.unreadCount > 0 ? 1 : 0), 0);
+        setUnreadChatCount(count);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const loadPermissions = async () => {
     try {
@@ -93,9 +111,14 @@ export function EspaceCGL({ setCurrentScreen, goToAdminScreen, onBack }: EspaceC
         {/* ─── Permanent Discussion Button (always visible) ─── */}
         <div className="mb-5">
           <Card
-            className="bg-gradient-to-br from-blue-600 to-indigo-700 p-3 rounded-xl shadow-md cursor-pointer hover:shadow-lg transition-all active:scale-[0.97] h-[100px] border-0"
+            className="bg-gradient-to-br from-blue-600 to-indigo-700 p-3 rounded-xl shadow-md cursor-pointer hover:shadow-lg transition-all active:scale-[0.97] h-[100px] border-0 relative overflow-hidden"
             onClick={() => setCurrentScreen('committee-chat')}
           >
+            {unreadChatCount > 0 && (
+              <div className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm animate-bounce">
+                {unreadChatCount} discussion{unreadChatCount > 1 ? 's' : ''}
+              </div>
+            )}
             <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
               <MessageSquare className="h-7 w-7 mb-2 text-white" />
               <p className="text-xs font-bold leading-tight text-white">Gestion de Discussion</p>

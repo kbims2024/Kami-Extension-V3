@@ -79,7 +79,7 @@ export async function GET() {
       userGroups[otherId].messages.push(msg);
     }
 
-    // Convert to array, sorted by most recent message
+    // Convert to array, sorted by priority (unread first, then most recent)
     const conversations = Object.values(userGroups).map((group) => ({
       ...group,
       lastMessageAt: group.messages[group.messages.length - 1]?.createdAt || '',
@@ -88,10 +88,13 @@ export async function GET() {
       ).length,
     }));
 
-    conversations.sort(
-      (a, b) =>
-        new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime()
-    );
+    conversations.sort((a, b) => {
+      // Prioritize unread
+      if (a.unreadCount > 0 && b.unreadCount === 0) return -1;
+      if (a.unreadCount === 0 && b.unreadCount > 0) return 1;
+      // Then sort by date
+      return new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime();
+    });
 
     return NextResponse.json(conversations);
   } catch (error) {
