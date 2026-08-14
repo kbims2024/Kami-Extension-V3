@@ -14,7 +14,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { Building2, Map, Home, Wallet, Users, User, Shield, ArrowLeft, Menu, LogOut, LogIn, CheckCircle, XCircle, AlertCircle, ChartLine, CreditCard, UserPlus, PlusCircle, Wrench, Zap, Droplet, ShieldCheck, FileText, Copy, ClipboardCheck, Upload, Phone, Activity, Construction, TrendingUp, Camera, Share2, Headset, Plus, Trash2, Image as ImageIcon, Crown } from 'lucide-react';
+import { Building2, Map, Home, Wallet, Users, User, Shield, ArrowLeft, Menu, LogOut, LogIn, CheckCircle, XCircle, AlertCircle, ChartLine, CreditCard, UserPlus, PlusCircle, Wrench, Zap, Droplet, ShieldCheck, FileText, Copy, ClipboardCheck, Upload, Phone, Activity, Construction, TrendingUp, Camera, Share2, Headset, Plus, Trash2, Image as ImageIcon, Crown, WifiOff } from 'lucide-react';
 import { EnhancedMapScreen } from '@/components/kami/EnhancedMapScreen';
 import { PersuasiveLandingPage } from '@/components/kami/PersuasiveLandingPage';
 import { TwoStepRegistration } from '@/components/kami/TwoStepRegistration';
@@ -308,7 +308,54 @@ export default function KamiExtensionPage() {
     }
   };
 
-  if (!mounted) return null;
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="w-full max-w-md rounded-3xl border border-border bg-card p-6 text-center shadow-sm">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-blue/10 text-brand-blue">
+            <WifiOff className="h-8 w-8" />
+          </div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">KAMI-EXTENSION</p>
+          <h1 className="mt-3 text-2xl font-bold text-foreground">Chargement de l&apos;application</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Initialisation de votre espace en cours...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
+        <div className="w-full max-w-md rounded-3xl border border-border bg-card p-6 text-center shadow-sm sm:p-8">
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+            <WifiOff className="h-8 w-8" />
+          </div>
+
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Mode hors ligne</p>
+          <h1 className="mt-3 text-2xl font-bold text-foreground sm:text-3xl">Connectez-vous pour voir le contenu</h1>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground sm:text-base">
+            L&apos;application est en cours de lancement, mais votre connexion est actuellement indisponible. Revenez en ligne puis reconnectez-vous pour accéder à votre espace.
+          </p>
+
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <Button
+              onClick={() => window.location.reload()}
+              className="w-full sm:w-auto"
+            >
+              Réessayer
+            </Button>
+            <Button
+              onClick={() => setCurrentScreen('auth-choice')}
+              variant="outline"
+              className="w-full sm:w-auto"
+            >
+              Se connecter
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
