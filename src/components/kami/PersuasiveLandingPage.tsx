@@ -28,6 +28,19 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
   const [animatedNumbers, setAnimatedNumbers] = useState({ available: 0, reservedRate: 0, purchasedRate: 0 });
   const [heroBackground, setHeroBackground] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [ripples, setRipples] = useState<Array<{ id: number; x: number; y: number; size: number }>>([]);
+
+  const createRipple = (e: any) => {
+    if (shouldReduceMotion) return;
+    const target = e.currentTarget as HTMLElement;
+    const rect = target.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height) * 1.2;
+    const x = e.clientX - rect.left - size / 2;
+    const y = e.clientY - rect.top - size / 2;
+    const id = Date.now() + Math.floor(Math.random() * 1000);
+    setRipples((r) => [...r, { id, x, y, size }]);
+    setTimeout(() => setRipples((r) => r.filter((p) => p.id !== id)), 700);
+  };
 
   const btnContainerVariants = {
     hidden: {},
@@ -231,29 +244,44 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
                   <motion.div
                     variants={btnChildVariants}
                     className="w-full relative"
-                    whileHover={shouldReduceMotion ? { scale: 1.02 } : { scale: 1.03 }}
-                    whileTap={{ scale: 0.96 }}
+                    initial={shouldReduceMotion ? undefined : { opacity: 0, y: 8 }}
+                    animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+                    transition={shouldReduceMotion ? undefined : { duration: 0.35, ease: 'easeOut' }}
                   >
-                    <Button
-                      onClick={onReserveClick}
-                      className="w-full bg-gradient-to-r from-amber-300 via-amber-400 to-orange-400 dark:from-amber-500 dark:via-orange-500 dark:to-orange-500 text-slate-900 font-bold py-3 md:py-4 px-6 md:px-8 rounded-lg md:rounded-xl text-sm md:text-base shadow-2xl shadow-amber-400/30 dark:shadow-amber-500/30 transition-all relative overflow-visible"
-                    >
-                      Je réserve mon lot
-                    </Button>
-                    {/* Halo element */}
-                    {!shouldReduceMotion && (
-                      <motion.span
-                        aria-hidden
-                        className="pointer-events-none absolute inset-0 rounded-lg"
-                        style={{
-                          boxShadow: '0 10px 30px rgba(253, 224, 71, 0.12)',
-                          borderRadius: 12,
+                    <div className="relative overflow-visible rounded-lg">
+                      <Button
+                        onClick={(e: any) => {
+                          createRipple(e);
+                          onReserveClick();
                         }}
-                        initial={{ opacity: 0, scale: 0.98 }}
-                        whileHover={{ opacity: 1, scale: 1.02 }}
-                        transition={{ ease: 'easeOut', duration: 0.25 }}
-                      />
-                    )}
+                        className="w-full bg-gradient-to-r from-amber-300 via-amber-400 to-orange-400 dark:from-amber-500 dark:via-orange-500 dark:to-orange-500 text-slate-900 font-bold py-3 md:py-4 px-6 md:px-8 rounded-lg md:rounded-xl text-sm md:text-base shadow-2xl shadow-amber-400/30 dark:shadow-amber-500/30 transition-all relative overflow-hidden"
+                      >
+                        Je réserve mon lot
+                      </Button>
+
+                      {!shouldReduceMotion && (
+                        <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-lg">
+                          {ripples.map((r) => (
+                            <motion.span
+                              key={r.id}
+                              initial={{ opacity: 0.45, scale: 0 }}
+                              animate={{ opacity: 0, scale: 1 }}
+                              transition={{ duration: 0.6, ease: 'easeOut' }}
+                              style={{
+                                position: 'absolute',
+                                left: r.x,
+                                top: r.y,
+                                width: r.size,
+                                height: r.size,
+                                borderRadius: '50%',
+                                background: 'rgba(255,255,255,0.35)',
+                                transformOrigin: 'center',
+                              }}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </motion.div>
 
                   <motion.div variants={btnChildVariants} className="w-full">
