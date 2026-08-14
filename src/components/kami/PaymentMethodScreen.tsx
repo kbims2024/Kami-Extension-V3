@@ -46,6 +46,8 @@ const PAYMENT_METHODS = [
     bgColor: 'bg-[#1DC3E0]/10',
     borderColor: 'border-[#1DC3E0]/30',
     hoverBorder: 'hover:border-[#1DC3E0]',
+    appScheme: 'wave://',
+    fallbackUrl: 'https://wave.com/',
   },
   {
     id: 'orange_money',
@@ -55,6 +57,8 @@ const PAYMENT_METHODS = [
     bgColor: 'bg-[#FF6600]/10',
     borderColor: 'border-[#FF6600]/30',
     hoverBorder: 'hover:border-[#FF6600]',
+    appScheme: 'orange-money://',
+    fallbackUrl: 'https://www.orange.ci/',
   },
   {
     id: 'moov_money',
@@ -64,6 +68,8 @@ const PAYMENT_METHODS = [
     bgColor: 'bg-[#0066CC]/10',
     borderColor: 'border-[#0066CC]/30',
     hoverBorder: 'hover:border-[#0066CC]',
+    appScheme: 'moovmoney://',
+    fallbackUrl: 'https://www.moov-africa.ci/',
   },
   {
     id: 'mtn_money',
@@ -73,6 +79,8 @@ const PAYMENT_METHODS = [
     bgColor: 'bg-[#FFCC00]/10',
     borderColor: 'border-[#FFCC00]/30',
     hoverBorder: 'hover:border-[#FFCC00]',
+    appScheme: 'mtnmobilemoney://',
+    fallbackUrl: 'https://mtn.ci/',
   },
 ];
 
@@ -127,6 +135,32 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
     setPaymentAmount(restant.toString());
   };
 
+  const openPaymentApp = (methodId: string) => {
+    const method = PAYMENT_METHODS.find((m) => m.id === methodId);
+    if (!method) return;
+
+    const fallback = () => {
+      if (typeof window !== 'undefined') {
+        window.open(method.fallbackUrl, '_blank', 'noopener,noreferrer');
+      }
+    };
+
+    if (typeof window === 'undefined') return;
+
+    const appLink = method.appScheme;
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = appLink;
+    document.body.appendChild(iframe);
+
+    window.setTimeout(() => {
+      document.body.removeChild(iframe);
+      fallback();
+    }, 1800);
+
+    window.location.href = appLink;
+  };
+
   const handleValidate = async () => {
     const amount = parseInt(paymentAmount);
     if (!amount || amount < 10000) {
@@ -143,10 +177,15 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
     }
 
     setIsValidating(true);
-    // Simuler un délai pour l'UX
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    toast.info(`Ouverture de ${PAYMENT_METHODS.find((m) => m.id === selectedMethod)?.name || 'l’application'}...`);
+
+    await new Promise(resolve => setTimeout(resolve, 1200));
+
+    if (selectedMethod) {
+      openPaymentApp(selectedMethod);
+    }
+
     setIsValidating(false);
-    setShowDevMessage(true);
   };
 
   const formatPrice = (n: number) => n.toLocaleString('fr-FR');
