@@ -61,25 +61,23 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    const existing = await findSettings();
-    if (existing) {
-      // Update existing settings - handle both id and _id patterns
-      await db.settings.update({
-        where: { id: existing.id || existing._id },
-        data: { cglPermissions: JSON.stringify(cleaned) },
+    let settings = await db.settings.findFirst();
+
+    if (!settings) {
+      settings = await db.settings.create({
+        data: {
+          _id: CGL_PERMISSIONS_ID,
+          cglPermissions: cleaned,
+        },
       });
     } else {
-      // Create new settings if doesn't exist
-      await db.settings.create({
-        data: { 
-          id: CGL_PERMISSIONS_ID,
-          _id: CGL_PERMISSIONS_ID, 
-          cglPermissions: JSON.stringify(cleaned) 
-        },
+      settings = await db.settings.update({
+        where: { id: settings.id },
+        data: { cglPermissions: cleaned },
       });
     }
 
-    return NextResponse.json({ success: true, permissions: cleaned });
+    return NextResponse.json({ success: true, permissions: cleaned, settingsId: settings?.id || CGL_PERMISSIONS_ID });
   } catch (error) {
     console.error('Error updating CGL permissions:', error);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });

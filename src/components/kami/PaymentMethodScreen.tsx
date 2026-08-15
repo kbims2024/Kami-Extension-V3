@@ -84,6 +84,18 @@ const PAYMENT_METHODS = [
   },
 ];
 
+async function loadPaymentMethodLogos(): Promise<Record<string, string>> {
+  try {
+    const res = await fetch('/api/admin/payment-methods');
+    if (!res.ok) return {};
+    const data = await res.json();
+    return data.logos || {};
+  } catch (error) {
+    console.error('Error loading payment logos:', error);
+    return {};
+  }
+}
+
 export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHome }: PaymentMethodScreenProps) {
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [paymentAmount, setPaymentAmount] = useState('');
@@ -92,6 +104,7 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
   const [loading, setLoading] = useState(true);
   const [existingPaid, setExistingPaid] = useState(0);
   const [showDevMessage, setShowDevMessage] = useState(false);
+  const [paymentLogos, setPaymentLogos] = useState<Record<string, string>>({});
 
   const totalPrice = user.isResident ? lot.priceRes : lot.priceNon;
   const remaining = totalPrice - existingPaid - (parseInt(paymentAmount) || 0);
@@ -100,6 +113,7 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
   // Charger les paiements existants pour ce lot
   useEffect(() => {
     loadExistingPayments();
+    loadPaymentMethodLogos().then((logos) => setPaymentLogos(logos));
   }, [lot.id, user.id]);
 
   const loadExistingPayments = async () => {
@@ -123,6 +137,12 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
     }
   };
 
+  const getMethodLogo = (methodId: string) => {
+    const direct = paymentLogos[methodId];
+    if (direct) return direct;
+    return PAYMENT_METHODS.find((m) => m.id === methodId)?.logo || '/images/wave.png';
+  };
+
   const handleSelectMethod = (methodId: string) => {
     setSelectedMethod(methodId);
     setPaymentAmount('');
@@ -137,28 +157,20 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
 
   const openPaymentApp = (methodId: string) => {
     const method = PAYMENT_METHODS.find((m) => m.id === methodId);
-    if (!method) return;
-
-    const fallback = () => {
-      if (typeof window !== 'undefined') {
-        window.open(method.fallbackUrl, '_blank', 'noopener,noreferrer');
-      }
-    };
-
-    if (typeof window === 'undefined') return;
+    if (!method || typeof window === 'undefined') return;
 
     const appLink = method.appScheme;
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    iframe.src = appLink;
-    document.body.appendChild(iframe);
+    const fallback = () => {
+      window.open(method.fallbackUrl, '_blank', 'noopener,noreferrer');
+    };
 
+    // Try the native app first. On mobile, this is the most reliable way to open the payment app directly.
+    window.location.href = appLink;
+
+    // If the app is not installed or the browser cannot launch the scheme, fallback to the web page.
     window.setTimeout(() => {
-      document.body.removeChild(iframe);
       fallback();
     }, 1800);
-
-    window.location.href = appLink;
   };
 
   const handleValidate = async () => {
@@ -253,7 +265,7 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
           </Button>
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden" style={{ backgroundColor: `${method.color}15` }}>
-              <img src={method.logo} alt={method.name} className="w-6 h-6 object-contain" />
+              <img src={getMethodLogo(method.id)} alt={method.name} className="w-6 h-6 object-contain" />
             </div>
             <h1 className="text-base font-bold text-foreground">{method.name}</h1>
           </div>
@@ -479,7 +491,7 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
                         style={{ backgroundColor: `${method.color}12` }}
                       >
                         <img
-                          src={method.logo}
+                          src={getMethodLogo(method.id)}
                           alt={method.name}
                           className="w-10 h-10 object-contain"
                         />

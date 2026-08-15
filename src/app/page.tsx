@@ -24,6 +24,7 @@ import { AdminFiles } from '@/components/kami/AdminFiles';
 import { FlashInfoAdmin } from '@/components/kami/FlashInfoAdmin';
 import { ModernSideMenu } from '@/components/kami/ModernSideMenu';
 import { AdminLogo } from '@/components/kami/AdminLogo';
+import { AdminPaymentMethodLogos } from '@/components/kami/AdminPaymentMethodLogos';
 import { SettingsPage } from '@/components/kami/SettingsPage';
 import { UserDashboard } from '@/components/kami/UserDashboard';
 import { AdminDashboard } from '@/components/kami/AdminDashboard';
@@ -1904,6 +1905,12 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
               <p className="text-sm font-bold">Éditer le Logo</p>
             </CardContent>
           </Card>
+          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('payment-logos')}>
+            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
+              <CreditCard className="text-cyan-500 dark:text-cyan-400 h-8 w-8 mb-2" />
+              <p className="text-sm font-bold">Logos Paiements</p>
+            </CardContent>
+          </Card>
           <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('hero-image')}>
             <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
               <ImageIcon className="text-pink-500 dark:text-pink-400 h-8 w-8 mb-2" />
@@ -2219,6 +2226,10 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
 
       {adminView === 'logo' && (
         <AdminLogo onClose={() => setAdminView('dashboard')} />
+      )}
+
+      {adminView === 'payment-logos' && (
+        <AdminPaymentMethodLogos onClose={() => setAdminView('dashboard')} />
       )}
 
       {adminView === 'flash-infos' && (
