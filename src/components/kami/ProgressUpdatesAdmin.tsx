@@ -60,6 +60,7 @@ export function ProgressUpdatesAdmin({ onBack, onHome }: ProgressUpdatesAdminPro
   const [videos, setVideos] = useState<string[]>([]);
   const [isPinned, setIsPinned] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [editingUpdateId, setEditingUpdateId] = useState<string | null>(null);
 
   useEffect(() => {
     loadUpdates();
@@ -145,6 +146,53 @@ export function ProgressUpdatesAdmin({ onBack, onHome }: ProgressUpdatesAdminPro
     input.click();
   };
 
+  const resetForm = () => {
+    setTitle('');
+    setDescription('');
+    setCategory('TRAVAUX');
+    setDate(new Date().toISOString().split('T')[0]);
+    setImages([]);
+    setVideos([]);
+    setIsPinned(false);
+    setEditingUpdateId(null);
+  };
+
+  const extractUploadedFileId = (mediaUrl: string) => {
+    try {
+      const match = mediaUrl.match(/\/api\/files\/([^/?#]+)/);
+      return match?.[1] || null;
+    } catch {
+      return null;
+    }
+  };
+
+  const deleteUploadedMediaFile = async (mediaUrl: string) => {
+    if (!mediaUrl) return;
+    const fileId = extractUploadedFileId(mediaUrl);
+    if (!fileId) return;
+    try {
+      await fetch(`/api/admin-files/${fileId}`, { method: 'DELETE' });
+    } catch {
+      // silent fail: media is still removed from the publication even if cleanup fails
+    }
+  };
+
+  const removeImageAt = async (index: number) => {
+    const urlToDelete = images[index];
+    setImages((prev) => prev.filter((_, idx) => idx !== index));
+    if (urlToDelete) {
+      await deleteUploadedMediaFile(urlToDelete);
+    }
+  };
+
+  const removeVideoAt = async (index: number) => {
+    const urlToDelete = videos[index];
+    setVideos((prev) => prev.filter((_, idx) => idx !== index));
+    if (urlToDelete) {
+      await deleteUploadedMediaFile(urlToDelete);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!title || !description || !category || !date) {
       toast.error('Remplissez tous les champs obligatoires');
@@ -153,21 +201,22 @@ export function ProgressUpdatesAdmin({ onBack, onHome }: ProgressUpdatesAdminPro
 
     setSubmitting(true);
     try {
-      const response = await fetch('/api/progress-updates', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, description, category, date, images, videos, isPinned }),
-      });
+      const payload = { title, description, category, date, images, videos, isPinned };
+      const response = editingUpdateId
+        ? await fetch(`/api/progress-updates/${editingUpdateId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          })
+        : await fetch('/api/progress-updates', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
 
       if (response.ok) {
-        toast.success('Publication ajoutée avec succès !');
-        setTitle('');
-        setDescription('');
-        setCategory('TRAVAUX');
-        setDate(new Date().toISOString().split('T')[0]);
-        setImages([]);
-        setVideos([]);
-        setIsPinned(false);
+        toast.success(editingUpdateId ? 'Publication mise à jour avec succès !' : 'Publication ajoutée avec succès !');
+        resetForm();
         setShowForm(false);
         loadUpdates();
       } else {
@@ -179,6 +228,18 @@ export function ProgressUpdatesAdmin({ onBack, onHome }: ProgressUpdatesAdminPro
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleEdit = (update: ProgressUpdate) => {
+    setEditingUpdateId(update.id);
+    setTitle(update.title);
+    setDescription(update.description);
+    setCategory(update.category);
+    setDate(update.date);
+    setImages(update.images || []);
+    setVideos(update.videos || []);
+    setIsPinned(update.isPinned || false);
+    setShowForm(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -254,11 +315,14 @@ export function ProgressUpdatesAdmin({ onBack, onHome }: ProgressUpdatesAdminPro
           <p className="text-sm text-muted-foreground">Gérez les publications publiques de progression</p>
         </div>
         <Button
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            resetForm();
+            setShowForm(!showForm);
+          }}
           className="bg-brand-blue hover:bg-brand-blue text-white"
         >
           <Plus className="mr-2 h-4 w-4" />
-          Nouvelle publication
+          {editingUpdateId ? 'Nouvelle publication' : 'Nouvelle publication'}
         </Button>
       </div>
 
@@ -352,7 +416,8 @@ export function ProgressUpdatesAdmin({ onBack, onHome }: ProgressUpdatesAdminPro
                     <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden border">
                       <img src={img} alt="" className="w-full h-full object-cover" />
                       <button
-                        onClick={() => setImages((prev) => prev.filter((_, idx) => idx !== i))}
+                        type="button"
+                        onClick={() => removeImageAt(i)}
                         className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
                       >
                         ×
@@ -384,7 +449,8 @@ export function ProgressUpdatesAdmin({ onBack, onHome }: ProgressUpdatesAdminPro
                     <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden border bg-muted flex items-center justify-center">
                       <Video className="h-6 w-6 text-muted-foreground" />
                       <button
-                        onClick={() => setVideos((prev) => prev.filter((_, idx) => idx !== i))}
+                        type="button"
+                        onClick={() => removeVideoAt(i)}
                         className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
                       >
                         ×
@@ -491,6 +557,15 @@ export function ProgressUpdatesAdmin({ onBack, onHome }: ProgressUpdatesAdminPro
                             title={update.isPinned ? 'Désépingler' : 'Épingler'}
                           >
                             <Pin className={`h-4 w-4 ${update.isPinned ? 'text-yellow-500' : 'text-muted-foreground'}`} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => handleEdit(update)}
+                            title="Modifier"
+                          >
+                            <ImageIcon className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"

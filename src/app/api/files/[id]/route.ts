@@ -60,3 +60,32 @@ export async function GET(
     );
   }
 }
+
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+
+    const existing = await db.uploadedFile.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: 'Fichier non trouvé' }, { status: 404 });
+    }
+
+    await db.uploadedFile.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('[files/[id]/DELETE] Error:', error);
+    return NextResponse.json(
+      { error: 'Erreur lors de la suppression du fichier' },
+      { status: 500 }
+    );
+  }
+}

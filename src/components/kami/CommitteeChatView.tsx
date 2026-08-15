@@ -19,6 +19,7 @@ import {
   Search,
   Mail,
   Trash2,
+  RefreshCw,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
@@ -117,6 +118,7 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
   const [adminId, setAdminId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedConvId, setExpandedConvId] = useState<string | null>(null);
+  const [activeView, setActiveView] = useState<'list' | 'detail'>('list');
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -155,10 +157,14 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
       if (res.ok) {
         const data = await res.json();
         setConversations(data);
-        // Update selected conv if it exists
         if (selectedConv) {
           const updated = data.find((c: Conversation) => c.user.id === selectedConv.user.id);
-          if (updated) setSelectedConv(updated);
+          if (updated) {
+            setSelectedConv((prev) => ({
+              ...updated,
+              messages: prev?.messages || updated.messages,
+            }));
+          }
         }
       }
     } catch (e) {
@@ -166,6 +172,26 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleBack = () => {
+    if (activeView === 'detail' && selectedConv) {
+      setSelectedConv(null);
+      setActiveView('list');
+      return;
+    }
+
+    if (onBack) {
+      onBack();
+      return;
+    }
+
+    setCurrentScreen('espace-cgl');
+  };
+
+  const handleOpenConversation = async (otherUserId: string) => {
+    setActiveView('detail');
+    await loadConversationMessages(otherUserId);
   };
 
   const loadConversationMessages = async (otherUserId: string) => {
@@ -273,6 +299,7 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
       console.log('[CommitteeChatView] Message sent successfully:', data.id);
       setNewMessage('');
       await loadConversationMessages(selectedConv.user.id);
+      await loadConversations();
     } catch (e) {
       console.error('[CommitteeChatView] Exception sending message:', e);
       alert('Erreur lors de l\'envoi du message');
@@ -374,8 +401,15 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
 
   const filteredConversations = conversations.filter((c) =>
     c.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.user.phone.includes(searchQuery)
+    (c.user.phone || '').includes(searchQuery)
   );
+
+  const refreshList = async () => {
+    await loadConversations();
+    if (selectedConv) {
+      await loadConversationMessages(selectedConv.user.id);
+    }
+  };
 
   // ─── Initiative card for a user ───
   const InitiativeCard = ({ user }: { user: UserInfo }) => (
@@ -503,22 +537,27 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
   // ════════════════════════════════════════════
   //    CONTACT LIST VIEW
   // ════════════════════════════════════════════
-  if (!selectedConv) {
+  if (activeView === 'list' || !selectedConv) {
     return (
       <ErrorBoundary>
-      <div className="flex-1 flex flex-col h-screen max-h-screen">
+      <div className="flex-1 flex flex-col h-screen max-h-screen overflow-hidden">
         <PageNav
-          onBack={onBack || (() => setCurrentScreen('espace-cgl'))}
+          onBack={handleBack}
           onHome={onHome || (() => setCurrentScreen('home'))}
           title="Gestion de Discussion"
           titleRight={
-            <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
-              <Crown className="h-4 w-4 text-purple-300" />
-            </div>
+            <button
+              type="button"
+              onClick={refreshList}
+              className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-300 hover:bg-purple-500/30 transition"
+              aria-label="Actualiser les discussions"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </button>
           }
         />
 
-        <div className="flex-1 flex flex-col bg-white dark:bg-[#0B1120]">
+        <div className="flex-1 flex flex-col bg-white dark:bg-[#0B1120] min-h-0">
           {/* Search */}
           <div className="px-2 py-2">
             <div className="relative">
@@ -552,7 +591,7 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
                   <motion.button
                     key={conv.user.id}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => loadConversationMessages(conv.user.id)}
+                    onClick={() => handleOpenConversation(conv.user.id)}
                     className={`w-full flex items-center gap-3 px-3 py-3 text-left transition-all ${isSelected ? 'border border-blue-200 dark:border-blue-600 bg-blue-50/50 dark:bg-blue-950/30 rounded-2xl shadow-sm' : 'rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-950'} ${conv.unreadCount > 0 ? 'ring-1 ring-blue-200 dark:ring-blue-600' : ''}`}
                     style={{ borderColor: isDark ? '#2A3942' : WA.borderLight }}
                   >
@@ -612,15 +651,25 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
     <ErrorBoundary>
     <div className="flex-1 flex flex-col h-screen max-h-screen">
       <PageNav
-        onBack={() => { setSelectedConv(null); loadConversations(); }}
+        onBack={handleBack}
         onHome={onHome || (() => setCurrentScreen('home'))}
         title="Discussion CGL"
         titleRight={
-          <div
-            className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-white font-semibold text-sm"
-            style={{ backgroundColor: getAvatarColor(selectedConv.user.name) }}
-          >
-            {getInitials(selectedConv.user.name)}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={refreshList}
+              className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition"
+              aria-label="Actualiser la conversation"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </button>
+            <div
+              className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-white font-semibold text-sm"
+              style={{ backgroundColor: getAvatarColor(selectedConv.user.name) }}
+            >
+              {getInitials(selectedConv.user.name)}
+            </div>
           </div>
         }
         className="bg-[#1E3A5F] border-none"
@@ -646,7 +695,7 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
 
       {/* Messages area with initiative card at top */}
       <div
-        className="flex-1 overflow-y-auto"
+        className="flex-1 overflow-y-auto min-h-0"
         style={{
           backgroundColor: isDark ? WA.chatBgDark : WA.chatBg,
           backgroundImage: isDark
@@ -695,13 +744,13 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
       </div>
 
       {/* Input bar */}
-      <div className="shrink-0 flex items-center gap-2 px-3 py-3 border-t" style={{ backgroundColor: isDark ? '#111A27' : '#F8FAFC', borderColor: isDark ? '#1F2A38' : '#E5E7EB' }}>
-        <div className="flex-1 relative">
+      <div className="shrink-0 flex items-center gap-2 px-3 py-3 border-t w-full" style={{ backgroundColor: isDark ? '#111A27' : '#F8FAFC', borderColor: isDark ? '#1F2A38' : '#E5E7EB' }}>
+        <div className="flex-1 relative min-w-0">
           <input
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={handleKeyPress}
-            placeholder="Écrire une réponse à l'utilisateur..."
+            placeholder="Écrire une réponse..."
             disabled={isSending}
             className="w-full rounded-full px-4 py-3 text-[15px] outline-none border border-transparent focus:border-blue-300 focus:ring-2 focus:ring-blue-200"
             style={{ backgroundColor: isDark ? WA.inputBgDark : WA.inputBg, color: isDark ? '#E9EDEF' : WA.textDark, minHeight: '46px' }}
