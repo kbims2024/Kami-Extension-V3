@@ -10,6 +10,12 @@ import {
   Send,
   Check,
   CheckCheck,
+import {
+  ArrowLeft,
+  Home,
+  Send,
+  Check,
+  CheckCheck,
   MessageSquare,
   Phone,
   MapPin,
@@ -20,6 +26,7 @@ import {
   Mail,
   Trash2,
   AlertCircle,
+  Archive,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
@@ -314,6 +321,25 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
     c.user.phone.includes(searchQuery)
   );
 
+  const handleArchive = (userId: string) => {
+    toast.success('Discussion archivée');
+    // Implement archive logic if needed
+  };
+
+  const handleDelete = async (userId: string) => {
+    if (!confirm('Supprimer cette discussion ?')) return;
+    try {
+      const res = await fetch(`/api/messages?userId=${userId}`, { method: 'DELETE' });
+      if (res.ok) {
+        toast.success('Discussion supprimée');
+        await loadConversations();
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error('Erreur lors de la suppression');
+    }
+  };
+
   // ─── Initiative card for a user ───
   const InitiativeCard = ({ user }: { user: UserInfo }) => (
     <div
@@ -474,52 +500,80 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
                 const lastMsg = conv.messages[conv.messages.length - 1];
                 const isSelected = selectedConv?.user.id === conv.user.id;
                 return (
-                  <motion.button
-                    key={conv.user.id}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => loadConversationMessages(conv.user.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-3 text-left transition-all ${isSelected ? 'border border-blue-200 dark:border-blue-600 bg-blue-50/50 dark:bg-blue-950/30 rounded-2xl shadow-sm' : 'rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-950'} ${conv.unreadCount > 0 ? 'ring-1 ring-blue-200 dark:ring-blue-600' : ''}`}
-                    style={{ borderColor: isDark ? '#2A3942' : WA.borderLight }}
-                  >
-                    <div
-                      className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 text-white font-semibold text-base"
-                      style={{ backgroundColor: getAvatarColor(conv.user.name) }}
+                  <div key={conv.user.id} className="relative overflow-hidden group">
+                    {/* Background Actions (visible when sliding) */}
+                    <div className="absolute inset-0 flex justify-end">
+                      <div className="flex h-full">
+                        <button
+                          onClick={() => handleArchive(conv.user.id)}
+                          className="w-20 h-full bg-slate-500 text-white flex flex-col items-center justify-center gap-1"
+                        >
+                          <Archive className="h-5 w-5" />
+                          <span className="text-[10px] font-bold">Archiver</span>
+                        </button>
+                        <button
+                          onClick={() => handleDelete(conv.user.id)}
+                          className="w-20 h-full bg-red-500 text-white flex flex-col items-center justify-center gap-1"
+                        >
+                          <Trash2 className="h-5 w-5" />
+                          <span className="text-[10px] font-bold">Supprimer</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <motion.button
+                      drag="x"
+                      dragConstraints={{ left: -160, right: 0 }}
+                      dragElastic={0.1}
+                      onDragEnd={(_, info) => {
+                        if (info.offset.x < -100) {
+                          // Visual hint of activation if needed
+                        }
+                      }}
+                      whileTap={{ scale: 0.99 }}
+                      onClick={() => loadConversationMessages(conv.user.id)}
+                      className={`relative w-full flex items-center gap-3 px-3 py-3 text-left transition-all z-10 ${isSelected ? 'border border-blue-200 dark:border-blue-600 bg-blue-50/50 dark:bg-blue-950/30 rounded-2xl shadow-sm' : 'bg-white dark:bg-[#0B1120] hover:bg-slate-100 dark:hover:bg-slate-950'} ${conv.unreadCount > 0 ? 'ring-1 ring-blue-200 dark:ring-blue-600' : ''}`}
                     >
-                      {getInitials(conv.user.name)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className={`text-[16.5px] truncate ${conv.unreadCount > 0 ? 'font-semibold' : 'font-medium'}`} style={{ color: isDark ? '#E9EDEF' : WA.textDark }}>
-                          {conv.user.name}
-                        </p>
-                        <span className="text-[12px] shrink-0" style={{ color: conv.unreadCount > 0 ? WA.headerTeal : WA.timeSent }}>
-                          {formatContactTime(conv.lastMessageAt)}
-                        </span>
+                      <div
+                        className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 text-white font-semibold text-base"
+                        style={{ backgroundColor: getAvatarColor(conv.user.name) }}
+                      >
+                        {getInitials(conv.user.name)}
                       </div>
-                      <div className="flex items-center justify-between gap-2 mt-1">
-                        <p className="text-[14px] truncate" style={{ color: WA.timeSent }}>
-                          {lastMsg ? (
-                            <>
-                              {lastMsg.senderId === adminId && (
-                                <span style={{ color: '#53BDEB' }}><CheckCheck className="inline h-3.5 w-3.5 mr-0.5 -mt-0.5" /></span>
-                              )}
-                              {lastMsg.content.substring(0, 50)}{lastMsg.content.length > 50 ? '…' : ''}
-                            </>
-                          ) : (
-                            <span className="italic">Aucun message</span>
-                          )}
-                        </p>
-                        {conv.unreadCount > 0 && (
-                          <span
-                            className="shrink-0 min-w-[20px] h-[20px] rounded-full flex items-center justify-center text-[11px] font-bold text-white px-1.5"
-                            style={{ backgroundColor: WA.headerTeal }}
-                          >
-                            {conv.unreadCount}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className={`text-[16.5px] truncate ${conv.unreadCount > 0 ? 'font-semibold' : 'font-medium'}`} style={{ color: isDark ? '#E9EDEF' : WA.textDark }}>
+                            {conv.user.name}
+                          </p>
+                          <span className="text-[12px] shrink-0" style={{ color: conv.unreadCount > 0 ? WA.headerTeal : WA.timeSent }}>
+                            {formatContactTime(conv.lastMessageAt)}
                           </span>
-                        )}
+                        </div>
+                        <div className="flex items-center justify-between gap-2 mt-1">
+                          <p className="text-[14px] truncate" style={{ color: WA.timeSent }}>
+                            {lastMsg ? (
+                              <>
+                                {lastMsg.senderId === adminId && (
+                                  <span style={{ color: '#53BDEB' }}><CheckCheck className="inline h-3.5 w-3.5 mr-0.5 -mt-0.5" /></span>
+                                )}
+                                {lastMsg.content.substring(0, 50)}{lastMsg.content.length > 50 ? '…' : ''}
+                              </>
+                            ) : (
+                              <span className="italic">Aucun message</span>
+                            )}
+                          </p>
+                          {conv.unreadCount > 0 && (
+                            <span
+                              className="shrink-0 min-w-[20px] h-[20px] rounded-full flex items-center justify-center text-[11px] font-bold text-white px-1.5"
+                              style={{ backgroundColor: WA.headerTeal }}
+                            >
+                              {conv.unreadCount}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </motion.button>
+                    </motion.button>
+                  </div>
                 );
               })
             )}
