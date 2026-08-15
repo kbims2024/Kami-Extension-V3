@@ -87,24 +87,36 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
   }, [currentUser]);
 
   useEffect(() => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
+    if (typeof window === 'undefined') return;
+
+    const SpeechRecognitionConstructor =
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition ||
+      (window as any).mozSpeechRecognition;
+
+    if (!SpeechRecognitionConstructor) {
       setSpeechSupported(false);
+      recognitionRef.current = null;
       return;
     }
 
-    const recognition = new SpeechRecognition();
+    const recognition = new SpeechRecognitionConstructor();
     recognition.lang = 'fr-FR';
-    recognition.interimResults = false;
+    recognition.continuous = false;
+    recognition.interimResults = true;
     recognition.maxAlternatives = 1;
 
     recognition.onresult = (event: any) => {
-      const transcript = Array.from(event.results)
-        .map((result: any) => result[0].transcript)
-        .join(' ')
-        .trim();
-      if (transcript) {
-        setNewMessage((prev) => `${prev ? `${prev} ` : ''}${transcript}`);
+      let transcript = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+      const cleanTranscript = transcript.trim();
+      if (cleanTranscript) {
+        setNewMessage((prev) => {
+          const current = prev.trim();
+          return current ? `${current} ${cleanTranscript}` : cleanTranscript;
+        });
       }
     };
 
@@ -115,11 +127,17 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
     recognition.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
       setIsListening(false);
-      toast.error('Erreur de reconnaissance vocale');
+      if (event.error !== 'no-speech') {
+        toast.error('Erreur de reconnaissance vocale');
+      }
     };
 
     recognitionRef.current = recognition;
     setSpeechSupported(true);
+
+    return () => {
+      try { recognition.stop(); } catch {}
+    };
   }, []);
 
   const handleVoiceInput = () => {
@@ -131,6 +149,7 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
 
     if (isListening) {
       recognition.stop();
+      setIsListening(false);
       return;
     }
 

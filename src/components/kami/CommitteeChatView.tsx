@@ -20,6 +20,7 @@ import {
   Mail,
   Trash2,
   RefreshCw,
+  Mic,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
@@ -119,9 +120,12 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedConvId, setExpandedConvId] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<'list' | 'detail'>('list');
+  const [speechSupported, setSpeechSupported] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const voiceRecognitionRef = useRef<any>(null);
 
   useEffect(() => {
     loadAdminId();
@@ -370,6 +374,79 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
     if (msgDate.getTime() === today.getTime()) return formatTime(dateString);
     if (msgDate.getTime() === yesterday.getTime()) return 'Hier';
     return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+  };
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const SpeechRecognitionConstructor =
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition ||
+      (window as any).mozSpeechRecognition;
+
+    if (!SpeechRecognitionConstructor) {
+      setSpeechSupported(false);
+      voiceRecognitionRef.current = null;
+      return;
+    }
+
+    const recognition = new SpeechRecognitionConstructor();
+    recognition.lang = 'fr-FR';
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = (event: any) => {
+      let transcript = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+      const cleanTranscript = transcript.trim();
+      if (cleanTranscript) {
+        setNewMessage((prev) => {
+          const current = prev.trim();
+          return current ? `${current} ${cleanTranscript}` : cleanTranscript;
+        });
+      }
+    };
+
+    recognition.onend = () => setIsListening(false);
+    recognition.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error);
+      setIsListening(false);
+      if (event.error !== 'no-speech') {
+        console.warn('Reconnaissance vocale désactivée');
+      }
+    };
+
+    voiceRecognitionRef.current = recognition;
+    setSpeechSupported(true);
+
+    return () => {
+      try { recognition.stop(); } catch {}
+    };
+  }, []);
+
+  const handleVoiceInput = () => {
+    const recognition = voiceRecognitionRef.current;
+    if (!recognition) {
+      console.warn('Reconnaissance vocale non supportée par ce navigateur');
+      return;
+    }
+
+    if (isListening) {
+      recognition.stop();
+      setIsListening(false);
+      return;
+    }
+
+    try {
+      recognition.start();
+      setIsListening(true);
+    } catch {
+      setIsListening(false);
+      console.warn('Impossible de démarrer l’enregistrement vocal');
+    }
   };
 
   const getInitials = (name: string) => {
@@ -745,6 +822,23 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
 
       {/* Input bar */}
       <div className="shrink-0 flex items-center gap-2 px-3 py-3 border-t w-full" style={{ backgroundColor: isDark ? '#111A27' : '#F8FAFC', borderColor: isDark ? '#1F2A38' : '#E5E7EB' }}>
+        <Button
+          type="button"
+          onClick={speechSupported ? handleVoiceInput : undefined}
+          disabled={!speechSupported || isSending}
+          className="rounded-full shrink-0"
+          style={{
+            width: '42px',
+            height: '42px',
+            backgroundColor: isListening ? '#ef4444' : '#E2E8F0',
+            color: isListening ? 'white' : '#475569',
+          }}
+          size="icon"
+          title={speechSupported ? (isListening ? 'Arrêter l’enregistrement' : 'Démarrer l’enregistrement') : 'Micro non supporté'}
+        >
+          <Mic className="h-4 w-4" />
+        </Button>
+
         <div className="flex-1 relative min-w-0">
           <input
             value={newMessage}
