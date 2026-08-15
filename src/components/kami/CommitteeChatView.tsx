@@ -1,15 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PageNav } from './PageNav';
-import {
-  ArrowLeft,
-  Home,
-  Send,
-  Check,
-  CheckCheck,
 import {
   ArrowLeft,
   Home,
@@ -98,7 +92,6 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
   const [isSending, setIsSending] = useState(false);
   const [adminId, setAdminId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [expandedConvId, setExpandedConvId] = useState<string | null>(null);
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -109,14 +102,6 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
 
   useEffect(() => {
     if (!adminId) return;
-
-    const refreshLoop = async () => {
-      if (selectedConv) {
-        await loadConversationMessages(selectedConv.user.id);
-      } else {
-        await loadConversations();
-      }
-    };
 
     loadConversations(true);
     const interval = setInterval(refreshLoop, 5000);
@@ -323,7 +308,6 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
 
   const handleArchive = (userId: string) => {
     toast.success('Discussion archivée');
-    // Implement archive logic if needed
   };
 
   const handleDelete = async (userId: string) => {
