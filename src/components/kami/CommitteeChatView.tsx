@@ -129,17 +129,16 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
     if (!adminId) return;
 
     const refreshLoop = async () => {
-      if (selectedConv) {
+      await loadConversations();
+      if (selectedConv?.user?.id) {
         await loadConversationMessages(selectedConv.user.id);
-      } else {
-        await loadConversations();
       }
     };
 
     loadConversations();
     const interval = setInterval(refreshLoop, 8000);
     return () => clearInterval(interval);
-  }, [adminId, selectedConv]);
+  }, [adminId]);
 
   useEffect(() => {
     if (selectedConv) {
@@ -200,31 +199,26 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
       
       const messages: Message[] = await res.json();
       console.log('[CommitteeChatView] Messages loaded:', messages.length);
+
+      const currentUserInfo = conversations.find((c) => c.user.id === otherUserId)?.user || {
+        id: otherUserId,
+        name: 'Utilisateur',
+        phone: '',
+        email: null,
+        isResident: false,
+        role: null,
+        quartier: null,
+        villageOrigine: null,
+        createdAt: new Date().toISOString(),
+      };
+
+      setSelectedConv({
+        user: currentUserInfo,
+        messages,
+        lastMessageAt: messages[messages.length - 1]?.createdAt || '',
+        unreadCount: 0,
+      });
       
-      const updatedConv = conversations.find((c) => c.user.id === otherUserId);
-      if (updatedConv) {
-        setSelectedConv({
-          ...updatedConv,
-          messages,
-          lastMessageAt: messages[messages.length - 1]?.createdAt || updatedConv.lastMessageAt,
-          unreadCount: 0,
-        });
-      } else {
-        const user: UserInfo = {
-          id: otherUserId,
-          name: 'Utilisateur',
-          phone: '',
-          email: null,
-          isResident: false,
-          role: null,
-          quartier: null,
-          villageOrigine: null,
-          createdAt: new Date().toISOString(),
-        };
-        setSelectedConv({ user, messages, lastMessageAt: messages[messages.length - 1]?.createdAt || '', unreadCount: 0 });
-      }
-      
-      // Marquer les messages non lus comme lus
       const unreadMsgIds = messages.filter((m) => m.senderId !== adminId && !m.read).map((m) => m.id);
       if (unreadMsgIds.length > 0) {
         console.log('[CommitteeChatView] Marking as read:', unreadMsgIds.length);

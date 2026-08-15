@@ -8,6 +8,14 @@ async function findSettings() {
   if (!settings) {
     settings = await db.settings.findFirst({ where: { _id: SETTINGS_ID } });
   }
+  if (!settings) {
+    settings = await db.settings.create({
+      data: {
+        _id: SETTINGS_ID,
+        cglPermissions: {},
+      },
+    });
+  }
   return settings;
 }
 

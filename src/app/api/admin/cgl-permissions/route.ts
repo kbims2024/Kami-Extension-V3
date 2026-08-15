@@ -11,6 +11,14 @@ async function findSettings() {
   if (!settings) {
     settings = await db.settings.findFirst({ where: { _id: CGL_PERMISSIONS_ID } });
   }
+  if (!settings) {
+    settings = await db.settings.create({
+      data: {
+        _id: CGL_PERMISSIONS_ID,
+        cglPermissions: {},
+      },
+    });
+  }
   return settings;
 }
 
@@ -61,21 +69,12 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    let settings = await db.settings.findFirst();
+    let settings = await findSettings();
 
-    if (!settings) {
-      settings = await db.settings.create({
-        data: {
-          _id: CGL_PERMISSIONS_ID,
-          cglPermissions: cleaned,
-        },
-      });
-    } else {
-      settings = await db.settings.update({
-        where: { id: settings.id },
-        data: { cglPermissions: cleaned },
-      });
-    }
+    settings = await db.settings.update({
+      where: { id: settings.id || CGL_PERMISSIONS_ID },
+      data: { cglPermissions: cleaned },
+    });
 
     return NextResponse.json({ success: true, permissions: cleaned, settingsId: settings?.id || CGL_PERMISSIONS_ID });
   } catch (error) {

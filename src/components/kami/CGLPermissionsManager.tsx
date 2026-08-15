@@ -30,7 +30,13 @@ export function CGLPermissionsManager({ setAdminView }: CGLPermissionsManagerPro
 
   const loadPermissions = async () => {
     try {
-      const res = await fetch('/api/admin/cgl-permissions');
+      const res = await fetch('/api/admin/cgl-permissions', {
+        cache: 'no-store',
+        headers: {
+          'pragma': 'no-cache',
+          'cache-control': 'no-cache',
+        },
+      });
       if (res.ok) {
         const data = await res.json();
         setPermissions(data.permissions || {});
@@ -54,11 +60,17 @@ export function CGLPermissionsManager({ setAdminView }: CGLPermissionsManagerPro
     try {
       const res = await fetch('/api/admin/cgl-permissions', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
+        headers: {
+          'Content-Type': 'application/json',
+          'pragma': 'no-cache',
+          'cache-control': 'no-cache',
+        },
         body: JSON.stringify({ permissions }),
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
+        setPermissions(data.permissions || permissions);
         toast.success('Permissions du comité mises à jour avec succès');
         await loadPermissions();
       } else {
