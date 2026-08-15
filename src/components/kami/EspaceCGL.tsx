@@ -41,6 +41,18 @@ export function EspaceCGL({ setCurrentScreen, goToAdminScreen, onBack }: EspaceC
     loadUnreadCount();
     loadNotifications();
 
+    const handlePermissionsChanged = (event: Event) => {
+      const detail = (event as CustomEvent).detail as Record<string, boolean> | undefined;
+      if (detail) {
+        setEnabledFeatures(Object.keys(detail).filter((key) => detail[key] === true));
+      }
+      loadPermissions();
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('cgl-permissions-changed', handlePermissionsChanged);
+    }
+
     // Rafraîchir les permissions toutes les 5 secondes pour détecter les changements
     const permInterval = setInterval(loadPermissions, 5000);
     
@@ -52,6 +64,9 @@ export function EspaceCGL({ setCurrentScreen, goToAdminScreen, onBack }: EspaceC
     return () => {
       clearInterval(interval);
       clearInterval(permInterval);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('cgl-permissions-changed', handlePermissionsChanged);
+      }
     };
   }, []);
 

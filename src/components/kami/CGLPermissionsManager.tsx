@@ -70,7 +70,11 @@ export function CGLPermissionsManager({ setAdminView }: CGLPermissionsManagerPro
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        setPermissions(data.permissions || permissions);
+        const nextPermissions = data.permissions || permissions;
+        setPermissions(nextPermissions);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('cgl-permissions-changed', { detail: nextPermissions }));
+        }
         toast.success('Permissions du comité mises à jour avec succès');
         await loadPermissions();
       } else {

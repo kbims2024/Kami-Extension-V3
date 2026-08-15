@@ -21,6 +21,7 @@ import {
   Trash2,
   RefreshCw,
   Mic,
+  Archive,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
@@ -316,6 +317,58 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    }
+  };
+
+  const archiveConversation = async (userId: string) => {
+    if (!adminId) return;
+    if (!confirm('Archiver cette discussion ? Elle disparaîtra de la liste active.')) return;
+
+    try {
+      const res = await fetch('/api/messages', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'archiveConversation', userId }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Erreur d’archivage');
+      }
+
+      if (selectedConv?.user.id === userId) {
+        setSelectedConv(null);
+        setActiveView('list');
+      }
+      await loadConversations();
+    } catch (e) {
+      console.error('[CommitteeChatView] archiveConversation error:', e);
+      alert('Erreur lors de l’archivage de la discussion');
+    }
+  };
+
+  const deleteConversation = async (userId: string) => {
+    if (!adminId) return;
+    if (!confirm('Supprimer définitivement cette discussion pour le CGL ?')) return;
+
+    try {
+      const res = await fetch('/api/messages', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'deleteConversation', userId }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Erreur de suppression');
+      }
+
+      if (selectedConv?.user.id === userId) {
+        setSelectedConv(null);
+        setActiveView('list');
+      }
+      await loadConversations();
+    } catch (e) {
+      console.error('[CommitteeChatView] deleteConversation error:', e);
+      alert('Erreur lors de la suppression de la discussion');
     }
   };
 
@@ -665,52 +718,73 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
                 const lastMsg = conv.messages[conv.messages.length - 1];
                 const isSelected = (selectedConv as any)?.user?.id === conv.user.id;
                 return (
-                  <motion.button
-                    key={conv.user.id}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => handleOpenConversation(conv.user.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-3 text-left transition-all ${isSelected ? 'border border-blue-200 dark:border-blue-600 bg-blue-50/50 dark:bg-blue-950/30 rounded-2xl shadow-sm' : 'rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-950'} ${conv.unreadCount > 0 ? 'ring-1 ring-blue-200 dark:ring-blue-600' : ''}`}
-                    style={{ borderColor: isDark ? '#2A3942' : WA.borderLight }}
-                  >
-                    <div
-                      className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 text-white font-semibold text-base"
-                      style={{ backgroundColor: getAvatarColor(conv.user.name) }}
+                  <div key={conv.user.id} className="relative">
+                    <motion.button
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => handleOpenConversation(conv.user.id)}
+                      className={`w-full flex items-center gap-3 px-3 py-3 text-left transition-all ${isSelected ? 'border border-blue-200 dark:border-blue-600 bg-blue-50/50 dark:bg-blue-950/30 rounded-2xl shadow-sm' : 'rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-950'} ${conv.unreadCount > 0 ? 'ring-1 ring-blue-200 dark:ring-blue-600' : ''}`}
+                      style={{ borderColor: isDark ? '#2A3942' : WA.borderLight }}
                     >
-                      {getInitials(conv.user.name)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className={`text-[16.5px] truncate ${conv.unreadCount > 0 ? 'font-semibold' : 'font-medium'}`} style={{ color: isDark ? '#E9EDEF' : WA.textDark }}>
-                          {conv.user.name}
-                        </p>
-                        <span className="text-[12px] shrink-0" style={{ color: conv.unreadCount > 0 ? WA.headerTeal : WA.timeSent }}>
-                          {formatContactTime(conv.lastMessageAt)}
-                        </span>
+                      <div
+                        className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 text-white font-semibold text-base"
+                        style={{ backgroundColor: getAvatarColor(conv.user.name) }}
+                      >
+                        {getInitials(conv.user.name)}
                       </div>
-                      <div className="flex items-center justify-between gap-2 mt-1">
-                        <p className="text-[14px] truncate" style={{ color: WA.timeSent }}>
-                          {lastMsg ? (
-                            <>
-                              {lastMsg.senderId === adminId && (
-                                <span style={{ color: '#53BDEB' }}><CheckCheck className="inline h-3.5 w-3.5 mr-0.5 -mt-0.5" /></span>
-                              )}
-                              {lastMsg.content.substring(0, 50)}{lastMsg.content.length > 50 ? '…' : ''}
-                            </>
-                          ) : (
-                            <span className="italic">Aucun message</span>
-                          )}
-                        </p>
-                        {conv.unreadCount > 0 && (
-                          <span
-                            className="shrink-0 min-w-[20px] h-[20px] rounded-full flex items-center justify-center text-[11px] font-bold text-white px-1.5"
-                            style={{ backgroundColor: WA.headerTeal }}
-                          >
-                            {conv.unreadCount}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className={`text-[16.5px] truncate ${conv.unreadCount > 0 ? 'font-semibold' : 'font-medium'}`} style={{ color: isDark ? '#E9EDEF' : WA.textDark }}>
+                            {conv.user.name}
+                          </p>
+                          <span className="text-[12px] shrink-0" style={{ color: conv.unreadCount > 0 ? WA.headerTeal : WA.timeSent }}>
+                            {formatContactTime(conv.lastMessageAt)}
                           </span>
-                        )}
+                        </div>
+                        <div className="flex items-center justify-between gap-2 mt-1">
+                          <p className="text-[14px] truncate" style={{ color: WA.timeSent }}>
+                            {lastMsg ? (
+                              <>
+                                {lastMsg.senderId === adminId && (
+                                  <span style={{ color: '#53BDEB' }}><CheckCheck className="inline h-3.5 w-3.5 mr-0.5 -mt-0.5" /></span>
+                                )}
+                                {lastMsg.content.substring(0, 50)}{lastMsg.content.length > 50 ? '…' : ''}
+                              </>
+                            ) : (
+                              <span className="italic">Aucun message</span>
+                            )}
+                          </p>
+                          {conv.unreadCount > 0 && (
+                            <span
+                              className="shrink-0 min-w-[20px] h-[20px] rounded-full flex items-center justify-center text-[11px] font-bold text-white px-1.5"
+                              style={{ backgroundColor: WA.headerTeal }}
+                            >
+                              {conv.unreadCount}
+                            </span>
+                          )}
+                        </div>
                       </div>
+                    </motion.button>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex gap-1.5">
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); archiveConversation(conv.user.id); }}
+                        className="h-7 w-7 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center hover:bg-slate-300 dark:hover:bg-slate-600"
+                        title="Archiver"
+                        aria-label="Archiver"
+                      >
+                        <Archive className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); deleteConversation(conv.user.id); }}
+                        className="h-7 w-7 rounded-full bg-red-100 text-red-600 flex items-center justify-center hover:bg-red-200"
+                        title="Supprimer"
+                        aria-label="Supprimer"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
                     </div>
-                  </motion.button>
+                  </div>
                 );
               })
             )}
@@ -740,6 +814,24 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
               aria-label="Actualiser la conversation"
             >
               <RefreshCw className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => archiveConversation(selectedConv.user.id)}
+              className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition"
+              aria-label="Archiver la discussion"
+              title="Archiver la discussion"
+            >
+              <Archive className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => deleteConversation(selectedConv.user.id)}
+              className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center text-red-100 hover:bg-red-500/30 transition"
+              aria-label="Supprimer la discussion"
+              title="Supprimer la discussion"
+            >
+              <Trash2 className="h-4 w-4" />
             </button>
             <div
               className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-white font-semibold text-sm"

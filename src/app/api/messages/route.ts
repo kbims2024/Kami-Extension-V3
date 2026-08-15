@@ -1,6 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
+function buildUserFirstMessageHeader(user: { name: string; phone?: string | null; isResident?: boolean | null; quartier?: string | null; villageOrigine?: string | null; role?: string | null; }) {
+  const roleLabel = user.role === 'MANAGEMENT_COMMITTEE' ? 'Comité de gestion' : user.role === 'ADMIN' ? 'Administrateur' : user.isResident ? 'Résident' : 'Non résident';
+  const location = user.isResident ? user.quartier || 'Non renseigné' : user.villageOrigine || 'Non renseigné';
+
+  return [
+    '--- INFORMATIONS UTILISATEUR ---',
+    `Nom: ${user.name || 'Non renseigné'}`,
+    `Téléphone: ${user.phone || 'Non renseigné'}`,
+    `Statut: ${roleLabel}`,
+    `Localisation: ${location}`,
+    '-------------------------------',
+    '',
+  ].join('\n');
+}
+
 async function getAdminId(): Promise<string> {
   const admin = await db.user.findFirst({
     where: { phone: 'ADMIN' },
@@ -58,7 +73,15 @@ export async function POST(request: NextRequest) {
     // Vérifier l'expéditeur
     const sender = await db.user.findUnique({
       where: { id: senderId },
-      select: { id: true, name: true, phone: true },
+      select: {
+        id: true,
+        name: true,
+        phone: true,
+        role: true,
+        isResident: true,
+        quartier: true,
+        villageOrigine: true,
+      },
     });
 
     if (!sender) {
@@ -83,10 +106,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const hasExistingConversation = await db.message.findFirst({
+      where: {
+        OR: [
+          { senderId, receiverId },
+          { senderId: receiverId, receiverId: senderId },
+        ],
+      },
+    });
+
+    const shouldPrependHeader =
+      senderId !== receiverId &&
+      receiverId === (await getAdminId()) &&
+      !hasExistingConversation;
+
+    const finalContent = shouldPrependHeader
+      ? `${buildUserFirstMessageHeader({
+          name: sender.name,
+          phone: sender.phone,
+          role: sender.role ?? undefined,
+          isResident: (sender as any).isResident ?? undefined,
+          quartier: (sender as any).quartier ?? null,
+          villageOrigine: (sender as any).villageOrigine ?? null,
+        })}${content.trim()}`
+      : content.trim();
+
     // Créer le message
     const message = await db.message.create({
       data: {
-        content: content.trim(),
+        content: finalContent,
         senderId,
         receiverId,
         read: false,
@@ -168,6 +216,7 @@ export async function GET(request: NextRequest) {
         );
       }
       whereClause = {
+        archivedAt: null,
         OR: [
           { senderId: admin.id, receiverId: otherUserId },
           { senderId: otherUserId, receiverId: admin.id },
@@ -177,6 +226,7 @@ export async function GET(request: NextRequest) {
     // Cas 2: L'utilisateur courant est un user lambda -> cherche les messages avec l'admin
     else {
       whereClause = {
+        archivedAt: null,
         OR: [
           { senderId: userId, receiverId: admin.id },
           { senderId: admin.id, receiverId: userId },
@@ -229,7 +279,36 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
-    const { messageIds } = body;
+    const { messageIds, action, userId } = body;
+
+    if (action === 'archiveConversation' && userId) {
+      const adminId = await getAdminId();
+      await db.message.updateMany({
+        where: {
+          OR: [
+            { senderId: userId, receiverId: adminId },
+            { senderId: adminId, receiverId: userId },
+          ],
+        },
+        data: {
+          archivedAt: new Date(),
+        },
+      });
+      return NextResponse.json({ success: true, message: 'Conversation archivée' });
+    }
+
+    if (action === 'deleteConversation' && userId) {
+      const adminId = await getAdminId();
+      await db.message.deleteMany({
+        where: {
+          OR: [
+            { senderId: userId, receiverId: adminId },
+            { senderId: adminId, receiverId: userId },
+          ],
+        },
+      });
+      return NextResponse.json({ success: true, message: 'Conversation supprimée' });
+    }
 
     if (!messageIds || !Array.isArray(messageIds)) {
       return NextResponse.json({ error: 'IDs de messages requis' }, { status: 400 });

@@ -23,9 +23,10 @@ export async function GET() {
       );
     }
 
-    // Récupérer tous les messages impliquant l'admin
+    // Récupérer tous les messages impliquant l'admin, en excluant les discussions archivées
     const allMessages = await db.message.findMany({
       where: {
+        archivedAt: null,
         OR: [
           { senderId: admin.id },
           { receiverId: admin.id },
@@ -38,6 +39,7 @@ export async function GET() {
         receiverId: true,
         read: true,
         createdAt: true,
+        archivedAt: true,
       },
       orderBy: { createdAt: 'asc' },
     });
