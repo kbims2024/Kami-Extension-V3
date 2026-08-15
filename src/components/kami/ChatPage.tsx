@@ -160,24 +160,39 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
   };
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !currentUser?.id || isLoading) return;
+    if (!newMessage.trim() || !currentUser?.id || isLoading) {
+      if (!currentUser?.id) {
+        toast.error('Vous devez être connecté pour envoyer un message');
+      }
+      return;
+    }
     setIsLoading(true);
     try {
       const response = await fetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          content: newMessage,
+          content: newMessage.trim(),
           receiverId: 'ADMIN',
           senderId: currentUser.id,
         }),
       });
-      if (response.ok) {
-        setNewMessage('');
-        await loadMessages();
+      
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Erreur inconnue' }));
+        console.error('Message send error:', error);
+        toast.error(error.error || 'Erreur lors de l\'envoi du message');
+        return;
       }
+
+      const data = await response.json();
+      console.log('Message sent successfully:', data);
+      setNewMessage('');
+      toast.success('Message envoyé !');
+      await loadMessages();
     } catch (error) {
       console.error('Error sending message:', error);
+      toast.error('Erreur lors de l\'envoi du message. Vérifiez votre connexion.');
     } finally {
       setIsLoading(false);
     }

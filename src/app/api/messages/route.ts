@@ -3,21 +3,30 @@ import { db } from '@/lib/db';
 
 // Helper to get or create admin ID
 async function getAdminId(): Promise<string> {
-  let admin = await db.user.findFirst({
-    where: { phone: 'ADMIN' },
-  });
-
-  if (!admin) {
-    admin = await db.user.create({
-      data: {
-        name: 'Administrateur',
-        phone: 'ADMIN',
-        isResident: true,
-      },
+  try {
+    let admin = await db.user.findFirst({
+      where: { phone: 'ADMIN' },
     });
-  }
 
-  return admin.id;
+    if (!admin) {
+      console.log('Admin user not found, creating...');
+      admin = await db.user.create({
+        data: {
+          name: 'Administrateur',
+          phone: 'ADMIN',
+          isResident: true,
+        },
+      });
+      console.log('Admin user created:', admin.id);
+    } else {
+      console.log('Admin user found:', admin.id);
+    }
+
+    return admin.id;
+  } catch (error) {
+    console.error('Error in getAdminId:', error);
+    throw error;
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -25,6 +34,7 @@ export async function POST(request: NextRequest) {
     const { content, receiverId, senderId } = await request.json();
 
     if (!content || !receiverId || !senderId) {
+      console.error('Missing required fields:', { content: !!content, receiverId, senderId });
       return NextResponse.json({ error: 'Contenu, destinataire et expéditeur requis' }, { status: 400 });
     }
 
@@ -34,6 +44,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!sender) {
+      console.error('Sender not found:', senderId);
       return NextResponse.json({ error: 'Expéditeur non trouvé' }, { status: 404 });
     }
 
@@ -44,6 +55,7 @@ export async function POST(request: NextRequest) {
       });
 
       if (!receiver) {
+        console.error('Receiver not found:', receiverId);
         return NextResponse.json({ error: 'Destinataire non trouvé' }, { status: 404 });
       }
     }
@@ -51,10 +63,18 @@ export async function POST(request: NextRequest) {
     // If receiver is ADMIN, get the admin user ID
     let finalReceiverId = receiverId;
     if (receiverId === 'ADMIN') {
-      finalReceiverId = await getAdminId();
+      console.log('Getting or creating admin user...');
+      try {
+        finalReceiverId = await getAdminId();
+        console.log('Admin ID resolved to:', finalReceiverId);
+      } catch (adminError) {
+        console.error('Error getting admin ID:', adminError);
+        return NextResponse.json({ error: 'Erreur lors de la récupération de l\'administrateur' }, { status: 500 });
+      }
     }
 
     // Create message
+    console.log('Creating message:', { content, senderId, receiverId: finalReceiverId });
     const message = await db.message.create({
       data: {
         content,
@@ -62,6 +82,8 @@ export async function POST(request: NextRequest) {
         receiverId: finalReceiverId,
       },
     });
+
+    console.log('Message created:', message.id);
 
     // Populate sender and receiver fields manually
     const senderData = await db.user.findUnique({
@@ -81,7 +103,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error creating message:', error);
-    return NextResponse.json({ error: 'Erreur lors de l\'envoi du message' }, { status: 500 });
+    return NextResponse.json({ error: 'Erreur lors de l\'envoi du message: ' + String(error) }, { status: 500 });
   }
 }
 

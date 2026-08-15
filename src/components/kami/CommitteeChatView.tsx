@@ -207,24 +207,38 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
   };
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedConv || isSending || !adminId) return;
+    if (!newMessage.trim() || !selectedConv || isSending || !adminId) {
+      if (!adminId) {
+        console.error('Admin ID not loaded');
+      }
+      return;
+    }
     setIsSending(true);
     try {
       const res = await fetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          content: newMessage,
+          content: newMessage.trim(),
           receiverId: selectedConv.user.id,
           senderId: adminId,
         }),
       });
-      if (res.ok) {
-        setNewMessage('');
-        await loadConversationMessages(selectedConv.user.id);
+      
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({ error: 'Erreur inconnue' }));
+        console.error('CGL message send error:', error);
+        alert('Erreur lors de l\'envoi: ' + (error.error || 'Erreur inconnue'));
+        return;
       }
+
+      const data = await res.json();
+      console.log('CGL message sent:', data);
+      setNewMessage('');
+      await loadConversationMessages(selectedConv.user.id);
     } catch (e) {
-      console.error(e);
+      console.error('Error sending CGL message:', e);
+      alert('Erreur lors de l\'envoi du message');
     } finally {
       setIsSending(false);
     }
