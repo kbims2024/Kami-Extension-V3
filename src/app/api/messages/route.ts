@@ -1,6 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
+async function getAdminId(): Promise<string> {
+  const admin = await db.user.findFirst({
+    where: { phone: 'ADMIN' },
+  });
+
+  if (admin) {
+    return admin.id;
+  }
+
+  const created = await db.user.create({
+    data: {
+      name: 'Administrateur',
+      phone: 'ADMIN',
+      isResident: true,
+    },
+  });
+
+  return created.id;
+}
+
 /**
  * POST /api/messages
  * Envoyer un message
