@@ -127,17 +127,7 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
 
   useEffect(() => {
     if (!adminId) return;
-
-    const refreshLoop = async () => {
-      await loadConversations();
-      if (selectedConv?.user?.id) {
-        await loadConversationMessages(selectedConv.user.id);
-      }
-    };
-
     loadConversations();
-    const interval = setInterval(refreshLoop, 8000);
-    return () => clearInterval(interval);
   }, [adminId]);
 
   useEffect(() => {
