@@ -54,6 +54,7 @@ import { CommitteeChatView } from '@/components/kami/CommitteeChatView';
 export default function KamiExtensionPage() {
   const [mounted, setMounted] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   // Store state
   const {
@@ -149,6 +150,8 @@ export default function KamiExtensionPage() {
 
   useEffect(() => {
     setMounted(true);
+    // Give Zustand time to hydrate from localStorage
+    setIsHydrated(true);
 
     // Manage offline state
     setIsOffline(!navigator.onLine);
@@ -308,7 +311,7 @@ export default function KamiExtensionPage() {
     }
   };
 
-  if (!mounted) {
+  if (!mounted || !isHydrated) {
     return null;
   }
 
@@ -342,26 +345,6 @@ export default function KamiExtensionPage() {
             </Button>
           </div>
         </div>
-      </div>
-    );
-  }
-
-  // If no screen is set, default to home
-  if (!currentScreen) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <PersuasiveLandingPage
-          lots={lots}
-          onReserveClick={() => {
-            if (currentUser) {
-              setCurrentScreen('map');
-            } else {
-              setCurrentScreen('auth-choice');
-            }
-          }}
-          setIsMenuOpen={setIsMenuOpen}
-          setCurrentScreen={setCurrentScreen}
-        />
       </div>
     );
   }
@@ -660,6 +643,46 @@ export default function KamiExtensionPage() {
               setCurrentScreen('dashboard');
               toast.success('Paiement enregistré !');
             }}
+          />
+        </PageTransition>
+      )}
+
+      {/* Fallback: Show home screen if no screen is recognized */}
+      {currentScreen && 
+        currentScreen !== 'home' &&
+        currentScreen !== 'progress' &&
+        currentScreen !== 'register' &&
+        currentScreen !== 'auth-choice' &&
+        currentScreen !== 'login-screen' &&
+        currentScreen !== 'login' &&
+        currentScreen !== 'map' &&
+        currentScreen !== 'dashboard' &&
+        currentScreen !== 'profile' &&
+        currentScreen !== 'affiliation' &&
+        currentScreen !== 'rules' &&
+        currentScreen !== 'sav' &&
+        currentScreen !== 'espace-cgl' &&
+        currentScreen !== 'committee-chat' &&
+        currentScreen !== 'admin-cgl' &&
+        currentScreen !== 'admin' &&
+        currentScreen !== 'admin-flash-infos' &&
+        currentScreen !== 'settings' &&
+        currentScreen !== 'plan' &&
+        currentScreen !== 'chat' &&
+        currentScreen !== 'admin-chat' &&
+        currentScreen !== 'payment-method' && (
+        <PageTransition>
+          <PersuasiveLandingPage
+            lots={lots}
+            onReserveClick={() => {
+              if (currentUser) {
+                setCurrentScreen('map');
+              } else {
+                setCurrentScreen('auth-choice');
+              }
+            }}
+            setIsMenuOpen={setIsMenuOpen}
+            setCurrentScreen={setCurrentScreen}
           />
         </PageTransition>
       )}
