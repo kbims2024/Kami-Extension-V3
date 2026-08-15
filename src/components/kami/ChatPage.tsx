@@ -147,51 +147,85 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
   };
 
   const loadMessages = async () => {
-    if (!currentUser?.id) return;
+    if (!currentUser?.id) {
+      console.error('[ChatPage] Current user not available');
+      return;
+    }
     try {
+      console.log('[ChatPage] Loading messages for user:', currentUser.id);
       const response = await fetch(`/api/messages?userId=${currentUser.id}`);
-      if (response.ok) {
-        const data = await response.json();
-        setMessages(data);
+      
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        console.error('[ChatPage] Error loading messages:', error);
+        return;
       }
+      
+      const data = await response.json();
+      console.log('[ChatPage] Messages loaded:', data.length);
+      setMessages(data);
     } catch (error) {
-      console.error('Error loading messages:', error);
+      console.error('[ChatPage] Error loading messages:', error);
     }
   };
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !currentUser?.id || isLoading) {
-      if (!currentUser?.id) {
-        toast.error('Vous devez être connecté pour envoyer un message');
-      }
+    // Validation
+    if (!newMessage.trim()) {
+      toast.error('Le message ne peut pas être vide');
       return;
     }
+
+    if (!currentUser?.id) {
+      toast.error('Vous devez être connecté pour envoyer un message');
+      return;
+    }
+
+    if (isLoading) {
+      return;
+    }
+
     setIsLoading(true);
     try {
+      console.log('[ChatPage] Sending message...', { user: currentUser.id, content: newMessage.substring(0, 50) });
+
+      // D'abord, s'assurer que l'admin existe
+      const ensureRes = await fetch('/api/admin/ensure');
+      if (!ensureRes.ok) {
+        throw new Error('Impossible de récupérer l\'administrateur');
+      }
+      const ensureData = await ensureRes.json();
+      const adminId = ensureData.adminId;
+
+      console.log('[ChatPage] Admin ID:', adminId);
+
+      // Envoyer le message
       const response = await fetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content: newMessage.trim(),
-          receiverId: 'ADMIN',
+          receiverId: adminId, // Utiliser l'ID réel de l'admin
           senderId: currentUser.id,
         }),
       });
-      
+
       if (!response.ok) {
         const error = await response.json().catch(() => ({ error: 'Erreur inconnue' }));
-        console.error('Message send error:', error);
+        console.error('[ChatPage] Message send error:', error);
         toast.error(error.error || 'Erreur lors de l\'envoi du message');
         return;
       }
 
       const data = await response.json();
-      console.log('Message sent successfully:', data);
+      console.log('[ChatPage] Message sent successfully:', data.id);
       setNewMessage('');
-      toast.success('Message envoyé !');
+      toast.success('Message envoyé ! ✓');
+      
+      // Recharger les messages
       await loadMessages();
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('[ChatPage] Exception sending message:', error);
       toast.error('Erreur lors de l\'envoi du message. Vérifiez votre connexion.');
     } finally {
       setIsLoading(false);

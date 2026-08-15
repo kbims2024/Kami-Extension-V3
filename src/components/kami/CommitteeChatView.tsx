@@ -180,12 +180,27 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
   };
 
   const loadConversationMessages = async (otherUserId: string) => {
-    if (!adminId) return;
+    if (!adminId) {
+      console.error('[CommitteeChatView] Admin ID not available');
+      return;
+    }
     setSelectedConvLoading(true);
     try {
-      const res = await fetch(`/api/messages?userId=${encodeURIComponent(otherUserId)}&markAdminAsRead=true`);
-      if (!res.ok) return;
+      console.log('[CommitteeChatView] Loading messages with user:', otherUserId);
+      
+      const res = await fetch(
+        `/api/messages?userId=${encodeURIComponent(adminId)}&otherUserId=${encodeURIComponent(otherUserId)}`
+      );
+      
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        console.error('[CommitteeChatView] Error loading messages:', error);
+        return;
+      }
+      
       const messages: Message[] = await res.json();
+      console.log('[CommitteeChatView] Messages loaded:', messages.length);
+      
       const updatedConv = conversations.find((c) => c.user.id === otherUserId);
       if (updatedConv) {
         setSelectedConv({
@@ -195,26 +210,64 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
           unreadCount: 0,
         });
       } else {
-        const user: UserInfo = { id: otherUserId, name: 'Utilisateur', phone: '', email: null, isResident: false, role: null, quartier: null, villageOrigine: null, createdAt: new Date().toISOString() };
+        const user: UserInfo = {
+          id: otherUserId,
+          name: 'Utilisateur',
+          phone: '',
+          email: null,
+          isResident: false,
+          role: null,
+          quartier: null,
+          villageOrigine: null,
+          createdAt: new Date().toISOString(),
+        };
         setSelectedConv({ user, messages, lastMessageAt: messages[messages.length - 1]?.createdAt || '', unreadCount: 0 });
       }
+      
+      // Marquer les messages non lus comme lus
+      const unreadMsgIds = messages.filter((m) => m.senderId !== adminId && !m.read).map((m) => m.id);
+      if (unreadMsgIds.length > 0) {
+        console.log('[CommitteeChatView] Marking as read:', unreadMsgIds.length);
+        await fetch('/api/messages', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messageIds: unreadMsgIds }),
+        }).catch((e) => console.error('[CommitteeChatView] Error marking as read:', e));
+      }
+      
       await loadConversations();
     } catch (e) {
-      console.error(e);
+      console.error('[CommitteeChatView] Exception loading messages:', e);
     } finally {
       setSelectedConvLoading(false);
     }
   };
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedConv || isSending || !adminId) {
-      if (!adminId) {
-        console.error('Admin ID not loaded');
-      }
+    // Validation
+    if (!newMessage.trim()) {
+      alert('Le message ne peut pas être vide');
       return;
     }
+
+    if (!selectedConv) {
+      alert('Aucune conversation sélectionnée');
+      return;
+    }
+
+    if (!adminId) {
+      alert('Administrateur non identifié');
+      return;
+    }
+
+    if (isSending) {
+      return;
+    }
+
     setIsSending(true);
     try {
+      console.log('[CommitteeChatView] Sending message to:', selectedConv.user.id);
+
       const res = await fetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -224,20 +277,20 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
           senderId: adminId,
         }),
       });
-      
+
       if (!res.ok) {
         const error = await res.json().catch(() => ({ error: 'Erreur inconnue' }));
-        console.error('CGL message send error:', error);
+        console.error('[CommitteeChatView] Message send error:', error);
         alert('Erreur lors de l\'envoi: ' + (error.error || 'Erreur inconnue'));
         return;
       }
 
       const data = await res.json();
-      console.log('CGL message sent:', data);
+      console.log('[CommitteeChatView] Message sent successfully:', data.id);
       setNewMessage('');
       await loadConversationMessages(selectedConv.user.id);
     } catch (e) {
-      console.error('Error sending CGL message:', e);
+      console.error('[CommitteeChatView] Exception sending message:', e);
       alert('Erreur lors de l\'envoi du message');
     } finally {
       setIsSending(false);
