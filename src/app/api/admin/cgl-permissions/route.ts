@@ -63,13 +63,19 @@ export async function PUT(request: NextRequest) {
 
     const existing = await findSettings();
     if (existing) {
+      // Update existing settings - handle both id and _id patterns
       await db.settings.update({
-        where: { id: CGL_PERMISSIONS_ID },
+        where: { id: existing.id || existing._id },
         data: { cglPermissions: JSON.stringify(cleaned) },
       });
     } else {
+      // Create new settings if doesn't exist
       await db.settings.create({
-        data: { _id: CGL_PERMISSIONS_ID, cglPermissions: JSON.stringify(cleaned) },
+        data: { 
+          id: CGL_PERMISSIONS_ID,
+          _id: CGL_PERMISSIONS_ID, 
+          cglPermissions: JSON.stringify(cleaned) 
+        },
       });
     }
 

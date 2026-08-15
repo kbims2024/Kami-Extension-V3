@@ -33,7 +33,16 @@ function parseEnabledFeatures(settings: any): string[] {
 export async function GET() {
   try {
     const settings = await findSettings();
-    return NextResponse.json({ enabledFeatures: parseEnabledFeatures(settings) });
+    return NextResponse.json(
+      { enabledFeatures: parseEnabledFeatures(settings) },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      }
+    );
   } catch (error) {
     console.error('Error fetching CGL permissions:', error);
     return NextResponse.json({ enabledFeatures: [] });

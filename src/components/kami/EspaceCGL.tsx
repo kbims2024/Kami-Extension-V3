@@ -41,11 +41,18 @@ export function EspaceCGL({ setCurrentScreen, goToAdminScreen, onBack }: EspaceC
     loadUnreadCount();
     loadNotifications();
 
+    // Rafraîchir les permissions toutes les 5 secondes pour détecter les changements
+    const permInterval = setInterval(loadPermissions, 5000);
+    
     const interval = setInterval(() => {
       loadUnreadCount();
       loadNotifications();
     }, 15000);
-    return () => clearInterval(interval);
+    
+    return () => {
+      clearInterval(interval);
+      clearInterval(permInterval);
+    };
   }, []);
 
   const loadUnreadCount = async () => {
@@ -90,10 +97,16 @@ export function EspaceCGL({ setCurrentScreen, goToAdminScreen, onBack }: EspaceC
 
   const loadPermissions = async () => {
     try {
-      const res = await fetch('/api/cgl-permissions');
+      const res = await fetch('/api/cgl-permissions', {
+        cache: 'no-store',
+        headers: { 'pragma': 'no-cache', 'cache-control': 'no-cache' }
+      });
       if (res.ok) {
         const data = await res.json();
+        console.log('CGL Permissions loaded:', data);
         setEnabledFeatures(data.enabledFeatures || []);
+      } else {
+        console.error('Failed to load CGL permissions:', res.status);
       }
     } catch (error) {
       console.error('Error loading CGL permissions:', error);
