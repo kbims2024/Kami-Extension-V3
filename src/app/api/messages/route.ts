@@ -193,3 +193,41 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'Erreur lors de la mise à jour' }, { status: 500 });
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const messageId = searchParams.get('messageId');
+    const userId = searchParams.get('userId'); // For deleting entire conversation
+
+    if (messageId) {
+      // Delete single message
+      await db.message.delete({
+        where: { id: messageId },
+      });
+      return NextResponse.json({ success: true, message: 'Message supprimé' });
+    }
+
+    if (userId) {
+      // Delete entire conversation with this user
+      const adminId = await getAdminId();
+      const adminKeys = [adminId, 'ADMIN'];
+
+      await db.message.deleteMany({
+        where: {
+          OR: [
+            { senderId: userId, receiverId: { in: adminKeys } },
+            { senderId: { in: adminKeys }, receiverId: userId },
+          ],
+        },
+      });
+      return NextResponse.json({ success: true, message: 'Conversation supprimée' });
+    }
+
+    return NextResponse.json({ error: 'ID de message ou d\'utilisateur requis' }, { status: 400 });
+  } catch (error) {
+    console.error('Error deleting messages:', error);
+    return NextResponse.json({ error: 'Erreur lors de la suppression' }, { status: 500 });
+  }
+}
+
