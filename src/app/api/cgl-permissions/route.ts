@@ -3,11 +3,35 @@ import { db } from '@/lib/db';
 
 const SETTINGS_ID = 'settings-default';
 
+function normalizePermissions(input: unknown): Record<string, boolean> {
+  const output: Record<string, boolean> = {};
+  if (!input || typeof input !== 'object') {
+    return output;
+  }
+
+  if (typeof input === 'string') {
+    try {
+      return normalizePermissions(JSON.parse(input));
+    } catch {
+      return output;
+    }
+  }
+
+  for (const [key, value] of Object.entries(input)) {
+    if (typeof value === 'boolean') {
+      output[key] = value;
+    }
+  }
+
+  return output;
+}
+
 async function findSettings() {
   let settings = await db.settings.findFirst({ where: { id: SETTINGS_ID } });
   if (!settings) {
     settings = await db.settings.findFirst({ where: { _id: SETTINGS_ID } });
   }
+
   if (!settings) {
     settings = await db.settings.create({
       data: {
@@ -16,25 +40,15 @@ async function findSettings() {
       },
     });
   }
+
   return settings;
 }
 
 function parseEnabledFeatures(settings: any): string[] {
-  const enabled: string[] = [];
-  if (settings?.cglPermissions) {
-    try {
-      const parsed =
-        typeof settings.cglPermissions === 'string'
-          ? JSON.parse(settings.cglPermissions)
-          : settings.cglPermissions;
-      for (const [key, val] of Object.entries(parsed)) {
-        if (val === true) enabled.push(key);
-      }
-    } catch {
-      // ignore
-    }
-  }
-  return enabled;
+  const perms = normalizePermissions(settings?.cglPermissions ?? {});
+  return Object.entries(perms)
+    .filter(([, enabled]) => enabled === true)
+    .map(([key]) => key);
 }
 
 // GET — public endpoint for CGL members to fetch their enabled features
