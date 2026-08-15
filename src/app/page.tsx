@@ -312,7 +312,7 @@ export default function KamiExtensionPage() {
     return null;
   }
 
-  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+  if (typeof window !== 'undefined' && typeof navigator !== 'undefined' && !navigator.onLine) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
         <div className="w-full max-w-md rounded-3xl border border-border bg-card p-6 text-center shadow-sm sm:p-8">
@@ -342,6 +342,26 @@ export default function KamiExtensionPage() {
             </Button>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  // If no screen is set, default to home
+  if (!currentScreen) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <PersuasiveLandingPage
+          lots={lots}
+          onReserveClick={() => {
+            if (currentUser) {
+              setCurrentScreen('map');
+            } else {
+              setCurrentScreen('auth-choice');
+            }
+          }}
+          setIsMenuOpen={setIsMenuOpen}
+          setCurrentScreen={setCurrentScreen}
+        />
       </div>
     );
   }
