@@ -2,12 +2,9 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ThemeToggle } from '@/components/theme-toggle';
-import { FlashInfoBand } from '@/components/flash-info-band';
 import { Menu, Map, TrendingUp, Clock, Award, ArrowRight, ChevronRight, Headset, Building2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useTheme } from 'next-themes';
 
 interface PersuasiveLandingPageProps {
   onReserveClick: () => void;
@@ -17,7 +14,6 @@ interface PersuasiveLandingPageProps {
 }
 
 export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, setCurrentScreen }: PersuasiveLandingPageProps) {
-  const { theme } = useTheme();
   const availableCount = lots.filter((l) => l.status === 'AVAILABLE').length;
   const reservedCount = lots.filter((l) => l.status === 'RESERVED').length;
   const paidCount = lots.filter((l) => l.status === 'PAID').length;
@@ -133,7 +129,6 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <ThemeToggle />
               <Button
                 variant="ghost"
                 onClick={() => setIsMenuOpen(true)}
@@ -161,9 +156,9 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
       </header>
 
       {/* Flash Info Band - Under header */}
-      <div className="fixed top-[73px] left-0 right-0 z-40">
+      {/* <div className="fixed top-[73px] left-0 right-0 z-40">
         <FlashInfoBand />
-      </div>
+      </div> */}
 
       {/* Hero Section */}
       <section className="relative flex flex-col overflow-hidden bg-gradient-to-br from-slate-100 via-white to-slate-50 dark:from-brand-blue dark:via-blue-700 dark:to-brand-blue"

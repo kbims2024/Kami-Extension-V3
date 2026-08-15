@@ -1,41 +1,23 @@
 'use client';
 
-interface PageTransitionProps {
-  children: React.ReactNode;
-}
+import React from 'react';
 
-// Version simple et légère des transitions de page
-export function PageTransition({ children }: PageTransitionProps) {
+export function PageTransition({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex-1 flex flex-col animate-fade-in">
+    <div className="flex-1 flex flex-col">
       {children}
     </div>
   );
 }
 
-// Transition de fondu simple
-export function FadeTransition({ children }: PageTransitionProps) {
-  return (
-    <div className="flex-1 flex flex-col animate-fade-in">
-      {children}
-    </div>
-  );
+export function FadeTransition({ children }: { children: React.ReactNode }) {
+  return <div className="flex-1 flex flex-col">{children}</div>;
 }
 
-// Transition avec effet d'échelle
-export function ScaleTransition({ children }: PageTransitionProps) {
-  return (
-    <div className="flex-1 flex flex-col animate-scale-in">
-      {children}
-    </div>
-  );
+export function ScaleTransition({ children }: { children: React.ReactNode }) {
+  return <div className="flex-1 flex flex-col">{children}</div>;
 }
 
-// Transition avec effet de slide
-export function SlideFadeTransition({ children }: PageTransitionProps) {
-  return (
-    <div className="flex-1 flex flex-col animate-slide-in-up">
-      {children}
-    </div>
-  );
+export function SlideFadeTransition({ children }: { children: React.ReactNode }) {
+  return <div className="flex-1 flex flex-col">{children}</div>;
 }
