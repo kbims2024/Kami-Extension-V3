@@ -1878,7 +1878,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
   // ─── Mode CGL: chargement des permissions et compteur de discussions ───
   const loadCglPermissions = async () => {
     try {
-      const res = await fetch('/api/cgl-permissions', {
+      const res = await fetch(`/api/cgl-permissions?t=${Date.now()}`, {
         cache: 'no-store',
         headers: { 'pragma': 'no-cache', 'cache-control': 'no-cache' },
       });

@@ -30,7 +30,7 @@ export function CGLPermissionsManager({ setAdminView }: CGLPermissionsManagerPro
 
   const loadPermissions = async () => {
     try {
-      const res = await fetch('/api/admin/cgl-permissions', {
+      const res = await fetch(`/api/admin/cgl-permissions?t=${Date.now()}`, {
         cache: 'no-store',
         headers: {
           'pragma': 'no-cache',

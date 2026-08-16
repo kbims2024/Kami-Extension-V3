@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kami-offline-v1';
+const CACHE_NAME = 'kami-offline-v2';
 const OFFLINE_URL = '/offline.html';
 const APP_SHELL = ['/', '/offline.html', '/manifest.webmanifest'];
 
@@ -20,11 +20,20 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+const isApiRequest = (url) => {
+  try {
+    return new URL(url).pathname.startsWith('/api/');
+  } catch {
+    return false;
+  }
+};
+
 self.addEventListener('fetch', (event) => {
   const { request } = event;
 
   if (request.method !== 'GET') return;
 
+  // Navigations : réseau d'abord avec repli sur le cache (offline).
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
@@ -44,6 +53,17 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Requêtes API : réseau en priorité, jamais mises en cache.
+  // Sans cela, les réponses (permissions, stats, etc.) resteraient bloquées
+  // sur des valeurs obsolètes dans le cache du service worker.
+  if (isApiRequest(request.url)) {
+    event.respondWith(
+      fetch(request).catch(() => caches.match(request))
+    );
+    return;
+  }
+
+  // Autres ressources statiques : cache d'abord, réseau ensuite.
   event.respondWith(
     caches.match(request).then((cached) => cached || fetch(request).then((response) => {
       const copy = response.clone();

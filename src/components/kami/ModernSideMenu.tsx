@@ -27,7 +27,7 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
     }
 
     try {
-      const res = await fetch('/api/cgl-permissions');
+      const res = await fetch(`/api/cgl-permissions?t=${Date.now()}`, { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         setHasCglAccess(Array.isArray(data.enabledFeatures) && data.enabledFeatures.includes('committee'));
