@@ -120,7 +120,8 @@ export function FlashInfoAdmin({ onBack, onHome }: FlashInfoAdminProps) {
       const response = await fetch('/api/flash-info');
       if (response.ok) {
         const flashData = await response.json();
-        setData(flashData);
+        const items = [...(flashData.items || [])].sort((a, b) => a.position - b.position);
+        setData({ ...flashData, items });
         setSettingsData(flashData.settings);
       }
     } catch (error) {
@@ -162,7 +163,13 @@ export function FlashInfoAdmin({ onBack, onHome }: FlashInfoAdminProps) {
       const response = await fetch('/api/flash-info', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          text: formData.text,
+          icon: formData.icon,
+          textColor: formData.textColor,
+          bgColor: formData.bgColor,
+          urgent: formData.urgent
+        })
       });
 
       if (response.ok) {
@@ -191,7 +198,14 @@ export function FlashInfoAdmin({ onBack, onHome }: FlashInfoAdminProps) {
       const response = await fetch('/api/flash-info', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, ...formData })
+        body: JSON.stringify({
+          id,
+          text: formData.text,
+          icon: formData.icon,
+          textColor: formData.textColor,
+          bgColor: formData.bgColor,
+          urgent: formData.urgent
+        })
       });
 
       if (response.ok) {
@@ -249,22 +263,28 @@ export function FlashInfoAdmin({ onBack, onHome }: FlashInfoAdminProps) {
     const newIndex = direction === 'up' ? index - 1 : index + 1;
     if (newIndex < 0 || newIndex >= data.items.length) return;
 
-    // Swap positions
-    const newItems = [...data.items];
-    [newItems[index].position, newItems[newIndex].position] =
-      [newItems[newIndex].position, newItems[index].position];
-
-    newItems.sort((a, b) => a.position - b.position);
+    // Persister les positions échangées des deux éléments concernés.
+    const movedItem = data.items[index];
+    const swappedItem = data.items[newIndex];
 
     try {
-      const response = await fetch('/api/flash-info', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: newItems[index].id, position: newItems[index].position })
-      });
+      const results = await Promise.all([
+        fetch('/api/flash-info', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: movedItem.id, position: newIndex })
+        }),
+        fetch('/api/flash-info', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: swappedItem.id, position: index })
+        })
+      ]);
 
-      if (response.ok) {
+      if (results.every((res) => res.ok)) {
         loadFlashInfo();
+      } else {
+        toast.error('Erreur lors du déplacement');
       }
     } catch (error) {
       toast.error('Erreur lors du déplacement');

@@ -2351,7 +2351,10 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
       )}
 
       {activeView === 'progress-updates' && (
-        <ProgressUpdatesAdmin />
+        <ProgressUpdatesAdmin
+          onBack={() => setActiveView(isCglMode ? null : 'dashboard')}
+          onHome={() => setCurrentScreen('home')}
+        />
       )}
 
       {activeView === 'subscriber-tracking' && (

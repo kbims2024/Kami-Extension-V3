@@ -47,7 +47,8 @@ export function FlashInfoBand() {
       const response = await fetch('/api/flash-info');
       if (response.ok) {
         const flashData = await response.json();
-        setData(flashData);
+        const items = [...(flashData.items || [])].sort((a, b) => a.position - b.position);
+        setData({ ...flashData, items });
       }
     } catch (error) {
       console.error('Erreur lors du chargement des flash infos:', error);

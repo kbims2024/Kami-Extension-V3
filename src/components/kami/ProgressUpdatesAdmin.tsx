@@ -563,12 +563,12 @@ export function ProgressUpdatesAdmin({ onBack, onHome }: ProgressUpdatesAdminPro
                             </span>
                           </div>
                           <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                            {update.images.length > 0 && (
+                            {update.images?.length > 0 && (
                               <span className="flex items-center gap-1">
                                 <ImageIcon className="h-3 w-3" /> {update.images.length}
                               </span>
                             )}
-                            {update.videos.length > 0 && (
+                            {update.videos?.length > 0 && (
                               <span className="flex items-center gap-1">
                                 <Video className="h-3 w-3" /> {update.videos.length}
                               </span>

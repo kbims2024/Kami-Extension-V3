@@ -138,14 +138,14 @@ export function PublicProgressSection({ onBack, onHome, setCurrentScreen }: Publ
 
   const nextImage = () => {
     if (selectedUpdate) {
-      const total = selectedUpdate.images.length + selectedUpdate.videos.length;
+      const total = (selectedUpdate.images?.length || 0) + (selectedUpdate.videos?.length || 0);
       setCurrentImageIndex((prev) => (prev + 1) % total);
     }
   };
 
   const prevImage = () => {
     if (selectedUpdate) {
-      const total = selectedUpdate.images.length + selectedUpdate.videos.length;
+      const total = (selectedUpdate.images?.length || 0) + (selectedUpdate.videos?.length || 0);
       setCurrentImageIndex((prev) => (prev - 1 + total) % total);
     }
   };
@@ -338,21 +338,21 @@ export function PublicProgressSection({ onBack, onHome, setCurrentScreen }: Publ
           {selectedUpdate && (
             <>
               {/* Image/Video Gallery */}
-              {(selectedUpdate.images.length > 0 || selectedUpdate.videos.length > 0) && (
+              {(selectedUpdate.images || []).length > 0 || (selectedUpdate.videos || []).length > 0 ? (
                 <div className="relative bg-black">
                   <div className="relative h-64 sm:h-80 md:h-96 flex items-center justify-center overflow-hidden">
                     {/* Show current image */}
-                    {currentImageIndex < selectedUpdate.images.length ? (
+                    {currentImageIndex < (selectedUpdate.images?.length || 0) ? (
                       <img
-                        src={selectedUpdate.images[currentImageIndex]}
+                        src={selectedUpdate.images![currentImageIndex]}
                         alt={`${selectedUpdate.title} - ${currentImageIndex + 1}`}
                         className="w-full h-full object-contain"
                       />
                     ) : (
                       /* Show current video */
-                      selectedUpdate.videos[currentImageIndex - selectedUpdate.images.length] && (
+                      selectedUpdate.videos![currentImageIndex - (selectedUpdate.images?.length || 0)] && (
                         <video
-                          src={selectedUpdate.videos[currentImageIndex - selectedUpdate.images.length]}
+                          src={selectedUpdate.videos![currentImageIndex - (selectedUpdate.images?.length || 0)]}
                           controls
                           className="w-full h-full object-contain"
                         />
@@ -360,7 +360,7 @@ export function PublicProgressSection({ onBack, onHome, setCurrentScreen }: Publ
                     )}
 
                     {/* Navigation arrows */}
-                    {(selectedUpdate.images.length + selectedUpdate.videos.length) > 1 && (
+                    {((selectedUpdate.images?.length || 0) + (selectedUpdate.videos?.length || 0)) > 1 && (
                       <>
                         <button
                           onClick={prevImage}
@@ -375,13 +375,13 @@ export function PublicProgressSection({ onBack, onHome, setCurrentScreen }: Publ
                           <ChevronRight className="h-5 w-5" />
                         </button>
                         <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/60 text-white px-3 py-1 rounded-full text-xs">
-                          {currentImageIndex + 1} / {selectedUpdate.images.length + selectedUpdate.videos.length}
+                          {currentImageIndex + 1} / {(selectedUpdate.images?.length || 0) + (selectedUpdate.videos?.length || 0)}
                         </div>
                       </>
                     )}
                   </div>
                 </div>
-              )}
+              ) : null}
 
               {/* Content */}
               <div className="p-6">
