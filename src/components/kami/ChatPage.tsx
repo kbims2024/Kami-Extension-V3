@@ -8,16 +8,14 @@ import {
   Send,
   Check,
   CheckCheck,
-  Mic,
-  StopCircle,
-  Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAppStore } from '@/store/useAppStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
-import { useAudioRecorder, uploadVoiceMessage, formatVoiceDuration } from '@/hooks/useAudioRecorder';
+import { uploadVoiceMessage, RecordedVoice } from '@/hooks/useAudioRecorder';
 import { VoiceMessagePlayer } from './VoiceMessagePlayer';
+import { VoiceMessageComposer } from './VoiceMessageComposer';
 
 // ─── WhatsApp colour palette ───
 const WA = {
@@ -88,10 +86,10 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isVoiceSending, setIsVoiceSending] = useState(false);
+  const [voiceActive, setVoiceActive] = useState(false);
   const [chatConfig, setChatConfig] = useState<PublicDiscussionConfig>(DEFAULT_CHAT_CONFIG);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const voiceRec = useAudioRecorder();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -120,37 +118,12 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
     };
   }, []);
 
-  const handleMicClick = async () => {
-    if (!chatConfig.enabled) {
-      toast.error('Les discussions sont désactivées par le CGL');
-      return;
-    }
-
-    if (!voiceRec.supported) {
-      toast.error('L’enregistrement vocal n’est pas supporté par ce navigateur');
-      return;
-    }
-
-    if (voiceRec.recording) {
-      // Fin d'enregistrement -> envoi du message vocal
-      const voice = await voiceRec.stop();
-      if (!voice) return;
-      await sendVoiceMessage(voice);
-      return;
-    }
-
-    const ok = await voiceRec.start();
-    if (!ok) {
-      toast.error('Impossible de démarrer l’enregistrement vocal');
-    }
-  };
-
-  const sendVoiceMessage = async (voice: any) => {
+  const sendVoiceMessage = async (voice: RecordedVoice): Promise<boolean> => {
     if (!currentUser?.id) {
       toast.error('Vous devez être connecté pour envoyer un message');
-      return;
+      return false;
     }
-    if (isVoiceSending) return;
+    if (isVoiceSending) return false;
 
     setIsVoiceSending(true);
     try {
@@ -177,14 +150,16 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
       if (!response.ok) {
         const error = await response.json().catch(() => ({ error: 'Erreur inconnue' }));
         toast.error(error.error || 'Erreur lors de l\'envoi du message');
-        return;
+        return false;
       }
 
       toast.success('Message vocal envoyé');
       await loadMessages();
+      return true;
     } catch (error) {
       console.error('[ChatPage] Exception sending voice message:', error);
       toast.error('Erreur lors de l\'envoi du message vocal. Vérifiez votre connexion.');
+      return false;
     } finally {
       setIsVoiceSending(false);
     }
@@ -203,10 +178,17 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
       }
 
       const data = await response.json();
-      setMessages(data);
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('kami:chat-read', { detail: { userId: currentUser.id } }));
-      }
+      setMessages((prev) => {
+        const lastPrev = prev[prev.length - 1];
+        const lastData = data[data.length - 1];
+        if (prev.length === data.length && lastPrev?.id === lastData?.id) {
+          return prev;
+        }
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('kami:chat-read', { detail: { userId: currentUser.id } }));
+        }
+        return data;
+      });
     } catch (error) {
       console.error('[ChatPage] Error loading messages:', error);
     }
@@ -471,92 +453,53 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
           </div>
         )}
         {chatConfig.enabled && (
-        <>
-        {voiceRec.recording ? (
           <>
-            <Button
-              type="button"
-              onClick={handleMicClick}
-              disabled={isVoiceSending}
-              className="rounded-full shrink-0"
-              style={{ width: '46px', height: '46px', backgroundColor: '#ef4444', color: 'white' }}
-              size="icon"
-              title="Arrêter et envoyer le message vocal"
-            >
-              <StopCircle className="h-5 w-5" />
-            </Button>
-
-            <div
-              className="flex-1 flex items-center justify-center gap-2 rounded-full px-4 py-3 text-[14px] font-semibold"
-              style={{ backgroundColor: isDark ? WA.inputBgDark : WA.inputBg, color: '#ef4444' }}
-            >
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
-              </span>
-              {formatVoiceDuration(voiceRec.recordingTime)}
-            </div>
-
-            <Button
-              type="button"
-              onClick={() => voiceRec.cancel()}
-              className="rounded-full shrink-0"
-              style={{ width: '42px', height: '42px', backgroundColor: '#E2E8F0', color: '#475569' }}
-              size="icon"
-              title="Annuler l’enregistrement"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </>
-        ) : (
-          <>
-          <Button
-            type="button"
-            onClick={handleMicClick}
-            disabled={isVoiceSending || isLoading}
-            className="rounded-full shrink-0"
-            style={{ width: '42px', height: '42px', backgroundColor: isVoiceSending ? '#E2E8F0' : '#E2E8F0', color: '#475569' }}
-            size="icon"
-            title="Envoyer un message vocal"
-          >
-            <Mic className="h-4 w-4" />
-          </Button>
-
-          <div className="flex-1 relative">
-            <input
-              ref={inputRef}
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyDown={handleKeyPress}
-              placeholder="Écrire un message..."
+            <VoiceMessageComposer
+              isDark={isDark}
+              sending={isVoiceSending}
               disabled={isLoading}
-              className="w-full rounded-full px-4 py-3 text-[15px] outline-none border border-transparent focus:border-blue-300 focus:ring-2 focus:ring-blue-200"
-              style={{
-                backgroundColor: isDark ? WA.inputBgDark : WA.inputBg,
-                color: isDark ? '#E9EDEF' : WA.textDark,
-                minHeight: '46px',
-                maxHeight: '120px',
-              }}
+              accentColor={WA.headerTeal}
+              onActiveChange={setVoiceActive}
+              onSend={sendVoiceMessage}
             />
-          </div>
 
-          <Button
-            onClick={handleSendMessage}
-            disabled={isLoading || !newMessage.trim()}
-            className="rounded-full shrink-0"
-            style={{
-              width: '46px',
-              height: '46px',
-              backgroundColor: newMessage.trim() ? WA.headerTeal : 'transparent',
-              color: newMessage.trim() ? 'white' : '#64748B',
-            }}
-            size="icon"
-          >
-            <Send className="h-5 w-5" />
-          </Button>
+            {!voiceActive && (
+              <>
+                <div className="flex-1 relative">
+                  <input
+                    ref={inputRef}
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    placeholder="Écrire un message..."
+                    disabled={isLoading}
+                    className="w-full rounded-full px-4 py-3 text-[15px] outline-none border border-transparent focus:border-blue-300 focus:ring-2 focus:ring-blue-200"
+                    style={{
+                      backgroundColor: isDark ? WA.inputBgDark : WA.inputBg,
+                      color: isDark ? '#E9EDEF' : WA.textDark,
+                      minHeight: '46px',
+                      maxHeight: '120px',
+                    }}
+                  />
+                </div>
+
+                <Button
+                  onClick={handleSendMessage}
+                  disabled={isLoading || !newMessage.trim()}
+                  className="rounded-full shrink-0"
+                  style={{
+                    width: '46px',
+                    height: '46px',
+                    backgroundColor: newMessage.trim() ? WA.headerTeal : 'transparent',
+                    color: newMessage.trim() ? 'white' : '#64748B',
+                  }}
+                  size="icon"
+                >
+                  <Send className="h-5 w-5" />
+                </Button>
+              </>
+            )}
           </>
-        )}
-        </>
         )}
       </div>
 

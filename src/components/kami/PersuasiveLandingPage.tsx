@@ -14,9 +14,10 @@ interface PersuasiveLandingPageProps {
   lots: any[];
   setIsMenuOpen: (open: boolean) => void;
   setCurrentScreen: (screen: string) => void;
+  notificationBell?: React.ReactNode;
 }
 
-export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, setCurrentScreen }: PersuasiveLandingPageProps) {
+export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, setCurrentScreen, notificationBell }: PersuasiveLandingPageProps) {
   const { theme } = useTheme();
   const shouldReduceMotion = useReducedMotion();
   const availableCount = lots.filter((l) => l.status === 'AVAILABLE').length;
@@ -148,6 +149,7 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
             </div>
             <div className="flex items-center gap-4">
               <ThemeToggle />
+              {notificationBell}
               <Button
                 variant="ghost"
                 onClick={() => setIsMenuOpen(true)}

@@ -17,16 +17,15 @@ import {
   Mail,
   Trash2,
   RefreshCw,
-  Mic,
   Archive,
   AlertTriangle,
-  StopCircle,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
-import { useAudioRecorder, uploadVoiceMessage, formatVoiceDuration } from '@/hooks/useAudioRecorder';
+import { uploadVoiceMessage, formatVoiceDuration, RecordedVoice } from '@/hooks/useAudioRecorder';
 import { VoiceMessagePlayer } from './VoiceMessagePlayer';
+import { VoiceMessageComposer } from './VoiceMessageComposer';
 
 // WhatsApp palette
 const WA = {
@@ -149,7 +148,7 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
   const [searchQuery, setSearchQuery] = useState('');
   const [activeView, setActiveView] = useState<'list' | 'detail'>('list');
   const [isVoiceSending, setIsVoiceSending] = useState(false);
-  const voiceRec = useAudioRecorder();
+  const [voiceActive, setVoiceActive] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{
     title: string;
     message: string;
@@ -201,7 +200,9 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
     const refreshLoop = async () => {
       const current = selectedConvRef.current;
       if (current?.user?.id) {
-        await loadConversationMessages(current.user.id);
+        // Rafraîchissement silencieux : ne marque pas "lu" à chaque tick,
+        // ne recrée pas l'état si rien n'a changé.
+        await pollConversationMessages(current.user.id);
       } else {
         await loadConversations();
       }
@@ -243,7 +244,12 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
       const res = await fetch('/api/committee-chat', { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
-        setConversations(data);
+        setConversations((prev) => {
+          if (JSON.stringify(prev) === JSON.stringify(data)) {
+            return prev;
+          }
+          return data;
+        });
         if (selectedConvRef.current) {
           const updated = data.find((c: Conversation) => c.user.id === selectedConvRef.current!.user.id);
           if (updated) {
@@ -262,6 +268,57 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
     } finally {
       setIsLoading(false);
       hasLoadedRef.current = true;
+    }
+  };
+
+  // Rafraîchissement silencieux de la conversation ouverte (polling).
+  // Évite le re-rendu complet et le marquage "lu" répété à chaque tick.
+  const pollConversationMessages = async (otherUserId: string) => {
+    if (!adminId) return;
+    try {
+      const res = await fetch(
+        `/api/messages?userId=${encodeURIComponent(adminId)}&otherUserId=${encodeURIComponent(otherUserId)}&markRead=true`,
+        { cache: 'no-store' }
+      );
+      if (!res.ok) return;
+
+      const messages: Message[] = await res.json();
+      const current = selectedConvRef.current;
+      if (!current) return;
+
+      const lastCurrent = current.messages[current.messages.length - 1];
+      const lastNew = messages[messages.length - 1];
+      const changed = messages.length !== current.messages.length || lastCurrent?.id !== lastNew?.id;
+      if (!changed) return;
+
+      setSelectedConv((prev) => (prev ? { ...prev, messages, unreadCount: 0 } : prev));
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.user.id === otherUserId
+            ? {
+                ...c,
+                unreadCount: 0,
+                lastMessage: lastNew
+                  ? {
+                      id: lastNew.id,
+                      content: lastNew.content,
+                      senderId: lastNew.senderId,
+                      receiverId: lastNew.receiverId,
+                      read: lastNew.read,
+                      createdAt: lastNew.createdAt,
+                    }
+                  : c.lastMessage,
+                lastMessageAt: lastNew?.createdAt || c.lastMessageAt,
+              }
+            : c
+        )
+      );
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('kami:chat-read', { detail: { userId: otherUserId } }));
+      }
+      scrollToBottom();
+    } catch (e) {
+      console.error('[CommitteeChatView] Poll error:', e);
     }
   };
 
@@ -535,35 +592,16 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
     return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' });
   };
 
-  const handleMicClick = async () => {
-    if (!voiceRec.supported) {
-      toast.error('L’enregistrement vocal n’est pas supporté par ce navigateur');
-      return;
-    }
-
-    if (voiceRec.recording) {
-      const voice = await voiceRec.stop();
-      if (!voice) return;
-      await sendVoiceMessage(voice);
-      return;
-    }
-
-    const ok = await voiceRec.start();
-    if (!ok) {
-      toast.error('Impossible de démarrer l’enregistrement vocal');
-    }
-  };
-
-  const sendVoiceMessage = async (voice: any) => {
+  const sendVoiceMessage = async (voice: RecordedVoice): Promise<boolean> => {
     if (!selectedConv) {
       toast.error('Aucune conversation sélectionnée');
-      return;
+      return false;
     }
     if (!adminId) {
       toast.error('Administrateur non identifié');
-      return;
+      return false;
     }
-    if (isVoiceSending) return;
+    if (isVoiceSending) return false;
 
     setIsVoiceSending(true);
     try {
@@ -583,14 +621,16 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
       if (!res.ok) {
         const error = await res.json().catch(() => ({ error: 'Erreur inconnue' }));
         toast.error(error.error || "Erreur lors de l'envoi du message vocal");
-        return;
+        return false;
       }
 
       await loadConversationMessages(selectedConv.user.id);
       await loadConversations();
+      return true;
     } catch (e) {
       console.error('[CommitteeChatView] Exception sending voice message:', e);
       toast.error("Erreur lors de l'envoi du message vocal");
+      return false;
     } finally {
       setIsVoiceSending(false);
     }
@@ -1019,56 +1059,17 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
 
       {/* Input bar */}
       <div className="shrink-0 flex items-center gap-2 px-3 py-3 border-t w-full" style={{ backgroundColor: isDark ? '#111A27' : '#F8FAFC', borderColor: isDark ? '#1F2A38' : '#E5E7EB' }}>
-        {voiceRec.recording ? (
+        <VoiceMessageComposer
+          isDark={isDark}
+          sending={isVoiceSending}
+          disabled={isSending}
+          accentColor={WA.headerTeal}
+          onActiveChange={setVoiceActive}
+          onSend={sendVoiceMessage}
+        />
+
+        {!voiceActive && (
           <>
-            <Button
-              type="button"
-              onClick={handleMicClick}
-              disabled={isVoiceSending}
-              className="rounded-full shrink-0"
-              style={{ width: '46px', height: '46px', backgroundColor: '#ef4444', color: 'white' }}
-              size="icon"
-              title="Arrêter et envoyer le message vocal"
-            >
-              <StopCircle className="h-4 w-4" />
-            </Button>
-
-            <div
-              className="flex-1 flex items-center justify-center gap-2 rounded-full px-4 py-3 text-[14px] font-semibold"
-              style={{ backgroundColor: isDark ? WA.inputBgDark : WA.inputBg, color: '#ef4444' }}
-            >
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
-              </span>
-              {formatVoiceDuration(voiceRec.recordingTime)}
-            </div>
-
-            <Button
-              type="button"
-              onClick={() => voiceRec.cancel()}
-              className="rounded-full shrink-0"
-              style={{ width: '42px', height: '42px', backgroundColor: '#E2E8F0', color: '#475569' }}
-              size="icon"
-              title="Annuler l’enregistrement"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </>
-        ) : (
-          <>
-            <Button
-              type="button"
-              onClick={handleMicClick}
-              disabled={isVoiceSending || isSending}
-              className="rounded-full shrink-0"
-              style={{ width: '42px', height: '42px', backgroundColor: '#E2E8F0', color: '#475569' }}
-              size="icon"
-              title="Envoyer un message vocal"
-            >
-              <Mic className="h-4 w-4" />
-            </Button>
-
             <div className="flex-1 relative min-w-0">
               <input
                 value={newMessage}

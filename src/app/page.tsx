@@ -42,6 +42,7 @@ import { ServiceApresVenteScreen } from '@/components/kami/ServiceApresVenteScre
 import { ExpertApplicationsAdmin } from '@/components/kami/ExpertApplicationsAdmin';
 import { AdminHeroImage } from '@/components/kami/AdminHeroImage';
 import { CommitteeNotificationBell } from '@/components/kami/CommitteeNotificationBell';
+import { HomeNotificationBell } from '@/components/kami/HomeNotificationBell';
 import { UsersMonitorPanel } from '@/components/kami/UsersMonitorPanel';
 import { UserManagement } from '@/components/kami/UserManagement';
 import { PublicProgressSection } from '@/components/kami/PublicProgressSection';
@@ -403,6 +404,23 @@ export default function KamiExtensionPage() {
     );
   }
 
+  const homeNotificationBell = (
+    <HomeNotificationBell
+      currentUser={currentUser}
+      onNavigate={() => {
+        const isCommittee =
+          currentUser?.role === 'MANAGEMENT_COMMITTEE' || currentUser?.role === 'ADMIN';
+        if (isCommittee) {
+          setCurrentScreen('espace-cgl');
+        } else if (currentUser) {
+          setCurrentScreen('chat');
+        } else {
+          setCurrentScreen('auth-choice');
+        }
+      }}
+    />
+  );
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Offline Indicator */}
@@ -444,6 +462,7 @@ export default function KamiExtensionPage() {
             }}
             setIsMenuOpen={setIsMenuOpen}
             setCurrentScreen={setCurrentScreen}
+            notificationBell={homeNotificationBell}
           />
         </PageTransition>
       )}
@@ -722,6 +741,7 @@ export default function KamiExtensionPage() {
             }}
             setIsMenuOpen={setIsMenuOpen}
             setCurrentScreen={setCurrentScreen}
+            notificationBell={homeNotificationBell}
           />
         </PageTransition>
       )}
