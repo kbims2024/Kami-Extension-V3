@@ -14,7 +14,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { Building2, Map, Home, Wallet, Users, User, Shield, ArrowLeft, Menu, LogOut, LogIn, CheckCircle, XCircle, AlertCircle, ChartLine, CreditCard, UserPlus, PlusCircle, Wrench, Zap, Droplet, ShieldCheck, FileText, Copy, ClipboardCheck, Upload, Phone, Activity, Construction, TrendingUp, Camera, Share2, Headset, Plus, Trash2, Image as ImageIcon, Crown, WifiOff } from 'lucide-react';
+import { Building2, Map, Home, Wallet, Users, User, Shield, ArrowLeft, Menu, LogOut, LogIn, CheckCircle, XCircle, AlertCircle, ChartLine, CreditCard, UserPlus, PlusCircle, Wrench, Zap, Droplet, ShieldCheck, FileText, Copy, ClipboardCheck, Upload, Phone, Activity, Construction, TrendingUp, Camera, Share2, Headset, Plus, Trash2, Image as ImageIcon, Crown, WifiOff, MessageSquare } from 'lucide-react';
 import { EnhancedMapScreen } from '@/components/kami/EnhancedMapScreen';
 import { PersuasiveLandingPage } from '@/components/kami/PersuasiveLandingPage';
 import { TwoStepRegistration } from '@/components/kami/TwoStepRegistration';
@@ -49,7 +49,6 @@ import { ProgressUpdatesAdmin } from '@/components/kami/ProgressUpdatesAdmin';
 import { SubscriberTrackingPanel } from '@/components/kami/SubscriberTrackingPanel';
 import { RegulationRulesScreen } from '@/components/kami/RegulationRulesScreen';
 import { CGLPermissionsManager } from '@/components/kami/CGLPermissionsManager';
-import { EspaceCGL } from '@/components/kami/EspaceCGL';
 import { CommitteeChatView } from '@/components/kami/CommitteeChatView';
 
 export default function KamiExtensionPage() {
@@ -533,14 +532,14 @@ export default function KamiExtensionPage() {
 
       {currentScreen === 'espace-cgl' && (currentUser?.role === 'MANAGEMENT_COMMITTEE' || currentUser?.role === 'ADMIN') && (
         <PageTransition>
-          <EspaceCGL
-            setCurrentScreen={setCurrentScreen}
+          <AdminScreen
+            adminView={adminView}
             setAdminView={setAdminView}
-            goToAdminScreen={(view: string) => {
-              setAdminView(view);
-              setCurrentScreen('admin-cgl');
-            }}
-            onBack={() => setCurrentScreen('home')}
+            lots={lots}
+            loadLots={loadLots}
+            setCurrentScreen={setCurrentScreen}
+            currentUser={currentUser}
+            cglMode
           />
         </PageTransition>
       )}
@@ -552,23 +551,6 @@ export default function KamiExtensionPage() {
             setCurrentScreen={setCurrentScreen}
             onBack={() => setCurrentScreen('espace-cgl')}
             onHome={() => setCurrentScreen('home')}
-          />
-        </PageTransition>
-      )}
-
-      {/* CGL member accessing admin sub-views through Espace CGL */}
-      {currentScreen === 'admin-cgl' && (currentUser?.role === 'MANAGEMENT_COMMITTEE' || currentUser?.role === 'ADMIN') && (
-        <PageTransition>
-          <AdminScreen
-            adminView={adminView}
-            setAdminView={(v: string | null) => {
-              if (v === null) setCurrentScreen('espace-cgl');
-              else setAdminView(v);
-            }}
-            lots={lots}
-            loadLots={loadLots}
-            setCurrentScreen={setCurrentScreen}
-            currentUser={currentUser}
           />
         </PageTransition>
       )}
@@ -1707,7 +1689,44 @@ function SavSettingsAdmin({ onBack }: { onBack?: () => void }) {
   );
 }
 
-function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen, currentUser }: any) {
+// Boutons de la page d'accueil d'administration.
+// Chaque bouton est identifié par la vue admin (`adminView`) qu'il ouvre.
+// En mode CGL, seuls les boutons dont la vue est activée dans les permissions
+// « Espace CGL » (voir /api/cgl-permissions) sont affichés.
+const ADMIN_FEATURE_BUTTONS = [
+  { view: 'dashboard', label: 'Tableau de Bord Global', icon: ChartLine, className: 'text-[#10B981]' },
+  { view: 'payments', label: 'Valider Paiements', icon: CheckCircle, className: 'text-blue-500 dark:text-blue-400' },
+  { view: 'add-lots', label: 'Ajouter Lots', icon: PlusCircle, className: 'text-[#8B5E3C] dark:text-[#A5785C]' },
+  { view: 'logo', label: 'Éditer le Logo', icon: FileText, className: 'text-orange-500 dark:text-orange-400' },
+  { view: 'payment-logos', label: 'Logos Paiements', icon: CreditCard, className: 'text-cyan-500 dark:text-cyan-400' },
+  { view: 'hero-image', label: 'Image de Fond', icon: ImageIcon, className: 'text-pink-500 dark:text-pink-400' },
+  { view: 'committee', label: 'Gestion du Comité', icon: Shield, className: 'text-purple-600 dark:text-purple-400' },
+  { view: 'flash-infos', label: 'Flash Infos', icon: FileText, className: 'text-brand-blue' },
+  { view: 'expert-applications', label: 'Candidatures Experts', icon: UserPlus, className: 'text-emerald-500 dark:text-emerald-400' },
+  { view: 'users-monitor', label: 'Surveillance Connexions', icon: Activity, className: 'text-cyan-500 dark:text-cyan-400' },
+  { view: 'user-management', label: 'Gestion Utilisateurs', icon: Users, className: 'text-blue-500 dark:text-blue-400' },
+  { view: 'files', label: 'Gérer Fichiers', icon: Upload, className: 'text-brand-blue' },
+  { view: 'progress-updates', label: 'Avancement Travaux', icon: Construction, className: 'text-orange-500 dark:text-orange-400' },
+  { view: 'subscriber-tracking', label: 'Suivi Souscripteurs', icon: TrendingUp, className: 'text-cyan-500 dark:text-cyan-400' },
+  { view: 'sav-settings', label: 'Paramètres SAV', icon: Headset, className: 'text-emerald-500' },
+  { view: 'cgl-permissions', label: 'Permissions CGL', icon: Crown, className: 'text-purple-600 dark:text-purple-400' },
+];
+
+function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen, currentUser, cglMode }: any) {
+  // En mode CGL (`cglMode`), la navigation admin est locale afin de ne pas
+  // perturber l'écran d'administration classique, et les boutons sont filtrés
+  // par les permissions « Espace CGL ».
+  const isCglMode = !!cglMode;
+  const [localAdminView, setLocalAdminView] = useState<string | null>(null);
+  const [cglEnabled, setCglEnabled] = useState<string[] | null>(null);
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
+
+  const activeView = isCglMode ? localAdminView : adminView;
+  const setActiveView = (view: string | null) => {
+    if (isCglMode) setLocalAdminView(view);
+    else setAdminView(view);
+  };
+
   // Stats state
   const [stats, setStats] = useState({ available: 0, reserved: 0, pending: 0, revenue: 0, userCount: 0, reservationCount: 0, totalLots: 0, paid: 0 });
   const [statsLoading, setStatsLoading] = useState(false);
@@ -1846,22 +1865,85 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
 
   // Load data when view changes
   useEffect(() => {
-    if (adminView === 'stats') {
+    if (activeView === 'stats') {
       loadStats();
       // Auto-refresh every 10 seconds
       const interval = setInterval(loadStats, 10000);
       return () => clearInterval(interval);
-    } else if (adminView === 'payments') {
+    } else if (activeView === 'payments') {
       loadPayments();
     }
-  }, [adminView]);
+  }, [activeView]);
+
+  // ─── Mode CGL: chargement des permissions et compteur de discussions ───
+  const loadCglPermissions = async () => {
+    try {
+      const res = await fetch('/api/cgl-permissions', {
+        cache: 'no-store',
+        headers: { 'pragma': 'no-cache', 'cache-control': 'no-cache' },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCglEnabled(Array.isArray(data.enabledFeatures) ? data.enabledFeatures : []);
+      }
+    } catch (e) {
+      console.error('Error loading CGL permissions:', e);
+    }
+  };
+
+  const loadUnreadChatCount = async () => {
+    try {
+      const res = await fetch('/api/committee-chat');
+      if (res.ok) {
+        const data = await res.json();
+        const count = data.reduce((acc: number, conv: any) => acc + (conv.unreadCount > 0 ? 1 : 0), 0);
+        setUnreadChatCount(count);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    if (!isCglMode) return;
+    loadCglPermissions();
+    loadUnreadChatCount();
+
+    const handlePermissionsChanged = (event: Event) => {
+      const detail = (event as CustomEvent).detail as Record<string, boolean> | undefined;
+      if (detail) {
+        setCglEnabled(Object.keys(detail).filter((key) => detail[key] === true));
+      }
+      loadCglPermissions();
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('cgl-permissions-changed', handlePermissionsChanged);
+    }
+
+    // Rafraîchir les permissions pour détecter les changements de l'admin
+    const permInterval = setInterval(loadCglPermissions, 5000);
+    const chatInterval = setInterval(loadUnreadChatCount, 15000);
+
+    return () => {
+      clearInterval(permInterval);
+      clearInterval(chatInterval);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('cgl-permissions-changed', handlePermissionsChanged);
+      }
+    };
+  }, [isCglMode]);
+
+  const visibleButtons = isCglMode
+    ? ADMIN_FEATURE_BUTTONS.filter((button) => (cglEnabled ?? []).includes(button.view))
+    : ADMIN_FEATURE_BUTTONS;
 
   return (
     <div className="flex-1 flex flex-col bg-card">
       <PageNav
-        onBack={() => adminView ? setAdminView(null) : setCurrentScreen('home')}
+        onBack={() => activeView ? setActiveView(null) : setCurrentScreen('home')}
         onHome={() => setCurrentScreen('home')}
-        title={adminView ? 'Admin' : undefined}
+        title={activeView ? 'Admin' : undefined}
         titleRight={currentUser?.id ? (
           <CommitteeNotificationBell
             userId={currentUser.id}
@@ -1870,7 +1952,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
         ) : undefined}
       />
       <div className="p-6 pt-2">
-      {!adminView && (
+      {!activeView && (
         <div className="flex items-center justify-center mb-6">
           <h2 className="text-2xl font-bold text-red-600 flex items-center justify-center">
             <Shield className="mr-2 h-6 w-6" />
@@ -1879,112 +1961,64 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
         </div>
       )}
 
-      {!adminView && (
-        <div className="grid grid-cols-2 gap-4">
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('dashboard')}>
+      {!activeView && isCglMode && (
+        <div className="mb-4">
+          <Card
+            className="bg-gradient-to-br from-blue-600 to-indigo-700 p-3 rounded-xl shadow-md cursor-pointer hover:shadow-lg transition-all active:scale-[0.97] h-[100px] border-0 relative overflow-hidden"
+            onClick={() => setCurrentScreen('committee-chat')}
+          >
+            {unreadChatCount > 0 && (
+              <div className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm animate-bounce">
+                {unreadChatCount} discussion{unreadChatCount > 1 ? 's' : ''}
+              </div>
+            )}
             <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
-              <ChartLine className="text-[#10B981] h-8 w-8 mb-2" />
-              <p className="text-sm font-bold">Tableau de Bord Global</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('payments')}>
-            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
-              <CheckCircle className="text-blue-500 dark:text-blue-400 h-8 w-8 mb-2" />
-              <p className="text-sm font-bold">Valider Paiements</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('add-lots')}>
-            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
-              <PlusCircle className="text-[#8B5E3C] dark:text-[#A5785C] h-8 w-8 mb-2" />
-              <p className="text-sm font-bold">Ajouter Lots</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('logo')}>
-            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
-              <FileText className="text-orange-500 dark:text-orange-400 h-8 w-8 mb-2" />
-              <p className="text-sm font-bold">Éditer le Logo</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('payment-logos')}>
-            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
-              <CreditCard className="text-cyan-500 dark:text-cyan-400 h-8 w-8 mb-2" />
-              <p className="text-sm font-bold">Logos Paiements</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('hero-image')}>
-            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
-              <ImageIcon className="text-pink-500 dark:text-pink-400 h-8 w-8 mb-2" />
-              <p className="text-sm font-bold">Image de Fond</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('committee')}>
-            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
-              <Shield className="text-purple-600 dark:text-purple-400 h-8 w-8 mb-2" />
-              <p className="text-sm font-bold">Gestion du Comité</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('flash-infos')}>
-            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
-              <FileText className="text-brand-blue h-8 w-8 mb-2" />
-              <p className="text-sm font-bold">Flash Infos</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('expert-applications')}>
-            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
-              <UserPlus className="text-emerald-500 dark:text-emerald-400 h-8 w-8 mb-2" />
-              <p className="text-sm font-bold">Candidatures Experts</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('users-monitor')}>
-            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
-              <Activity className="text-cyan-500 dark:text-cyan-400 h-8 w-8 mb-2" />
-              <p className="text-sm font-bold">Surveillance Connexions</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('user-management')}>
-            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
-              <Users className="text-blue-500 dark:text-blue-400 h-8 w-8 mb-2" />
-              <p className="text-sm font-bold">Gestion Utilisateurs</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('files')}>
-            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
-              <Upload className="text-brand-blue h-8 w-8 mb-2" />
-              <p className="text-sm font-bold">Gérer Fichiers</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('progress-updates')}>
-            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
-              <Construction className="text-orange-500 dark:text-orange-400 h-8 w-8 mb-2" />
-              <p className="text-sm font-bold">Avancement Travaux</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('subscriber-tracking')}>
-            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
-              <TrendingUp className="text-cyan-500 dark:text-cyan-400 h-8 w-8 mb-2" />
-              <p className="text-sm font-bold">Suivi Souscripteurs</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('sav-settings')}>
-            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
-              <Headset className="text-emerald-500 h-8 w-8 mb-2" />
-              <p className="text-sm font-bold">Paramètres SAV</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]" onClick={() => setAdminView('cgl-permissions')}>
-            <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
-              <Crown className="text-purple-600 dark:text-purple-400 h-8 w-8 mb-2" />
-              <p className="text-sm font-bold">Permissions CGL</p>
+              <MessageSquare className="h-7 w-7 mb-2 text-white" />
+              <p className="text-xs font-bold leading-tight text-white">Gestion de Discussion</p>
             </CardContent>
           </Card>
         </div>
       )}
 
-      {adminView === 'dashboard' && (
-        <AdminDashboard setAdminView={setAdminView} />
+      {!activeView && visibleButtons.length > 0 && (
+        <div className="grid grid-cols-2 gap-4">
+          {visibleButtons.map((button) => {
+            const Icon = button.icon;
+            return (
+              <Card
+                key={button.view}
+                className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]"
+                onClick={() => setActiveView(button.view)}
+              >
+                <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
+                  <Icon className={`${button.className} h-8 w-8 mb-2`} />
+                  <p className="text-sm font-bold">{button.label}</p>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       )}
 
-      {adminView === 'stats' && (
+      {!activeView && isCglMode && visibleButtons.length === 0 && (
+        <Card className="bg-muted/30 border-dashed">
+          <CardContent className="p-8 text-center">
+            <Crown className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
+            <p className="text-sm font-medium text-muted-foreground">
+              Aucune fonctionnalité activée
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              L&apos;administrateur n&apos;a pas encore activé de fonctionnalités pour l&apos;Espace CGL.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {activeView === 'dashboard' && (
+        <AdminDashboard setAdminView={setActiveView} />
+      )}
+
+      {activeView === 'stats' && (
         <div className="mt-4">
           {statsLoading ? (
             <Card className="bg-card p-6">
@@ -2028,7 +2062,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
         </div>
       )}
 
-      {adminView === 'add-lots' && (
+      {activeView === 'add-lots' && (
         <div className="mt-4">
           <Card className="bg-card p-4 rounded-xl shadow-sm border border-border">
             <CardContent className="space-y-4">
@@ -2094,7 +2128,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
         </div>
       )}
 
-      {adminView === 'payments' && (
+      {activeView === 'payments' && (
         <div className="mt-4">
           {paymentsLoading ? (
             <Card className="bg-card p-6">
@@ -2220,54 +2254,54 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
         </div>
       )}
 
-      {adminView === 'committee' && (
-        <ManagementCommitteeManagement setAdminView={setAdminView} setCurrentScreen={setCurrentScreen} currentUser={currentUser} />
+      {activeView === 'committee' && (
+        <ManagementCommitteeManagement setAdminView={setActiveView} setCurrentScreen={setCurrentScreen} currentUser={currentUser} />
       )}
 
-      {adminView === 'logo' && (
-        <AdminLogo onClose={() => setAdminView('dashboard')} />
+      {activeView === 'logo' && (
+        <AdminLogo onClose={() => setActiveView(isCglMode ? null : 'dashboard')} />
       )}
 
-      {adminView === 'payment-logos' && (
-        <AdminPaymentMethodLogos onClose={() => setAdminView('dashboard')} />
+      {activeView === 'payment-logos' && (
+        <AdminPaymentMethodLogos onClose={() => setActiveView(isCglMode ? null : 'dashboard')} />
       )}
 
-      {adminView === 'flash-infos' && (
-        <FlashInfoAdmin onBack={() => setAdminView('dashboard')} />
+      {activeView === 'flash-infos' && (
+        <FlashInfoAdmin onBack={() => setActiveView(isCglMode ? null : 'dashboard')} />
       )}
 
-      {adminView === 'files' && (
-        <AdminFiles onBack={() => setAdminView('dashboard')} />
+      {activeView === 'files' && (
+        <AdminFiles onBack={() => setActiveView(isCglMode ? null : 'dashboard')} />
       )}
 
-      {adminView === 'expert-applications' && (
-        <ExpertApplicationsAdmin onBack={() => setAdminView('dashboard')} />
+      {activeView === 'expert-applications' && (
+        <ExpertApplicationsAdmin onBack={() => setActiveView(isCglMode ? null : 'dashboard')} />
       )}
 
-      {adminView === 'users-monitor' && (
+      {activeView === 'users-monitor' && (
         <UsersMonitorPanel />
       )}
 
-      {adminView === 'user-management' && (
+      {activeView === 'user-management' && (
         <UserManagement />
       )}
 
-      {adminView === 'progress-updates' && (
+      {activeView === 'progress-updates' && (
         <ProgressUpdatesAdmin />
       )}
 
-      {adminView === 'subscriber-tracking' && (
+      {activeView === 'subscriber-tracking' && (
         <SubscriberTrackingPanel setCurrentScreen={setCurrentScreen} currentUser={currentUser} />
       )}
 
-      {adminView === 'sav-settings' && <SavSettingsAdmin />}
+      {activeView === 'sav-settings' && <SavSettingsAdmin />}
 
-      {adminView === 'hero-image' && (
-        <AdminHeroImage onBack={() => setAdminView('dashboard')} />
+      {activeView === 'hero-image' && (
+        <AdminHeroImage onBack={() => setActiveView(isCglMode ? null : 'dashboard')} />
       )}
 
-      {adminView === 'cgl-permissions' && (
-        <CGLPermissionsManager setAdminView={setAdminView} />
+      {activeView === 'cgl-permissions' && (
+        <CGLPermissionsManager setAdminView={setActiveView} />
       )}
       </div>
     </div>
