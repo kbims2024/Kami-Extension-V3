@@ -1,20 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-
-function buildUserFirstMessageHeader(user: { name: string; phone?: string | null; isResident?: boolean | null; quartier?: string | null; villageOrigine?: string | null; role?: string | null; }) {
-  const roleLabel = user.role === 'MANAGEMENT_COMMITTEE' ? 'Comité de gestion' : user.role === 'ADMIN' ? 'Administrateur' : user.isResident ? 'Résident' : 'Non résident';
-  const location = user.isResident ? user.quartier || 'Non renseigné' : user.villageOrigine || 'Non renseigné';
-
-  return [
-    '--- INFORMATIONS UTILISATEUR ---',
-    `Nom: ${user.name || 'Non renseigné'}`,
-    `Téléphone: ${user.phone || 'Non renseigné'}`,
-    `Statut: ${roleLabel}`,
-    `Localisation: ${location}`,
-    '-------------------------------',
-    '',
-  ].join('\n');
-}
+import { MAX_MESSAGE_LENGTH, stripLegacyUserHeader } from '@/lib/chat-utils';
 
 async function getAdminId(): Promise<string> {
   const admin = await db.user.findFirst({
@@ -36,6 +22,23 @@ async function getAdminId(): Promise<string> {
   return created.id;
 }
 
+/** Récupère les infos publiques d'un ensemble d'utilisateurs en une seule requête. */
+async function getUsersInfo(ids: string[]) {
+  const uniqueIds = Array.from(new Set(ids.filter(Boolean)));
+  if (uniqueIds.length === 0) return new Map<string, any>();
+
+  const users = await db.user.findMany({
+    where: { id: { in: uniqueIds } },
+    select: {
+      id: true,
+      name: true,
+      phone: true,
+    },
+  });
+
+  return new Map(users.map((u: any) => [u.id, u]));
+}
+
 /**
  * POST /api/messages
  * Envoyer un message
@@ -46,10 +49,17 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { content, receiverId, senderId } = body;
 
-    // Validation
     if (!content?.trim()) {
       return NextResponse.json(
         { error: 'Le contenu du message est obligatoire' },
+        { status: 400 }
+      );
+    }
+
+    const cleanContent = content.trim();
+    if (cleanContent.length > MAX_MESSAGE_LENGTH) {
+      return NextResponse.json(
+        { error: `Le message ne peut pas dépasser ${MAX_MESSAGE_LENGTH} caractères` },
         { status: 400 }
       );
     }
@@ -68,80 +78,39 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('[POST /api/messages]', { content: content.substring(0, 50), senderId, receiverId });
-
-    // Vérifier l'expéditeur
-    const sender = await db.user.findUnique({
-      where: { id: senderId },
-      select: {
-        id: true,
-        name: true,
-        phone: true,
-        role: true,
-        isResident: true,
-        quartier: true,
-        villageOrigine: true,
-      },
-    });
+    const [sender, receiver] = await Promise.all([
+      db.user.findUnique({
+        where: { id: senderId },
+        select: { id: true, name: true, phone: true },
+      }),
+      db.user.findUnique({
+        where: { id: receiverId },
+        select: { id: true, name: true, phone: true },
+      }),
+    ]);
 
     if (!sender) {
-      console.error('[POST] Expéditeur non trouvé:', senderId);
       return NextResponse.json(
         { error: 'Expéditeur non trouvé' },
         { status: 404 }
       );
     }
 
-    // Vérifier le destinataire
-    const receiver = await db.user.findUnique({
-      where: { id: receiverId },
-      select: { id: true, name: true, phone: true },
-    });
-
     if (!receiver) {
-      console.error('[POST] Destinataire non trouvé:', receiverId);
       return NextResponse.json(
         { error: 'Destinataire non trouvé' },
         { status: 404 }
       );
     }
 
-    const hasExistingConversation = await db.message.findFirst({
-      where: {
-        OR: [
-          { senderId, receiverId },
-          { senderId: receiverId, receiverId: senderId },
-        ],
-      },
-    });
-
-    const shouldPrependHeader =
-      senderId !== receiverId &&
-      receiverId === (await getAdminId()) &&
-      !hasExistingConversation;
-
-    const finalContent = shouldPrependHeader
-      ? `${buildUserFirstMessageHeader({
-          name: sender.name,
-          phone: sender.phone,
-          role: sender.role ?? undefined,
-          isResident: (sender as any).isResident ?? undefined,
-          quartier: (sender as any).quartier ?? null,
-          villageOrigine: (sender as any).villageOrigine ?? null,
-        })}${content.trim()}`
-      : content.trim();
-
-    // Créer le message
     const message = await db.message.create({
       data: {
-        content: finalContent,
+        content: cleanContent,
         senderId,
         receiverId,
         read: false,
       },
     });
-
-    console.log('[POST] Message créé:', message.id);
 
     return NextResponse.json({
       id: message.id,
@@ -150,38 +119,31 @@ export async function POST(request: NextRequest) {
       receiverId: message.receiverId,
       read: message.read,
       createdAt: message.createdAt,
-      sender: {
-        id: sender.id,
-        name: sender.name,
-        phone: sender.phone,
-      },
-      receiver: {
-        id: receiver.id,
-        name: receiver.name,
-        phone: receiver.phone,
-      },
+      sender: { id: sender.id, name: sender.name, phone: sender.phone },
+      receiver: { id: receiver.id, name: receiver.name, phone: receiver.phone },
     });
   } catch (error) {
     console.error('[POST /api/messages] Erreur:', error);
     return NextResponse.json(
-      { error: 'Erreur serveur lors de l\'envoi du message' },
+      { error: "Erreur serveur lors de l'envoi du message" },
       { status: 500 }
     );
   }
 }
 
-
 /**
- * GET /api/messages?userId=X
- * Récupérer les messages avec un utilisateur spécifique
- * Pour les utilisateurs: récupère les messages avec l'ADMIN
- * Pour l'ADMIN: récupère les messages avec un utilisateur spécifique
+ * GET /api/messages?userId=X[&otherUserId=Y][&markRead=true]
+ * Récupère les messages d'un fil de discussion.
+ * - `markRead=true` : marque comme lus les messages reçus par `userId`
+ *   (accusé de lecture des deux côtés : utilisateur et CGL).
+ * Le contenu est nettoyé de l'ancien en-tête texte hérité.
  */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
-    const otherUserId = searchParams.get('otherUserId'); // Pour admin regardant un utilisateur spécifique
+    const otherUserId = searchParams.get('otherUserId');
+    const markRead = searchParams.get('markRead') === 'true' || searchParams.get('markAdminAsRead') === 'true';
 
     if (!userId) {
       return NextResponse.json(
@@ -190,24 +152,21 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.log('[GET /api/messages]', { userId, otherUserId });
-
-    // Récupérer l'admin
     const admin = await db.user.findFirst({
       where: { phone: 'ADMIN' },
     });
 
     if (!admin) {
-      console.error('[GET] Admin user not found');
       return NextResponse.json(
         { error: 'Administrateur non trouvé' },
         { status: 404 }
       );
     }
 
+    // Cas 1 : le demandeur est l'admin -> fil avec un utilisateur précis
+    let markReadWhere: any = null;
     let whereClause: any = {};
 
-    // Cas 1: L'utilisateur courant est l'admin -> cherche les messages avec otherUserId
     if (userId === admin.id) {
       if (!otherUserId) {
         return NextResponse.json(
@@ -222,8 +181,9 @@ export async function GET(request: NextRequest) {
           { senderId: otherUserId, receiverId: admin.id },
         ],
       };
+      markReadWhere = { receiverId: admin.id, senderId: otherUserId, read: false };
     }
-    // Cas 2: L'utilisateur courant est un user lambda -> cherche les messages avec l'admin
+    // Cas 2 : utilisateur lambda -> fil avec l'admin
     else {
       whereClause = {
         archivedAt: null,
@@ -232,6 +192,15 @@ export async function GET(request: NextRequest) {
           { senderId: admin.id, receiverId: userId },
         ],
       };
+      markReadWhere = { receiverId: userId, senderId: admin.id, read: false };
+    }
+
+    // Accusé de lecture : marque comme lus les messages reçus par le demandeur (fil courant uniquement)
+    if (markRead && markReadWhere) {
+      await db.message.updateMany({
+        where: markReadWhere,
+        data: { read: true },
+      });
     }
 
     const messages = await db.message.findMany({
@@ -247,24 +216,19 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'asc' },
     });
 
-    // Récupérer les infos sender/receiver
-    const enrichedMessages = await Promise.all(
-      messages.map(async (msg) => {
-        const sender = await db.user.findUnique({
-          where: { id: msg.senderId },
-          select: { id: true, name: true, phone: true },
-        });
-        const receiver = await db.user.findUnique({
-          where: { id: msg.receiverId },
-          select: { id: true, name: true, phone: true },
-        });
-        return {
-          ...msg,
-          sender: sender || { id: msg.senderId, name: 'Inconnu', phone: '' },
-          receiver: receiver || { id: msg.receiverId, name: 'Inconnu', phone: '' },
-        };
-      })
-    );
+    // Enrichissement en masse (une seule requête pour les expéditeurs/destinataires)
+    const ids: string[] = [];
+    messages.forEach((msg: any) => {
+      ids.push(msg.senderId, msg.receiverId);
+    });
+    const userMap = await getUsersInfo(ids);
+
+    const enrichedMessages = messages.map((msg: any) => ({
+      ...msg,
+      content: stripLegacyUserHeader(msg.content),
+      sender: userMap.get(msg.senderId) || { id: msg.senderId, name: 'Inconnu', phone: '' },
+      receiver: userMap.get(msg.receiverId) || { id: msg.receiverId, name: 'Inconnu', phone: '' },
+    }));
 
     return NextResponse.json(enrichedMessages);
   } catch (error) {
@@ -335,10 +299,9 @@ export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const messageId = searchParams.get('messageId');
-    const userId = searchParams.get('userId'); // For deleting entire conversation
+    const userId = searchParams.get('userId');
 
     if (messageId) {
-      // Delete single message
       await db.message.delete({
         where: { id: messageId },
       });
@@ -346,7 +309,6 @@ export async function DELETE(request: NextRequest) {
     }
 
     if (userId) {
-      // Delete entire conversation with this user
       const adminId = await getAdminId();
       const adminKeys = [adminId, 'ADMIN'];
 
@@ -361,10 +323,9 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ success: true, message: 'Conversation supprimée' });
     }
 
-    return NextResponse.json({ error: 'ID de message ou d\'utilisateur requis' }, { status: 400 });
+    return NextResponse.json({ error: "ID de message ou d'utilisateur requis" }, { status: 400 });
   } catch (error) {
     console.error('Error deleting messages:', error);
     return NextResponse.json({ error: 'Erreur lors de la suppression' }, { status: 500 });
   }
 }
-

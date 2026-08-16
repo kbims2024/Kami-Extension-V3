@@ -56,6 +56,10 @@ export default function KamiExtensionPage() {
   const [isOffline, setIsOffline] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
 
+  // Badges de discussion du menu (utilisateur et CGL)
+  const [userChatUnread, setUserChatUnread] = useState(0);
+  const [committeeChatUnread, setCommitteeChatUnread] = useState(0);
+
   // Store state
   const {
     currentUser,
@@ -147,6 +151,42 @@ export default function KamiExtensionPage() {
       // silently fail
     }
   }, [currentUser?.id]);
+
+  // Badges « Discussions » du menu : non-lus côté utilisateur et côté CGL
+  useEffect(() => {
+    const isCommittee = currentUser?.role === 'MANAGEMENT_COMMITTEE' || currentUser?.role === 'ADMIN';
+
+    const loadChatBadges = async () => {
+      if (currentUser?.id) {
+        try {
+          const res = await fetch(`/api/messages/unread?userId=${encodeURIComponent(currentUser.id)}`);
+          if (res.ok) {
+            const data = await res.json();
+            setUserChatUnread(data.unreadCount || 0);
+          }
+        } catch {
+          // silently fail
+        }
+      }
+
+      if (isCommittee) {
+        try {
+          const res = await fetch('/api/committee-chat');
+          if (res.ok) {
+            const data = await res.json();
+            const count = data.reduce((acc: number, conv: any) => acc + (conv.unreadCount > 0 ? 1 : 0), 0);
+            setCommitteeChatUnread(count);
+          }
+        } catch {
+          // silently fail
+        }
+      }
+    };
+
+    loadChatBadges();
+    const interval = setInterval(loadChatBadges, 15000);
+    return () => clearInterval(interval);
+  }, [currentUser?.id, currentUser?.role]);
 
   useEffect(() => {
     setMounted(true);
@@ -371,6 +411,8 @@ export default function KamiExtensionPage() {
           logout();
           toast.success('Déconnexion réussie');
         }}
+        userChatUnread={userChatUnread}
+        committeeChatUnread={committeeChatUnread}
       />
 
       {/* Screens */}

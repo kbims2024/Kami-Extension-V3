@@ -3,10 +3,11 @@ import { db } from '@/lib/db';
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const messageId = params.id;
+    const { id } = await params;
+    const messageId = id;
 
     if (!messageId) {
       return NextResponse.json({ error: 'ID du message requis' }, { status: 400 });

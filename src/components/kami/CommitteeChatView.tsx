@@ -5,8 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PageNav } from './PageNav';
 import {
-  ArrowLeft,
-  Home,
   Send,
   Check,
   CheckCheck,
@@ -15,16 +13,17 @@ import {
   MapPin,
   User,
   Calendar,
-  Crown,
   Search,
   Mail,
   Trash2,
   RefreshCw,
   Mic,
   Archive,
+  AlertTriangle,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
+import { toast } from 'sonner';
 
 // WhatsApp palette
 const WA = {
@@ -70,8 +69,18 @@ interface Message {
   sender: { id: string; name: string; phone: string };
 }
 
+interface ConversationMessage {
+  id: string;
+  content: string;
+  senderId: string;
+  receiverId: string;
+  read: boolean;
+  createdAt: string;
+}
+
 interface Conversation {
   user: UserInfo;
+  lastMessage: ConversationMessage | null;
   messages: Message[];
   lastMessageAt: string;
   unreadCount: number;
@@ -119,10 +128,15 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
   const [isSending, setIsSending] = useState(false);
   const [adminId, setAdminId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [expandedConvId, setExpandedConvId] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<'list' | 'detail'>('list');
   const [speechSupported, setSpeechSupported] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    title: string;
+    message: string;
+    confirmLabel?: string;
+    onConfirm: () => void;
+  } | null>(null);
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -176,8 +190,11 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
           const updated = data.find((c: Conversation) => c.user.id === selectedConv.user.id);
           if (updated) {
             setSelectedConv((prev) => ({
-              ...updated,
-              messages: prev?.messages || updated.messages,
+              ...prev!,
+              user: updated.user,
+              lastMessage: updated.lastMessage,
+              lastMessageAt: updated.lastMessageAt,
+              unreadCount: updated.unreadCount,
             }));
           }
         }
@@ -216,20 +233,15 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
     }
     setSelectedConvLoading(true);
     try {
-      console.log('[CommitteeChatView] Loading messages with user:', otherUserId);
-      
       const res = await fetch(
-        `/api/messages?userId=${encodeURIComponent(adminId)}&otherUserId=${encodeURIComponent(otherUserId)}`
+        `/api/messages?userId=${encodeURIComponent(adminId)}&otherUserId=${encodeURIComponent(otherUserId)}&markRead=true`
       );
-      
+
       if (!res.ok) {
-        const error = await res.json().catch(() => ({}));
-        console.error('[CommitteeChatView] Error loading messages:', error);
         return;
       }
-      
+
       const messages: Message[] = await res.json();
-      console.log('[CommitteeChatView] Messages loaded:', messages.length);
 
       const currentUserInfo = conversations.find((c) => c.user.id === otherUserId)?.user || {
         id: otherUserId,
@@ -243,23 +255,25 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
         createdAt: new Date().toISOString(),
       };
 
+      const lastMsg = messages[messages.length - 1];
+
       setSelectedConv({
         user: currentUserInfo,
+        lastMessage: lastMsg
+          ? {
+              id: lastMsg.id,
+              content: lastMsg.content,
+              senderId: lastMsg.senderId,
+              receiverId: lastMsg.receiverId,
+              read: lastMsg.read,
+              createdAt: lastMsg.createdAt,
+            }
+          : null,
         messages,
-        lastMessageAt: messages[messages.length - 1]?.createdAt || '',
+        lastMessageAt: lastMsg?.createdAt || '',
         unreadCount: 0,
       });
-      
-      const unreadMsgIds = messages.filter((m) => m.senderId !== adminId && !m.read).map((m) => m.id);
-      if (unreadMsgIds.length > 0) {
-        console.log('[CommitteeChatView] Marking as read:', unreadMsgIds.length);
-        await fetch('/api/messages', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messageIds: unreadMsgIds }),
-        }).catch((e) => console.error('[CommitteeChatView] Error marking as read:', e));
-      }
-      
+
       await loadConversations();
     } catch (e) {
       console.error('[CommitteeChatView] Exception loading messages:', e);
@@ -269,19 +283,18 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
   };
 
   const handleSendMessage = async () => {
-    // Validation
     if (!newMessage.trim()) {
-      alert('Le message ne peut pas être vide');
+      toast.error('Le message ne peut pas être vide');
       return;
     }
 
     if (!selectedConv) {
-      alert('Aucune conversation sélectionnée');
+      toast.error('Aucune conversation sélectionnée');
       return;
     }
 
     if (!adminId) {
-      alert('Administrateur non identifié');
+      toast.error('Administrateur non identifié');
       return;
     }
 
@@ -291,8 +304,6 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
 
     setIsSending(true);
     try {
-      console.log('[CommitteeChatView] Sending message to:', selectedConv.user.id);
-
       const res = await fetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -305,19 +316,16 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
 
       if (!res.ok) {
         const error = await res.json().catch(() => ({ error: 'Erreur inconnue' }));
-        console.error('[CommitteeChatView] Message send error:', error);
-        alert('Erreur lors de l\'envoi: ' + (error.error || 'Erreur inconnue'));
+        toast.error(error.error || "Erreur lors de l'envoi du message");
         return;
       }
 
-      const data = await res.json();
-      console.log('[CommitteeChatView] Message sent successfully:', data.id);
       setNewMessage('');
       await loadConversationMessages(selectedConv.user.id);
       await loadConversations();
     } catch (e) {
       console.error('[CommitteeChatView] Exception sending message:', e);
-      alert('Erreur lors de l\'envoi du message');
+      toast.error("Erreur lors de l'envoi du message");
     } finally {
       setIsSending(false);
     }
@@ -332,74 +340,94 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
 
   const archiveConversation = async (userId: string) => {
     if (!adminId) return;
-    if (!confirm('Archiver cette discussion ? Elle disparaîtra de la liste active.')) return;
 
-    try {
-      const res = await fetch('/api/messages', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'archiveConversation', userId }),
-      });
+    setConfirmDialog({
+      title: 'Archiver la discussion',
+      message: 'Cette discussion disparaîtra de la liste active.',
+      confirmLabel: 'Archiver',
+      onConfirm: async () => {
+        try {
+          const res = await fetch('/api/messages', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'archiveConversation', userId }),
+          });
 
-      if (!res.ok) {
-        throw new Error('Erreur d’archivage');
-      }
+          if (!res.ok) {
+            throw new Error("Erreur d'archivage");
+          }
 
-      if (selectedConv?.user.id === userId) {
-        setSelectedConv(null);
-        setActiveView('list');
-      }
-      await loadConversations();
-    } catch (e) {
-      console.error('[CommitteeChatView] archiveConversation error:', e);
-      alert('Erreur lors de l’archivage de la discussion');
-    }
+          if (selectedConv?.user.id === userId) {
+            setSelectedConv(null);
+            setActiveView('list');
+          }
+          await loadConversations();
+          toast.success('Discussion archivée');
+        } catch (e) {
+          console.error('[CommitteeChatView] archiveConversation error:', e);
+          toast.error("Erreur lors de l'archivage de la discussion");
+        }
+      },
+    });
   };
 
   const deleteConversation = async (userId: string) => {
     if (!adminId) return;
-    if (!confirm('Supprimer définitivement cette discussion pour le CGL ?')) return;
 
-    try {
-      const res = await fetch('/api/messages', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'deleteConversation', userId }),
-      });
+    setConfirmDialog({
+      title: 'Supprimer la discussion',
+      message: 'Supprimer définitivement cette discussion pour le CGL ?',
+      confirmLabel: 'Supprimer',
+      onConfirm: async () => {
+        try {
+          const res = await fetch('/api/messages', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'deleteConversation', userId }),
+          });
 
-      if (!res.ok) {
-        throw new Error('Erreur de suppression');
-      }
+          if (!res.ok) {
+            throw new Error('Erreur de suppression');
+          }
 
-      if (selectedConv?.user.id === userId) {
-        setSelectedConv(null);
-        setActiveView('list');
-      }
-      await loadConversations();
-    } catch (e) {
-      console.error('[CommitteeChatView] deleteConversation error:', e);
-      alert('Erreur lors de la suppression de la discussion');
-    }
+          if (selectedConv?.user.id === userId) {
+            setSelectedConv(null);
+            setActiveView('list');
+          }
+          await loadConversations();
+          toast.success('Discussion supprimée');
+        } catch (e) {
+          console.error('[CommitteeChatView] deleteConversation error:', e);
+          toast.error('Erreur lors de la suppression de la discussion');
+        }
+      },
+    });
   };
 
   const handleDeleteMessage = async (messageId: string) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer ce message ?')) return;
-    
-    try {
-      const res = await fetch(`/api/messages/${messageId}`, {
-        method: 'DELETE',
-      });
-      if (res.ok) {
-        if (selectedConv) {
-          await loadConversationMessages(selectedConv.user.id);
+    setConfirmDialog({
+      title: 'Supprimer le message',
+      message: 'Êtes-vous sûr de vouloir supprimer ce message ?',
+      confirmLabel: 'Supprimer',
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/messages/${messageId}`, {
+            method: 'DELETE',
+          });
+          if (res.ok) {
+            if (selectedConv) {
+              await loadConversationMessages(selectedConv.user.id);
+            }
+            toast.success('Message supprimé');
+          } else {
+            toast.error('Erreur lors de la suppression du message');
+          }
+        } catch (e) {
+          console.error(e);
+          toast.error('Erreur lors de la suppression du message');
         }
-      } else {
-        alert('Erreur lors de la suppression du message');
-      }
-    } catch (e) {
-      console.error(e);
-      alert('Erreur lors de la suppression du message');
-    }
+      },
+    });
   };
 
   const scrollToBottom = () => {
@@ -493,7 +521,7 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
   const handleVoiceInput = () => {
     const recognition = voiceRecognitionRef.current;
     if (!recognition) {
-      console.warn('Reconnaissance vocale non supportée par ce navigateur');
+      toast.error('Reconnaissance vocale non compatible avec ce navigateur');
       return;
     }
 
@@ -679,6 +707,7 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
   // ════════════════════════════════════════════
   if (activeView === 'list' || !selectedConv) {
     return (
+      <>
       <ErrorBoundary>
       <div className="flex-1 flex flex-col h-screen max-h-screen overflow-hidden">
         <PageNav
@@ -725,7 +754,7 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
               </div>
             ) : (
               filteredConversations.map((conv: Conversation) => {
-                const lastMsg = conv.messages[conv.messages.length - 1];
+                const lastMsg = conv.lastMessage;
                 const isSelected = (selectedConv as any)?.user?.id === conv.user.id;
                 return (
                   <div key={conv.user.id} className="relative">
@@ -802,6 +831,19 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
         </div>
       </div>
       </ErrorBoundary>
+    <ConfirmDialog
+      open={!!confirmDialog}
+      title={confirmDialog?.title}
+      message={confirmDialog?.message}
+      confirmLabel={confirmDialog?.confirmLabel}
+      onCancel={() => setConfirmDialog(null)}
+      onConfirm={() => {
+        const action = confirmDialog?.onConfirm;
+        setConfirmDialog(null);
+        action?.();
+      }}
+    />
+    </>
     );
   }
 
@@ -809,6 +851,7 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
   //    CHAT VIEW (initiative card + messages)
   // ════════════════════════════════════════════
   return (
+    <>
     <ErrorBoundary>
     <div className="flex-1 flex flex-col h-screen max-h-screen">
       <PageNav
@@ -853,24 +896,6 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
         }
         className="bg-[#1E3A5F] border-none"
       />
-
-      <div className="px-4 py-3 bg-[#1E3A5F] border-b border-white/10">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm" style={{ backgroundColor: getAvatarColor(selectedConv.user.name) }}>
-            {getInitials(selectedConv.user.name)}
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-white truncate">{selectedConv.user.name}</p>
-            <p className="text-xs text-blue-200/90">Discussion CGL</p>
-          </div>
-          <div className="ml-auto flex items-center gap-2 text-[12px] text-blue-100">
-            <span className="inline-flex items-center gap-1 bg-white/10 rounded-full px-2 py-1">
-              <MessageSquare className="h-3.5 w-3.5" />
-              {selectedConv.messages.length} messages
-            </span>
-          </div>
-        </div>
-      </div>
 
       {/* Messages area with initiative card at top */}
       <div
@@ -969,5 +994,88 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
       </div>
       </div>
     </ErrorBoundary>
+    <ConfirmDialog
+      open={!!confirmDialog}
+      title={confirmDialog?.title}
+      message={confirmDialog?.message}
+      confirmLabel={confirmDialog?.confirmLabel}
+      onCancel={() => setConfirmDialog(null)}
+      onConfirm={() => {
+        const action = confirmDialog?.onConfirm;
+        setConfirmDialog(null);
+        action?.();
+      }}
+    />
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// ConfirmDialog
+// ---------------------------------------------------------------------------
+
+function ConfirmDialog({
+  open,
+  title,
+  message,
+  confirmLabel = 'Confirmer',
+  onCancel,
+  onConfirm,
+}: {
+  open: boolean;
+  title?: string;
+  message?: string;
+  confirmLabel?: string;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+            onClick={onCancel}
+          />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.15 }}
+              className="w-full max-w-sm rounded-2xl bg-background p-6 shadow-2xl border border-border"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-950">
+                  <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-base font-semibold text-foreground">{title}</h3>
+                  {message && (
+                    <p className="mt-1 text-sm text-muted-foreground">{message}</p>
+                  )}
+                </div>
+              </div>
+              <div className="mt-5 flex justify-end gap-2">
+                <Button variant="ghost" onClick={onCancel}>
+                  Annuler
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={onConfirm}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  {confirmLabel}
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }

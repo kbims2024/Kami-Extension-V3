@@ -13,9 +13,11 @@ interface ModernSideMenuProps {
   currentUser: any;
   onNavigate: (screen: string) => void;
   onLogout: () => void;
+  userChatUnread?: number;
+  committeeChatUnread?: number;
 }
 
-export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLogout }: ModernSideMenuProps) {
+export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLogout, userChatUnread = 0, committeeChatUnread = 0 }: ModernSideMenuProps) {
   const [isCommitteeMember, setIsCommitteeMember] = useState(false);
   const [hasCglAccess, setHasCglAccess] = useState(false);
   const { setCurrentUser } = useAppStore();
@@ -246,6 +248,16 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
                         <Icon className="h-5 w-5 transition-colors" />
                       </motion.div>
                       <span className="font-medium">{item.label}</span>
+                      {item.screen === 'chat' && userChatUnread > 0 && (
+                        <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-600 px-1.5 text-[11px] font-bold leading-none text-white">
+                          {userChatUnread > 99 ? '99+' : userChatUnread}
+                        </span>
+                      )}
+                      {item.screen === 'espace-cgl' && committeeChatUnread > 0 && (
+                        <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-600 px-1.5 text-[11px] font-bold leading-none text-white">
+                          {committeeChatUnread > 99 ? '99+' : committeeChatUnread}
+                        </span>
+                      )}
                     </Button>
                   </motion.div>
                 </motion.div>

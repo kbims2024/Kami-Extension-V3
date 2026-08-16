@@ -2,15 +2,12 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   ArrowLeft,
   Home,
   Send,
   Check,
   CheckCheck,
-  Smile,
-  Paperclip,
   Search,
   MoreVertical,
   Users,
@@ -18,6 +15,7 @@ import {
 import { CommitteeNotificationBell } from './CommitteeNotificationBell';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
+import { toast } from 'sonner';
 
 // ─── WhatsApp colour palette ───
 const WA = {
@@ -91,7 +89,7 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: Admin
   }, []);
 
   useEffect(() => {
-    if (adminId) loadUsers();
+    if (adminId) loadConversations();
   }, [adminId]);
 
   useEffect(() => {
@@ -136,45 +134,47 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: Admin
     }
   };
 
-  const loadUsers = async () => {
+  const loadConversations = async () => {
     try {
-      const response = await fetch('/api/admin/users');
+      const response = await fetch('/api/committee-chat');
       if (response.ok) {
         const data = await response.json();
-        setUsers(data);
-        // Load last message for each user
-        loadAllLastMessages(data);
+        setUsers(
+          data.map((conv: any) => ({
+            id: conv.user.id,
+            name: conv.user.name,
+            phone: conv.user.phone || '',
+            isResident: !!conv.user.isResident,
+          }))
+        );
+
+        const lastMsgs: Record<string, Message> = {};
+        const unread: Record<string, number> = {};
+        data.forEach((conv: any) => {
+          if (conv.lastMessage) {
+            lastMsgs[conv.user.id] = {
+              id: conv.lastMessage.id,
+              content: conv.lastMessage.content,
+              senderId: conv.lastMessage.senderId,
+              receiverId: conv.lastMessage.receiverId,
+              read: conv.lastMessage.read,
+              createdAt: conv.lastMessage.createdAt,
+              sender: { id: '', name: '', phone: '' },
+            };
+          }
+          unread[conv.user.id] = conv.unreadCount;
+        });
+        setLastMessages(lastMsgs);
+        setUnreadCounts(unread);
       }
     } catch (error) {
-      console.error('Error loading users:', error);
+      console.error('Error loading conversations:', error);
     }
-  };
-
-  const loadAllLastMessages = async (userList: SimpleUser[]) => {
-    const lastMsgs: Record<string, Message> = {};
-    const unread: Record<string, number> = {};
-    for (const user of userList) {
-      try {
-        const res = await fetch(`/api/messages?userId=${user.id}`);
-        if (res.ok) {
-          const msgs: Message[] = await res.json();
-          if (msgs.length > 0) {
-            lastMsgs[user.id] = msgs[msgs.length - 1];
-            // Count unread (messages not from admin)
-            unread[user.id] = msgs.filter((m) => m.senderId !== adminId && !m.read).length;
-          }
-        }
-      } catch {
-        // skip
-      }
-    }
-    setLastMessages(lastMsgs);
-    setUnreadCounts(unread);
   };
 
   const loadMessages = async (userId: string) => {
     try {
-      const response = await fetch(`/api/messages?userId=${userId}&markAdminAsRead=true`);
+      const response = await fetch(`/api/messages?userId=${userId}&markRead=true`);
       if (response.ok) {
         const data = await response.json();
         setMessages(data);
@@ -200,11 +200,14 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: Admin
       if (response.ok) {
         setNewMessage('');
         await loadMessages(selectedUserId);
-        // Update last message for this user
-        loadAllLastMessages(users);
+        loadConversations();
+      } else {
+        const error = await response.json().catch(() => ({ error: 'Erreur inconnue' }));
+        toast.error(error.error || "Erreur lors de l'envoi du message");
       }
     } catch (error) {
       console.error('Error sending message:', error);
+      toast.error("Erreur lors de l'envoi du message. Vérifiez votre connexion.");
     } finally {
       setIsLoading(false);
     }
@@ -458,7 +461,7 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: Admin
                 onClick={() => {
                   setSelectedUser(null);
                   setSelectedUserId(null);
-                  loadAllLastMessages(users);
+                  loadConversations();
                 }}
                 className="text-white hover:bg-white/10"
               >
@@ -477,7 +480,9 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: Admin
                 <p className="text-[15px] font-semibold text-white truncate leading-tight">
                   {selectedUser.name}
                 </p>
-                <p className="text-[12px] text-blue-300/80 leading-tight">en ligne</p>
+                <p className="text-[12px] text-blue-300/80 leading-tight">
+                  {selectedUser.isResident ? 'Résident KAMI' : 'Contact KAMI'}
+                </p>
               </div>
 
               <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
@@ -575,13 +580,6 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: Admin
 
             {/* Input bar */}
             <div className="shrink-0 flex items-end gap-1 px-1 py-1" style={{ backgroundColor: isDark ? WA.chatBgDark : WA.chatBg }}>
-              <Button variant="ghost" size="icon" className="text-gray-500 hover:text-gray-700 rounded-full">
-                <Smile className="h-6 w-6" />
-              </Button>
-              <Button variant="ghost" size="icon" className="text-gray-500 hover:text-gray-700 rounded-full">
-                <Paperclip className="h-5 w-5 rotate-45" />
-              </Button>
-
               <div className="flex-1 relative">
                 <input
                   value={newMessage}

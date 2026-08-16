@@ -8,10 +8,6 @@ import {
   Send,
   Check,
   CheckCheck,
-  Smile,
-  Paperclip,
-  Phone,
-  MoreVertical,
   Mic,
   StopCircle,
 } from 'lucide-react';
@@ -171,17 +167,13 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
       return;
     }
     try {
-      console.log('[ChatPage] Loading messages for user:', currentUser.id);
-      const response = await fetch(`/api/messages?userId=${currentUser.id}`);
-      
+      const response = await fetch(`/api/messages?userId=${currentUser.id}&markRead=true`);
+
       if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        console.error('[ChatPage] Error loading messages:', error);
         return;
       }
-      
+
       const data = await response.json();
-      console.log('[ChatPage] Messages loaded:', data.length);
       setMessages(data);
     } catch (error) {
       console.error('[ChatPage] Error loading messages:', error);
@@ -206,8 +198,6 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
 
     setIsLoading(true);
     try {
-      console.log('[ChatPage] Sending message...', { user: currentUser.id, content: newMessage.substring(0, 50) });
-
       // D'abord, s'assurer que l'admin existe
       const ensureRes = await fetch('/api/admin/ensure');
       if (!ensureRes.ok) {
@@ -216,31 +206,26 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
       const ensureData = await ensureRes.json();
       const adminId = ensureData.adminId;
 
-      console.log('[ChatPage] Admin ID:', adminId);
-
       // Envoyer le message
       const response = await fetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content: newMessage.trim(),
-          receiverId: adminId, // Utiliser l'ID réel de l'admin
+          receiverId: adminId,
           senderId: currentUser.id,
         }),
       });
 
       if (!response.ok) {
         const error = await response.json().catch(() => ({ error: 'Erreur inconnue' }));
-        console.error('[ChatPage] Message send error:', error);
         toast.error(error.error || 'Erreur lors de l\'envoi du message');
         return;
       }
 
-      const data = await response.json();
-      console.log('[ChatPage] Message sent successfully:', data.id);
       setNewMessage('');
-      toast.success('Message envoyé ! ✓');
-      
+      toast.success('Message envoyé');
+
       // Recharger les messages
       await loadMessages();
     } catch (error) {
@@ -331,18 +316,11 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
 
         <div className="flex-1 ml-3 min-w-0">
           <h1 className="text-[15px] font-semibold text-white truncate leading-tight">
-            Comité de Gestion
+            Comité de Gestion des Lots
           </h1>
-          <p className="text-[12px] text-blue-300/80 leading-tight">en ligne</p>
-        </div>
-
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
-            <Phone className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
-            <MoreVertical className="h-5 w-5" />
-          </Button>
+          <p className="text-[12px] text-blue-200/90 leading-tight">
+            Réponse du CGL sous 24 h ouvrées
+          </p>
         </div>
       </header>
 
@@ -356,16 +334,25 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
         }}
       >
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 px-6">
-            <div className="w-20 h-20 rounded-full bg-white/80 dark:bg-[#182229] flex items-center justify-center mb-4 shadow-sm">
-              <span className="text-3xl">💬</span>
+          <div className="mx-auto max-w-sm px-6 py-12 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 shadow-lg">
+              <span className="text-2xl font-bold text-white">CG</span>
             </div>
-            <p className="text-sm font-medium" style={{ color: isDark ? '#E9EDEF' : WA.textDark }}>
-              Aucun message pour le moment
+            <h2 className="text-base font-semibold" style={{ color: isDark ? '#E9EDEF' : WA.textDark }}>
+              Comité de Gestion des Lots
+            </h2>
+            <p className="mt-2 text-[13px] leading-relaxed" style={{ color: WA.timeSent }}>
+              Posez vos questions, signalez un problème ou transmettez une demande
+              directement au Comité de Gestion des Lots. Un membre vous répond en
+              général sous 24 h ouvrées.
             </p>
-            <p className="text-xs mt-1 text-center max-w-[260px]" style={{ color: WA.timeSent }}>
-              Envoyez votre premier message au Comité de Gestion des Lots
-            </p>
+            <Button
+              onClick={() => inputRef.current?.focus()}
+              className="mt-5 rounded-full px-5"
+              style={{ backgroundColor: WA.headerTeal }}
+            >
+              Démarrer la discussion
+            </Button>
           </div>
         ) : (
           groupedMessages.map((group, gi) => (
@@ -429,22 +416,6 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
 
       {/* ─── Input bar (WhatsApp style) ─── */}
       <div className="shrink-0 flex items-center gap-2 px-3 py-3 border-t" style={{ backgroundColor: isDark ? '#121C2B' : '#F8FAFC', borderColor: isDark ? '#1F2A38' : '#E5E7EB' }}>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-gray-500 hover:text-gray-700 rounded-full"
-        >
-          <Smile className="h-6 w-6" />
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-gray-500 hover:text-gray-700 rounded-full"
-        >
-          <Paperclip className="h-5 w-5 rotate-45" />
-        </Button>
-
         <div className="flex-1 relative">
           <input
             ref={inputRef}
