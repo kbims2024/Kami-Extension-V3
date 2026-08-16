@@ -50,6 +50,7 @@ import { SubscriberTrackingPanel } from '@/components/kami/SubscriberTrackingPan
 import { RegulationRulesScreen } from '@/components/kami/RegulationRulesScreen';
 import { CGLPermissionsManager } from '@/components/kami/CGLPermissionsManager';
 import { CommitteeChatView } from '@/components/kami/CommitteeChatView';
+import { DiscussionConfigAdmin } from '@/components/kami/DiscussionConfigAdmin';
 
 export default function KamiExtensionPage() {
   const [mounted, setMounted] = useState(false);
@@ -185,7 +186,20 @@ export default function KamiExtensionPage() {
 
     loadChatBadges();
     const interval = setInterval(loadChatBadges, 15000);
-    return () => clearInterval(interval);
+
+    const handleChatRead = () => {
+      loadChatBadges();
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('kami:chat-read', handleChatRead);
+    }
+
+    return () => {
+      clearInterval(interval);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('kami:chat-read', handleChatRead);
+      }
+    };
   }, [currentUser?.id, currentUser?.role]);
 
   useEffect(() => {
@@ -1743,6 +1757,8 @@ const ADMIN_FEATURE_BUTTONS = [
   { view: 'payment-logos', label: 'Logos Paiements', icon: CreditCard, className: 'text-cyan-500 dark:text-cyan-400' },
   { view: 'hero-image', label: 'Image de Fond', icon: ImageIcon, className: 'text-pink-500 dark:text-pink-400' },
   { view: 'committee', label: 'Gestion du Comité', icon: Shield, className: 'text-purple-600 dark:text-purple-400' },
+  { view: 'discussion-chat', label: 'Discussions CGL', icon: MessageSquare, className: 'text-blue-600 dark:text-blue-400' },
+  { view: 'discussion-config', label: 'Configurer les Discussions', icon: MessageSquare, className: 'text-blue-500 dark:text-blue-400' },
   { view: 'flash-infos', label: 'Flash Infos', icon: FileText, className: 'text-brand-blue' },
   { view: 'expert-applications', label: 'Candidatures Experts', icon: UserPlus, className: 'text-emerald-500 dark:text-emerald-400' },
   { view: 'users-monitor', label: 'Surveillance Connexions', icon: Activity, className: 'text-cyan-500 dark:text-cyan-400' },
@@ -2030,7 +2046,13 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
               <Card
                 key={button.view}
                 className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]"
-                onClick={() => setActiveView(button.view)}
+                onClick={() => {
+                  if (button.view === 'discussion-chat') {
+                    setCurrentScreen('committee-chat');
+                    return;
+                  }
+                  setActiveView(button.view);
+                }}
               >
                 <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
                   <Icon className={`${button.className} h-8 w-8 mb-2`} />
@@ -2344,6 +2366,10 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
 
       {activeView === 'cgl-permissions' && (
         <CGLPermissionsManager setAdminView={setActiveView} />
+      )}
+
+      {activeView === 'discussion-config' && (
+        <DiscussionConfigAdmin />
       )}
       </div>
     </div>

@@ -114,13 +114,12 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: Admin
   }, [adminId, users]);
 
   useEffect(() => {
-    if (selectedUserId) {
+    if (selectedUserId && adminId) {
       loadMessages(selectedUserId);
-      const interval = () => loadMessages(selectedUserId);
-      const intId = setInterval(interval, 5000);
-      return () => clearInterval(intId);
+      const interval = setInterval(() => loadMessages(selectedUserId), 5000);
+      return () => clearInterval(interval);
     }
-  }, [selectedUserId]);
+  }, [selectedUserId, adminId]);
 
   const loadAdminId = async () => {
     try {
@@ -174,10 +173,18 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: Admin
 
   const loadMessages = async (userId: string) => {
     try {
-      const response = await fetch(`/api/messages?userId=${userId}&markRead=true`);
+      // Côté admin : on demande le fil depuis la perspective de l'admin
+      // (`otherUserId` = l'utilisateur) pour marquer comme lus les messages
+      // reçus par l'admin, pas ceux reçus par l'utilisateur.
+      const response = await fetch(
+        `/api/messages?userId=${encodeURIComponent(adminId || '')}&otherUserId=${encodeURIComponent(userId)}&markRead=true`
+      );
       if (response.ok) {
         const data = await response.json();
         setMessages(data);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('kami:chat-read', { detail: { userId } }));
+        }
       }
     } catch (error) {
       console.error('Error loading messages:', error);

@@ -57,6 +57,18 @@ interface ChatPageProps {
   onHome?: () => void;
 }
 
+interface PublicDiscussionConfig {
+  enabled: boolean;
+  cglName: string;
+  responseTimeText: string;
+}
+
+const DEFAULT_CHAT_CONFIG: PublicDiscussionConfig = {
+  enabled: true,
+  cglName: 'Comité de Gestion des Lots',
+  responseTimeText: 'Réponse du CGL sous 24 h ouvrées',
+};
+
 export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPageProps) {
   const { currentUser } = useAppStore();
   const { resolvedTheme } = useTheme();
@@ -66,6 +78,7 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
+  const [chatConfig, setChatConfig] = useState<PublicDiscussionConfig>(DEFAULT_CHAT_CONFIG);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -83,6 +96,19 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
     const interval = setInterval(loadMessages, 5000);
     return () => clearInterval(interval);
   }, [currentUser]);
+
+  useEffect(() => {
+    let mounted = true;
+    fetch('/api/discussion-config', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((data) => {
+        if (mounted && data?.config) setChatConfig(data.config);
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -175,6 +201,9 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
 
       const data = await response.json();
       setMessages(data);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('kami:chat-read', { detail: { userId: currentUser.id } }));
+      }
     } catch (error) {
       console.error('[ChatPage] Error loading messages:', error);
     }
@@ -184,6 +213,11 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
     // Validation
     if (!newMessage.trim()) {
       toast.error('Le message ne peut pas être vide');
+      return;
+    }
+
+    if (!chatConfig.enabled) {
+      toast.error('Les discussions sont désactivées par le CGL');
       return;
     }
 
@@ -316,10 +350,10 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
 
         <div className="flex-1 ml-3 min-w-0">
           <h1 className="text-[15px] font-semibold text-white truncate leading-tight">
-            Comité de Gestion des Lots
+            {chatConfig.cglName}
           </h1>
           <p className="text-[12px] text-blue-200/90 leading-tight">
-            Réponse du CGL sous 24 h ouvrées
+            {chatConfig.responseTimeText}
           </p>
         </div>
       </header>
@@ -339,7 +373,7 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
               <span className="text-2xl font-bold text-white">CG</span>
             </div>
             <h2 className="text-base font-semibold" style={{ color: isDark ? '#E9EDEF' : WA.textDark }}>
-              Comité de Gestion des Lots
+              {chatConfig.cglName}
             </h2>
             <p className="mt-2 text-[13px] leading-relaxed" style={{ color: WA.timeSent }}>
               Posez vos questions, signalez un problème ou transmettez une demande
@@ -416,6 +450,13 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
 
       {/* ─── Input bar (WhatsApp style) ─── */}
       <div className="shrink-0 flex items-center gap-2 px-3 py-3 border-t" style={{ backgroundColor: isDark ? '#121C2B' : '#F8FAFC', borderColor: isDark ? '#1F2A38' : '#E5E7EB' }}>
+        {!chatConfig.enabled && (
+          <div className="flex-1 rounded-xl px-4 py-3 text-[13px] font-medium text-center" style={{ backgroundColor: isDark ? '#1A2332' : '#F1F5F9', color: WA.timeSent }}>
+            Les discussions sont temporairement désactivées par le CGL.
+          </div>
+        )}
+        {chatConfig.enabled && (
+        <>
         <div className="flex-1 relative">
           <input
             ref={inputRef}
@@ -454,6 +495,8 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
             <Mic className="h-5 w-5" />
           )}
         </Button>
+        </>
+        )}
       </div>
 
       {/* ─── Dark mode overrides ─── */}

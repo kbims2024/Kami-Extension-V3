@@ -20,6 +20,7 @@ interface ModernSideMenuProps {
 export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLogout, userChatUnread = 0, committeeChatUnread = 0 }: ModernSideMenuProps) {
   const [isCommitteeMember, setIsCommitteeMember] = useState(false);
   const [hasCglAccess, setHasCglAccess] = useState(false);
+  const [discussionsEnabled, setDiscussionsEnabled] = useState(true);
   const { setCurrentUser } = useAppStore();
 
   const loadCglPermissions = useCallback(async () => {
@@ -41,6 +42,19 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
     }
   }, [currentUser?.role]);
 
+  // Configuration publique des discussions (activation / désactivation)
+  const loadDiscussionConfig = useCallback(async () => {
+    try {
+      const res = await fetch('/api/discussion-config', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        setDiscussionsEnabled(data?.config?.enabled !== false);
+      }
+    } catch {
+      // Par défaut, les discussions restent accessibles
+    }
+  }, []);
+
   // Check and refresh user role from server when menu opens
   const refreshUserRole = useCallback(async () => {
     if (!currentUser?.id || currentUser.role === 'ADMIN') return;
@@ -61,8 +75,9 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
     if (isOpen) {
       refreshUserRole();
       loadCglPermissions();
+      loadDiscussionConfig();
     }
-  }, [isOpen, refreshUserRole, loadCglPermissions]);
+  }, [isOpen, refreshUserRole, loadCglPermissions, loadDiscussionConfig]);
 
   // Derive committee member status from role
   useEffect(() => {
@@ -81,7 +96,7 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
     { icon: Home, label: 'Accueil', screen: 'home' },
     { icon: Map, label: 'Plan des lots', screen: 'map' },
     { icon: Wallet, label: 'Mes réservations', screen: 'dashboard', requireAuthRedirect: true },
-    { icon: MessageSquare, label: 'Discussions', screen: 'chat', requireAuth: true },
+    ...(discussionsEnabled ? [{ icon: MessageSquare, label: 'Discussions', screen: 'chat', requireAuth: true }] : []),
     ...(isCommitteeMember ? [{ icon: Crown, label: 'Espace CGL', screen: 'espace-cgl', requireAuth: true }] : []),
     { icon: User, label: 'Mon profil', screen: 'profile', requireAuth: true },
     { icon: FileText, label: 'Règlement intérieur', screen: 'rules' },

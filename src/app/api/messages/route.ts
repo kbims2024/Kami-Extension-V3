@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { connectDB } from '@/lib/mongodb';
+import { Settings } from '@/lib/models/Settings';
 import { MAX_MESSAGE_LENGTH, stripLegacyUserHeader } from '@/lib/chat-utils';
+import { normalizeDiscussionConfig } from '@/lib/discussion-config';
 
 async function getAdminId(): Promise<string> {
   const admin = await db.user.findFirst({
@@ -111,6 +114,47 @@ export async function POST(request: NextRequest) {
         read: false,
       },
     });
+
+    // ─── Réponse automatique du CGL ───
+    // Si l'utilisateur écrit au CGL pour la première fois et qu'une réponse
+    // automatique est configurée, on la crée depuis l'admin (comptée comme
+    // non lue pour l'utilisateur).
+    if (senderId !== receiverId) {
+      const admin = await db.user.findFirst({ where: { phone: 'ADMIN' } });
+      const isAdmin = admin && (senderId === admin.id || receiverId === admin.id);
+      if (!isAdmin) {
+        const threadCount = await db.message.count({
+          where: {
+            OR: [
+              { senderId, receiverId },
+              { senderId: receiverId, receiverId: senderId },
+            ],
+          },
+        });
+
+        if (threadCount === 1) {
+          try {
+            await connectDB();
+            let settings: any = await Settings.findById('settings-default').lean();
+            if (!settings) settings = await Settings.findOne().lean();
+            const autoReply = normalizeDiscussionConfig(settings?.discussionConfig).autoReply;
+
+            if (autoReply && admin) {
+              await db.message.create({
+                data: {
+                  content: autoReply,
+                  senderId: admin.id,
+                  receiverId: senderId,
+                  read: false,
+                },
+              });
+            }
+          } catch (e) {
+            console.error('[POST /api/messages] Auto-reply error:', e);
+          }
+        }
+      }
+    }
 
     return NextResponse.json({
       id: message.id,

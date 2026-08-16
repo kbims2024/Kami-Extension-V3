@@ -112,7 +112,7 @@ export function ManagementCommitteeManagement({ onBack, setCurrentScreen, setAdm
   const startChat = (userId: string, userName: string) => {
     localStorage.setItem('selectedChatUser', JSON.stringify({ id: userId, name: userName }));
     if (setCurrentScreen) {
-      setCurrentScreen('admin-chat');
+      setCurrentScreen('committee-chat');
     }
   };
 

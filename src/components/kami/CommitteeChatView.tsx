@@ -141,24 +141,53 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
   const isDark = resolvedTheme === 'dark';
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const voiceRecognitionRef = useRef<any>(null);
+  const selectedConvRef = useRef<Conversation | null>(null);
+  const hasLoadedRef = useRef(false);
+  const pendingChatRef = useRef<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     loadAdminId();
   }, []);
 
+  // Garde une référence à jour de la conversation ouverte (pour le polling).
+  useEffect(() => {
+    selectedConvRef.current = selectedConv;
+  }, [selectedConv]);
+
   useEffect(() => {
     if (!adminId) return;
 
     const refreshLoop = async () => {
-      await loadConversations();
-      if (selectedConv?.user?.id) {
-        await loadConversationMessages(selectedConv.user.id);
+      const current = selectedConvRef.current;
+      if (current?.user?.id) {
+        await loadConversationMessages(current.user.id);
+      } else {
+        await loadConversations();
       }
     };
 
     loadConversations();
     const interval = setInterval(refreshLoop, 8000);
     return () => clearInterval(interval);
+  }, [adminId]);
+
+  // Ouvre une conversation demandée depuis un autre écran admin
+  // (Gestion du Comité / Suivi Souscripteurs) via localStorage.
+  useEffect(() => {
+    if (!adminId) return;
+    const raw = typeof window !== 'undefined' ? localStorage.getItem('selectedChatUser') : null;
+    if (!raw) return;
+    localStorage.removeItem('selectedChatUser');
+    try {
+      const pending = JSON.parse(raw);
+      if (pending?.id) {
+        pendingChatRef.current = { id: pending.id, name: pending.name || 'Utilisateur' };
+        setActiveView('detail');
+        loadConversationMessages(pending.id);
+      }
+    } catch (error) {
+      console.error('[CommitteeChatView] Invalid selectedChatUser:', error);
+    }
   }, [adminId]);
 
   useEffect(() => {
@@ -180,14 +209,14 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
   };
 
   const loadConversations = async () => {
-    setIsLoading(true);
+    if (!hasLoadedRef.current) setIsLoading(true);
     try {
       const res = await fetch('/api/committee-chat');
       if (res.ok) {
         const data = await res.json();
         setConversations(data);
-        if (selectedConv) {
-          const updated = data.find((c: Conversation) => c.user.id === selectedConv.user.id);
+        if (selectedConvRef.current) {
+          const updated = data.find((c: Conversation) => c.user.id === selectedConvRef.current!.user.id);
           if (updated) {
             setSelectedConv((prev) => ({
               ...prev!,
@@ -203,6 +232,7 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
       console.error(e);
     } finally {
       setIsLoading(false);
+      hasLoadedRef.current = true;
     }
   };
 
@@ -243,17 +273,21 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
 
       const messages: Message[] = await res.json();
 
-      const currentUserInfo = conversations.find((c) => c.user.id === otherUserId)?.user || {
-        id: otherUserId,
-        name: 'Utilisateur',
-        phone: '',
-        email: null,
-        isResident: false,
-        role: null,
-        quartier: null,
-        villageOrigine: null,
-        createdAt: new Date().toISOString(),
-      };
+      const listUser = conversations.find((c) => c.user.id === otherUserId)?.user;
+      const currentUserInfo =
+        listUser ||
+        (selectedConvRef.current?.user.id === otherUserId ? selectedConvRef.current.user : null) || {
+          id: otherUserId,
+          name: pendingChatRef.current?.name || 'Utilisateur',
+          phone: '',
+          email: null,
+          isResident: false,
+          role: null,
+          quartier: null,
+          villageOrigine: null,
+          createdAt: new Date().toISOString(),
+        };
+      pendingChatRef.current = null;
 
       const lastMsg = messages[messages.length - 1];
 
@@ -273,6 +307,10 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
         lastMessageAt: lastMsg?.createdAt || '',
         unreadCount: 0,
       });
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('kami:chat-read', { detail: { userId: otherUserId } }));
+      }
 
       await loadConversations();
     } catch (e) {
