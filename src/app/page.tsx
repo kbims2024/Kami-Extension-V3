@@ -1952,7 +1952,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
         ) : undefined}
       />
       <div className="p-6 pt-2">
-      {!activeView && (
+      {!activeView && !isCglMode && (
         <div className="flex items-center justify-center mb-6">
           <h2 className="text-2xl font-bold text-red-600 flex items-center justify-center">
             <Shield className="mr-2 h-6 w-6" />
