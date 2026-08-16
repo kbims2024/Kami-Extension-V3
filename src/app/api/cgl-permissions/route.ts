@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { connectDB } from '@/lib/mongodb';
+import { Settings } from '@/lib/models/Settings';
+
+// Endpoint public (lecture seule) utilisé par l'Espace CGL pour connaître les
+// fonctionnalités activées par l'administrateur.
+export const dynamic = 'force-dynamic';
 
 const SETTINGS_ID = 'settings-default';
 
@@ -8,55 +13,38 @@ function normalizePermissions(input: unknown): Record<string, boolean> {
   if (!input || typeof input !== 'object') {
     return output;
   }
-
-  if (typeof input === 'string') {
-    try {
-      return normalizePermissions(JSON.parse(input));
-    } catch {
-      return output;
-    }
-  }
-
   for (const [key, value] of Object.entries(input)) {
     if (typeof value === 'boolean') {
       output[key] = value;
     }
   }
-
   return output;
 }
 
-async function findSettings() {
-  let settings = await db.settings.findFirst({ where: { id: SETTINGS_ID } });
-  if (!settings) {
-    settings = await db.settings.findFirst({ where: { _id: SETTINGS_ID } });
-  }
-
-  if (!settings) {
-    settings = await db.settings.create({
-      data: {
-        _id: SETTINGS_ID,
-        cglPermissions: {},
-      },
-    });
-  }
-
-  return settings;
-}
-
-function parseEnabledFeatures(settings: any): string[] {
-  const perms = normalizePermissions(settings?.cglPermissions ?? {});
-  return Object.entries(perms)
+function parseEnabledFeatures(input: unknown): string[] {
+  return Object.entries(normalizePermissions(input))
     .filter(([, enabled]) => enabled === true)
     .map(([key]) => key);
 }
 
-// GET — public endpoint for CGL members to fetch their enabled features
+async function findOrCreateSettings() {
+  await connectDB();
+  let doc: any = await Settings.findById(SETTINGS_ID).lean();
+  if (!doc) {
+    doc = await Settings.findOne().lean();
+  }
+  if (!doc) {
+    doc = await Settings.create({ _id: SETTINGS_ID, cglPermissions: {} }).then((d) => d.toObject());
+  }
+  return doc;
+}
+
+// GET — retourne les fonctionnalités activées pour l'Espace CGL
 export async function GET() {
   try {
-    const settings = await findSettings();
+    const settings = await findOrCreateSettings();
     return NextResponse.json(
-      { enabledFeatures: parseEnabledFeatures(settings) },
+      { enabledFeatures: parseEnabledFeatures(settings?.cglPermissions ?? {}) },
       {
         headers: {
           'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',

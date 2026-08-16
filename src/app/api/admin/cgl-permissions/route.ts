@@ -1,62 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { connectDB } from '@/lib/mongodb';
+import { Settings } from '@/lib/models/Settings';
 import { CGL_ADMIN_FEATURES } from '@/lib/cgl-features';
 
-const CGL_PERMISSIONS_ID = 'settings-default';
+// Endpoint d'administration (lecture + enregistrement) des permissions
+// « Espace CGL ». La sauvegarde utilise un upsert direct pour fonctionner
+// même si le document de réglages n'existe pas encore ou a un identifiant
+// différent.
+export const dynamic = 'force-dynamic';
+
+const SETTINGS_ID = 'settings-default';
 const AVAILABLE_FEATURES = CGL_ADMIN_FEATURES.map((f) => ({ id: f.id, label: f.label }));
+const VALID_FEATURE_IDS = new Set(CGL_ADMIN_FEATURES.map((f) => f.id));
 
 function normalizePermissions(input: unknown): Record<string, boolean> {
   const output: Record<string, boolean> = {};
   if (!input || typeof input !== 'object') {
     return output;
   }
-
-  if (typeof input === 'string') {
-    try {
-      return normalizePermissions(JSON.parse(input));
-    } catch {
-      return output;
-    }
-  }
-
   for (const [key, value] of Object.entries(input)) {
     if (typeof value === 'boolean') {
       output[key] = value;
     }
   }
-
   return output;
 }
 
-async function findSettings() {
-  let settings = await db.settings.findFirst({ where: { id: CGL_PERMISSIONS_ID } });
-  if (!settings) {
-    settings = await db.settings.findFirst({ where: { _id: CGL_PERMISSIONS_ID } });
+async function findOrCreateSettings() {
+  await connectDB();
+  let doc: any = await Settings.findById(SETTINGS_ID).lean();
+  if (!doc) {
+    doc = await Settings.findOne().lean();
   }
-
-  if (!settings) {
-    settings = await db.settings.create({
-      data: {
-        _id: CGL_PERMISSIONS_ID,
-        cglPermissions: {},
-      },
-    });
+  if (!doc) {
+    doc = await Settings.create({ _id: SETTINGS_ID, cglPermissions: {} }).then((d) => d.toObject());
   }
-
-  return settings;
+  return doc;
 }
 
-function parsePermissions(settings: any): Record<string, boolean> {
-  return normalizePermissions(settings?.cglPermissions ?? {});
-}
-
-// GET — return current CGL permissions
+// GET — retourne les fonctionnalités disponibles et les permissions actuelles
 export async function GET() {
   try {
-    const settings = await findSettings();
+    const settings = await findOrCreateSettings();
     return NextResponse.json({
       features: AVAILABLE_FEATURES,
-      permissions: parsePermissions(settings),
+      permissions: normalizePermissions(settings?.cglPermissions ?? {}),
     });
   } catch (error) {
     console.error('Error fetching CGL permissions:', error);
@@ -64,34 +52,34 @@ export async function GET() {
   }
 }
 
-// PUT — update CGL permissions
+// PUT — met à jour les permissions Espace CGL (upsert)
 export async function PUT(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { permissions } = body;
+    const body = await request.json().catch(() => null);
+    const permissions = body?.permissions;
 
     if (!permissions || typeof permissions !== 'object' || Array.isArray(permissions)) {
       return NextResponse.json({ error: 'Permissions invalides' }, { status: 400 });
     }
 
-    const validIds = AVAILABLE_FEATURES.map((f) => f.id);
     const cleaned: Record<string, boolean> = {};
     for (const [key, val] of Object.entries(permissions)) {
-      if (validIds.includes(key)) {
-        cleaned[key] = Boolean(val);
+      if (VALID_FEATURE_IDS.has(key) && typeof val === 'boolean') {
+        cleaned[key] = val;
       }
     }
 
-    const settings = await findSettings();
-    const updatedSettings = await db.settings.update({
-      where: { id: settings?.id || CGL_PERMISSIONS_ID },
-      data: { cglPermissions: cleaned },
-    });
+    await connectDB();
+    const updated: any = await Settings.findOneAndUpdate(
+      { _id: SETTINGS_ID },
+      { $set: { cglPermissions: cleaned } },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    ).lean();
 
     return NextResponse.json({
       success: true,
-      permissions: parsePermissions(updatedSettings),
-      settingsId: updatedSettings?.id || settings?.id || CGL_PERMISSIONS_ID,
+      permissions: normalizePermissions(updated?.cglPermissions ?? cleaned),
+      settingsId: updated?._id ?? SETTINGS_ID,
     });
   } catch (error) {
     console.error('Error updating CGL permissions:', error);
