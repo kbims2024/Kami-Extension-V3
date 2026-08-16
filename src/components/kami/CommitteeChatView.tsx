@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PageNav } from './PageNav';
 import {
+  ArrowLeft,
+  Home,
   Send,
   Check,
   CheckCheck,
@@ -221,12 +223,7 @@ function MessageBubble({
     >
       <div className="flex items-end gap-2">
         <div
-          className={`
-            relative max-w-[85%] md:max-w-[65%] rounded-lg px-2.5 py-1 shadow-sm
-            ${isMyMessage ? 'rounded-tr-none' : 'rounded-tl-none'}
-            ${isMyMessage && isConsecutive ? 'rounded-tr-md' : ''}
-            ${!isMyMessage && isConsecutive ? 'rounded-tl-md' : ''}
-          `}
+          className={`relative max-w-[85%] md:max-w-[65%] px-3 py-2 shadow-sm ${isMyMessage ? 'rounded-3xl rounded-br-none' : 'rounded-3xl rounded-tl-none'}`}
           style={{
             backgroundColor: isMyMessage
               ? (isDark ? WA.outgoingDark : WA.outgoing)
@@ -235,7 +232,7 @@ function MessageBubble({
           }}
         >
           {message.attachment?.type === 'audio' ? (
-            <div className="py-1.5">
+            <div className="pb-1">
               <VoiceMessagePlayer
                 url={message.attachment.url}
                 mimeType={message.attachment.mimeType}
@@ -249,15 +246,14 @@ function MessageBubble({
               {message.content}
             </p>
           )}
-          <span className="absolute bottom-[3px] right-[5px] flex items-center gap-0.5 float-right ml-2 -mt-[14px]">
-            <span className="text-[11px]" style={{ color: WA.timeSent }}>
-              {formatTime(message.createdAt)}
-            </span>
-            {isMyMessage && (
-              message.read
-                ? <CheckCheck className="h-[16px] w-[16px]" style={{ color: WA.checkRead }} />
-                : <Check className="h-[16px] w-[16px]" style={{ color: WA.timeSent }} />
-            )}
+          <span className="absolute bottom-[5px] right-[8px] flex items-center gap-0.5 text-[11px]" style={{ color: WA.timeSent }}>
+            <span>{formatTime(message.createdAt)}</span>
+            {isMyMessage &&
+              (message.read ? (
+                <CheckCheck className="h-[16px] w-[16px]" style={{ color: WA.checkRead }} />
+              ) : (
+                <Check className="h-[16px] w-[16px]" style={{ color: WA.timeSent }} />
+              ))}
           </span>
         </div>
         {isMyMessage && isHovering && (
@@ -1031,48 +1027,77 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
     <>
     <ErrorBoundary>
     <div className="flex-1 flex flex-col h-screen max-h-screen">
-      <PageNav
-        onBack={handleBack}
-        onHome={onHome || (() => setCurrentScreen('home'))}
-        title="Discussion CGL"
-        titleRight={
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={refreshList}
-              className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition"
-              aria-label="Actualiser la conversation"
-            >
-              <RefreshCw className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => archiveConversation(selectedConv.user.id)}
-              className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition"
-              aria-label="Archiver la discussion"
-              title="Archiver la discussion"
-            >
-              <Archive className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => deleteConversation(selectedConv.user.id)}
-              className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center text-red-100 hover:bg-red-500/30 transition"
-              aria-label="Supprimer la discussion"
-              title="Supprimer la discussion"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-            <div
-              className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-white font-semibold text-sm"
-              style={{ backgroundColor: getAvatarColor(selectedConv.user.name) }}
-            >
-              {getInitials(selectedConv.user.name)}
-            </div>
-          </div>
-        }
-        className="bg-[#1E3A5F] border-none"
-      />
+      {/* ─── Header (WhatsApp style, comme la page des utilisateurs) ─── */}
+      <header
+        className="flex items-center px-2 py-1.5 shrink-0 relative z-20"
+        style={{ backgroundColor: WA.headerDark }}
+      >
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleBack}
+          className="text-white hover:bg-white/10"
+          aria-label="Retour"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onHome || (() => setCurrentScreen('home'))}
+          className="text-white hover:bg-white/10"
+          aria-label="Accueil"
+        >
+          <Home className="h-5 w-5" />
+        </Button>
+
+        {/* Avatar */}
+        <div
+          className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-white font-semibold text-sm ml-1"
+          style={{ backgroundColor: getAvatarColor(selectedConv.user.name) }}
+        >
+          {getInitials(selectedConv.user.name)}
+        </div>
+
+        <div className="flex-1 ml-3 min-w-0">
+          <h1 className="text-[15px] font-semibold text-white truncate leading-tight">
+            Discussion CGL
+          </h1>
+          <p className="text-[12px] text-blue-200/90 leading-tight truncate">
+            {selectedConv.user.name}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={refreshList}
+            className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition"
+            aria-label="Actualiser la conversation"
+            title="Actualiser"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => archiveConversation(selectedConv.user.id)}
+            className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition"
+            aria-label="Archiver la discussion"
+            title="Archiver la discussion"
+          >
+            <Archive className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => deleteConversation(selectedConv.user.id)}
+            className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center text-red-100 hover:bg-red-500/30 transition"
+            aria-label="Supprimer la discussion"
+            title="Supprimer la discussion"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      </header>
 
       {/* Messages area with initiative card at top */}
       <div
@@ -1090,12 +1115,19 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
 
           {/* Date-separated messages */}
           {selectedConv.messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 px-6">
-              <div className="w-16 h-16 rounded-full bg-white/80 dark:bg-[#182229] flex items-center justify-center mb-3 shadow-sm">
-                <span className="text-2xl">💬</span>
+            <div className="mx-auto max-w-sm px-6 py-10 text-center">
+              <div
+                className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full text-white font-bold text-lg shadow-lg"
+                style={{ backgroundColor: getAvatarColor(selectedConv.user.name) }}
+              >
+                {getInitials(selectedConv.user.name)}
               </div>
-              <p className="text-sm font-medium" style={{ color: isDark ? '#E9EDEF' : WA.textDark }}>
-                Aucun message
+              <h2 className="text-base font-semibold" style={{ color: isDark ? '#E9EDEF' : WA.textDark }}>
+                {selectedConv.user.name}
+              </h2>
+              <p className="mt-2 text-[13px] leading-relaxed" style={{ color: WA.timeSent }}>
+                Aucun message pour le moment. Envoyez votre premier message à cette
+                initiative de discussion.
               </p>
             </div>
           ) : (
@@ -1103,8 +1135,11 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
               <div key={gi}>
                 <div className="flex justify-center my-3">
                   <span
-                    className="px-3 py-1 rounded-full text-[11px] font-semibold shadow-sm"
-                    style={{ backgroundColor: isDark ? '#223148' : '#E5F3FB', color: isDark ? '#8FAFC5' : '#1E3A5F' }}
+                    className="px-3 py-1 rounded-lg text-[11px] font-medium shadow-sm"
+                    style={{
+                      backgroundColor: isDark ? WA.dateBubbleDark : WA.dateBubble,
+                      color: isDark ? '#8696A0' : WA.dateText,
+                    }}
                   >
                     {group.date}
                   </span>
