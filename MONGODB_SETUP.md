@@ -114,7 +114,7 @@ When deploying to production:
 1. Export data from local SQLite (if any)
 2. Import to MongoDB using MongoDB Compass or CLI:
 ```bash
-mongorestore --uri="MONGODB_URI" ./backup
+mongorestore --uri="MONGO_URI" ./backup
 ```
 
 3. Or use MongoDB Atlas Data Import/Export tool
@@ -125,5 +125,5 @@ mongorestore --uri="MONGODB_URI" ./backup
 - Paid tiers: Automated backups
 - Consider exporting data regularly:
 ```bash
-mongodump --uri="MONGODB_URI" --out=./backup
+mongodump --uri="MONGO_URI" --out=./backup
 ```

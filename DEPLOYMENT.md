@@ -37,7 +37,7 @@ Créez un fichier `.env.local` à la racine du projet:
 
 ```bash
 # MongoDB Connection
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/?retryWrites=true&w=majority
+MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/?retryWrites=true&w=majority
 
 # Environment
 NODE_ENV=development
@@ -88,9 +88,13 @@ git push -u origin main
 4. **Variables d'environnement**
    - Dans la section "Environment Variables"
    - Ajoutez:
-     - Name: `MONGODB_URI`
+     - Name: `MONGO_URI`
      - Value: Votre chaîne de connexion MongoDB
      - Environments: ✅ Production, ✅ Preview, ✅ Development
+   - Ajoutez également (recommandé):
+     - Name: `ADMIN_SECRET_CODE`
+     - Value: Votre code secret d'accès administrateur (fort et unique)
+     - Environments: ✅ Production, ✅ Preview
 
 5. **Déployer**
    - Cliquez sur "Deploy"
@@ -121,7 +125,7 @@ vercel
 
 4. **Ajouter les variables d'environnement**
 ```bash
-vercel env add MONGODB_URI production
+vercel env add MONGO_URI production
 # Collez votre chaîne de connexion MongoDB
 ```
 
@@ -262,7 +266,7 @@ vercel --prod
 ### Erreur: "Cannot connect to MongoDB"
 
 **Solutions**:
-1. Vérifiez que `MONGODB_URI` est correct
+1. Vérifiez que `MONGO_URI` est correct
 2. Vérifiez l'accès réseau MongoDB (IP whitelist)
 3. Vérifiez les credentials de l'utilisateur
 4. Vérifiez que le cluster est en ligne

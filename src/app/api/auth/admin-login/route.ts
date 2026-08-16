@@ -1,9 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { verifyPassword } from '@/lib/password';
+import { verifyPassword, hashPassword, isLegacyPasswordHash } from '@/lib/password';
 
-// Code secret admin — modifiable ici ou via variable d'environnement
-const ADMIN_SECRET_CODE = process.env.ADMIN_SECRET_CODE || 'KAMI2024ADMIN';
+// Code secret admin — doit être défini via la variable d'environnement ADMIN_SECRET_CODE.
+// En production, AUCUN code par défaut n'est accepté.
+const ADMIN_SECRET_CODE = process.env.ADMIN_SECRET_CODE;
+const DEFAULT_DEV_CODE = 'KAMI2024ADMIN';
+
+if (!ADMIN_SECRET_CODE) {
+  console.warn('[ADMIN] ADMIN_SECRET_CODE non défini. En production, l\'accès admin sera refusé.');
+}
+
+function isAdminCodeValid(code: string): boolean {
+  if (!code) return false;
+  if (ADMIN_SECRET_CODE) return code === ADMIN_SECRET_CODE;
+  // Hors production uniquement, conserver un code de secours pour le développement.
+  return process.env.NODE_ENV !== 'production' && code === DEFAULT_DEV_CODE;
+}
 
 // POST /api/auth/admin-login — Connexion admin avec code secret
 export async function POST(request: NextRequest) {
@@ -17,7 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Vérifier le code secret admin
-    if (adminCode !== ADMIN_SECRET_CODE) {
+    if (!isAdminCodeValid(adminCode)) {
       return NextResponse.json({ error: 'Code d\'accès administrateur invalide' }, { status: 403 });
     }
 
@@ -45,9 +58,17 @@ export async function POST(request: NextRequest) {
 
     // Vérifier le mot de passe
     if ((user as any).password && password) {
-      const isPasswordValid = verifyPassword(password, (user as any).password);
+      const isPasswordValid = await verifyPassword(password, (user as any).password);
       if (!isPasswordValid) {
         return NextResponse.json({ error: 'Mot de passe incorrect' }, { status: 401 });
+      }
+
+      // Migration silencieuse des anciens hash (SHA-256) vers scrypt
+      if (isLegacyPasswordHash((user as any).password)) {
+        await db.user.update({
+          where: { id: (user as any).id },
+          data: { password: await hashPassword(password) },
+        });
       }
     } else {
       return NextResponse.json({ error: 'Mot de passe requis' }, { status: 401 });

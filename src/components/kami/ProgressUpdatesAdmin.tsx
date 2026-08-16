@@ -20,6 +20,7 @@ import {
   Plus,
   Trash2,
   Pin,
+  Pencil,
   Image as ImageIcon,
   Video,
   ArrowLeft,
@@ -61,6 +62,7 @@ export function ProgressUpdatesAdmin({ onBack, onHome }: ProgressUpdatesAdminPro
   const [isPinned, setIsPinned] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [editingUpdateId, setEditingUpdateId] = useState<string | null>(null);
+  const [pendingMediaDeletes, setPendingMediaDeletes] = useState<string[]>([]);
 
   useEffect(() => {
     loadUpdates();
@@ -155,6 +157,7 @@ export function ProgressUpdatesAdmin({ onBack, onHome }: ProgressUpdatesAdminPro
     setVideos([]);
     setIsPinned(false);
     setEditingUpdateId(null);
+    setPendingMediaDeletes([]);
   };
 
   const extractUploadedFileId = (mediaUrl: string) => {
@@ -171,25 +174,33 @@ export function ProgressUpdatesAdmin({ onBack, onHome }: ProgressUpdatesAdminPro
     const fileId = extractUploadedFileId(mediaUrl);
     if (!fileId) return;
     try {
-      await fetch(`/api/admin-files/${fileId}`, { method: 'DELETE' });
+      await fetch(`/api/files/${fileId}`, { method: 'DELETE' });
     } catch {
       // silent fail: media is still removed from the publication even if cleanup fails
     }
   };
 
-  const removeImageAt = async (index: number) => {
+  const removeImageAt = (index: number) => {
     const urlToDelete = images[index];
     setImages((prev) => prev.filter((_, idx) => idx !== index));
-    if (urlToDelete) {
-      await deleteUploadedMediaFile(urlToDelete);
+    if (!urlToDelete) return;
+    if (editingUpdateId) {
+      // Defer deletion until the publication is actually saved, so a cancel
+      // does not break the media still referenced by the saved publication.
+      setPendingMediaDeletes((prev) => [...prev, urlToDelete]);
+    } else {
+      deleteUploadedMediaFile(urlToDelete);
     }
   };
 
-  const removeVideoAt = async (index: number) => {
+  const removeVideoAt = (index: number) => {
     const urlToDelete = videos[index];
     setVideos((prev) => prev.filter((_, idx) => idx !== index));
-    if (urlToDelete) {
-      await deleteUploadedMediaFile(urlToDelete);
+    if (!urlToDelete) return;
+    if (editingUpdateId) {
+      setPendingMediaDeletes((prev) => [...prev, urlToDelete]);
+    } else {
+      deleteUploadedMediaFile(urlToDelete);
     }
   };
 
@@ -216,8 +227,13 @@ export function ProgressUpdatesAdmin({ onBack, onHome }: ProgressUpdatesAdminPro
 
       if (response.ok) {
         toast.success(editingUpdateId ? 'Publication mise à jour avec succès !' : 'Publication ajoutée avec succès !');
+        const wasEditing = editingUpdateId !== null;
+        const toDelete = pendingMediaDeletes;
         resetForm();
         setShowForm(false);
+        if (wasEditing) {
+          await Promise.allSettled(toDelete.map((url) => deleteUploadedMediaFile(url)));
+        }
         loadUpdates();
       } else {
         const data = await response.json();
@@ -239,14 +255,17 @@ export function ProgressUpdatesAdmin({ onBack, onHome }: ProgressUpdatesAdminPro
     setImages(update.images || []);
     setVideos(update.videos || []);
     setIsPinned(update.isPinned || false);
+    setPendingMediaDeletes([]);
     setShowForm(true);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (update: ProgressUpdate) => {
     if (!confirm('Supprimer cette publication ?')) return;
     try {
-      const response = await fetch(`/api/progress-updates/${id}`, { method: 'DELETE' });
+      const response = await fetch(`/api/progress-updates/${update.id}`, { method: 'DELETE' });
       if (response.ok) {
+        const mediaUrls = [...(update.images || []), ...(update.videos || [])];
+        await Promise.allSettled(mediaUrls.map((url) => deleteUploadedMediaFile(url)));
         toast.success('Publication supprimée');
         loadUpdates();
       }
@@ -322,7 +341,7 @@ export function ProgressUpdatesAdmin({ onBack, onHome }: ProgressUpdatesAdminPro
           className="bg-brand-blue hover:bg-brand-blue text-white"
         >
           <Plus className="mr-2 h-4 w-4" />
-          {editingUpdateId ? 'Nouvelle publication' : 'Nouvelle publication'}
+          {editingUpdateId ? 'Annuler la modification' : 'Nouvelle publication'}
         </Button>
       </div>
 
@@ -330,7 +349,9 @@ export function ProgressUpdatesAdmin({ onBack, onHome }: ProgressUpdatesAdminPro
       {showForm && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Nouvelle publication</CardTitle>
+            <CardTitle className="text-lg">
+              {editingUpdateId ? 'Modifier la publication' : 'Nouvelle publication'}
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -467,11 +488,18 @@ export function ProgressUpdatesAdmin({ onBack, onHome }: ProgressUpdatesAdminPro
                 disabled={submitting}
                 className="bg-brand-blue hover:bg-brand-blue text-white flex-1"
               >
-                {submitting ? 'Publication...' : 'Publier'}
+                {submitting
+                  ? 'Publication...'
+                  : editingUpdateId
+                    ? 'Enregistrer les modifications'
+                    : 'Publier'}
               </Button>
               <Button
                 variant="outline"
-                onClick={() => setShowForm(false)}
+                onClick={() => {
+                  resetForm();
+                  setShowForm(false);
+                }}
               >
                 Annuler
               </Button>
@@ -565,13 +593,13 @@ export function ProgressUpdatesAdmin({ onBack, onHome }: ProgressUpdatesAdminPro
                             onClick={() => handleEdit(update)}
                             title="Modifier"
                           >
-                            <ImageIcon className="h-4 w-4" />
+                            <Pencil className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 text-red-500 hover:text-red-600"
-                            onClick={() => handleDelete(update.id)}
+                            onClick={() => handleDelete(update)}
                             title="Supprimer"
                           >
                             <Trash2 className="h-4 w-4" />

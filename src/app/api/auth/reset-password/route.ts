@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Hash and update password
-    const hashedPassword = hashPassword(password)
+    const hashedPassword = await hashPassword(password)
 
     await db.user.update({
       where: { id: user.id },

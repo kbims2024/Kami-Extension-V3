@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
         villageOrigine: !isResident ? villageOrigine : null,
         referralCode,
         status: 'ACTIVE',
-        password: password ? hashPassword(password) : null,
+        password: password ? await hashPassword(password) : null,
       },
     });
 

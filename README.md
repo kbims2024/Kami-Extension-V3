@@ -89,7 +89,7 @@ mongodb+srv://kami-user:securepassword@kami-extension.xxxxxx.mongodb.net/?retryW
 
 ```bash
 # MongoDB Connection
-MONGODB_URI=votre_chaine_de_connexion_copiée_ici
+MONGO_URI=votre_chaine_de_connexion_copiée_ici
 NODE_ENV=development
 ```
 
@@ -101,7 +101,7 @@ NODE_ENV=development
 2. Sélectionnez votre projet KAMI-EXTENSION
 3. Allez à Settings → Environment Variables
 4. Ajoutez une nouvelle variable:
-   - **Name**: `MONGODB_URI`
+   - **Name**: `MONGO_URI`
    - **Value**: Votre chaîne de connexion MongoDB
    - **Environments**: ✅ Production, ✅ Preview, ✅ Development
 5. Cliquez "Save"
@@ -153,7 +153,7 @@ git push -u origin main
 4. **Ajouter les variables d'environnement**:
    - Allez à Environment Variables
    - Ajoutez:
-     - Name: `MONGODB_URI`
+     - Name: `MONGO_URI`
      - Value: Votre chaîne de connexion MongoDB
      - Environments: ✅ Production, ✅ Preview, ✅ Development
    - Cliquez "Add"
@@ -177,7 +177,7 @@ vercel
 # Suivez les instructions
 
 # Ajouter la variable d'environnement
-vercel env add MONGODB_URI production
+vercel env add MONGO_URI production
 # Collez votre chaîne de connexion MongoDB
 
 # Déployer en production
@@ -321,7 +321,7 @@ kami-extension/
 **Cause**: Le fichier .env.local n'a pas été rechargé
 
 **Solution**:
-1. Vérifiez que `.env.local` contient `MONGODB_URI`
+1. Vérifiez que `.env.local` contient `MONGO_URI`
 2. Arrêtez le serveur: `pkill -f "next dev"`
 3. Redémarrez: `bun run dev`
 
@@ -331,14 +331,14 @@ kami-extension/
 **Solution**:
 1. Vérifiez que le cluster MongoDB est "Ready"
 2. Vérifiez l'accès réseau: IP whitelist contient `0.0.0.0/0`
-3. Vérifiez que MONGODB_URI est correct
+3. Vérifiez que MONGO_URI est correct
 4. Testez la connexion dans MongoDB Compass
 
 ### ❌ "Authentication failed"
 **Cause**: Mauvais username/password
 
 **Solution**:
-1. Vérifiez les credentials dans MONGODB_URI
+1. Vérifiez les credentials dans MONGO_URI
 2. Vérifiez que l'utilisateur existe dans MongoDB Atlas
 3. Réinitialisez le mot de passe si nécessaire
 

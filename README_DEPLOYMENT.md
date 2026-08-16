@@ -55,7 +55,7 @@ mongodb+srv://username:password@cluster.mongodb.net/?retryWrites=true&w=majority
 Créez un fichier `.env.local` à la racine:
 
 ```bash
-MONGODB_URI=votre_chaine_de_connexion_mongodb
+MONGO_URI=votre_chaine_de_connexion_mongodb
 NODE_ENV=development
 ```
 
@@ -91,7 +91,7 @@ git push -u origin main
 
 2. Allez sur https://vercel.com/new
 3. Connectez GitHub et sélectionnez le dépôt
-4. Ajoutez la variable d'environnement `MONGODB_URI`
+4. Ajoutez la variable d'environnement `MONGO_URI`
 5. Cliquez sur "Deploy"
 
 #### Option B: Via Vercel CLI
@@ -107,7 +107,7 @@ vercel login
 vercel
 
 # Ajouter la variable d'environnement
-vercel env add MONGODB_URI production
+vercel env add MONGO_URI production
 # Collez votre chaîne de connexion MongoDB
 
 # Déployer en production

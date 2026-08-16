@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { verifyPassword } from '@/lib/password';
+import { verifyPassword, hashPassword, isLegacyPasswordHash } from '@/lib/password';
 
 // POST /api/auth/login - Connexion
 export async function POST(request: NextRequest) {
@@ -36,9 +36,17 @@ export async function POST(request: NextRequest) {
 
     // Vérifier le mot de passe
     if ((user as any).password && password) {
-      const isPasswordValid = verifyPassword(password, (user as any).password);
+      const isPasswordValid = await verifyPassword(password, (user as any).password);
       if (!isPasswordValid) {
         return NextResponse.json({ error: 'Mot de passe incorrect' }, { status: 401 });
+      }
+
+      // Migration silencieuse des anciens hash (SHA-256) vers scrypt
+      if (isLegacyPasswordHash((user as any).password)) {
+        await db.user.update({
+          where: { id: (user as any).id },
+          data: { password: await hashPassword(password) },
+        });
       }
     } else {
       return NextResponse.json({ error: 'Mot de passe requis' }, { status: 401 });

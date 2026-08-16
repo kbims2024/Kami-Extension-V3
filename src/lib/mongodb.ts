@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const MONGO_URI = process.env.MONGO_URI || '';
+const MONGO_URI = process.env.MONGO_URI || process.env.MONGODB_URI || '';
 
 if (!MONGO_URI) {
   console.warn('[MONGODB] MONGO_URI is not set in environment variables');
@@ -12,7 +12,6 @@ interface MongooseCache {
 }
 
 declare global {
-  // eslint-disable-next-line no-var
   var _mongooseCache: MongooseCache | undefined;
 }
 
@@ -31,7 +30,7 @@ export async function connectDB(): Promise<typeof mongoose> {
   }
 
   if (!MONGO_URI) {
-    throw new Error('MongoDB connection string is not defined. Set MONGO_URI in your environment.');
+    throw new Error('MongoDB connection string is not defined. Set MONGO_URI (or MONGODB_URI) in your environment.');
   }
 
   if (!cached.promise) {

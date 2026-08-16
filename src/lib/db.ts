@@ -48,6 +48,14 @@ interface DeleteArgs {
   where: Record<string, any>;
 }
 
+// Levée lorsqu'un enregistrement attendu n'est pas trouvé (équivalent Prisma P2025).
+export class NotFoundError extends Error {
+  constructor(modelName: string, where: Record<string, any>) {
+    super(`[NotFoundError] ${modelName} introuvable avec ${JSON.stringify(where)}`);
+    this.name = 'NotFoundError';
+  }
+}
+
 const operatorMap: Record<string, string> = {
   in: '$in',
   not: '$ne',
@@ -258,8 +266,7 @@ function createWrapper(model: Model<any>) {
 
       const doc = await model.findOneAndUpdate(query, updateObject, { new: true, lean: true });
       if (!doc) {
-        const notFound: Record<string, any> = { id: args.where.id || 'unknown', ...args.data, updatedAt: new Date() };
-        return normalizeDoc(notFound);
+        throw new NotFoundError(model.modelName, args.where);
       }
 
       let normalized = normalizeDoc(doc);
