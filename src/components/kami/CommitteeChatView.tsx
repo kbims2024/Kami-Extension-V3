@@ -110,6 +110,173 @@ interface CommitteeChatViewProps {
   onHome?: () => void;
 }
 
+// ─── Helpers (module scope : stables, ne changent pas à chaque rendu) ───
+
+const formatTime = (dateString: string) => {
+  const d = new Date(dateString);
+  return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+};
+
+const getInitials = (name: string) => {
+  return name.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase();
+};
+
+const getAvatarColor = (name: string) => {
+  const colors = ['#00A884','#53BDEB','#E8986E','#D36F8A','#7B61FF','#F7C948','#6ECFB8','#FF6B6B','#4ECDC4','#A78BFA'];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return colors[Math.abs(hash) % colors.length];
+};
+
+// ─── Initiative card for a user ───
+function InitiativeCard({ user, isDark }: { user: UserInfo; isDark: boolean }) {
+  return (
+    <div
+      className="mx-3 mb-3 rounded-xl overflow-hidden shadow-sm border"
+      style={{
+        borderColor: isDark ? '#2A3942' : '#E2E8F0',
+        backgroundColor: isDark ? '#1A2332' : '#FFFFFF',
+      }}
+    >
+      {/* Purple header bar */}
+      <div className="bg-gradient-to-r from-purple-600 to-indigo-700 px-4 py-2.5">
+        <div className="flex items-center gap-3">
+          <div
+            className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-sm border-2 border-white/30"
+            style={{ backgroundColor: getAvatarColor(user.name) }}
+          >
+            {getInitials(user.name)}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-white font-bold text-sm truncate">{user.name}</p>
+            <p className="text-purple-200 text-[11px]">Initiative de discussion</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Info rows */}
+      <div className="px-4 py-2.5 space-y-2">
+        <div className="flex items-center gap-2.5">
+          <Phone className="h-3.5 w-3.5 text-purple-500 flex-shrink-0" />
+          <span className="text-xs" style={{ color: isDark ? '#E9EDEF' : WA.textDark }}>{user.phone}</span>
+        </div>
+        {user.email && (
+          <div className="flex items-center gap-2.5">
+            <Mail className="h-3.5 w-3.5 text-purple-500 flex-shrink-0" />
+            <span className="text-xs" style={{ color: isDark ? '#E9EDEF' : WA.textDark }}>{user.email}</span>
+          </div>
+        )}
+        <div className="flex items-center gap-2.5">
+          <User className="h-3.5 w-3.5 text-purple-500 flex-shrink-0" />
+          <span className="text-xs" style={{ color: isDark ? '#E9EDEF' : WA.textDark }}>
+            {user.isResident ? 'Résident KAMI' : 'Non-Résident'}
+          </span>
+          {user.role === 'MANAGEMENT_COMMITTEE' && (
+            <Badge className="bg-purple-600 text-[9px] px-1.5 py-0 h-4">CGL</Badge>
+          )}
+        </div>
+        {user.quartier && (
+          <div className="flex items-center gap-2.5">
+            <MapPin className="h-3.5 w-3.5 text-purple-500 flex-shrink-0" />
+            <span className="text-xs" style={{ color: isDark ? '#E9EDEF' : WA.textDark }}>{user.quartier}</span>
+          </div>
+        )}
+        <div className="flex items-center gap-2.5">
+          <Calendar className="h-3.5 w-3.5 text-purple-500 flex-shrink-0" />
+          <span className="text-[11px]" style={{ color: WA.timeSent }}>
+            Inscrit le {new Date(user.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Single message bubble ───
+function MessageBubble({
+  message,
+  prevMsg,
+  adminId,
+  isDark,
+  onDelete,
+}: {
+  message: Message;
+  prevMsg: Message | null;
+  adminId: string | null;
+  isDark: boolean;
+  onDelete: (messageId: string) => void;
+}) {
+  const isMyMessage = message.senderId === adminId;
+  const isConsecutive = prevMsg && prevMsg.senderId === message.senderId;
+  const [isHovering, setIsHovering] = useState(false);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.15 }}
+      className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} ${isConsecutive ? 'mt-[2px]' : 'mt-1'} group`}
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
+    >
+      <div className="flex items-end gap-2">
+        <div
+          className={`
+            relative max-w-[85%] md:max-w-[65%] rounded-lg px-2.5 py-1 shadow-sm
+            ${isMyMessage ? 'rounded-tr-none' : 'rounded-tl-none'}
+            ${isMyMessage && isConsecutive ? 'rounded-tr-md' : ''}
+            ${!isMyMessage && isConsecutive ? 'rounded-tl-md' : ''}
+          `}
+          style={{
+            backgroundColor: isMyMessage
+              ? (isDark ? WA.outgoingDark : WA.outgoing)
+              : (isDark ? WA.incomingDark : WA.incoming),
+            color: isDark ? '#E9EDEF' : WA.textDark,
+          }}
+        >
+          {message.attachment?.type === 'audio' ? (
+            <div className="py-1.5">
+              <VoiceMessagePlayer
+                url={message.attachment.url}
+                mimeType={message.attachment.mimeType}
+                duration={message.attachment.duration}
+                accentColor={isMyMessage ? (isDark ? '#BFDBFE' : '#1D4ED8') : (isDark ? '#93C5FD' : '#1E3A5F')}
+                isDark={isDark}
+              />
+            </div>
+          ) : (
+            <p className="text-[14.2px] leading-[19px] whitespace-pre-wrap break-words pr-12">
+              {message.content}
+            </p>
+          )}
+          <span className="absolute bottom-[3px] right-[5px] flex items-center gap-0.5 float-right ml-2 -mt-[14px]">
+            <span className="text-[11px]" style={{ color: WA.timeSent }}>
+              {formatTime(message.createdAt)}
+            </span>
+            {isMyMessage && (
+              message.read
+                ? <CheckCheck className="h-[16px] w-[16px]" style={{ color: WA.checkRead }} />
+                : <Check className="h-[16px] w-[16px]" style={{ color: WA.timeSent }} />
+            )}
+          </span>
+        </div>
+        {isMyMessage && isHovering && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            onClick={() => onDelete(message.id)}
+            className="p-1.5 rounded-lg hover:bg-red-500/20 transition-colors"
+            title="Supprimer le message"
+          >
+            <Trash2 className="h-4 w-4 text-red-500" />
+          </motion.button>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { error: any }> {
   constructor(props: any) {
     super(props);
@@ -140,7 +307,6 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { err
 export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: CommitteeChatViewProps) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConv, setSelectedConv] = useState<Conversation | null>(null);
-  const [selectedConvLoading, setSelectedConvLoading] = useState(false);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
@@ -158,8 +324,10 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const selectedConvRef = useRef<Conversation | null>(null);
   const hasLoadedRef = useRef(false);
+  const pollingRef = useRef(false);
   const pendingChatRef = useRef<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
@@ -197,19 +365,24 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
   useEffect(() => {
     if (!adminId) return;
 
-    const refreshLoop = async () => {
-      const current = selectedConvRef.current;
-      if (current?.user?.id) {
-        // Rafraîchissement silencieux : ne marque pas "lu" à chaque tick,
-        // ne recrée pas l'état si rien n'a changé.
-        await pollConversationMessages(current.user.id);
-      } else {
-        await loadConversations();
+    const tick = async () => {
+      // Évite le chevauchement des requêtes si une réponse est plus lente que l'intervalle.
+      if (pollingRef.current) return;
+      pollingRef.current = true;
+      try {
+        const current = selectedConvRef.current;
+        if (current?.user?.id) {
+          await pollConversationMessages(current.user.id);
+        } else {
+          await loadConversations();
+        }
+      } finally {
+        pollingRef.current = false;
       }
     };
 
     loadConversations();
-    const interval = setInterval(refreshLoop, 8000);
+    const interval = setInterval(tick, 5000);
     return () => clearInterval(interval);
   }, [adminId]);
 
@@ -233,8 +406,8 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
   }, [adminId]);
 
   useEffect(() => {
-    if (selectedConv) {
-      scrollToBottom();
+    if (selectedConv && isNearBottom()) {
+      scrollToBottom(false);
     }
   }, [selectedConv?.messages?.length]);
 
@@ -243,23 +416,47 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
     try {
       const res = await fetch('/api/committee-chat', { cache: 'no-store' });
       if (res.ok) {
-        const data = await res.json();
+        const data: Conversation[] = await res.json();
+        // Ne remplace l'état que si la liste a réellement changé
+        // (aucun re-rendu quand rien n'a bougé).
         setConversations((prev) => {
-          if (JSON.stringify(prev) === JSON.stringify(data)) {
+          if (
+            prev.length === data.length &&
+            prev.every(
+              (c, i) =>
+                c.user.id === data[i].user.id &&
+                c.unreadCount === data[i].unreadCount &&
+                c.lastMessageAt === data[i].lastMessageAt &&
+                (c.lastMessage?.id ?? null) === (data[i].lastMessage?.id ?? null)
+            )
+          ) {
             return prev;
           }
           return data;
         });
-        if (selectedConvRef.current) {
-          const updated = data.find((c: Conversation) => c.user.id === selectedConvRef.current!.user.id);
+        const openId = selectedConvRef.current?.user.id;
+        if (openId) {
+          const updated = data.find((c: Conversation) => c.user.id === openId);
           if (updated) {
-            setSelectedConv((prev) => ({
-              ...prev!,
-              user: updated.user,
-              lastMessage: updated.lastMessage,
-              lastMessageAt: updated.lastMessageAt,
-              unreadCount: updated.unreadCount,
-            }));
+            setSelectedConv((prev) => {
+              if (!prev) return prev;
+              if (
+                prev.lastMessageAt === updated.lastMessageAt &&
+                prev.unreadCount === updated.unreadCount &&
+                (prev.lastMessage?.id ?? null) === (updated.lastMessage?.id ?? null) &&
+                (prev.messages[prev.messages.length - 1]?.id ?? null) ===
+                  (updated.lastMessage?.id ?? null)
+              ) {
+                return prev;
+              }
+              return {
+                ...prev,
+                user: updated.user,
+                lastMessage: updated.lastMessage,
+                lastMessageAt: updated.lastMessageAt,
+                unreadCount: updated.unreadCount,
+              };
+            });
           }
         }
       }
@@ -272,12 +469,14 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
   };
 
   // Rafraîchissement silencieux de la conversation ouverte (polling).
-  // Évite le re-rendu complet et le marquage "lu" répété à chaque tick.
+  // 1. Lecture seule (sans `markRead`) : aucun état ni écriture si rien n'a changé.
+  // 2. Uniquement en cas de nouveau message non lu, on marque comme lu une seule
+  //    fois et on récupère l'état à jour des accusés de lecture.
   const pollConversationMessages = async (otherUserId: string) => {
     if (!adminId) return;
     try {
       const res = await fetch(
-        `/api/messages?userId=${encodeURIComponent(adminId)}&otherUserId=${encodeURIComponent(otherUserId)}&markRead=true`,
+        `/api/messages?userId=${encodeURIComponent(adminId)}&otherUserId=${encodeURIComponent(otherUserId)}`,
         { cache: 'no-store' }
       );
       if (!res.ok) return;
@@ -288,10 +487,24 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
 
       const lastCurrent = current.messages[current.messages.length - 1];
       const lastNew = messages[messages.length - 1];
-      const changed = messages.length !== current.messages.length || lastCurrent?.id !== lastNew?.id;
+      const changed =
+        messages.length !== current.messages.length || lastCurrent?.id !== lastNew?.id;
       if (!changed) return;
 
-      setSelectedConv((prev) => (prev ? { ...prev, messages, unreadCount: 0 } : prev));
+      const hasUnreadIncoming = messages.some((m) => m.senderId !== adminId && !m.read);
+
+      let finalMessages = messages;
+      if (hasUnreadIncoming) {
+        const markRes = await fetch(
+          `/api/messages?userId=${encodeURIComponent(adminId)}&otherUserId=${encodeURIComponent(otherUserId)}&markRead=true`,
+          { cache: 'no-store' }
+        );
+        if (markRes.ok) {
+          finalMessages = await markRes.json();
+        }
+      }
+
+      setSelectedConv((prev) => (prev ? { ...prev, messages: finalMessages, unreadCount: 0 } : prev));
       setConversations((prev) =>
         prev.map((c) =>
           c.user.id === otherUserId
@@ -313,10 +526,12 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
             : c
         )
       );
-      if (typeof window !== 'undefined') {
+      if (hasUnreadIncoming && typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('kami:chat-read', { detail: { userId: otherUserId } }));
       }
-      scrollToBottom();
+      if (isNearBottom()) {
+        scrollToBottom(false);
+      }
     } catch (e) {
       console.error('[CommitteeChatView] Poll error:', e);
     }
@@ -347,7 +562,6 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
       console.error('[CommitteeChatView] Admin ID not available');
       return;
     }
-    setSelectedConvLoading(true);
     try {
       const res = await fetch(
         `/api/messages?userId=${encodeURIComponent(adminId)}&otherUserId=${encodeURIComponent(otherUserId)}&markRead=true`,
@@ -402,8 +616,6 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
       await loadConversations();
     } catch (e) {
       console.error('[CommitteeChatView] Exception loading messages:', e);
-    } finally {
-      setSelectedConvLoading(false);
     }
   };
 
@@ -555,15 +767,16 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
     });
   };
 
-  const scrollToBottom = () => {
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
+  const isNearBottom = () => {
+    const el = messagesContainerRef.current;
+    if (!el) return true;
+    return el.scrollHeight - el.scrollTop - el.clientHeight < 120;
   };
 
-  const formatTime = (dateString: string) => {
-    const d = new Date(dateString);
-    return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  const scrollToBottom = (smooth = true) => {
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'end' });
+    });
   };
 
   const formatDateLabel = (dateString: string) => {
@@ -636,17 +849,6 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
     }
   };
 
-  const getInitials = (name: string) => {
-    return name.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase();
-  };
-
-  const getAvatarColor = (name: string) => {
-    const colors = ['#00A884','#53BDEB','#E8986E','#D36F8A','#7B61FF','#F7C948','#6ECFB8','#FF6B6B','#4ECDC4','#A78BFA'];
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    return colors[Math.abs(hash) % colors.length];
-  };
-
   const groupedMessages = useMemo(() => {
     if (!selectedConv) return [];
     const groups: { date: string; messages: Message[] }[] = [];
@@ -673,141 +875,6 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
     if (selectedConv) {
       await loadConversationMessages(selectedConv.user.id);
     }
-  };
-
-  // ─── Initiative card for a user ───
-  const InitiativeCard = ({ user }: { user: UserInfo }) => (
-    <div
-      className="mx-3 mb-3 rounded-xl overflow-hidden shadow-sm border"
-      style={{
-        borderColor: isDark ? '#2A3942' : '#E2E8F0',
-        backgroundColor: isDark ? '#1A2332' : '#FFFFFF',
-      }}
-    >
-      {/* Purple header bar */}
-      <div className="bg-gradient-to-r from-purple-600 to-indigo-700 px-4 py-2.5">
-        <div className="flex items-center gap-3">
-          <div
-            className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-sm border-2 border-white/30"
-            style={{ backgroundColor: getAvatarColor(user.name) }}
-          >
-            {getInitials(user.name)}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-white font-bold text-sm truncate">{user.name}</p>
-            <p className="text-purple-200 text-[11px]">Initiative de discussion</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Info rows */}
-      <div className="px-4 py-2.5 space-y-2">
-        <div className="flex items-center gap-2.5">
-          <Phone className="h-3.5 w-3.5 text-purple-500 flex-shrink-0" />
-          <span className="text-xs" style={{ color: isDark ? '#E9EDEF' : WA.textDark }}>{user.phone}</span>
-        </div>
-        {user.email && (
-          <div className="flex items-center gap-2.5">
-            <Mail className="h-3.5 w-3.5 text-purple-500 flex-shrink-0" />
-            <span className="text-xs" style={{ color: isDark ? '#E9EDEF' : WA.textDark }}>{user.email}</span>
-          </div>
-        )}
-        <div className="flex items-center gap-2.5">
-          <User className="h-3.5 w-3.5 text-purple-500 flex-shrink-0" />
-          <span className="text-xs" style={{ color: isDark ? '#E9EDEF' : WA.textDark }}>
-            {user.isResident ? 'Résident KAMI' : 'Non-Résident'}
-          </span>
-          {user.role === 'MANAGEMENT_COMMITTEE' && (
-            <Badge className="bg-purple-600 text-[9px] px-1.5 py-0 h-4">CGL</Badge>
-          )}
-        </div>
-        {user.quartier && (
-          <div className="flex items-center gap-2.5">
-            <MapPin className="h-3.5 w-3.5 text-purple-500 flex-shrink-0" />
-            <span className="text-xs" style={{ color: isDark ? '#E9EDEF' : WA.textDark }}>{user.quartier}</span>
-          </div>
-        )}
-        <div className="flex items-center gap-2.5">
-          <Calendar className="h-3.5 w-3.5 text-purple-500 flex-shrink-0" />
-          <span className="text-[11px]" style={{ color: WA.timeSent }}>
-            Inscrit le {new Date(user.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-
-  // ─── Single message bubble ───
-  const MessageBubble = ({ message, prevMsg }: { message: Message; prevMsg: Message | null }) => {
-    const isMyMessage = message.senderId === adminId;
-    const isConsecutive = prevMsg && prevMsg.senderId === message.senderId;
-    const [isHovering, setIsHovering] = useState(false);
-
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 8, scale: 0.97 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.15 }}
-        className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} ${isConsecutive ? 'mt-[2px]' : 'mt-1'} group`}
-        onMouseEnter={() => setIsHovering(true)}
-        onMouseLeave={() => setIsHovering(false)}
-      >
-        <div className="flex items-end gap-2">
-          <div
-            className={`
-              relative max-w-[85%] md:max-w-[65%] rounded-lg px-2.5 py-1 shadow-sm
-              ${isMyMessage ? 'rounded-tr-none' : 'rounded-tl-none'}
-              ${isMyMessage && isConsecutive ? 'rounded-tr-md' : ''}
-              ${!isMyMessage && isConsecutive ? 'rounded-tl-md' : ''}
-            `}
-            style={{
-              backgroundColor: isMyMessage
-                ? (isDark ? WA.outgoingDark : WA.outgoing)
-                : (isDark ? WA.incomingDark : WA.incoming),
-              color: isDark ? '#E9EDEF' : WA.textDark,
-            }}
-          >
-            {message.attachment?.type === 'audio' ? (
-              <div className="py-1.5">
-                <VoiceMessagePlayer
-                  url={message.attachment.url}
-                  mimeType={message.attachment.mimeType}
-                  duration={message.attachment.duration}
-                  accentColor={isMyMessage ? (isDark ? '#BFDBFE' : '#1D4ED8') : (isDark ? '#93C5FD' : '#1E3A5F')}
-                  isDark={isDark}
-                />
-              </div>
-            ) : (
-              <p className="text-[14.2px] leading-[19px] whitespace-pre-wrap break-words pr-12">
-                {message.content}
-              </p>
-            )}
-            <span className="absolute bottom-[3px] right-[5px] flex items-center gap-0.5 float-right ml-2 -mt-[14px]">
-              <span className="text-[11px]" style={{ color: WA.timeSent }}>
-                {formatTime(message.createdAt)}
-              </span>
-              {isMyMessage && (
-                message.read
-                  ? <CheckCheck className="h-[16px] w-[16px]" style={{ color: WA.checkRead }} />
-                  : <Check className="h-[16px] w-[16px]" style={{ color: WA.timeSent }} />
-              )}
-            </span>
-          </div>
-          {isMyMessage && isHovering && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              onClick={() => handleDeleteMessage(message.id)}
-              className="p-1.5 rounded-lg hover:bg-red-500/20 transition-colors"
-              title="Supprimer le message"
-            >
-              <Trash2 className="h-4 w-4 text-red-500" />
-            </motion.button>
-          )}
-        </div>
-      </motion.div>
-    );
   };
 
   // ════════════════════════════════════════════
@@ -1009,6 +1076,7 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
 
       {/* Messages area with initiative card at top */}
       <div
+        ref={messagesContainerRef}
         className="flex-1 overflow-y-auto min-h-0"
         style={{
           backgroundColor: isDark ? WA.chatBgDark : WA.chatBg,
@@ -1018,7 +1086,7 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
         }}
       >
         <div className="px-0 py-2">
-          <InitiativeCard user={selectedConv.user} />
+          <InitiativeCard user={selectedConv.user} isDark={isDark} />
 
           {/* Date-separated messages */}
           {selectedConv.messages.length === 0 ? (
@@ -1047,6 +1115,9 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
                       key={msg.id || `msg-${gi}-${idx}`}
                       message={msg}
                       prevMsg={idx > 0 ? group.messages[idx - 1] : null}
+                      adminId={adminId}
+                      isDark={isDark}
+                      onDelete={handleDeleteMessage}
                     />
                   ))}
                 </div>

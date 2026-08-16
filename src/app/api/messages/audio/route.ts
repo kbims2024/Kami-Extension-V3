@@ -31,7 +31,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Fichier audio manquant' }, { status: 400 });
     }
 
-    if (!VALID_AUDIO_MIMES.includes(file.type)) {
+    // Normalise le type MIME (les navigateurs renvoient parfois "audio/webm;codecs=opus").
+    const baseMime = (file.type || '').split(';')[0].trim();
+    if (!VALID_AUDIO_MIMES.includes(baseMime)) {
       return NextResponse.json(
         { error: 'Type de fichier audio non supporté' },
         { status: 400 }
@@ -47,12 +49,12 @@ export async function POST(req: NextRequest) {
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    const dataUri = `data:${file.type};base64,${buffer.toString('base64')}`;
+    const dataUri = `data:${baseMime};base64,${buffer.toString('base64')}`;
 
     const doc = await db.uploadedFile.create({
       data: {
         filename: file.name || 'message-vocal.webm',
-        mimeType: file.type,
+        mimeType: baseMime,
         size: file.size,
         data: dataUri,
         category: 'message-audio',
@@ -62,7 +64,7 @@ export async function POST(req: NextRequest) {
     const duration = Number(durationRaw);
     return NextResponse.json({
       url: `/api/files/${doc.id}`,
-      mimeType: file.type,
+      mimeType: baseMime,
       size: file.size,
       duration: Number.isFinite(duration) && duration > 0 ? Math.round(duration) : null,
     });
