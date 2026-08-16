@@ -76,7 +76,14 @@ function buildQuery(where?: PrismaWhere): Record<string, any> {
     }
 
     if (key === 'id') {
-      query._id = value;
+      // IMPORTANT : les opérateurs (ex. `{ in: [...] }`) doivent être normalisés
+      // en `$in` etc. Sans cela Mongoose lève une CastError (« _id ») et toutes
+      // les requêtes `where: { id: { in: [...] } }` échouent en 500 (ex. liste
+      // des conversations CGL et en-têtes de messages).
+      query._id =
+        typeof value === 'object' && value !== null && !Array.isArray(value)
+          ? normalizeOperators(value)
+          : value;
       continue;
     }
 

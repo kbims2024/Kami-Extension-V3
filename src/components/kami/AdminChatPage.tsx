@@ -16,6 +16,8 @@ import { CommitteeNotificationBell } from './CommitteeNotificationBell';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
+import { formatVoiceDuration } from '@/hooks/useAudioRecorder';
+import { VoiceMessagePlayer } from './VoiceMessagePlayer';
 
 // ─── WhatsApp colour palette ───
 const WA = {
@@ -48,6 +50,14 @@ interface Message {
   senderId: string;
   receiverId: string;
   read: boolean;
+  attachment?: {
+    type: 'audio' | 'video' | 'file';
+    url: string;
+    mimeType: string;
+    size: number;
+    duration?: number;
+    name?: string;
+  } | null;
   createdAt: string;
   sender: {
     id: string;
@@ -123,7 +133,7 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: Admin
 
   const loadAdminId = async () => {
     try {
-      const response = await fetch('/api/admin/ensure');
+      const response = await fetch('/api/admin/ensure', { cache: 'no-store' });
       if (response.ok) {
         const data = await response.json();
         setAdminId(data.adminId);
@@ -135,7 +145,7 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: Admin
 
   const loadConversations = async () => {
     try {
-      const response = await fetch('/api/committee-chat');
+      const response = await fetch('/api/committee-chat', { cache: 'no-store' });
       if (response.ok) {
         const data = await response.json();
         setUsers(
@@ -427,9 +437,9 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: Admin
                                     <CheckCheck className="inline h-3.5 w-3.5 mr-0.5 -mt-0.5" />
                                   </span>
                                 )}
-                                {lastMsg.content.substring(0, 50)}
-                                {lastMsg.content.length > 50 ? '…' : ''}
-                              </>
+                                {lastMsg.attachment?.type === 'audio'
+                                  ? `🎤 Message vocal ${lastMsg.attachment.duration ? `(${formatVoiceDuration(lastMsg.attachment.duration)})` : ''}`
+                                  : lastMsg.content.substring(0, 50)}{lastMsg.content.length > 50 && !lastMsg.attachment ? '…' : ''}                              </>
                             ) : (
                               <span className="italic">Aucun message</span>
                             )}
@@ -558,9 +568,21 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: Admin
                               color: isDark ? '#E9EDEF' : WA.textDark,
                             }}
                           >
-                            <p className="text-[14.2px] leading-[19px] whitespace-pre-wrap break-words pr-12">
-                              {message.content}
-                            </p>
+                            {message.attachment?.type === 'audio' ? (
+                              <div className="py-1.5">
+                                <VoiceMessagePlayer
+                                  url={message.attachment.url}
+                                  mimeType={message.attachment.mimeType}
+                                  duration={message.attachment.duration}
+                                  accentColor={isMyMessage ? (isDark ? '#BFDBFE' : '#1D4ED8') : (isDark ? '#93C5FD' : '#1E3A5F')}
+                                  isDark={isDark}
+                                />
+                              </div>
+                            ) : (
+                              <p className="text-[14.2px] leading-[19px] whitespace-pre-wrap break-words pr-12">
+                                {message.content}
+                              </p>
+                            )}
 
                             <span
                               className="absolute bottom-[3px] right-[5px] flex items-center gap-0.5 float-right ml-2 -mt-[14px]"

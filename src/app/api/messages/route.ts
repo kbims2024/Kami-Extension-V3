@@ -2,27 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { connectDB } from '@/lib/mongodb';
 import { Settings } from '@/lib/models/Settings';
+import { ensureAdmin } from '@/lib/admin';
 import { MAX_MESSAGE_LENGTH, stripLegacyUserHeader } from '@/lib/chat-utils';
 import { normalizeDiscussionConfig } from '@/lib/discussion-config';
 
 async function getAdminId(): Promise<string> {
-  const admin = await db.user.findFirst({
-    where: { phone: 'ADMIN' },
-  });
-
-  if (admin) {
-    return admin.id;
-  }
-
-  const created = await db.user.create({
-    data: {
-      name: 'Administrateur',
-      phone: 'ADMIN',
-      isResident: true,
-    },
-  });
-
-  return created.id;
+  const admin = await ensureAdmin();
+  return admin.id;
 }
 
 /** Récupère les infos publiques d'un ensemble d'utilisateurs en une seule requête. */
@@ -44,22 +30,24 @@ async function getUsersInfo(ids: string[]) {
 
 /**
  * POST /api/messages
- * Envoyer un message
- * Body: { content: string, receiverId: string, senderId: string }
+ * Envoyer un message (texte et/ou pièce jointe audio).
+ * Body: { content?: string, receiverId: string, senderId: string,
+ *         attachment?: { type: 'audio', url, mimeType, size, duration?, name? } }
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { content, receiverId, senderId } = body;
+    const { content, receiverId, senderId, attachment } = body;
 
-    if (!content?.trim()) {
+    const cleanContent = (content || '').trim();
+
+    if (!cleanContent && !attachment) {
       return NextResponse.json(
         { error: 'Le contenu du message est obligatoire' },
         { status: 400 }
       );
     }
 
-    const cleanContent = content.trim();
     if (cleanContent.length > MAX_MESSAGE_LENGTH) {
       return NextResponse.json(
         { error: `Le message ne peut pas dépasser ${MAX_MESSAGE_LENGTH} caractères` },
@@ -108,10 +96,11 @@ export async function POST(request: NextRequest) {
 
     const message = await db.message.create({
       data: {
-        content: cleanContent,
+        content: cleanContent || attachment?.name || 'Message vocal',
         senderId,
         receiverId,
         read: false,
+        attachment: attachment || null,
       },
     });
 
@@ -120,7 +109,7 @@ export async function POST(request: NextRequest) {
     // automatique est configurée, on la crée depuis l'admin (comptée comme
     // non lue pour l'utilisateur).
     if (senderId !== receiverId) {
-      const admin = await db.user.findFirst({ where: { phone: 'ADMIN' } });
+      const admin = await ensureAdmin();
       const isAdmin = admin && (senderId === admin.id || receiverId === admin.id);
       if (!isAdmin) {
         const threadCount = await db.message.count({
@@ -162,6 +151,7 @@ export async function POST(request: NextRequest) {
       senderId: message.senderId,
       receiverId: message.receiverId,
       read: message.read,
+      attachment: message.attachment || null,
       createdAt: message.createdAt,
       sender: { id: sender.id, name: sender.name, phone: sender.phone },
       receiver: { id: receiver.id, name: receiver.name, phone: receiver.phone },
@@ -196,9 +186,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const admin = await db.user.findFirst({
-      where: { phone: 'ADMIN' },
-    });
+    const admin = await ensureAdmin();
 
     if (!admin) {
       return NextResponse.json(
@@ -255,6 +243,7 @@ export async function GET(request: NextRequest) {
         senderId: true,
         receiverId: true,
         read: true,
+        attachment: true,
         createdAt: true,
       },
       orderBy: { createdAt: 'asc' },
@@ -270,6 +259,7 @@ export async function GET(request: NextRequest) {
     const enrichedMessages = messages.map((msg: any) => ({
       ...msg,
       content: stripLegacyUserHeader(msg.content),
+      attachment: msg.attachment || null,
       sender: userMap.get(msg.senderId) || { id: msg.senderId, name: 'Inconnu', phone: '' },
       receiver: userMap.get(msg.receiverId) || { id: msg.receiverId, name: 'Inconnu', phone: '' },
     }));

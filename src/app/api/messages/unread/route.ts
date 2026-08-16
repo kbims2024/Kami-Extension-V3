@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { ensureAdmin } from '@/lib/admin';
 
 /**
  * GET /api/messages/unread?userId=X
@@ -17,9 +18,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const admin = await db.user.findFirst({
-      where: { phone: 'ADMIN' },
-    });
+    const admin = await ensureAdmin();
 
     if (!admin) {
       return NextResponse.json({ unreadCount: 0 });

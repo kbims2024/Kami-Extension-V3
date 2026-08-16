@@ -160,7 +160,7 @@ export default function KamiExtensionPage() {
     const loadChatBadges = async () => {
       if (currentUser?.id) {
         try {
-          const res = await fetch(`/api/messages/unread?userId=${encodeURIComponent(currentUser.id)}`);
+          const res = await fetch(`/api/messages/unread?userId=${encodeURIComponent(currentUser.id)}`, { cache: 'no-store' });
           if (res.ok) {
             const data = await res.json();
             setUserChatUnread(data.unreadCount || 0);
@@ -172,7 +172,7 @@ export default function KamiExtensionPage() {
 
       if (isCommittee) {
         try {
-          const res = await fetch('/api/committee-chat');
+          const res = await fetch('/api/committee-chat', { cache: 'no-store' });
           if (res.ok) {
             const data = await res.json();
             const count = data.reduce((acc: number, conv: any) => acc + (conv.unreadCount > 0 ? 1 : 0), 0);
@@ -1951,7 +1951,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
 
   const loadUnreadChatCount = async () => {
     try {
-      const res = await fetch('/api/committee-chat');
+      const res = await fetch('/api/committee-chat', { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         const count = data.reduce((acc: number, conv: any) => acc + (conv.unreadCount > 0 ? 1 : 0), 0);

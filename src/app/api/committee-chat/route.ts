@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { ensureAdmin } from '@/lib/admin';
 import { stripLegacyUserHeader } from '@/lib/chat-utils';
 
 /**
@@ -10,16 +11,7 @@ import { stripLegacyUserHeader } from '@/lib/chat-utils';
  */
 export async function GET() {
   try {
-    const admin = await db.user.findFirst({
-      where: { phone: 'ADMIN' },
-    });
-
-    if (!admin) {
-      return NextResponse.json(
-        { error: 'Administrateur non trouvé' },
-        { status: 404 }
-      );
-    }
+    const admin = await ensureAdmin();
 
     // Tous les messages impliquant l'admin (hors discussions archivées)
     const allMessages = await db.message.findMany({
@@ -33,6 +25,7 @@ export async function GET() {
         senderId: true,
         receiverId: true,
         read: true,
+        attachment: true,
         createdAt: true,
       },
       orderBy: { createdAt: 'asc' },
@@ -100,6 +93,7 @@ export async function GET() {
               senderId: lastMsg.senderId,
               receiverId: lastMsg.receiverId,
               read: lastMsg.read,
+              attachment: lastMsg.attachment || null,
               createdAt: lastMsg.createdAt,
             }
           : null,

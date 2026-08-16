@@ -1,26 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-
+import { NextResponse } from 'next/server';
+import { ensureAdmin } from '@/lib/admin';
 
 export async function GET() {
   try {
-    // Try to find admin user
-    let admin = await db.user.findFirst({
-      where: {
-        phone: 'ADMIN',
-      },
-    });
-
-    // Create admin if doesn't exist
-    if (!admin) {
-      admin = await db.user.create({
-        data: {
-          name: 'Administrateur',
-          phone: 'ADMIN',
-          isResident: true,
-        },
-      });
-    }
+    const admin = await ensureAdmin();
 
     return NextResponse.json({ adminId: admin.id, adminName: admin.name });
   } catch (error) {

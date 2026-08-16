@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { ensureAdmin } from '@/lib/admin';
 
 // GET - Récupérer tous les membres du comité de gestion
 export async function GET() {
@@ -73,12 +74,7 @@ export async function POST(request: NextRequest) {
 
     // Envoyer un message de bienvenue de l'admin au nouveau membre
     try {
-      let admin = await db.user.findFirst({ where: { phone: 'ADMIN' } });
-      if (!admin) {
-        admin = await db.user.create({
-          data: { name: 'Administrateur', phone: 'ADMIN', isResident: true },
-        });
-      }
+      const admin = await ensureAdmin();
 
       const welcomeMessage =
         `👋 Bienvenue dans le Comité de Gestion des Lots de KAMI-EXTENSION !\n\n` +

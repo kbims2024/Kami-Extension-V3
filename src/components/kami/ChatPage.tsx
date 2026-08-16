@@ -10,11 +10,14 @@ import {
   CheckCheck,
   Mic,
   StopCircle,
+  Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAppStore } from '@/store/useAppStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
+import { useAudioRecorder, uploadVoiceMessage, formatVoiceDuration } from '@/hooks/useAudioRecorder';
+import { VoiceMessagePlayer } from './VoiceMessagePlayer';
 
 // ─── WhatsApp colour palette ───
 const WA = {
@@ -44,6 +47,14 @@ interface Message {
   senderId: string;
   receiverId: string;
   read: boolean;
+  attachment?: {
+    type: 'audio' | 'video' | 'file';
+    url: string;
+    mimeType: string;
+    size: number;
+    duration?: number;
+    name?: string;
+  } | null;
   createdAt: string;
   sender: {
     name: string;
@@ -76,12 +87,11 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-  const [speechSupported, setSpeechSupported] = useState(false);
+  const [isVoiceSending, setIsVoiceSending] = useState(false);
   const [chatConfig, setChatConfig] = useState<PublicDiscussionConfig>(DEFAULT_CHAT_CONFIG);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const recognitionRef = useRef<any>(null);
+  const voiceRec = useAudioRecorder();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -110,80 +120,73 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
     };
   }, []);
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const SpeechRecognitionConstructor =
-      (window as any).SpeechRecognition ||
-      (window as any).webkitSpeechRecognition ||
-      (window as any).mozSpeechRecognition;
-
-    if (!SpeechRecognitionConstructor) {
-      setSpeechSupported(false);
-      recognitionRef.current = null;
+  const handleMicClick = async () => {
+    if (!chatConfig.enabled) {
+      toast.error('Les discussions sont désactivées par le CGL');
       return;
     }
 
-    const recognition = new SpeechRecognitionConstructor();
-    recognition.lang = 'fr-FR';
-    recognition.continuous = false;
-    recognition.interimResults = true;
-    recognition.maxAlternatives = 1;
-
-    recognition.onresult = (event: any) => {
-      let transcript = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        transcript += event.results[i][0].transcript;
-      }
-      const cleanTranscript = transcript.trim();
-      if (cleanTranscript) {
-        setNewMessage((prev) => {
-          const current = prev.trim();
-          return current ? `${current} ${cleanTranscript}` : cleanTranscript;
-        });
-      }
-    };
-
-    recognition.onend = () => {
-      setIsListening(false);
-    };
-
-    recognition.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error);
-      setIsListening(false);
-      if (event.error !== 'no-speech') {
-        toast.error('Erreur de reconnaissance vocale');
-      }
-    };
-
-    recognitionRef.current = recognition;
-    setSpeechSupported(true);
-
-    return () => {
-      try { recognition.stop(); } catch {}
-    };
-  }, []);
-
-  const handleVoiceInput = () => {
-    const recognition = recognitionRef.current;
-    if (!recognition) {
-      toast.error('Reconnaissance vocale non compatible avec ce navigateur');
+    if (!voiceRec.supported) {
+      toast.error('L’enregistrement vocal n’est pas supporté par ce navigateur');
       return;
     }
 
-    if (isListening) {
-      recognition.stop();
-      setIsListening(false);
+    if (voiceRec.recording) {
+      // Fin d'enregistrement -> envoi du message vocal
+      const voice = await voiceRec.stop();
+      if (!voice) return;
+      await sendVoiceMessage(voice);
       return;
     }
 
-    try {
-      recognition.start();
-      setIsListening(true);
-    } catch (error) {
-      console.error('Speech recognition start failed:', error);
-      setIsListening(false);
+    const ok = await voiceRec.start();
+    if (!ok) {
       toast.error('Impossible de démarrer l’enregistrement vocal');
+    }
+  };
+
+  const sendVoiceMessage = async (voice: any) => {
+    if (!currentUser?.id) {
+      toast.error('Vous devez être connecté pour envoyer un message');
+      return;
+    }
+    if (isVoiceSending) return;
+
+    setIsVoiceSending(true);
+    try {
+      const ensureRes = await fetch('/api/admin/ensure', { cache: 'no-store' });
+      if (!ensureRes.ok) {
+        throw new Error('Impossible de récupérer l\'administrateur');
+      }
+      const ensureData = await ensureRes.json();
+      const adminId = ensureData.adminId;
+
+      const attachment = await uploadVoiceMessage(voice);
+
+      const response = await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: '',
+          receiverId: adminId,
+          senderId: currentUser.id,
+          attachment,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Erreur inconnue' }));
+        toast.error(error.error || 'Erreur lors de l\'envoi du message');
+        return;
+      }
+
+      toast.success('Message vocal envoyé');
+      await loadMessages();
+    } catch (error) {
+      console.error('[ChatPage] Exception sending voice message:', error);
+      toast.error('Erreur lors de l\'envoi du message vocal. Vérifiez votre connexion.');
+    } finally {
+      setIsVoiceSending(false);
     }
   };
 
@@ -193,7 +196,7 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
       return;
     }
     try {
-      const response = await fetch(`/api/messages?userId=${currentUser.id}&markRead=true`);
+      const response = await fetch(`/api/messages?userId=${currentUser.id}&markRead=true`, { cache: 'no-store' });
 
       if (!response.ok) {
         return;
@@ -426,9 +429,21 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
                         color: isDark ? '#E9EDEF' : WA.textDark,
                       }}
                     >
-                      <p className="text-[14.2px] leading-[19px] whitespace-pre-wrap break-words pr-12">
-                        {message.content}
-                      </p>
+                      {message.attachment?.type === 'audio' ? (
+                        <div className="pb-1">
+                          <VoiceMessagePlayer
+                            url={message.attachment.url}
+                            mimeType={message.attachment.mimeType}
+                            duration={message.attachment.duration}
+                            accentColor={isMyMessage ? (isDark ? '#BFDBFE' : '#1D4ED8') : (isDark ? '#93C5FD' : '#1E3A5F')}
+                            isDark={isDark}
+                          />
+                        </div>
+                      ) : (
+                        <p className="text-[14.2px] leading-[19px] whitespace-pre-wrap break-words pr-12">
+                          {message.content}
+                        </p>
+                      )}
                       <span className="absolute bottom-[5px] right-[8px] flex items-center gap-0.5 text-[11px]" style={{ color: WA.timeSent }}>
                         <span>{formatTimeShort(message.createdAt)}</span>
                         {isMyMessage &&
@@ -457,44 +472,90 @@ export function ChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: ChatPagePr
         )}
         {chatConfig.enabled && (
         <>
-        <div className="flex-1 relative">
-          <input
-            ref={inputRef}
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyDown={handleKeyPress}
-            placeholder="Écrire un message..."
-            disabled={isLoading}
-            className="w-full rounded-full px-4 py-3 text-[15px] outline-none border border-transparent focus:border-blue-300 focus:ring-2 focus:ring-blue-200"
-            style={{
-              backgroundColor: isDark ? WA.inputBgDark : WA.inputBg,
-              color: isDark ? '#E9EDEF' : WA.textDark,
-              minHeight: '46px',
-              maxHeight: '120px',
-            }}
-          />
-        </div>
+        {voiceRec.recording ? (
+          <>
+            <Button
+              type="button"
+              onClick={handleMicClick}
+              disabled={isVoiceSending}
+              className="rounded-full shrink-0"
+              style={{ width: '46px', height: '46px', backgroundColor: '#ef4444', color: 'white' }}
+              size="icon"
+              title="Arrêter et envoyer le message vocal"
+            >
+              <StopCircle className="h-5 w-5" />
+            </Button>
 
-        <Button
-          onClick={newMessage.trim() ? handleSendMessage : handleVoiceInput}
-          disabled={isLoading || (!newMessage.trim() && !speechSupported)}
-          className="rounded-full shrink-0"
-          style={{
-            width: '46px',
-            height: '46px',
-            backgroundColor: newMessage.trim() ? WA.headerTeal : 'transparent',
-            color: newMessage.trim() ? 'white' : '#64748B',
-          }}
-          size="icon"
-        >
-          {newMessage.trim() ? (
+            <div
+              className="flex-1 flex items-center justify-center gap-2 rounded-full px-4 py-3 text-[14px] font-semibold"
+              style={{ backgroundColor: isDark ? WA.inputBgDark : WA.inputBg, color: '#ef4444' }}
+            >
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
+              </span>
+              {formatVoiceDuration(voiceRec.recordingTime)}
+            </div>
+
+            <Button
+              type="button"
+              onClick={() => voiceRec.cancel()}
+              className="rounded-full shrink-0"
+              style={{ width: '42px', height: '42px', backgroundColor: '#E2E8F0', color: '#475569' }}
+              size="icon"
+              title="Annuler l’enregistrement"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </>
+        ) : (
+          <>
+          <Button
+            type="button"
+            onClick={handleMicClick}
+            disabled={isVoiceSending || isLoading}
+            className="rounded-full shrink-0"
+            style={{ width: '42px', height: '42px', backgroundColor: isVoiceSending ? '#E2E8F0' : '#E2E8F0', color: '#475569' }}
+            size="icon"
+            title="Envoyer un message vocal"
+          >
+            <Mic className="h-4 w-4" />
+          </Button>
+
+          <div className="flex-1 relative">
+            <input
+              ref={inputRef}
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyDown={handleKeyPress}
+              placeholder="Écrire un message..."
+              disabled={isLoading}
+              className="w-full rounded-full px-4 py-3 text-[15px] outline-none border border-transparent focus:border-blue-300 focus:ring-2 focus:ring-blue-200"
+              style={{
+                backgroundColor: isDark ? WA.inputBgDark : WA.inputBg,
+                color: isDark ? '#E9EDEF' : WA.textDark,
+                minHeight: '46px',
+                maxHeight: '120px',
+              }}
+            />
+          </div>
+
+          <Button
+            onClick={handleSendMessage}
+            disabled={isLoading || !newMessage.trim()}
+            className="rounded-full shrink-0"
+            style={{
+              width: '46px',
+              height: '46px',
+              backgroundColor: newMessage.trim() ? WA.headerTeal : 'transparent',
+              color: newMessage.trim() ? 'white' : '#64748B',
+            }}
+            size="icon"
+          >
             <Send className="h-5 w-5" />
-          ) : isListening ? (
-            <StopCircle className="h-5 w-5" />
-          ) : (
-            <Mic className="h-5 w-5" />
-          )}
-        </Button>
+          </Button>
+          </>
+        )}
         </>
         )}
       </div>

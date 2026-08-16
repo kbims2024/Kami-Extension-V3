@@ -20,10 +20,13 @@ import {
   Mic,
   Archive,
   AlertTriangle,
+  StopCircle,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
+import { useAudioRecorder, uploadVoiceMessage, formatVoiceDuration } from '@/hooks/useAudioRecorder';
+import { VoiceMessagePlayer } from './VoiceMessagePlayer';
 
 // WhatsApp palette
 const WA = {
@@ -65,6 +68,14 @@ interface Message {
   senderId: string;
   receiverId: string;
   read: boolean;
+  attachment?: {
+    type: 'audio' | 'video' | 'file';
+    url: string;
+    mimeType: string;
+    size: number;
+    duration?: number;
+    name?: string;
+  } | null;
   createdAt: string;
   sender: { id: string; name: string; phone: string };
 }
@@ -75,6 +86,14 @@ interface ConversationMessage {
   senderId: string;
   receiverId: string;
   read: boolean;
+  attachment?: {
+    type: 'audio' | 'video' | 'file';
+    url: string;
+    mimeType: string;
+    size: number;
+    duration?: number;
+    name?: string;
+  } | null;
   createdAt: string;
 }
 
@@ -129,8 +148,8 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
   const [adminId, setAdminId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeView, setActiveView] = useState<'list' | 'detail'>('list');
-  const [speechSupported, setSpeechSupported] = useState(false);
-  const [isListening, setIsListening] = useState(false);
+  const [isVoiceSending, setIsVoiceSending] = useState(false);
+  const voiceRec = useAudioRecorder();
   const [confirmDialog, setConfirmDialog] = useState<{
     title: string;
     message: string;
@@ -140,13 +159,35 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const voiceRecognitionRef = useRef<any>(null);
   const selectedConvRef = useRef<Conversation | null>(null);
   const hasLoadedRef = useRef(false);
   const pendingChatRef = useRef<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
-    loadAdminId();
+    let cancelled = false;
+    let attempts = 0;
+    const tryLoadAdmin = async () => {
+      try {
+        const res = await fetch('/api/admin/ensure', { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          if (!cancelled) setAdminId(data.adminId);
+        } else if (!cancelled && attempts < 3) {
+          attempts += 1;
+          setTimeout(tryLoadAdmin, 3000);
+        }
+      } catch (e) {
+        console.error(e);
+        if (!cancelled && attempts < 3) {
+          attempts += 1;
+          setTimeout(tryLoadAdmin, 3000);
+        }
+      }
+    };
+    tryLoadAdmin();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Garde une référence à jour de la conversation ouverte (pour le polling).
@@ -196,22 +237,10 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
     }
   }, [selectedConv?.messages?.length]);
 
-  const loadAdminId = async () => {
-    try {
-      const res = await fetch('/api/admin/ensure');
-      if (res.ok) {
-        const data = await res.json();
-        setAdminId(data.adminId);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
   const loadConversations = async () => {
     if (!hasLoadedRef.current) setIsLoading(true);
     try {
-      const res = await fetch('/api/committee-chat');
+      const res = await fetch('/api/committee-chat', { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         setConversations(data);
@@ -264,7 +293,8 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
     setSelectedConvLoading(true);
     try {
       const res = await fetch(
-        `/api/messages?userId=${encodeURIComponent(adminId)}&otherUserId=${encodeURIComponent(otherUserId)}&markRead=true`
+        `/api/messages?userId=${encodeURIComponent(adminId)}&otherUserId=${encodeURIComponent(otherUserId)}&markRead=true`,
+        { cache: 'no-store' }
       );
 
       if (!res.ok) {
@@ -505,76 +535,64 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
     return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' });
   };
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const SpeechRecognitionConstructor =
-      (window as any).SpeechRecognition ||
-      (window as any).webkitSpeechRecognition ||
-      (window as any).mozSpeechRecognition;
-
-    if (!SpeechRecognitionConstructor) {
-      setSpeechSupported(false);
-      voiceRecognitionRef.current = null;
+  const handleMicClick = async () => {
+    if (!voiceRec.supported) {
+      toast.error('L’enregistrement vocal n’est pas supporté par ce navigateur');
       return;
     }
 
-    const recognition = new SpeechRecognitionConstructor();
-    recognition.lang = 'fr-FR';
-    recognition.continuous = false;
-    recognition.interimResults = true;
-    recognition.maxAlternatives = 1;
-
-    recognition.onresult = (event: any) => {
-      let transcript = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        transcript += event.results[i][0].transcript;
-      }
-      const cleanTranscript = transcript.trim();
-      if (cleanTranscript) {
-        setNewMessage((prev) => {
-          const current = prev.trim();
-          return current ? `${current} ${cleanTranscript}` : cleanTranscript;
-        });
-      }
-    };
-
-    recognition.onend = () => setIsListening(false);
-    recognition.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error);
-      setIsListening(false);
-      if (event.error !== 'no-speech') {
-        console.warn('Reconnaissance vocale désactivée');
-      }
-    };
-
-    voiceRecognitionRef.current = recognition;
-    setSpeechSupported(true);
-
-    return () => {
-      try { recognition.stop(); } catch {}
-    };
-  }, []);
-
-  const handleVoiceInput = () => {
-    const recognition = voiceRecognitionRef.current;
-    if (!recognition) {
-      toast.error('Reconnaissance vocale non compatible avec ce navigateur');
+    if (voiceRec.recording) {
+      const voice = await voiceRec.stop();
+      if (!voice) return;
+      await sendVoiceMessage(voice);
       return;
     }
 
-    if (isListening) {
-      recognition.stop();
-      setIsListening(false);
+    const ok = await voiceRec.start();
+    if (!ok) {
+      toast.error('Impossible de démarrer l’enregistrement vocal');
+    }
+  };
+
+  const sendVoiceMessage = async (voice: any) => {
+    if (!selectedConv) {
+      toast.error('Aucune conversation sélectionnée');
       return;
     }
+    if (!adminId) {
+      toast.error('Administrateur non identifié');
+      return;
+    }
+    if (isVoiceSending) return;
 
+    setIsVoiceSending(true);
     try {
-      recognition.start();
-      setIsListening(true);
-    } catch {
-      setIsListening(false);
-      console.warn('Impossible de démarrer l’enregistrement vocal');
+      const attachment = await uploadVoiceMessage(voice);
+
+      const res = await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: '',
+          receiverId: selectedConv.user.id,
+          senderId: adminId,
+          attachment,
+        }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({ error: 'Erreur inconnue' }));
+        toast.error(error.error || "Erreur lors de l'envoi du message vocal");
+        return;
+      }
+
+      await loadConversationMessages(selectedConv.user.id);
+      await loadConversations();
+    } catch (e) {
+      console.error('[CommitteeChatView] Exception sending voice message:', e);
+      toast.error("Erreur lors de l'envoi du message vocal");
+    } finally {
+      setIsVoiceSending(false);
     }
   };
 
@@ -709,9 +727,21 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
               color: isDark ? '#E9EDEF' : WA.textDark,
             }}
           >
-            <p className="text-[14.2px] leading-[19px] whitespace-pre-wrap break-words pr-12">
-              {message.content}
-            </p>
+            {message.attachment?.type === 'audio' ? (
+              <div className="py-1.5">
+                <VoiceMessagePlayer
+                  url={message.attachment.url}
+                  mimeType={message.attachment.mimeType}
+                  duration={message.attachment.duration}
+                  accentColor={isMyMessage ? (isDark ? '#BFDBFE' : '#1D4ED8') : (isDark ? '#93C5FD' : '#1E3A5F')}
+                  isDark={isDark}
+                />
+              </div>
+            ) : (
+              <p className="text-[14.2px] leading-[19px] whitespace-pre-wrap break-words pr-12">
+                {message.content}
+              </p>
+            )}
             <span className="absolute bottom-[3px] right-[5px] flex items-center gap-0.5 float-right ml-2 -mt-[14px]">
               <span className="text-[11px]" style={{ color: WA.timeSent }}>
                 {formatTime(message.createdAt)}
@@ -824,7 +854,9 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
                                 {lastMsg.senderId === adminId && (
                                   <span style={{ color: '#53BDEB' }}><CheckCheck className="inline h-3.5 w-3.5 mr-0.5 -mt-0.5" /></span>
                                 )}
-                                {lastMsg.content.substring(0, 50)}{lastMsg.content.length > 50 ? '…' : ''}
+                                {lastMsg.attachment?.type === 'audio'
+                                  ? `🎤 Message vocal ${lastMsg.attachment.duration ? `(${formatVoiceDuration(lastMsg.attachment.duration)})` : ''}`
+                                  : lastMsg.content.substring(0, 50)}{lastMsg.content.length > 50 && !lastMsg.attachment ? '…' : ''}
                               </>
                             ) : (
                               <span className="italic">Aucun message</span>
@@ -987,48 +1019,83 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
 
       {/* Input bar */}
       <div className="shrink-0 flex items-center gap-2 px-3 py-3 border-t w-full" style={{ backgroundColor: isDark ? '#111A27' : '#F8FAFC', borderColor: isDark ? '#1F2A38' : '#E5E7EB' }}>
-        <Button
-          type="button"
-          onClick={speechSupported ? handleVoiceInput : undefined}
-          disabled={!speechSupported || isSending}
-          className="rounded-full shrink-0"
-          style={{
-            width: '42px',
-            height: '42px',
-            backgroundColor: isListening ? '#ef4444' : '#E2E8F0',
-            color: isListening ? 'white' : '#475569',
-          }}
-          size="icon"
-          title={speechSupported ? (isListening ? 'Arrêter l’enregistrement' : 'Démarrer l’enregistrement') : 'Micro non supporté'}
-        >
-          <Mic className="h-4 w-4" />
-        </Button>
+        {voiceRec.recording ? (
+          <>
+            <Button
+              type="button"
+              onClick={handleMicClick}
+              disabled={isVoiceSending}
+              className="rounded-full shrink-0"
+              style={{ width: '46px', height: '46px', backgroundColor: '#ef4444', color: 'white' }}
+              size="icon"
+              title="Arrêter et envoyer le message vocal"
+            >
+              <StopCircle className="h-4 w-4" />
+            </Button>
 
-        <div className="flex-1 relative min-w-0">
-          <input
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyDown={handleKeyPress}
-            placeholder="Écrire une réponse..."
-            disabled={isSending}
-            className="w-full rounded-full px-4 py-3 text-[15px] outline-none border border-transparent focus:border-blue-300 focus:ring-2 focus:ring-blue-200"
-            style={{ backgroundColor: isDark ? WA.inputBgDark : WA.inputBg, color: isDark ? '#E9EDEF' : WA.textDark, minHeight: '46px' }}
-          />
-        </div>
-        <Button
-          onClick={handleSendMessage}
-          disabled={isSending || !newMessage.trim()}
-          className="rounded-full shrink-0"
-          style={{
-            width: '46px',
-            height: '46px',
-            backgroundColor: newMessage.trim() ? WA.headerTeal : 'transparent',
-            color: newMessage.trim() ? 'white' : '#64748B',
-          }}
-          size="icon"
-        >
-          <Send className="h-5 w-5" />
-        </Button>
+            <div
+              className="flex-1 flex items-center justify-center gap-2 rounded-full px-4 py-3 text-[14px] font-semibold"
+              style={{ backgroundColor: isDark ? WA.inputBgDark : WA.inputBg, color: '#ef4444' }}
+            >
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
+              </span>
+              {formatVoiceDuration(voiceRec.recordingTime)}
+            </div>
+
+            <Button
+              type="button"
+              onClick={() => voiceRec.cancel()}
+              className="rounded-full shrink-0"
+              style={{ width: '42px', height: '42px', backgroundColor: '#E2E8F0', color: '#475569' }}
+              size="icon"
+              title="Annuler l’enregistrement"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button
+              type="button"
+              onClick={handleMicClick}
+              disabled={isVoiceSending || isSending}
+              className="rounded-full shrink-0"
+              style={{ width: '42px', height: '42px', backgroundColor: '#E2E8F0', color: '#475569' }}
+              size="icon"
+              title="Envoyer un message vocal"
+            >
+              <Mic className="h-4 w-4" />
+            </Button>
+
+            <div className="flex-1 relative min-w-0">
+              <input
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyDown={handleKeyPress}
+                placeholder="Écrire une réponse..."
+                disabled={isSending}
+                className="w-full rounded-full px-4 py-3 text-[15px] outline-none border border-transparent focus:border-blue-300 focus:ring-2 focus:ring-blue-200"
+                style={{ backgroundColor: isDark ? WA.inputBgDark : WA.inputBg, color: isDark ? '#E9EDEF' : WA.textDark, minHeight: '46px' }}
+              />
+            </div>
+            <Button
+              onClick={handleSendMessage}
+              disabled={isSending || !newMessage.trim()}
+              className="rounded-full shrink-0"
+              style={{
+                width: '46px',
+                height: '46px',
+                backgroundColor: newMessage.trim() ? WA.headerTeal : 'transparent',
+                color: newMessage.trim() ? 'white' : '#64748B',
+              }}
+              size="icon"
+            >
+              <Send className="h-5 w-5" />
+            </Button>
+          </>
+        )}
       </div>
       </div>
     </ErrorBoundary>
