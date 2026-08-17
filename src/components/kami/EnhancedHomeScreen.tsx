@@ -19,7 +19,7 @@ export function EnhancedHomeScreen({ lots, setCurrentScreen, setIsMenuOpen }: En
   return (
     <div className="flex-1 flex flex-col bg-card">
       <header className="flex justify-between items-center p-4 bg-card sticky top-0 z-10 shadow-sm">
-        <h1 className="text-xl font-extrabold text-[#8B5E3C]">KAMI-EXTENSION</h1>
+        <h1 className="text-xl font-extrabold text-[#8B5E3C] whitespace-nowrap">KAMI-EXTENSION</h1>
         <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(true)}>
           <Menu className="h-6 w-6 text-foreground" />
         </Button>

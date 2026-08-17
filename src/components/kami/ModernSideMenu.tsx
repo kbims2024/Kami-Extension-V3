@@ -180,7 +180,7 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.3 }}
-                className="text-lg font-bold"
+                className="text-lg font-bold whitespace-nowrap"
               >
                 KAMI-EXTENSION
               </motion.h2>
