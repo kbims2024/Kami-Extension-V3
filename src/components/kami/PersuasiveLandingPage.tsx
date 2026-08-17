@@ -130,21 +130,21 @@ export function PersuasiveLandingPage({ onReserveClick, lots, setIsMenuOpen, set
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 dark:bg-background/90 backdrop-blur-md border-b border-border transition-all duration-300">
         <div className="container mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 md:gap-3 min-w-0">
               {logoUrl ? (
                 <img
                   src={logoUrl}
                   alt="KAMI-EXTENSION"
-                  className="h-10 w-auto object-contain rounded-xl"
+                  className="h-10 w-auto object-contain rounded-xl flex-shrink-0"
                 />
               ) : (
-                <div className="w-10 h-10 bg-gradient-to-br from-brand-blue to-blue-700 rounded-xl flex items-center justify-center shadow-lg shadow-brand-blue/30">
+                <div className="w-10 h-10 bg-gradient-to-br from-brand-blue to-blue-700 rounded-xl flex items-center justify-center shadow-lg shadow-brand-blue/30 flex-shrink-0">
                   <Building2 className="text-white h-5 w-5" />
                 </div>
               )}
-              <div>
-                <h1 className="text-lg font-bold text-foreground leading-tight">KAMI-EXTENSION</h1>
-                <p className="text-xs text-muted-foreground">Devenez propriétaire</p>
+              <div className="min-w-0">
+                <h1 className="text-base md:text-lg font-bold text-foreground leading-tight whitespace-nowrap overflow-hidden text-ellipsis">KAMI-EXTENSION</h1>
+                <p className="text-xs text-muted-foreground hidden sm:block">Devenez propriétaire</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
