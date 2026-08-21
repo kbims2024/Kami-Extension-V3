@@ -6,8 +6,14 @@ import { ensureAdmin } from '@/lib/admin';
 import { MAX_MESSAGE_LENGTH, stripLegacyUserHeader } from '@/lib/chat-utils';
 import { normalizeDiscussionConfig } from '@/lib/discussion-config';
 
+let cachedAdminId: string | null = null;
+
 async function getAdminId(): Promise<string> {
+  if (cachedAdminId) {
+    return cachedAdminId;
+  }
   const admin = await ensureAdmin();
+  cachedAdminId = admin.id; // Cache the ID
   return admin.id;
 }
 
@@ -227,7 +233,7 @@ export async function GET(request: NextRequest) {
       markReadWhere = { receiverId: userId, senderId: admin.id, read: false };
     }
 
-    // Accusé de lecture : marque comme lus les messages reçus par le demandeur (fil courant uniquement)
+
     if (markRead && markReadWhere) {
       await db.message.updateMany({
         where: markReadWhere,
