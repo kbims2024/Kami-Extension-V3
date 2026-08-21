@@ -38,6 +38,7 @@ export default function KamiExtensionPage() {
   } = useAppStore();
 
   useEffect(() => {
+    console.log('Page mounted');
     setMounted(true);
     loadLots();
   }, []);
@@ -54,51 +55,74 @@ export default function KamiExtensionPage() {
     }
   };
 
-  if (!mounted) return <div className="min-h-screen bg-background" />;
+  // Affichage de secours pendant le chargement initial
+  if (!mounted) {
+    return (
+      <div style={{
+        height: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#2563EB',
+        color: 'white',
+        fontFamily: 'sans-serif'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <h1 style={{ margin: 0 }}>KAMI-EXTENSION</h1>
+          <p>Initialisation de l&apos;application...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Rendu conditionnel des écrans
   const renderScreen = () => {
-    switch (currentScreen) {
-      case 'home':
-        return (
-          <PersuasiveLandingPage
-            lots={lots}
-            onReserveClick={() => setCurrentScreen(currentUser ? 'map' : 'auth-choice')}
-            setIsMenuOpen={setIsMenuOpen}
-            setCurrentScreen={setCurrentScreen}
-          />
-        );
-      case 'map':
-        return (
-          <EnhancedMapScreen
-            lots={lots}
-            handleOpenReservation={(lot) => { setSelectedLot(lot); setCurrentScreen('payment-method'); }}
-            setCurrentScreen={setCurrentScreen}
-            setIsMenuOpen={setIsMenuOpen}
-          />
-        );
-      case 'dashboard':
-        return <UserDashboard currentUser={currentUser} setCurrentScreen={setCurrentScreen} setIsMenuOpen={setIsMenuOpen} />;
-      case 'chat':
-        return <ChatPage setCurrentScreen={setCurrentScreen} setIsMenuOpen={setIsMenuOpen} />;
-      case 'espace-cgl':
-        return <EspaceCGL setCurrentScreen={setCurrentScreen} onBack={() => setCurrentScreen('home')} />;
-      case 'committee-chat':
-        return <CommitteeChatView setCurrentScreen={setCurrentScreen} onBack={() => setCurrentScreen('espace-cgl')} />;
-      case 'sav':
-        return <ServiceApresVenteScreen onBack={() => setCurrentScreen('home')} setIsMenuOpen={setIsMenuOpen} />;
-      case 'rules':
-        return <RegulationRulesScreen setCurrentScreen={setCurrentScreen} onHome={() => setCurrentScreen('home')} />;
-      case 'progress':
-        return <PublicProgressSection onBack={() => setCurrentScreen('home')} onHome={() => setCurrentScreen('home')} />;
-      case 'auth-choice':
-        return <AuthChoiceScreen onLoginClick={() => setCurrentScreen('login-screen')} onRegisterClick={() => setCurrentScreen('register')} onBack={() => setCurrentScreen('home')} setIsMenuOpen={setIsMenuOpen} />;
-      case 'login-screen':
-        return <LoginScreen onLogin={() => setCurrentScreen('home')} onBack={() => setCurrentScreen('auth-choice')} setIsMenuOpen={setIsMenuOpen} />;
-      case 'payment-method':
-        return selectedLot && currentUser ? <PaymentMethodScreen lot={selectedLot} user={currentUser} onBack={() => setCurrentScreen('map')} /> : <PersuasiveLandingPage lots={lots} onReserveClick={() => {}} setIsMenuOpen={setIsMenuOpen} setCurrentScreen={setCurrentScreen} />;
-      default:
-        return <PersuasiveLandingPage lots={lots} onReserveClick={() => {}} setIsMenuOpen={setIsMenuOpen} setCurrentScreen={setCurrentScreen} />;
+    try {
+      switch (currentScreen) {
+        case 'home':
+          return (
+            <PersuasiveLandingPage
+              lots={lots}
+              onReserveClick={() => setCurrentScreen(currentUser ? 'map' : 'auth-choice')}
+              setIsMenuOpen={setIsMenuOpen}
+              setCurrentScreen={setCurrentScreen}
+            />
+          );
+        case 'map':
+          return (
+            <EnhancedMapScreen
+              lots={lots}
+              handleOpenReservation={(lot) => { setSelectedLot(lot); setCurrentScreen('payment-method'); }}
+              setCurrentScreen={setCurrentScreen}
+              setIsMenuOpen={setIsMenuOpen}
+            />
+          );
+        case 'dashboard':
+          return <UserDashboard currentUser={currentUser} setCurrentScreen={setCurrentScreen} setIsMenuOpen={setIsMenuOpen} />;
+        case 'chat':
+          return <ChatPage setCurrentScreen={setCurrentScreen} setIsMenuOpen={setIsMenuOpen} />;
+        case 'espace-cgl':
+          return <EspaceCGL setCurrentScreen={setCurrentScreen} onBack={() => setCurrentScreen('home')} />;
+        case 'committee-chat':
+          return <CommitteeChatView setCurrentScreen={setCurrentScreen} onBack={() => setCurrentScreen('espace-cgl')} />;
+        case 'sav':
+          return <ServiceApresVenteScreen onBack={() => setCurrentScreen('home')} setIsMenuOpen={setIsMenuOpen} />;
+        case 'rules':
+          return <RegulationRulesScreen setCurrentScreen={setCurrentScreen} onHome={() => setCurrentScreen('home')} />;
+        case 'progress':
+          return <PublicProgressSection onBack={() => setCurrentScreen('home')} onHome={() => setCurrentScreen('home')} />;
+        case 'auth-choice':
+          return <AuthChoiceScreen onLoginClick={() => setCurrentScreen('login-screen')} onRegisterClick={() => setCurrentScreen('register')} onBack={() => setCurrentScreen('home')} setIsMenuOpen={setIsMenuOpen} />;
+        case 'login-screen':
+          return <LoginScreen onLogin={() => setCurrentScreen('home')} onBack={() => setCurrentScreen('auth-choice')} setIsMenuOpen={setIsMenuOpen} />;
+        case 'payment-method':
+          return selectedLot && currentUser ? <PaymentMethodScreen lot={selectedLot} user={currentUser} onBack={() => setCurrentScreen('map')} /> : <PersuasiveLandingPage lots={lots} onReserveClick={() => {}} setIsMenuOpen={setIsMenuOpen} setCurrentScreen={setCurrentScreen} />;
+        default:
+          return <PersuasiveLandingPage lots={lots} onReserveClick={() => {}} setIsMenuOpen={setIsMenuOpen} setCurrentScreen={setCurrentScreen} />;
+      }
+    } catch (err) {
+      console.error('Screen render error:', err);
+      return <div className="p-10 text-center">Une erreur est survenue lors de l&apos;affichage de cet écran.</div>;
     }
   };
 
