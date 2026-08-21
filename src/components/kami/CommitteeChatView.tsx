@@ -414,9 +414,9 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
       >
         <div
           className={`
-            relative max-w-[85%] md:max-w-[65%] rounded-lg px-2.5 py-1 shadow-sm
-            ${isMyMessage ? 'rounded-tr-none' : 'rounded-tl-none'}
-            ${isMyMessage && isConsecutive ? 'rounded-tr-md' : ''}
+            relative max-w-[85%] md:max-w-[65%] px-3 py-2 shadow-sm
+            ${isMyMessage ? 'rounded-3xl rounded-br-none' : 'rounded-3xl rounded-tl-none'}
+            ${isMyMessage && isConsecutive ? 'rounded-br-md' : ''}
             ${!isMyMessage && isConsecutive ? 'rounded-tl-md' : ''}
           `}
           style={{
@@ -426,28 +426,27 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
             color: isDark ? '#E9EDEF' : WA.textDark,
           }}
         >
-          <p className="text-[14.2px] leading-[19px] whitespace-pre-wrap break-words pr-12">
+          <p className="text-[14.2px] leading-[19px] whitespace-pre-wrap break-words pr-14">
             {message.content}
           </p>
-          <span className="absolute bottom-[3px] right-[5px] flex items-center gap-1 float-right ml-2 -mt-[14px]">
-            <span className="text-[10px]" style={{ color: WA.timeSent }}>
-              {formatTime(message.createdAt)}
-            </span>
+          <span className="absolute bottom-[5px] right-[8px] flex items-center gap-1 text-[11px]" style={{ color: WA.timeSent }}>
+            <span>{formatTime(message.createdAt)}</span>
             {isMyMessage && (
               message.read
-                ? <CheckCheck className="h-[14px] w-[16px]" style={{ color: WA.checkRead }} />
-                : <Check className="h-[14px] w-[16px]" style={{ color: WA.timeSent }} />
+                ? <CheckCheck className="h-[16px] w-[16px]" style={{ color: WA.checkRead }} />
+                : <Check className="h-[16px] w-[16px]" style={{ color: WA.timeSent }} />
             )}
             <button
               onClick={() => handleDeleteMessage(message.id)}
               className="ml-1 opacity-40 hover:opacity-100 hover:text-red-500 transition-opacity"
             >
-              <Trash2 className="h-[12px] w-[12px]" />
+              <Trash2 className="h-[13px] w-[13px]" />
             </button>
           </span>
         </div>
       </motion.div>
     );
+  };
   };
 
   // ════════════════════════════════════════════
