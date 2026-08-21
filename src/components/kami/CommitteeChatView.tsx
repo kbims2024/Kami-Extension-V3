@@ -231,11 +231,11 @@ function MessageBubble({
       initial={{ opacity: 0, y: 8, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.15 }}
-      className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} ${isConsecutive ? 'mt-[2px]' : 'mt-1'} group`}
+      className={`flex w-full ${isMyMessage ? 'justify-end' : 'justify-start'} ${isConsecutive ? 'mt-[2px]' : 'mt-1'} group`}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
-      <div className="flex max-w-full min-w-0 items-end gap-2">
+      <div className={`flex w-full min-w-0 items-end gap-2 ${isMyMessage ? 'justify-end' : 'justify-start'}`}>
         <div
           className={`relative min-w-0 max-w-[85%] md:max-w-[65%] px-3 py-2 shadow-sm ${isMyMessage ? 'rounded-3xl rounded-br-none' : 'rounded-3xl rounded-tl-none'}`}
           style={{
