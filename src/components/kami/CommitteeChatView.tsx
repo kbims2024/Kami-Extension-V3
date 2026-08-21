@@ -447,7 +447,6 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
       </motion.div>
     );
   };
-  };
 
   // ════════════════════════════════════════════
   //    CONTACT LIST VIEW
