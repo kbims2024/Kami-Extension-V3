@@ -235,9 +235,9 @@ function MessageBubble({
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
-      <div className="flex items-end gap-2">
+      <div className="flex w-full min-w-0 items-end gap-2">
         <div
-          className={`relative max-w-[85%] md:max-w-[65%] px-3 py-2 shadow-sm ${isMyMessage ? 'rounded-3xl rounded-br-none' : 'rounded-3xl rounded-tl-none'}`}
+          className={`relative min-w-0 max-w-[85%] md:max-w-[65%] px-3 py-2 shadow-sm ${isMyMessage ? 'rounded-3xl rounded-br-none' : 'rounded-3xl rounded-tl-none'}`}
           style={{
             backgroundColor: isMyMessage
               ? (isDark ? WA.outgoingDark : WA.outgoing)
