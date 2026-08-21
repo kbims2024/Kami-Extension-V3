@@ -45,10 +45,15 @@ export async function GET() {
       if (!otherId || adminKeys.includes(otherId)) continue;
 
       if (!userGroups[otherId]) {
-        // Fetch full user info for the initiative card
-        const fullUser = await db.user.findUnique({
-          where: { id: otherId },
-        });
+        // Fetch full user info + reservations for statistics
+        const [fullUser, reservations] = await Promise.all([
+          db.user.findUnique({ where: { id: otherId } }),
+          db.reservation.findMany({ where: { userId: otherId } })
+        ]);
+
+        const reservedCount = reservations.filter(r => r.status === 'RESERVED').length;
+        const paidCount = reservations.filter(r => r.status === 'PAID').length;
+
         userGroups[otherId] = {
           user: fullUser
             ? {
@@ -61,6 +66,8 @@ export async function GET() {
                 quartier: fullUser.quartier || null,
                 villageOrigine: fullUser.villageOrigine || null,
                 createdAt: fullUser.createdAt,
+                reservedCount,
+                paidCount,
               }
             : {
                 id: otherId,
@@ -72,6 +79,8 @@ export async function GET() {
                 quartier: null,
                 villageOrigine: null,
                 createdAt: msg.createdAt,
+                reservedCount: 0,
+                paidCount: 0,
               },
           messages: [],
         };
