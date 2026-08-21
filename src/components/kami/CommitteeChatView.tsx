@@ -61,6 +61,8 @@ interface UserInfo {
   quartier: string | null;
   villageOrigine: string | null;
   createdAt: string;
+  reservedCount?: number;
+  paidCount?: number;
 }
 
 interface Message {
@@ -188,6 +190,18 @@ function InitiativeCard({ user, isDark }: { user: UserInfo; isDark: boolean }) {
           <span className="text-[11px]" style={{ color: WA.timeSent }}>
             Inscrit le {new Date(user.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}
           </span>
+        </div>
+
+        {/* Lot counts */}
+        <div className="pt-1.5 flex gap-2">
+          <div className="bg-orange-100 dark:bg-orange-900/30 px-2 py-1 rounded-lg border border-orange-200 dark:border-orange-800 flex-1">
+            <p className="text-[9px] text-orange-600 dark:text-orange-400 font-bold uppercase">Réservés</p>
+            <p className="text-sm font-bold text-orange-700 dark:text-orange-300">{user.reservedCount || 0}</p>
+          </div>
+          <div className="bg-emerald-100 dark:bg-emerald-900/30 px-2 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800 flex-1">
+            <p className="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold uppercase">Achetés</p>
+            <p className="text-sm font-bold text-emerald-700 dark:text-emerald-300">{user.paidCount || 0}</p>
+          </div>
         </div>
       </div>
     </div>
