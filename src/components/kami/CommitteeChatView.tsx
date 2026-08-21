@@ -758,7 +758,7 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
       confirmLabel: 'Supprimer',
       onConfirm: async () => {
         try {
-          const res = await fetch(`/api/messages/${messageId}`, {
+          const res = await fetch(`/api/messages?messageId=${encodeURIComponent(messageId)}`, {
             method: 'DELETE',
           });
           if (res.ok) {
