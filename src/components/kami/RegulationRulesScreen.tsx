@@ -367,7 +367,7 @@ const rulesData: RulesSection[] = [
       {
         title: 'Données personnelles et vie privée',
         rules: [
-          'Les données personnelles des résidents collectées par la plateforme KAMI-EXTENSION sont traitées conformément à la loi n°2010/012 relative à la protection des données personnelles en Côte d\'Ivoire.',
+          'Les données personnelles des résidents collectées par la plateforme KAMI-EXTENSION sont traitées conformément à la loi relative à la protection des données personnelles en Côte d\'Ivoire.',
           'Il est interdit de collecter, stocker ou utiliser les données personnelles d\'un autre résident sans son consentement express.',
           'Les caméras de surveillance individuelles ne doivent pas filmer les espaces communs ni les lots voisins. Leur orientation doit être strictement limitée au périmètre privé du propriétaire.',
           'Toute utilisation abusive de données personnelles (harcèlement numérique, divulgation d\'informations privées) sera sanctionnée conformément au présent règlement et aux lois en vigueur.',
