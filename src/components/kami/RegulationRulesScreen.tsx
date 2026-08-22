@@ -276,7 +276,7 @@ const rulesData: RulesSection[] = [
       {
         title: 'Éclairage public',
         rules: [
-          'L\'éclairage public du village est assuré par des lampadaires solaires et de connexion au réseau ENEO. Le Comité de gestion est responsable de leur entretien.',
+          'L\'éclairage public du village est assuré par des lampadaires solaires et de connexion au réseau CIE. Le Comité de gestion est responsable de leur entretien.',
           'Il est interdit de débrancher, endommager ou modifier les installations d\'éclairage public sous quelque prétexte que ce soit.',
           'Les propriétaires dont les lots sont situés à proximité des lampadaires doivent veiller à ne pas obstruer leur rayonnement lumineux par des plantations ou constructions.',
           'Le Comité de gestion pourra installer un éclairage complémentaire dans les zones identifiées comme insuffisamment éclairées, sur proposition des résidents.',
@@ -347,11 +347,11 @@ const rulesData: RulesSection[] = [
       {
         title: 'Réseau internet et téléphonie',
         rules: [
-          'Le village KAMI-EXTENSION encourage le déploiement de l\'accès à internet haut débit. Les propriétaires peuvent souscrire aux offres des opérateurs télécoms locaux (MTN, Orange, Camtel, Nexttel).',
+          'Le village KAMI-EXTENSION encourage le déploiement de l\'accès à internet haut débit. Les propriétaires peuvent souscrire aux offres des opérateurs télécoms locaux (MTN, Orange, Moov).',
           'L\'installation de connexions internet par fibre optique, câble ou satellite est libre, sous réserve du respect des règles d\'esthétique et de non-nuisance.',
           'Les propriétaires sont encouragés à participer au financement d\'un réseau internet communautaire (Wi-Fi partagé) si une telle initiative est proposée par le Comité de gestion.',
           'Les coupures de ligne téléphonique ou d\'internet affectant les réseaux collectifs doivent être signalées au Comité de gestion, qui coordonnera les interventions avec les opérateurs.',
-          'L\'utilisation de technologies numériques doit respecter la législation camerounaise en vigueur relative aux télécommunications et aux communications électroniques.',
+          'L\'utilisation de technologies numériques doit respecter la législation ivoirienne en vigueur relative aux télécommunications et aux communications électroniques.',
         ],
       },
       {
@@ -367,7 +367,7 @@ const rulesData: RulesSection[] = [
       {
         title: 'Données personnelles et vie privée',
         rules: [
-          'Les données personnelles des résidents collectées par la plateforme KAMI-EXTENSION sont traitées conformément à la loi n°2010/012 relative à la protection des données personnelles au Cameroun.',
+          'Les données personnelles des résidents collectées par la plateforme KAMI-EXTENSION sont traitées conformément à la loi n°2010/012 relative à la protection des données personnelles en Côte d\'Ivoire.',
           'Il est interdit de collecter, stocker ou utiliser les données personnelles d\'un autre résident sans son consentement express.',
           'Les caméras de surveillance individuelles ne doivent pas filmer les espaces communs ni les lots voisins. Leur orientation doit être strictement limitée au périmètre privé du propriétaire.',
           'Toute utilisation abusive de données personnelles (harcèlement numérique, divulgation d\'informations privées) sera sanctionnée conformément au présent règlement et aux lois en vigueur.',
