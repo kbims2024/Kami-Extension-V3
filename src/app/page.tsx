@@ -2474,7 +2474,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
                           >
                             Refuser
                           </Button>
-                        </div>
+                        </div>}
                       </CardContent>
                     </Card>
                   );
