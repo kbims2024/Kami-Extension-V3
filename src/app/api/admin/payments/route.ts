@@ -22,11 +22,11 @@ export async function GET() {
   }
 }
 
-// PUT /api/admin/payments - Valider ou mettre à jour un paiement
+// PUT /api/admin/payments - Valider ou refuser un paiement
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { paymentId } = body;
+    const { paymentId, action = 'validate' } = body;
 
     if (!paymentId) {
       return NextResponse.json({ error: 'ID paiement requis' }, { status: 400 });
@@ -39,6 +39,9 @@ export async function PUT(request: NextRequest) {
     if (!payment) {
       return NextResponse.json({ error: 'Paiement non trouvé' }, { status: 404 });
     }
+    if (action !== 'validate' && action !== 'reject') {
+      return NextResponse.json({ error: 'Action de paiement invalide' }, { status: 400 });
+    }
     if (payment.status !== 'PENDING') {
       return NextResponse.json({ error: 'Ce paiement a déjà été traité' }, { status: 400 });
     }
@@ -49,6 +52,30 @@ export async function PUT(request: NextRequest) {
     });
     if (!reservation) {
       return NextResponse.json({ error: 'Réservation liée non trouvée' }, { status: 404 });
+    }
+
+    if (action === 'reject') {
+      await db.payment.update({
+        where: { id: payment.id },
+        data: { status: 'REJECTED' },
+      });
+
+      try {
+        await db.notification.create({
+          data: {
+            userId: reservation.userId,
+            title: '❌ Paiement refusé par le CGL',
+            message: `Votre paiement de ${payment.amount.toLocaleString('fr-FR')} F pour le lot ${reservation.lotId} a été refusé. Veuillez vérifier les informations transmises et soumettre un nouveau paiement.`,
+            type: 'PAYMENT_REJECTED',
+            read: false,
+            data: JSON.stringify({ reservationId: reservation.id, paymentId: payment.id, amount: payment.amount, lotId: reservation.lotId }),
+          },
+        });
+      } catch (notificationError) {
+        console.warn('Notification de refus non envoyée:', notificationError);
+      }
+
+      return NextResponse.json({ success: true, status: 'REJECTED' });
     }
 
     const newPaidAmount = reservation.paidAmount + payment.amount;

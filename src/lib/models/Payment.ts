@@ -16,7 +16,7 @@ const PaymentSchema = new Schema<IPaymentDocument>(
     userId: { type: String, required: true, index: true },
     lotId: { type: String, required: true, index: true },
     amount: { type: Number, required: true },
-    status: { type: String, default: 'PENDING', enum: ['PENDING', 'VALIDATED'] },
+    status: { type: String, default: 'PENDING', enum: ['PENDING', 'VALIDATED', 'REJECTED'] },
     type: { type: String, required: true, enum: ['FULL', 'PARTIAL'] },
   },
   { timestamps: true }

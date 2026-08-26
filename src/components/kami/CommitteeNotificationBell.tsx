@@ -154,7 +154,7 @@ function formatTimeAgo(dateStr: string): string {
 // Component
 // ---------------------------------------------------------------------------
 
-export function CommitteeNotificationBell({ userId, onNavigate }: CommitteeNotificationBellProps) {
+export function CommitteeNotificationBell({ userId, onNavigate, onTargetNavigate }: CommitteeNotificationBellProps) {
   const [notifications, setNotifications] = useState<CommitteeNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);

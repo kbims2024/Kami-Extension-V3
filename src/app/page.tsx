@@ -1861,7 +1861,7 @@ function SavSettingsAdmin({ onBack }: { onBack?: () => void }) {
 // En mode CGL, seuls les boutons dont la vue est activée dans les permissions
 // « Espace CGL » (voir /api/cgl-permissions) sont affichés.
 const ADMIN_FEATURE_BUTTONS = [
-  { view: 'dashboard', label: 'Tableau de Bord Global', icon: ChartLine, className: 'text-[#10B981]' },
+  { view: 'dashboard', label: 'Statistiques Générales', icon: ChartLine, className: 'text-[#10B981]' },
   { view: 'payments', label: 'Valider Paiements', icon: CheckCircle, className: 'text-blue-500 dark:text-blue-400' },
   { view: 'add-lots', label: 'Ajouter Lots', icon: PlusCircle, className: 'text-[#8B5E3C] dark:text-[#A5785C]' },
   { view: 'logo', label: 'Éditer le Logo', icon: FileText, className: 'text-orange-500 dark:text-orange-400' },
@@ -1889,6 +1889,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
   const [localAdminView, setLocalAdminView] = useState<string | null>(null);
   const [cglEnabled, setCglEnabled] = useState<string[] | null>(null);
   const [unreadChatCount, setUnreadChatCount] = useState(0);
+  const [notificationCounts, setNotificationCounts] = useState<Record<string, number>>({});
 
   const activeView = isCglMode ? localAdminView : adminView;
   const setActiveView = (view: string | null) => {
@@ -1903,7 +1904,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
   // Payments state
   const [payments, setPayments] = useState<any[]>([]);
   const [paymentsLoading, setPaymentsLoading] = useState(false);
-  const [paymentFilter, setPaymentFilter] = useState<'all' | 'pending' | 'validated'>('pending');
+  const [paymentFilter, setPaymentFilter] = useState<'all' | 'pending' | 'validated' | 'rejected'>('pending');
 
   // New lot state
   const [newLot, setNewLot] = useState({ name: '', surface: '', block: '', priceRes: '', priceNon: '' });
@@ -1982,26 +1983,27 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
   };
 
   // Handle validate payment (accept payment)
-  const handleValidatePayment = async (paymentId: string) => {
+  const handlePaymentDecision = async (paymentId: string, action: 'validate' | 'reject') => {
     try {
       const response = await fetch('/api/admin/payments', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           paymentId,
+          action,
         }),
       });
 
       if (response.ok) {
-        toast.success('Paiement validé avec succès !');
+        toast.success(action === 'validate' ? 'Paiement validé avec succès !' : 'Paiement refusé.');
         loadPayments();
         loadStats();
         loadLots();
       } else {
-        toast.error('Erreur lors de la validation');
+        toast.error(action === 'validate' ? 'Erreur lors de la validation' : 'Erreur lors du refus');
       }
     } catch (error) {
-      toast.error('Erreur lors de la validation');
+      toast.error(action === 'validate' ? 'Erreur lors de la validation' : 'Erreur lors du refus');
     }
   };
 
@@ -2070,10 +2072,31 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
     }
   };
 
+  const loadNotificationCounts = async () => {
+    if (!currentUser?.id) return;
+    try {
+      const res = await fetch(
+        `/api/committee-notifications?userId=${encodeURIComponent(currentUser.id)}&unreadOnly=true`,
+        { cache: 'no-store' }
+      );
+      if (!res.ok) return;
+      const data = await res.json();
+      const counts: Record<string, number> = {};
+      for (const notification of data.notifications ?? []) {
+        const screen = notification.data?.screen;
+        if (screen) counts[screen] = (counts[screen] || 0) + 1;
+      }
+      setNotificationCounts(counts);
+    } catch (e) {
+      console.error('Error loading notification counts:', e);
+    }
+  };
+
   useEffect(() => {
     if (!isCglMode) return;
     loadCglPermissions();
     loadUnreadChatCount();
+    loadNotificationCounts();
 
     const handlePermissionsChanged = (event: Event) => {
       const detail = (event as CustomEvent).detail as Record<string, boolean> | undefined;
@@ -2090,10 +2113,12 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
     // Rafraîchir les permissions pour détecter les changements de l'admin
     const permInterval = setInterval(loadCglPermissions, 5000);
     const chatInterval = setInterval(loadUnreadChatCount, 15000);
+    const notificationInterval = setInterval(loadNotificationCounts, 15000);
 
     return () => {
       clearInterval(permInterval);
       clearInterval(chatInterval);
+      clearInterval(notificationInterval);
       if (typeof window !== 'undefined') {
         window.removeEventListener('cgl-permissions-changed', handlePermissionsChanged);
       }
@@ -2155,9 +2180,9 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
             className="bg-gradient-to-br from-blue-600 to-indigo-700 p-3 rounded-xl shadow-md cursor-pointer hover:shadow-lg transition-all active:scale-[0.97] h-[100px] border-0 relative overflow-hidden"
             onClick={() => setCurrentScreen('committee-chat')}
           >
-            {unreadChatCount > 0 && (
+            {(notificationCounts['committee-chat'] || unreadChatCount) > 0 && (
               <div className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm animate-bounce">
-                {unreadChatCount} discussion{unreadChatCount > 1 ? 's' : ''}
+                {notificationCounts['committee-chat'] || unreadChatCount} notification{(notificationCounts['committee-chat'] || unreadChatCount) > 1 ? 's' : ''}
               </div>
             )}
             <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
@@ -2172,10 +2197,11 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
         <div className="grid grid-cols-2 gap-4">
           {visibleButtons.map((button) => {
             const Icon = button.icon;
+            const notificationCount = notificationCounts[button.view] || 0;
             return (
               <Card
                 key={button.view}
-                className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px]"
+                className="bg-card p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition h-[100px] relative overflow-hidden"
                 onClick={() => {
                   if (button.view === 'discussion-chat') {
                     setCurrentScreen('committee-chat');
@@ -2185,6 +2211,11 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
                 }}
               >
                 <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
+                  {notificationCount > 0 && (
+                    <div className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm animate-bounce">
+                      {notificationCount}
+                    </div>
+                  )}
                   <Icon className={`${button.className} h-8 w-8 mb-2`} />
                   <p className="text-sm font-bold">{button.label}</p>
                 </CardContent>
@@ -2338,6 +2369,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
                   { key: 'all', label: 'Tout' },
                   { key: 'pending', label: 'À valider' },
                   { key: 'validated', label: 'Validés' },
+                  { key: 'rejected', label: 'Refusés' },
                 ].map((filter) => (
                   <Button
                     key={filter.key}
@@ -2345,7 +2377,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
                     size="sm"
                     variant={paymentFilter === filter.key ? 'default' : 'outline'}
                     className={paymentFilter === filter.key ? 'bg-[#10B981] hover:bg-[#059669] text-white' : ''}
-                    onClick={() => setPaymentFilter(filter.key as 'all' | 'pending' | 'validated')}
+                    onClick={() => setPaymentFilter(filter.key as 'all' | 'pending' | 'validated' | 'rejected')}
                   >
                     {filter.label}
                   </Button>
@@ -2357,6 +2389,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
                   const paymentStatus = payment.status || 'PENDING';
                   if (paymentFilter === 'pending') return paymentStatus === 'PENDING';
                   if (paymentFilter === 'validated') return paymentStatus === 'VALIDATED';
+                  if (paymentFilter === 'rejected') return paymentStatus === 'REJECTED';
                   return true;
                 });
 
@@ -2370,7 +2403,9 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
                             ? 'Aucun paiement soumis.'
                             : paymentFilter === 'pending'
                             ? 'Aucun paiement à valider.'
-                            : 'Aucun paiement validé.'}
+                            : paymentFilter === 'validated'
+                            ? 'Aucun paiement validé.'
+                            : 'Aucun paiement refusé.'}
                         </p>
                       </CardContent>
                     </Card>
@@ -2381,6 +2416,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
                   const progress = (((payment.paidAmount || 0) + (payment.status === 'PENDING' ? 0 : payment.amount || 0)) / (payment.totalPrice || 1)) * 100;
                   const remaining = (payment.totalPrice || 0) - (payment.paidAmount || 0);
                   const isValidated = payment.status === 'VALIDATED';
+                  const isRejected = payment.status === 'REJECTED';
 
                   return (
                     <Card key={payment.id || `pay-${payment.lotId}`} className="bg-card rounded-xl shadow-sm border border-border">
@@ -2390,12 +2426,12 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
                             <h3 className="font-bold text-foreground">Lot {payment.lot?.name || payment.lotName}</h3>
                             <p className="text-xs text-muted-foreground">{payment.userName || payment.user?.name || 'Utilisateur inconnu'}</p>
                           </div>
-                          <Badge className={isValidated ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 animate-pulse'}>
-                            {isValidated ? 'Validé' : 'À valider'}
+                          <Badge className={isValidated ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : isRejected ? 'bg-slate-100 text-slate-600 dark:bg-slate-900/30 dark:text-slate-400' : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 animate-pulse'}>
+                            {isValidated ? 'Validé' : isRejected ? 'Refusé' : 'À valider'}
                           </Badge>
                         </div>
 
-                        {!isValidated && (
+                        {!isValidated && !isRejected && (
                           <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-300">
                             Nouveau paiement soumis par l&apos;utilisateur
                           </div>
@@ -2410,7 +2446,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
                             <span className="text-muted-foreground">Total</span>
                             <span className="font-bold text-foreground">{(payment.totalPrice || 0).toLocaleString('fr-FR')} F</span>
                           </div>
-                          {!isValidated && (
+                          {!isValidated && !isRejected && (
                             <div className="flex justify-between text-sm mb-2">
                               <span className="text-muted-foreground">Reste</span>
                               <span className="font-bold text-red-500 dark:text-red-400">{remaining.toLocaleString('fr-FR')} F</span>
@@ -2421,15 +2457,22 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
                           </div>
                         </div>
 
-                        <div className="flex gap-2 mt-3">
+                        {!isValidated && !isRejected && <div className="flex gap-2 mt-3">
                           <Button
                             size="sm"
                             className="flex-1 bg-[#10B981] hover:bg-[#059669] text-white"
-                            onClick={() => handleValidatePayment(payment.id)}
-                            disabled={isValidated}
+                            onClick={() => handlePaymentDecision(payment.id, 'validate')}
                           >
                             <CheckCircle className="mr-1 h-4 w-4" />
                             Valider
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="flex-1"
+                            onClick={() => handlePaymentDecision(payment.id, 'reject')}
+                          >
+                            Refuser
                           </Button>
                         </div>
                       </CardContent>
