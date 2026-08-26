@@ -59,7 +59,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Lot not found' }, { status: 404 });
     }
 
-    if (lot.status !== 'AVAILABLE') {
+    const existingReservation = await db.reservation.findFirst({
+      where: { userId, lotId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (lot.status !== 'AVAILABLE' && !existingReservation) {
       return NextResponse.json({ error: 'Lot is not available' }, { status: 400 });
     }
 
@@ -69,57 +74,38 @@ export async function POST(request: NextRequest) {
         userId,
         lotId,
         amount,
-        status: 'VALIDATED',
+        status: 'PENDING',
         type: amount === totalPrice ? 'FULL' : 'PARTIAL',
       },
     });
 
-    // Mettre à jour le statut du lot
-    const newStatus = amount === totalPrice ? 'PAID' : 'RESERVED';
-    await db.lot.update({
-      where: { id: lotId },
-      data: { status: newStatus },
-    });
+    const reservation = existingReservation
+      ? existingReservation
+      : await db.reservation.create({
+          data: {
+            userId,
+            lotId,
+            paidAmount: 0,
+            totalPrice,
+            isResident,
+            status: 'RESERVED',
+          },
+        });
 
-    // Créer la réservation
-    const reservation = await db.reservation.create({
-      data: {
-        userId,
-        lotId,
-        paidAmount: amount,
-        totalPrice,
-        isResident,
-        status: newStatus,
-      },
-    });
-
-    // Mark congratulated lot so the user only sees the notification once
-    if (newStatus === 'PAID') {
-      try {
-        const user = await db.user.findUnique({ where: { id: userId } });
-        if (user) {
-          const congratulatedLots = user.congratulatedLots ? JSON.parse(user.congratulatedLots) : [];
-          if (!congratulatedLots.includes(lotId)) {
-            congratulatedLots.push(lotId);
-            await db.user.update({
-              where: { id: userId },
-              data: { congratulatedLots: JSON.stringify(congratulatedLots) },
-            });
-          }
-        }
-      } catch (markErr) {
-        console.warn('Could not mark congratulated lot:', markErr);
-      }
+    if (!existingReservation) {
+      await db.lot.update({
+        where: { id: lotId },
+        data: { status: 'RESERVED' },
+      });
     }
 
+    // Mark congratulated lot so the user only sees the notification once
     // Notify all management committee members and admins about the new reservation
     try {
       const user = await db.user.findUnique({ where: { id: userId } });
-      const notificationType = newStatus === 'PAID' ? 'ACHAT' : 'RESERVATION';
-      const notifTitle = newStatus === 'PAID' ? '🛒 Nouvel achat de lot' : '📌 Nouvelle réservation de lot';
-      const notifMessage = newStatus === 'PAID'
-        ? `${user?.name || 'Un souscripteur'} a acheté le lot ${lot.name} (${lot.block || ''}) pour ${amount.toLocaleString('fr-FR')} F`
-        : `${user?.name || 'Un souscripteur'} a réservé le lot ${lot.name} (${lot.block || ''}) — Versement initial: ${amount.toLocaleString('fr-FR')} F / ${totalPrice.toLocaleString('fr-FR')} F`;
+      const notificationType = 'PAYMENT';
+      const notifTitle = '💰 Paiement à valider';
+      const notifMessage = `${user?.name || 'Un souscripteur'} a déclaré un paiement de ${amount.toLocaleString('fr-FR')} F pour le lot ${lot.name} (${lot.block || ''}).`;
 
       await notifyManagement({
         title: notifTitle,
@@ -135,7 +121,7 @@ export async function POST(request: NextRequest) {
           lotBlock: lot.block || '',
           amount,
           totalPrice,
-          status: newStatus,
+          status: 'PENDING',
           isResident,
           screen: 'payments',
         },

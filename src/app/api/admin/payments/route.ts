@@ -26,7 +26,7 @@ export async function GET() {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { reservationId, amount, status } = body;
+    const { reservationId, amount } = body;
 
     if (!reservationId) {
       return NextResponse.json({ error: 'ID réservation requis' }, { status: 400 });
@@ -43,15 +43,8 @@ export async function PUT(request: NextRequest) {
     // Calculer le nouveau montant payé
     const newPaidAmount = amount !== undefined ? amount : reservation.paidAmount;
 
-    // Déterminer le nouveau statut
-    let newStatus = status;
-    if (!newStatus) {
-      if (newPaidAmount >= reservation.totalPrice) {
-        newStatus = 'PAID';
-      } else if (newPaidAmount > 0) {
-        newStatus = 'RESERVED';
-      }
-    }
+    // Le statut de réservation reste distinct du statut du paiement.
+    const newStatus = newPaidAmount >= reservation.totalPrice ? 'PAID' : 'RESERVED';
 
     // Mettre à jour la réservation
     const updatedReservation = await db.reservation.update({
@@ -61,6 +54,32 @@ export async function PUT(request: NextRequest) {
         status: newStatus,
       },
     });
+
+    const pendingPayments = await db.payment.findMany({
+      where: { userId: reservation.userId, lotId: reservation.lotId, status: 'PENDING' },
+      orderBy: { createdAt: 'asc' },
+    });
+    for (const payment of pendingPayments) {
+      await db.payment.update({
+        where: { id: payment.id },
+        data: { status: 'VALIDATED' },
+      });
+    }
+
+    try {
+      await db.notification.create({
+        data: {
+          userId: reservation.userId,
+          title: '✅ Paiement validé par le CGL',
+          message: `Votre paiement de ${newPaidAmount.toLocaleString('fr-FR')} F pour le lot ${reservation.lotId} a été validé par le CGL.`,
+          type: 'PAYMENT_VALIDATED',
+          read: false,
+          data: JSON.stringify({ reservationId, amount: newPaidAmount, lotId: reservation.lotId }),
+        },
+      });
+    } catch (notificationError) {
+      console.warn('Notification utilisateur non envoyée:', notificationError);
+    }
 
     // Si le statut devient PAID, mettre à jour le lot
     if (newStatus === 'PAID') {

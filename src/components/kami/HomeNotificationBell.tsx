@@ -41,13 +41,13 @@ export function HomeNotificationBell({ currentUser, onNavigate }: HomeNotificati
           Array.isArray(data) ? data.filter((c) => c.unreadCount > 0).length : 0
         );
       } else {
-        const res = await fetch(
-          `/api/messages/unread?userId=${encodeURIComponent(currentUser.id)}`,
-          { cache: 'no-store' }
-        );
-        if (!res.ok) return;
-        const data = await res.json();
-        setUnreadCount(Number(data?.unreadCount) || 0);
+        const [messagesRes, notificationsRes] = await Promise.all([
+          fetch(`/api/messages/unread?userId=${encodeURIComponent(currentUser.id)}`, { cache: 'no-store' }),
+          fetch(`/api/user/notifications?userId=${encodeURIComponent(currentUser.id)}`, { cache: 'no-store' }),
+        ]);
+        const messages = messagesRes.ok ? await messagesRes.json() : {};
+        const notifications = notificationsRes.ok ? await notificationsRes.json() : {};
+        setUnreadCount((Number(messages?.unreadCount) || 0) + (Number(notifications?.unreadCount) || 0));
       }
     } catch (e) {
       console.error('[HomeNotificationBell] Error loading unread count:', e);

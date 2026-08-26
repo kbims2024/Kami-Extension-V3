@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
     // Format payments for frontend
     const formattedPayments = payments.map(payment => ({
       id: payment.id,
+      lotId: payment.lotId,
       lotName: payment.lot.name,
       amount: payment.amount,
       status: payment.status,

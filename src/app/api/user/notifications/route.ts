@@ -18,6 +18,12 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    const paymentNotification = await db.notification.findFirst({
+      where: { userId, type: 'PAYMENT_VALIDATED', read: false },
+      orderBy: { createdAt: 'desc' },
+    });
+    const unreadCount = await db.notification.count({ where: { userId, read: false } });
+
     // Check if user has any fully paid lots
     for (const reservation of reservations) {
       if (reservation.paidAmount >= reservation.totalPrice && reservation.status === 'PAID') {
@@ -41,13 +47,15 @@ export async function GET(request: NextRequest) {
               lotName: reservation.lot.name,
               lotBlock: reservation.lot.block,
               lotId: reservation.lotId,
+              paymentValidated: paymentNotification,
+              unreadCount,
             });
           }
         }
       }
     }
 
-    return NextResponse.json({ shouldShow: false });
+    return NextResponse.json({ shouldShow: false, paymentValidated: paymentNotification, unreadCount });
   } catch (error) {
     console.error('Error checking notifications:', error);
     return NextResponse.json({ error: 'Erreur lors de la vérification' }, { status: 500 });

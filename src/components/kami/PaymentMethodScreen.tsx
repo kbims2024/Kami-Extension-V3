@@ -112,6 +112,7 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
   const [paymentAmount, setPaymentAmount] = useState('');
   const [agreeRules, setAgreeRules] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
+  const [paymentSent, setPaymentSent] = useState(false);
   const [loading, setLoading] = useState(true);
   const [existingPaid, setExistingPaid] = useState(0);
   const [showDevMessage, setShowDevMessage] = useState(false);
@@ -227,6 +228,36 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
     }
 
     setIsValidating(false);
+    setPaymentSent(true);
+    toast.success('Après l’envoi, confirmez ci-dessous pour soumettre le paiement au CGL.');
+  };
+
+  const handleSubmitToCgl = async () => {
+    const amount = parseInt(paymentAmount);
+    if (!paymentSent || !selectedMethod || !amount) return;
+
+    setIsValidating(true);
+    try {
+      const response = await fetch('/api/reservations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          lotId: lot.id,
+          amount,
+          totalPrice,
+          isResident: user.isResident,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Erreur lors de la soumission');
+      toast.success('Paiement soumis au CGL pour validation.');
+      onPaymentComplete?.();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Erreur lors de la soumission');
+    } finally {
+      setIsValidating(false);
+    }
   };
 
   const formatPrice = (n: number) => n.toLocaleString('fr-FR');
@@ -436,7 +467,7 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
               </CardContent>
             </Card>
 
-            {/* Bouton valider */}
+            {/* Soumission au CGL uniquement après confirmation du paiement */}
             <Button
               className="w-full font-bold py-5 rounded-xl text-base shadow-lg transition-all disabled:opacity-50"
               style={{
@@ -444,7 +475,7 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
                 color: method.id === 'mtn_money' ? '#000' : '#fff',
               }}
               disabled={!agreeRules || !paymentAmount || parseInt(paymentAmount) < 10000 || isValidating}
-              onClick={handleValidate}
+              onClick={paymentSent ? handleSubmitToCgl : handleValidate}
             >
               {isValidating ? (
                 <>
@@ -454,7 +485,7 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
               ) : (
                 <>
                   <Shield className="h-5 w-5 mr-2" />
-                  Valider le paiement via {method.name}
+                  {paymentSent ? 'Soumettre le paiement au CGL' : `J’ai effectué le paiement via ${method.name}`}
                 </>
               )}
             </Button>

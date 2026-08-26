@@ -134,6 +134,9 @@ export default function KamiExtensionPage() {
             lotBlock: data.lotBlock,
           });
         }
+        if (data.paymentValidated) {
+          toast.success(data.paymentValidated.message || 'Votre paiement a été validé par le CGL.');
+        }
       }
     } catch (error) {
       console.error('Error checking notifications:', error);
@@ -305,7 +308,7 @@ export default function KamiExtensionPage() {
       if (response.ok) {
         const reservation = await response.json();
         addReservation(reservation);
-        toast.success('Paiement validé avec succès !');
+        toast.success('Paiement soumis au CGL pour validation.');
         setIsReservationModalOpen(false);
         loadLots();
       } else {
@@ -324,7 +327,7 @@ export default function KamiExtensionPage() {
         status: amount === totalPrice ? ('PAID' as const) : ('RESERVED' as const),
       };
       addReservation(newReservation);
-      toast.success('Paiement validé avec succès !');
+      toast.success('Paiement soumis au CGL pour validation.');
       setIsReservationModalOpen(false);
     }
   };
@@ -413,7 +416,7 @@ export default function KamiExtensionPage() {
         if (isCommittee) {
           setCurrentScreen('espace-cgl');
         } else if (currentUser) {
-          setCurrentScreen('chat');
+          setCurrentScreen('dashboard');
         } else {
           setCurrentScreen('auth-choice');
         }
