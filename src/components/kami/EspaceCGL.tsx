@@ -86,10 +86,10 @@ export function EspaceCGL({ setCurrentScreen, goToAdminScreen, onBack }: EspaceC
   const loadNotifications = async () => {
     try {
       // Charger les paiements non validés
-      const paymentsRes = await fetch('/api/reservations?status=pending');
+      const paymentsRes = await fetch('/api/admin/payments-list?status=PENDING', { cache: 'no-store' });
       if (paymentsRes.ok) {
         const payments = await paymentsRes.json();
-        setPendingPaymentsCount(Array.isArray(payments) ? payments.length : 0);
+        setPendingPaymentsCount(Array.isArray(payments) ? payments.filter((payment: any) => payment.status === 'PENDING').length : 0);
       }
 
       // Charger les candidatures d'experts

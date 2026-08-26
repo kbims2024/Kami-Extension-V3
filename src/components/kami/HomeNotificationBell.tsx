@@ -1,9 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 interface HomeNotificationBellProps {
   currentUser: { id: string; role: string | null } | null;
@@ -23,6 +24,7 @@ interface CommitteeConversationSummary {
  */
 export function HomeNotificationBell({ currentUser, onNavigate }: HomeNotificationBellProps) {
   const [unreadCount, setUnreadCount] = useState(0);
+  const lastPaymentNotificationId = useRef<string | null>(null);
 
   const isCgl =
     currentUser?.role === 'ADMIN' || currentUser?.role === 'MANAGEMENT_COMMITTEE';
@@ -47,6 +49,10 @@ export function HomeNotificationBell({ currentUser, onNavigate }: HomeNotificati
         ]);
         const messages = messagesRes.ok ? await messagesRes.json() : {};
         const notifications = notificationsRes.ok ? await notificationsRes.json() : {};
+        if (notifications.paymentValidated?.id && notifications.paymentValidated.id !== lastPaymentNotificationId.current) {
+          lastPaymentNotificationId.current = notifications.paymentValidated.id;
+          toast.success(notifications.paymentValidated.message || 'Votre paiement a été validé par le CGL.');
+        }
         setUnreadCount((Number(messages?.unreadCount) || 0) + (Number(notifications?.unreadCount) || 0));
       }
     } catch (e) {

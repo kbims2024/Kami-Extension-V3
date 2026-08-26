@@ -26,45 +26,49 @@ export async function GET() {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { reservationId, amount } = body;
+    const { paymentId } = body;
 
-    if (!reservationId) {
-      return NextResponse.json({ error: 'ID réservation requis' }, { status: 400 });
+    if (!paymentId) {
+      return NextResponse.json({ error: 'ID paiement requis' }, { status: 400 });
     }
 
-    const reservation = await db.reservation.findUnique({
-      where: { id: reservationId },
+    const payment = await db.payment.findUnique({
+      where: { id: paymentId },
     });
 
-    if (!reservation) {
-      return NextResponse.json({ error: 'Réservation non trouvée' }, { status: 404 });
+    if (!payment) {
+      return NextResponse.json({ error: 'Paiement non trouvé' }, { status: 404 });
+    }
+    if (payment.status !== 'PENDING') {
+      return NextResponse.json({ error: 'Ce paiement a déjà été traité' }, { status: 400 });
     }
 
-    // Calculer le nouveau montant payé
-    const newPaidAmount = amount !== undefined ? amount : reservation.paidAmount;
+    const reservation = await db.reservation.findFirst({
+      where: { userId: payment.userId, lotId: payment.lotId },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!reservation) {
+      return NextResponse.json({ error: 'Réservation liée non trouvée' }, { status: 404 });
+    }
+
+    const newPaidAmount = reservation.paidAmount + payment.amount;
 
     // Le statut de réservation reste distinct du statut du paiement.
     const newStatus = newPaidAmount >= reservation.totalPrice ? 'PAID' : 'RESERVED';
 
     // Mettre à jour la réservation
     const updatedReservation = await db.reservation.update({
-      where: { id: reservationId },
+      where: { id: reservation.id },
       data: {
         paidAmount: newPaidAmount,
         status: newStatus,
       },
     });
 
-    const pendingPayments = await db.payment.findMany({
-      where: { userId: reservation.userId, lotId: reservation.lotId, status: 'PENDING' },
-      orderBy: { createdAt: 'asc' },
+    await db.payment.update({
+      where: { id: payment.id },
+      data: { status: 'VALIDATED' },
     });
-    for (const payment of pendingPayments) {
-      await db.payment.update({
-        where: { id: payment.id },
-        data: { status: 'VALIDATED' },
-      });
-    }
 
     try {
       await db.notification.create({
@@ -74,7 +78,7 @@ export async function PUT(request: NextRequest) {
           message: `Votre paiement de ${newPaidAmount.toLocaleString('fr-FR')} F pour le lot ${reservation.lotId} a été validé par le CGL.`,
           type: 'PAYMENT_VALIDATED',
           read: false,
-          data: JSON.stringify({ reservationId, amount: newPaidAmount, lotId: reservation.lotId }),
+          data: JSON.stringify({ reservationId: reservation.id, paymentId: payment.id, amount: payment.amount, lotId: reservation.lotId }),
         },
       });
     } catch (notificationError) {
@@ -122,7 +126,7 @@ export async function PUT(request: NextRequest) {
         type: 'PAYMENT',
         data: {
           screen: 'payments',
-          reservationId,
+          reservationId: reservation.id,
           userId: reservation.userId,
           userName: user?.name || 'Inconnu',
           lotId: reservation.lotId,

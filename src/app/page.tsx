@@ -321,10 +321,10 @@ export default function KamiExtensionPage() {
         lotId: selectedLot.id,
         lotName: selectedLot.name,
         surface: selectedLot.surface,
-        paidAmount: amount,
+        paidAmount: 0,
         totalPrice,
         isResident: currentUser.isResident,
-        status: amount === totalPrice ? ('PAID' as const) : ('RESERVED' as const),
+        status: 'RESERVED' as const,
       };
       addReservation(newReservation);
       toast.success('Paiement soumis au CGL pour validation.');
@@ -1903,7 +1903,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
   // Payments state
   const [payments, setPayments] = useState<any[]>([]);
   const [paymentsLoading, setPaymentsLoading] = useState(false);
-  const [paymentFilter, setPaymentFilter] = useState<'all' | 'reserved' | 'paid' | 'rejected'>('all');
+  const [paymentFilter, setPaymentFilter] = useState<'all' | 'pending' | 'validated'>('pending');
 
   // New lot state
   const [newLot, setNewLot] = useState({ name: '', surface: '', block: '', priceRes: '', priceNon: '' });
@@ -1937,7 +1937,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
   const loadPayments = async () => {
     setPaymentsLoading(true);
     try {
-      const response = await fetch('/api/admin/payments');
+      const response = await fetch('/api/admin/payments-list', { cache: 'no-store' });
       if (response.ok) {
         const data = await response.json();
         setPayments(data);
@@ -1982,18 +1982,13 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
   };
 
   // Handle validate payment (accept payment)
-  const handleValidatePayment = async (reservationId: string) => {
-    const amount = prompt('Montant à valider (FCFA):');
-    if (!amount) return;
-
+  const handleValidatePayment = async (paymentId: string) => {
     try {
       const response = await fetch('/api/admin/payments', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          reservationId,
-          amount: parseInt(amount),
-          status: 'VALIDATED',
+          paymentId,
         }),
       });
 
@@ -2339,9 +2334,8 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
               <div className="flex flex-wrap gap-2 mb-4">
                 {[
                   { key: 'all', label: 'Tout' },
-                  { key: 'reserved', label: 'En cours' },
-                  { key: 'paid', label: 'Validé' },
-                  { key: 'rejected', label: 'Non validé' },
+                  { key: 'pending', label: 'À valider' },
+                  { key: 'validated', label: 'Validés' },
                 ].map((filter) => (
                   <Button
                     key={filter.key}
@@ -2349,7 +2343,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
                     size="sm"
                     variant={paymentFilter === filter.key ? 'default' : 'outline'}
                     className={paymentFilter === filter.key ? 'bg-[#10B981] hover:bg-[#059669] text-white' : ''}
-                    onClick={() => setPaymentFilter(filter.key as 'all' | 'reserved' | 'paid' | 'rejected')}
+                    onClick={() => setPaymentFilter(filter.key as 'all' | 'pending' | 'validated')}
                   >
                     {filter.label}
                   </Button>
@@ -2358,10 +2352,9 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
 
               {(() => {
                 const filteredPayments = payments.filter((payment: any) => {
-                  const paymentStatus = payment.status || 'RESERVED';
-                  if (paymentFilter === 'reserved') return paymentStatus === 'RESERVED';
-                  if (paymentFilter === 'paid') return paymentStatus === 'PAID';
-                  if (paymentFilter === 'rejected') return paymentStatus === 'REJECTED';
+                  const paymentStatus = payment.status || 'PENDING';
+                  if (paymentFilter === 'pending') return paymentStatus === 'PENDING';
+                  if (paymentFilter === 'validated') return paymentStatus === 'VALIDATED';
                   return true;
                 });
 
@@ -2372,12 +2365,10 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
                         <AlertCircle className="h-8 w-8 mx-auto mb-2" />
                         <p>
                           {paymentFilter === 'all'
-                            ? 'Aucun paiement.'
-                            : paymentFilter === 'reserved'
-                            ? 'Aucun paiement en cours.'
-                            : paymentFilter === 'paid'
-                            ? 'Aucun paiement validé.'
-                            : 'Aucun paiement non validé.'}
+                            ? 'Aucun paiement soumis.'
+                            : paymentFilter === 'pending'
+                            ? 'Aucun paiement à valider.'
+                            : 'Aucun paiement validé.'}
                         </p>
                       </CardContent>
                     </Card>
@@ -2385,9 +2376,9 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
                 }
 
                 return filteredPayments.map((payment: any) => {
-                  const progress = ((payment.paidAmount || 0) / (payment.totalPrice || 1)) * 100;
+                  const progress = (((payment.paidAmount || 0) + (payment.status === 'PENDING' ? 0 : payment.amount || 0)) / (payment.totalPrice || 1)) * 100;
                   const remaining = (payment.totalPrice || 0) - (payment.paidAmount || 0);
-                  const isPaid = (payment.paidAmount || 0) >= (payment.totalPrice || 0);
+                  const isValidated = payment.status === 'VALIDATED';
 
                   return (
                     <Card key={payment.id || `pay-${payment.lotId}`} className="bg-card rounded-xl shadow-sm border border-border">
@@ -2397,21 +2388,21 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
                             <h3 className="font-bold text-foreground">Lot {payment.lot?.name || payment.lotName}</h3>
                             <p className="text-xs text-muted-foreground">{payment.user?.name || 'Utilisateur inconnu'}</p>
                           </div>
-                          <Badge className={isPaid ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'}>
-                            {isPaid ? 'Soldé' : 'En cours'}
+                          <Badge className={isValidated ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'}>
+                            {isValidated ? 'Validé' : 'À valider'}
                           </Badge>
                         </div>
 
                         <div className="mb-3">
                           <div className="flex justify-between text-sm mb-1">
                             <span className="text-muted-foreground">Payé</span>
-                            <span className="font-bold text-[#10B981]">{(payment.paidAmount || 0).toLocaleString('fr-FR')} F</span>
+                            <span className="font-bold text-[#10B981]">{(payment.amount || 0).toLocaleString('fr-FR')} F</span>
                           </div>
                           <div className="flex justify-between text-sm mb-2">
                             <span className="text-muted-foreground">Total</span>
                             <span className="font-bold text-foreground">{(payment.totalPrice || 0).toLocaleString('fr-FR')} F</span>
                           </div>
-                          {!isPaid && (
+                          {!isValidated && (
                             <div className="flex justify-between text-sm mb-2">
                               <span className="text-muted-foreground">Reste</span>
                               <span className="font-bold text-red-500 dark:text-red-400">{remaining.toLocaleString('fr-FR')} F</span>
@@ -2427,18 +2418,10 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
                             size="sm"
                             className="flex-1 bg-[#10B981] hover:bg-[#059669] text-white"
                             onClick={() => handleValidatePayment(payment.id)}
+                            disabled={isValidated}
                           >
                             <CheckCircle className="mr-1 h-4 w-4" />
                             Valider
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            className="flex-1"
-                            onClick={() => handleDeleteReservation(payment.id)}
-                          >
-                            <XCircle className="mr-1 h-4 w-4" />
-                            Supprimer
                           </Button>
                         </div>
                       </CardContent>
