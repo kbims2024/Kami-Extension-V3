@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode, type SVGProps } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,20 +10,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Construction,
-  Calendar,
-  MapPin,
-  Image as ImageIcon,
-  Play,
-  ChevronLeft,
-  ChevronRight,
-  Pin,
-  X,
-  ArrowLeft,
-  Home as HomeIcon,
-  WifiOff,
-} from 'lucide-react';
+type IconProps = SVGProps<SVGSVGElement>;
+
+const Icon = ({ children, ...props }: IconProps & { children?: ReactNode }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props} aria-hidden="true">
+    {children}
+  </svg>
+);
+
+const Construction = (props: IconProps) => <Icon {...props}><path d="m14.5 5.5 4 4M3 21l6.5-6.5M13 7l4 4M5 19l6-6M3 3l18 18M7 3l14 14" /></Icon>;
+const Calendar = (props: IconProps) => <Icon {...props}><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></Icon>;
+const ImageIcon = (props: IconProps) => <Icon {...props}><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="m21 15-5-5L5 21" /></Icon>;
+const Play = (props: IconProps) => <Icon {...props}><path d="m8 5 11 7-11 7V5z" /></Icon>;
+const ChevronLeft = (props: IconProps) => <Icon {...props}><path d="m15 18-6-6 6-6" /></Icon>;
+const ChevronRight = (props: IconProps) => <Icon {...props}><path d="m9 18 6-6-6-6" /></Icon>;
+const Pin = (props: IconProps) => <Icon {...props}><path d="M12 17v5M5 9h14M7 3h10l-1 6 3 3H5l3-3-1-6z" /></Icon>;
+const ArrowLeft = (props: IconProps) => <Icon {...props}><path d="M19 12H5M12 19l-7-7 7-7" /></Icon>;
+const HomeIcon = (props: IconProps) => <Icon {...props}><path d="m3 11 9-8 9 8M5 10v10h14V10M9 20v-6h6v6" /></Icon>;
+const WifiOff = (props: IconProps) => <Icon {...props}><path d="m3 3 18 18M8.5 13.5a5 5 0 0 1 7 0M5 9a11 11 0 0 1 7-2.5c2.1 0 4.1.6 5.8 1.7M12 19h.01" /></Icon>;
 
 interface PublicProgressSectionProps {
   onBack?: () => void;
