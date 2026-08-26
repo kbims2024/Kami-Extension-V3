@@ -15,6 +15,10 @@ export async function GET() {
     // Récupérer toutes les réservations
     const reservations = await db.reservation.findMany();
 
+    const payments = await db.payment.findMany({
+      where: { status: 'PENDING' },
+    });
+
     // Calculer les revenus
     const revenue = reservations.reduce((sum: number, res: any) => sum + res.paidAmount, 0);
 
@@ -22,7 +26,7 @@ export async function GET() {
     const userCount = await db.user.count();
 
     // Récupérer le nombre de réservations en attente de validation
-    const pendingPayments = reservations.filter((r: any) => r.paidAmount < r.totalPrice).length;
+    const pendingPayments = payments.length;
 
     return NextResponse.json({
       available,

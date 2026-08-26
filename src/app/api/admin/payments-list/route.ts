@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
       type: payment.type,
       paidAmount: reservation?.paidAmount || 0,
       totalPrice: reservation?.totalPrice || 0,
+      reservationStatus: reservation?.status || null,
       createdAt: payment.createdAt.toISOString()
       });
     }));
