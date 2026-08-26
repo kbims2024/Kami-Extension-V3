@@ -1912,6 +1912,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
   // Payments state
   const [payments, setPayments] = useState<any[]>([]);
   const [paymentsLoading, setPaymentsLoading] = useState(false);
+  const [processingPaymentId, setProcessingPaymentId] = useState<string | null>(null);
   const [paymentFilter, setPaymentFilter] = useState<'all' | 'pending' | 'validated' | 'rejected'>('pending');
 
   // New lot state
@@ -1992,6 +1993,9 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
 
   // Handle validate payment (accept payment)
   const handlePaymentDecision = async (paymentId: string, action: 'validate' | 'reject') => {
+    if (processingPaymentId) return;
+
+    setProcessingPaymentId(paymentId);
     try {
       const response = await fetch('/api/admin/payments', {
         method: 'PUT',
@@ -2008,10 +2012,13 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
         loadStats();
         loadLots();
       } else {
-        toast.error(action === 'validate' ? 'Erreur lors de la validation' : 'Erreur lors du refus');
+        const errorData = await response.json().catch(() => null);
+        toast.error(errorData?.error || (action === 'validate' ? 'Erreur lors de la validation' : 'Erreur lors du refus'));
       }
     } catch (error) {
       toast.error(action === 'validate' ? 'Erreur lors de la validation' : 'Erreur lors du refus');
+    } finally {
+      setProcessingPaymentId(null);
     }
   };
 
@@ -2046,8 +2053,6 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
       return () => clearInterval(interval);
     } else if (activeView === 'payments') {
       loadPayments();
-      const interval = setInterval(loadPayments, 10000);
-      return () => clearInterval(interval);
     }
   }, [activeView]);
 
@@ -2470,8 +2475,9 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
                             size="sm"
                             className="flex-1 bg-[#10B981] hover:bg-[#059669] text-white"
                             onClick={() => handlePaymentDecision(payment.id, 'validate')}
+                            disabled={processingPaymentId !== null}
                           >
-                            <CheckCircle className="mr-1 h-4 w-4" />
+                            <CheckCircle className={`mr-1 h-4 w-4 ${processingPaymentId === payment.id ? 'animate-spin' : ''}`} />
                             Valider
                           </Button>
                           <Button
@@ -2479,6 +2485,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
                             variant="destructive"
                             className="flex-1"
                             onClick={() => handlePaymentDecision(payment.id, 'reject')}
+                            disabled={processingPaymentId !== null}
                           >
                             Refuser
                           </Button>
