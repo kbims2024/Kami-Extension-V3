@@ -1658,6 +1658,8 @@ function SavSettingsAdmin({ onBack }: { onBack?: () => void }) {
   const [savFaq, setSavFaq] = useState<{ question: string; answer: string }[]>([]);
   const [savReglement, setSavReglement] = useState(getDefaultRegulationText);
   const [showReglementEditor, setShowReglementEditor] = useState(false);
+  const [reglementSearch, setReglementSearch] = useState('');
+  const reglementTextareaRef = useRef<HTMLTextAreaElement>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -1696,6 +1698,22 @@ function SavSettingsAdmin({ onBack }: { onBack?: () => void }) {
   const reglementSummary = savReglement.trim()
     ? savReglement.trim().replace(/\s+/g, ' ').slice(0, 220)
     : 'Aucun règlement personnalisé. Le règlement structuré par défaut sera affiché.';
+  const searchTerm = reglementSearch.trim();
+  const firstMatchIndex = searchTerm
+    ? savReglement.toLocaleLowerCase().indexOf(searchTerm.toLocaleLowerCase())
+    : -1;
+  const matchCount = searchTerm
+    ? savReglement.toLocaleLowerCase().split(searchTerm.toLocaleLowerCase()).length - 1
+    : 0;
+  const matchPreview = firstMatchIndex >= 0
+    ? savReglement.slice(Math.max(0, firstMatchIndex - 70), firstMatchIndex + searchTerm.length + 110).replace(/\s+/g, ' ')
+    : '';
+
+  const focusReglementMatch = () => {
+    if (firstMatchIndex < 0 || !reglementTextareaRef.current) return;
+    reglementTextareaRef.current.focus();
+    reglementTextareaRef.current.setSelectionRange(firstMatchIndex, firstMatchIndex + searchTerm.length);
+  };
 
   if (loading) {
     return (
@@ -1748,7 +1766,36 @@ function SavSettingsAdmin({ onBack }: { onBack?: () => void }) {
                 <p className="text-xs text-muted-foreground mb-2">
                   Modifiez le texte complet. Séparez les paragraphes par une ligne vide.
                 </p>
+                <div className="space-y-2 mb-2">
+                  <Input
+                    value={reglementSearch}
+                    onChange={e => setReglementSearch(e.target.value)}
+                    placeholder="Rechercher un mot ou une phrase à modifier..."
+                    aria-label="Rechercher dans le règlement"
+                    className="text-sm"
+                  />
+                  {searchTerm && (
+                    <div className="rounded-md border border-border bg-muted/20 px-3 py-2 text-xs">
+                      {firstMatchIndex >= 0 ? (
+                        <>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                              {matchCount} occurrence{matchCount > 1 ? 's' : ''} trouvée{matchCount > 1 ? 's' : ''}
+                            </span>
+                            <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={focusReglementMatch}>
+                              Aller à l&apos;occurrence
+                            </Button>
+                          </div>
+                          <p className="mt-1 text-muted-foreground line-clamp-2">...{matchPreview}...</p>
+                        </>
+                      ) : (
+                        <span className="text-muted-foreground">Aucune occurrence trouvée.</span>
+                      )}
+                    </div>
+                  )}
+                </div>
                 <textarea
+                  ref={reglementTextareaRef}
                   value={savReglement}
                   onChange={e => setSavReglement(e.target.value)}
                   placeholder="Saisissez ici le règlement intérieur personnalisé..."
