@@ -119,7 +119,8 @@ export function ProgressUpdatesAdmin({ onBack, onHome }: ProgressUpdatesAdminPro
   const handleAddVideo = () => {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = 'video/*';
+    input.accept = 'video/mp4,video/webm,video/quicktime,video/ogg,video/3gpp,video/x-msvideo,.mp4,.webm,.mov,.ogg,.3gp,.3gpp,.avi,.m4v';
+    input.multiple = true;
     input.onchange = async (e) => {
       const files = (e.target as HTMLInputElement).files;
       if (!files) return;
@@ -137,11 +138,15 @@ export function ProgressUpdatesAdmin({ onBack, onHome }: ProgressUpdatesAdminPro
             if (data.file?.url) {
               setVideos((prev) => [...prev, data.file.url]);
             } else {
-              console.error('Upload response missing file URL', data);
+              toast.error(data.error || `Impossible d'ajouter ${file.name}`);
             }
+          } else {
+            const data = await res.json().catch(() => ({}));
+            toast.error(data.error || `Impossible d'ajouter ${file.name}`);
           }
         } catch (err) {
           console.error('Upload error:', err);
+          toast.error(`Erreur lors de l'ajout de ${file.name}`);
         }
       }
     };
@@ -529,7 +534,7 @@ export function ProgressUpdatesAdmin({ onBack, onHome }: ProgressUpdatesAdminPro
                 {updates.map((update) => (
                   <div
                     key={update.id}
-                    className="flex items-start gap-3 p-3 rounded-lg border border-border bg-card hover:bg-muted/30 transition-colors"
+                    className="flex flex-col sm:flex-row sm:items-start gap-3 p-3 rounded-lg border border-border bg-card hover:bg-muted/30 transition-colors"
                   >
                     {/* Thumbnail */}
                     {update.images && update.images.length > 0 ? (
@@ -545,8 +550,8 @@ export function ProgressUpdatesAdmin({ onBack, onHome }: ProgressUpdatesAdminPro
                     )}
 
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                        <div className="min-w-0">
                           <div className="flex items-center gap-2 mb-1">
                             <h4 className="font-semibold text-foreground text-sm truncate">{update.title}</h4>
                             {update.isPinned && (
@@ -576,7 +581,7 @@ export function ProgressUpdatesAdmin({ onBack, onHome }: ProgressUpdatesAdminPro
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-1 flex-shrink-0">
+                        <div className="flex items-center justify-end gap-1 w-full sm:w-auto flex-shrink-0 border-t border-border pt-2 sm:border-0 sm:pt-0">
                           <Button
                             variant="ghost"
                             size="icon"

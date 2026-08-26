@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
+const MAX_VIDEO_SIZE = 10 * 1024 * 1024;
+const VALID_VIDEO_EXTENSIONS = ['.mp4', '.webm', '.mov', '.ogg', '.avi', '.3gp', '.3gpp', '.m4v'];
+
 // Helper: convert a File to a base64 data URI
 async function fileToDataUri(file: File): Promise<string> {
   const arrayBuffer = await file.arrayBuffer();
@@ -35,23 +38,31 @@ export async function POST(req: NextRequest) {
       'video/ogg',
       'video/x-msvideo',
     ];
-    if (!validMimeTypes.includes(file.type)) {
+    const fileExtension = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
+    const isVideo = file.type.startsWith('video/') || VALID_VIDEO_EXTENSIONS.includes(fileExtension);
+    const normalizedMimeType = isVideo && !file.type.startsWith('video/')
+      ? fileExtension === '.webm' ? 'video/webm' : fileExtension === '.mov' ? 'video/quicktime' : 'video/mp4'
+      : file.type;
+    if (!validMimeTypes.includes(file.type) && !isVideo) {
       return NextResponse.json(
         { error: 'Type de fichier non supporté (PDF, image ou vidéo requis)' },
         { status: 400 }
       );
     }
 
-    const maxSize = file.type.startsWith('video/') ? 50 * 1024 * 1024 : 5 * 1024 * 1024;
+    const maxSize = isVideo ? MAX_VIDEO_SIZE : 5 * 1024 * 1024;
     if (file.size > maxSize) {
       return NextResponse.json(
-        { error: `Le fichier ne doit pas dépasser ${file.type.startsWith('video/') ? '50' : '5'} Mo` },
+        { error: `Le fichier ne doit pas dépasser ${isVideo ? '10' : '5'} Mo` },
         { status: 400 }
       );
     }
 
     // Convert file to base64 data URI
-    const dataUri = await fileToDataUri(file);
+    const uploadFile = normalizedMimeType === file.type
+      ? file
+      : new File([await file.arrayBuffer()], file.name, { type: normalizedMimeType });
+    const dataUri = await fileToDataUri(uploadFile);
 
     // Delete any existing file with the same category
     try {
@@ -66,7 +77,7 @@ export async function POST(req: NextRequest) {
     const doc = await db.uploadedFile.create({
       data: {
         filename: file.name,
-        mimeType: file.type,
+        mimeType: normalizedMimeType,
         size: file.size,
         data: dataUri,
         category: type,
