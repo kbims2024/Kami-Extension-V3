@@ -135,7 +135,15 @@ export default function KamiExtensionPage() {
           });
         }
         if (data.paymentValidated) {
-          toast.success(data.paymentValidated.message || 'Votre paiement a été validé par le CGL.');
+          const isRejected = data.paymentValidated.type === 'PAYMENT_REJECTED';
+          const message = data.paymentValidated.message || (isRejected
+            ? 'Votre paiement a été refusé par le CGL.'
+            : 'Votre paiement a été validé par le CGL.');
+          if (isRejected) {
+            toast.error(message);
+          } else {
+            toast.success(message);
+          }
         }
       }
     } catch (error) {

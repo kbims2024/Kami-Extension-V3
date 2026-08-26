@@ -42,7 +42,11 @@ export async function PUT(req: NextRequest) {
 
     // Update settings
     if (scrollSpeed !== undefined) {
-      data.settings.scrollSpeed = scrollSpeed;
+      const parsedScrollSpeed = Number(scrollSpeed);
+      if (!Number.isFinite(parsedScrollSpeed) || parsedScrollSpeed < 10 || parsedScrollSpeed > 120) {
+        return NextResponse.json({ error: 'La vitesse doit être comprise entre 10 et 120 secondes' }, { status: 400 });
+      }
+      data.settings.scrollSpeed = parsedScrollSpeed;
     }
     if (bgColor !== undefined) {
       data.settings.bgColor = bgColor;

@@ -19,7 +19,11 @@ export async function GET(request: NextRequest) {
     });
 
     const paymentNotification = await db.notification.findFirst({
-      where: { userId, type: 'PAYMENT_VALIDATED', read: false },
+      where: {
+        userId,
+        type: { in: ['PAYMENT_VALIDATED', 'PAYMENT_REJECTED'] },
+        read: false,
+      },
       orderBy: { createdAt: 'desc' },
     });
     const unreadCount = await db.notification.count({ where: { userId, read: false } });

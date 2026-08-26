@@ -492,9 +492,25 @@ export function FlashInfoAdmin({ onBack, onHome }: FlashInfoAdminProps) {
           <CardContent className="space-y-6">
             {/* Vitesse de défilement */}
             <div>
-              <Label htmlFor="scrollSpeed">Vitesse de défilement: {settingsData.scrollSpeed}s</Label>
+              <div className="flex items-center justify-between gap-3">
+                <Label htmlFor="scrollSpeed">Vitesse de défilement</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="scrollSpeedValue"
+                    type="number"
+                    min={10}
+                    max={120}
+                    step={5}
+                    value={settingsData.scrollSpeed}
+                    onChange={(e) => setSettingsData(prev => ({ ...prev, scrollSpeed: Math.min(120, Math.max(10, parseInt(e.target.value) || 10)) }))}
+                    className="w-20"
+                    aria-label="Durée du défilement en secondes"
+                  />
+                  <span className="text-sm text-muted-foreground">secondes</span>
+                </div>
+              </div>
               <div className="flex items-center gap-4 mt-2">
-                <span className="text-xs text-muted-foreground">Lent</span>
+                <span className="text-xs text-muted-foreground">Rapide</span>
                 <input
                   type="range"
                   id="scrollSpeed"
@@ -506,7 +522,7 @@ export function FlashInfoAdmin({ onBack, onHome }: FlashInfoAdminProps) {
                   className="flex-1 h-2 rounded-lg appearance-none cursor-pointer"
                   style={{ accentColor: '#3b82f6' }}
                 />
-                <span className="text-xs text-muted-foreground">Rapide</span>
+                <span className="text-xs text-muted-foreground">Lent</span>
               </div>
               <p className="text-xs text-muted-foreground mt-2">
                 Plus la valeur est basse, plus le défilement est rapide (10s = très rapide, 120s = très lent)
