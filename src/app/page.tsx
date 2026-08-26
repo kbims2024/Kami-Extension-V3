@@ -2077,7 +2077,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
       const res = await fetch('/api/committee-chat', { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
-        const count = data.reduce((acc: number, conv: any) => acc + (conv.unreadCount > 0 ? 1 : 0), 0);
+        const count = data.reduce((acc: number, conv: any) => acc + (Number(conv.unreadCount) || 0), 0);
         setUnreadChatCount(count);
       }
     } catch (e) {
@@ -2118,9 +2118,11 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
       }
       loadCglPermissions();
     };
+    const handleChatRead = () => loadUnreadChatCount();
 
     if (typeof window !== 'undefined') {
       window.addEventListener('cgl-permissions-changed', handlePermissionsChanged);
+      window.addEventListener('kami:chat-read', handleChatRead);
     }
 
     // Rafraîchir les permissions pour détecter les changements de l'admin
@@ -2134,6 +2136,7 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
       clearInterval(notificationInterval);
       if (typeof window !== 'undefined') {
         window.removeEventListener('cgl-permissions-changed', handlePermissionsChanged);
+        window.removeEventListener('kami:chat-read', handleChatRead);
       }
     };
   }, [isCglMode]);
@@ -2193,9 +2196,9 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
             className="bg-gradient-to-br from-blue-600 to-indigo-700 p-3 rounded-xl shadow-md cursor-pointer hover:shadow-lg transition-all active:scale-[0.97] h-[100px] border-0 relative overflow-hidden"
             onClick={() => setCurrentScreen('committee-chat')}
           >
-            {(notificationCounts['committee-chat'] || unreadChatCount) > 0 && (
+            {unreadChatCount > 0 && (
               <div className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm animate-bounce">
-                {notificationCounts['committee-chat'] || unreadChatCount} notification{(notificationCounts['committee-chat'] || unreadChatCount) > 1 ? 's' : ''}
+                {unreadChatCount} notification{unreadChatCount > 1 ? 's' : ''}
               </div>
             )}
             <CardContent className="p-0 text-center flex flex-col items-center justify-center h-full">
@@ -2210,7 +2213,9 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
         <div className="grid grid-cols-2 gap-4">
           {visibleButtons.map((button) => {
             const Icon = button.icon;
-            const notificationCount = notificationCounts[button.view] || 0;
+            const notificationCount = button.view === 'discussion-chat'
+              ? unreadChatCount
+              : notificationCounts[button.view] || 0;
             return (
               <Card
                 key={button.view}
