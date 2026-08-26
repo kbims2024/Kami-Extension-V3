@@ -90,6 +90,7 @@ export default function KamiExtensionPage() {
   const [loginIsResident, setLoginIsResident] = useState(true);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [agreeRules, setAgreeRules] = useState(false);
+  const [paymentNotification, setPaymentNotification] = useState<any | null>(null);
   const [adminView, setAdminView] = useState<string | null>(null);
   const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
   const footerTapCountRef = useRef(0);
@@ -135,15 +136,7 @@ export default function KamiExtensionPage() {
           });
         }
         if (data.paymentValidated) {
-          const isRejected = data.paymentValidated.type === 'PAYMENT_REJECTED';
-          const message = data.paymentValidated.message || (isRejected
-            ? 'Votre paiement a été refusé par le CGL.'
-            : 'Votre paiement a été validé par le CGL.');
-          if (isRejected) {
-            toast.error(message);
-          } else {
-            toast.success(message);
-          }
+          setPaymentNotification(data.paymentValidated);
         }
       }
     } catch (error) {
@@ -344,6 +337,20 @@ export default function KamiExtensionPage() {
     if (!currentUser?.referralCode) return;
     navigator.clipboard.writeText(`kami.app/ref/${currentUser.referralCode}`);
     toast.success('Lien copié !');
+  };
+
+  const closePaymentNotification = async () => {
+    const notificationId = paymentNotification?.id;
+    setPaymentNotification(null);
+    if (!notificationId) return;
+
+    try {
+      await fetch(`/api/committee-notifications/${encodeURIComponent(notificationId)}`, {
+        method: 'PATCH',
+      });
+    } catch (error) {
+      console.error('Error marking payment notification as read:', error);
+    }
   };
 
   const handleRegistrationComplete = async (userData: { name: string; pseudo: string; phone?: string; isResident: boolean; password: string; quartier?: string; villageOrigine?: string }) => {
@@ -869,6 +876,27 @@ export default function KamiExtensionPage() {
 
       {/* Congratulation Notification */}
       <CongratulationNotification />
+
+      <Dialog
+        open={Boolean(paymentNotification)}
+        onOpenChange={(open) => {
+          if (!open) closePaymentNotification();
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className={paymentNotification?.type === 'PAYMENT_REJECTED' ? 'text-orange-600' : 'text-emerald-600'}>
+              {paymentNotification?.title || (paymentNotification?.type === 'PAYMENT_REJECTED' ? 'Paiement refusé' : 'Paiement validé')}
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-foreground">{paymentNotification?.message}</p>
+          <DialogFooter>
+            <Button onClick={closePaymentNotification} className="w-full sm:w-auto">
+              Fermer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

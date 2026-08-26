@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
 
 interface HomeNotificationBellProps {
   currentUser: { id: string; role: string | null } | null;
@@ -51,15 +50,6 @@ export function HomeNotificationBell({ currentUser, onNavigate }: HomeNotificati
         const notifications = notificationsRes.ok ? await notificationsRes.json() : {};
         if (notifications.paymentValidated?.id && notifications.paymentValidated.id !== lastPaymentNotificationId.current) {
           lastPaymentNotificationId.current = notifications.paymentValidated.id;
-          const isRejected = notifications.paymentValidated.type === 'PAYMENT_REJECTED';
-          const message = notifications.paymentValidated.message || (isRejected
-            ? 'Votre paiement a été refusé par le CGL.'
-            : 'Votre paiement a été validé par le CGL.');
-          if (isRejected) {
-            toast.error(message);
-          } else {
-            toast.success(message);
-          }
         }
         setUnreadCount((Number(messages?.unreadCount) || 0) + (Number(notifications?.unreadCount) || 0));
       }
