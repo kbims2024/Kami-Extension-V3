@@ -245,7 +245,7 @@ export function PublicProgressSection({ onBack, onHome, setCurrentScreen }: Publ
             <Construction className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
             <p className="text-lg font-medium text-muted-foreground">Aucune publication pour le moment</p>
             <p className="text-sm text-muted-foreground/70 mt-1">
-              Les mises à jour de l&apos;avancement des travaux apparaîtront ici
+              Les nouvelles publications apparaîtront ici
             </p>
           </div>
         ) : (

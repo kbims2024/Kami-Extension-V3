@@ -20,10 +20,19 @@ const METHOD_DEFS = [
   { id: 'mtn_money', label: 'MTN Money', defaultLogo: '/images/mtn-money.png' },
 ];
 
+const DEFAULT_NUMBERS: Record<string, string> = {
+  wave: '0140252521',
+  orange_money: '0749615456',
+  moov_money: '0140916502',
+  mtn_money: '0505623221',
+};
+
 export function AdminPaymentMethodLogos({ onClose, onHome }: AdminPaymentMethodLogosProps) {
   const [logos, setLogos] = useState<Record<string, string | null>>({});
   const [loading, setLoading] = useState(true);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const [numbers, setNumbers] = useState(DEFAULT_NUMBERS);
+  const [savingNumbers, setSavingNumbers] = useState(false);
 
   useEffect(() => {
     loadLogos();
@@ -39,11 +48,31 @@ export function AdminPaymentMethodLogos({ onClose, onHome }: AdminPaymentMethodL
 
       const data = await res.json();
       setLogos(data.logos || {});
+      setNumbers({ ...DEFAULT_NUMBERS, ...(data.numbers || {}) });
     } catch (error) {
       console.error('Error loading payment method logos:', error);
       toast.error('Erreur lors du chargement des logos');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveNumbers = async () => {
+    setSavingNumbers(true);
+    try {
+      const res = await fetch('/api/admin/payment-methods', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ numbers }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Erreur lors de la sauvegarde');
+      setNumbers({ ...DEFAULT_NUMBERS, ...(data.numbers || {}) });
+      toast.success('Numéros marchands enregistrés');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Erreur lors de la sauvegarde');
+    } finally {
+      setSavingNumbers(false);
     }
   };
 
@@ -144,6 +173,27 @@ export function AdminPaymentMethodLogos({ onClose, onHome }: AdminPaymentMethodL
         </CardHeader>
 
         <CardContent className="space-y-4">
+          <div className="border border-emerald-200 dark:border-emerald-900 rounded-xl p-4 space-y-3">
+            <div>
+              <p className="font-semibold">Numéros marchands</p>
+              <p className="text-xs text-muted-foreground">Ces numéros seront proposés aux utilisateurs.</p>
+            </div>
+            {METHOD_DEFS.map((method) => (
+              <div key={method.id} className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] items-center gap-3">
+                <Label className="text-sm">{method.label}</Label>
+                <Input
+                  value={numbers[method.id] || ''}
+                  onChange={(e) => setNumbers((prev) => ({ ...prev, [method.id]: e.target.value }))}
+                  inputMode="numeric"
+                  placeholder={DEFAULT_NUMBERS[method.id]}
+                />
+              </div>
+            ))}
+            <Button type="button" onClick={handleSaveNumbers} disabled={savingNumbers} className="w-full">
+              {savingNumbers ? 'Enregistrement...' : 'Enregistrer les numéros marchands'}
+            </Button>
+          </div>
+
           {METHOD_DEFS.map((method) => {
             const currentLogo = logos[method.id] || method.defaultLogo;
             return (

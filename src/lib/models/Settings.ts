@@ -9,6 +9,10 @@ export interface ISettingsDocument extends Document {
   savHoraires?: string;
   savFaq?: string;
   savReglement?: string;
+  paymentMoovNumber?: string;
+  paymentOrangeNumber?: string;
+  paymentMtnNumber?: string;
+  paymentWaveNumber?: string;
   cglPermissions?: Record<string, boolean>;
   createdAt: Date;
   updatedAt: Date;
@@ -51,6 +55,10 @@ const SettingsSchema = new Schema<any>(
       ]),
     },
     savReglement: { type: String, default: null },
+    paymentMoovNumber: { type: String, default: '0140916502' },
+    paymentOrangeNumber: { type: String, default: '0749615456' },
+    paymentMtnNumber: { type: String, default: '0505623221' },
+    paymentWaveNumber: { type: String, default: '0140252521' },
     cglPermissions: { type: Schema.Types.Mixed, default: {} },
   },
   { timestamps: true }

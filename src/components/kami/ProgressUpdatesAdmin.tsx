@@ -334,9 +334,9 @@ export function ProgressUpdatesAdmin({ onBack, onHome }: ProgressUpdatesAdminPro
         <div>
           <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
             <Construction className="h-5 w-5 text-brand-blue" />
-            Publications — Avancement des Travaux
+            Publications
           </h2>
-          <p className="text-sm text-muted-foreground">Gérez les publications publiques de progression</p>
+          <p className="text-sm text-muted-foreground">Gérez les publications publiques</p>
         </div>
         <Button
           onClick={() => {

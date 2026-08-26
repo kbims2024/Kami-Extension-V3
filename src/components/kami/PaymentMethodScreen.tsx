@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Home, Check, Shield, AlertCircle, Loader2, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Home, Check, Shield, AlertCircle, Loader2, ChevronRight, Copy, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import Image from 'next/image';
 
@@ -96,6 +96,17 @@ async function loadPaymentMethodLogos(): Promise<Record<string, string>> {
   }
 }
 
+async function loadPaymentMethodNumbers(): Promise<Record<string, string>> {
+  try {
+    const res = await fetch('/api/admin/payment-methods');
+    if (!res.ok) return {};
+    const data = await res.json();
+    return data.numbers || {};
+  } catch {
+    return {};
+  }
+}
+
 export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHome }: PaymentMethodScreenProps) {
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [paymentAmount, setPaymentAmount] = useState('');
@@ -105,6 +116,12 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
   const [existingPaid, setExistingPaid] = useState(0);
   const [showDevMessage, setShowDevMessage] = useState(false);
   const [paymentLogos, setPaymentLogos] = useState<Record<string, string>>({});
+  const [paymentNumbers, setPaymentNumbers] = useState<Record<string, string>>({
+    wave: '0140252521',
+    orange_money: '0749615456',
+    moov_money: '0140916502',
+    mtn_money: '0505623221',
+  });
 
   const totalPrice = user.isResident ? lot.priceRes : lot.priceNon;
   const remaining = totalPrice - existingPaid - (parseInt(paymentAmount) || 0);
@@ -114,6 +131,7 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
   useEffect(() => {
     loadExistingPayments();
     loadPaymentMethodLogos().then((logos) => setPaymentLogos(logos));
+    loadPaymentMethodNumbers().then((numbers) => setPaymentNumbers((prev) => ({ ...prev, ...numbers })));
   }, [lot.id, user.id]);
 
   const loadExistingPayments = async () => {
@@ -153,6 +171,17 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
   const handlePayAll = () => {
     const restant = totalPrice - existingPaid;
     setPaymentAmount(restant.toString());
+  };
+
+  const copyMerchantNumber = async (methodId: string) => {
+    const number = paymentNumbers[methodId];
+    if (!number) return;
+    try {
+      await navigator.clipboard.writeText(number);
+      toast.success('Numéro marchand copié');
+    } catch {
+      toast.error('Impossible de copier le numéro');
+    }
   };
 
   const openPaymentApp = (methodId: string) => {
@@ -306,6 +335,26 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
                     </div>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Numéro marchand */}
+            <Card className="border-border">
+              <CardContent className="p-4 space-y-3">
+                <div>
+                  <p className="text-sm font-bold">Numéro marchand {method.name}</p>
+                  <p className="text-xs text-muted-foreground">Envoyez le montant vers ce numéro, puis validez la demande.</p>
+                </div>
+                <div className="flex gap-2">
+                  <Input readOnly value={paymentNumbers[method.id] || ''} className="text-lg font-bold tracking-wide" aria-label={`Numéro marchand ${method.name}`} />
+                  <Button type="button" variant="outline" onClick={() => copyMerchantNumber(method.id)} aria-label="Copier le numéro marchand" title="Copier le numéro marchand">
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+                <Button type="button" variant="outline" className="w-full" onClick={() => openPaymentApp(method.id)}>
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Ouvrir {method.name}
+                </Button>
               </CardContent>
             </Card>
 
