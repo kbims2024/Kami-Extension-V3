@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Calculate statistics
-    const totalReserved = reservations.length
+    const totalReserved = reservations.filter(r => r.status === 'RESERVED').length
     const totalPurchased = reservations.filter(r => r.status === 'PAID').length
     const totalPaid = reservations.reduce((sum, r) => sum + r.paidAmount, 0)
     

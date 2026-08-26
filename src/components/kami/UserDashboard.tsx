@@ -288,7 +288,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, setCu
           title="Lots Réservés"
           value={stats?.totalReserved || 0}
           icon={<Building2 className="h-5 w-5 text-primary" />}
-          description="Nombre total de réservations"
+          description="Lots actuellement réservés"
         />
         <StatCard
           title="Lots Achétés"
@@ -422,7 +422,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ currentUser, setCu
                     <span className="text-sm text-foreground">En cours de paiement</span>
                   </div>
                   <Badge variant="secondary">
-                    {(stats?.totalReserved ?? 0) - (stats?.totalPurchased ?? 0) || 0}
+                    {stats?.totalReserved || 0}
                   </Badge>
                 </motion.div>
                 <motion.div 

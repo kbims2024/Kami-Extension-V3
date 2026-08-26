@@ -12,6 +12,7 @@ import {
   Users,
   Home
 } from 'lucide-react'
+import AdminCharts from '@/components/kami/AdminCharts'
 
 export const AdminDashboard: React.FC<any> = ({ onBack, onHome }) => {
   const [stats, setStats] = useState<any>(null)
@@ -57,6 +58,7 @@ export const AdminDashboard: React.FC<any> = ({ onBack, onHome }) => {
           <p className="text-xl font-bold">{(stats?.totalRevenue || 0).toLocaleString()} F</p>
         </Card>
       </div>
+      <AdminCharts stats={stats} />
     </div>
   )
 }
