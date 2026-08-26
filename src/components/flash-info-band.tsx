@@ -79,7 +79,7 @@ export function FlashInfoBand() {
       <div className="flex-1 overflow-hidden py-2 md:py-3">
         <div
           className="flex items-center gap-12 animate-scroll hover:pause"
-          style={{ animationDuration: `${data.settings.scrollSpeed}s` }}
+          style={{ animationDuration: `${Math.max(data.settings.scrollSpeed * 0.85, 10)}s` }}
         >
           {scrollContent.map((info, index) => (
             <div

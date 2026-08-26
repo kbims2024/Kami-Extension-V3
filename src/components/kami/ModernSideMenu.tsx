@@ -86,7 +86,7 @@ export function ModernSideMenu({ isOpen, onClose, currentUser, onNavigate, onLog
 
   const handleWhatsAppClick = () => {
     try {
-      window.open('https://chat.whatsapp.com/', '_blank');
+      window.open('https://chat.whatsapp.com/DmmDSNk1G8iJ2ZdbNq6oFD?s=sh&p=a&mlu=4', '_blank', 'noopener,noreferrer');
     } catch (e) {
       console.error('Unable to open WhatsApp link', e);
     }
