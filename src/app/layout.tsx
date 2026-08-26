@@ -19,6 +19,10 @@ export const metadata: Metadata = {
   title: "KAMI-EXTENSION",
   description: "Plateforme de réservation de lots",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/logo.svg",
+    shortcut: "/logo.svg",
+  },
 };
 
 export default function RootLayout({

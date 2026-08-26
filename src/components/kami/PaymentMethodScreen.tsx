@@ -7,6 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { ArrowLeft, Home, Check, Shield, AlertCircle, Loader2, ChevronRight, Copy, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import Image from 'next/image';
@@ -125,8 +131,9 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
     mtn_money: '0505623221',
   });
 
-  const totalPrice = user.isResident ? lot.priceRes : lot.priceNon;
-  const remaining = totalPrice - existingPaid - (parseInt(paymentAmount) || 0);
+  const totalPrice = Number(user.isResident ? lot.priceRes : lot.priceNon) || 0;
+  const enteredAmount = Number.parseInt(paymentAmount, 10) || 0;
+  const remaining = totalPrice - existingPaid - enteredAmount;
   const isFullPayment = remaining <= 0;
 
   // Charger les paiements existants pour ce lot
@@ -207,7 +214,7 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
   };
 
   const handleOpenPaymentDialog = () => {
-    const amount = parseInt(paymentAmount);
+    const amount = Number.parseInt(paymentAmount, 10);
     if (!amount || amount < 10000) {
       toast.error('Le montant minimum est de 10 000 F');
       return;
@@ -231,7 +238,7 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
   };
 
   const handleSubmitToCgl = async () => {
-    const amount = parseInt(paymentAmount);
+    const amount = Number.parseInt(paymentAmount, 10);
     if (!paymentSent || !selectedMethod || !amount) return;
 
     setIsValidating(true);
@@ -468,7 +475,7 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
                 backgroundColor: method.color,
                 color: method.id === 'mtn_money' ? '#000' : '#fff',
               }}
-              disabled={!agreeRules || !paymentAmount || parseInt(paymentAmount) < 10000 || isValidating}
+              disabled={!agreeRules || !paymentAmount || enteredAmount < 10000 || isValidating}
               onClick={paymentSent ? handleSubmitToCgl : handleOpenPaymentDialog}
             >
               {isValidating ? (
@@ -512,7 +519,7 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
                 <div className="flex justify-between gap-4 text-base border-t border-border pt-2">
                   <span className="font-bold text-foreground">Montant exact à envoyer</span>
                   <span className="font-extrabold" style={{ color: method.color }}>
-                    {formatPrice(parseInt(paymentAmount) || 0)} F
+                    {formatPrice(enteredAmount)} F
                   </span>
                 </div>
                 <div className="border-t border-border pt-2">
