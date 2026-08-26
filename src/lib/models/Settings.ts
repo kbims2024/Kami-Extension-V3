@@ -8,6 +8,7 @@ export interface ISettingsDocument extends Document {
   savEmail?: string;
   savHoraires?: string;
   savFaq?: string;
+  savReglement?: string;
   cglPermissions?: Record<string, boolean>;
   createdAt: Date;
   updatedAt: Date;
@@ -49,6 +50,7 @@ const SettingsSchema = new Schema<any>(
         },
       ]),
     },
+    savReglement: { type: String, default: null },
     cglPermissions: { type: Schema.Types.Mixed, default: {} },
   },
   { timestamps: true }

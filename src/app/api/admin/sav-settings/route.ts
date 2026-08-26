@@ -18,6 +18,7 @@ export async function GET() {
       savEmail: settings?.savEmail ?? null,
       savHoraires: settings?.savHoraires ?? null,
       savFaq: settings?.savFaq ?? null,
+      savReglement: settings?.savReglement ?? null,
     });
   } catch (error) {
     console.error('Failed to fetch admin SAV settings:', error);
@@ -28,7 +29,7 @@ export async function GET() {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { savPhone, savWhatsapp, savEmail, savHoraires, savFaq } = body;
+    const { savPhone, savWhatsapp, savEmail, savHoraires, savFaq, savReglement } = body;
 
     const updateData: Record<string, string> = {};
     if (savPhone !== undefined) updateData.savPhone = savPhone;
@@ -36,6 +37,7 @@ export async function PUT(request: NextRequest) {
     if (savEmail !== undefined) updateData.savEmail = savEmail;
     if (savHoraires !== undefined) updateData.savHoraires = JSON.stringify(savHoraires);
     if (savFaq !== undefined) updateData.savFaq = JSON.stringify(savFaq);
+    if (savReglement !== undefined) updateData.savReglement = savReglement.trim();
 
     const settings = await getOrCreateSettings();
     const updated = await db.settings.update({ where: { id: settings.id }, data: updateData });
@@ -46,6 +48,7 @@ export async function PUT(request: NextRequest) {
       savEmail: updated.savEmail ?? null,
       savHoraires: updated.savHoraires ?? null,
       savFaq: updated.savFaq ?? null,
+      savReglement: updated.savReglement ?? null,
     });
   } catch (error) {
     console.error('Failed to update admin SAV settings:', error);

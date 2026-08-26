@@ -38,6 +38,7 @@ export async function GET() {
         savEmail: DEFAULT_EMAIL,
         savHoraires: DEFAULT_HORAIRES,
         savFaq: DEFAULT_FAQ,
+        savReglement: null,
       });
     }
 
@@ -58,6 +59,7 @@ export async function GET() {
       savEmail: (settings.savEmail as string) || DEFAULT_EMAIL,
       savHoraires,
       savFaq,
+      savReglement: settings.savReglement || null,
     });
   } catch (error) {
     console.error('Error fetching SAV settings:', error);
@@ -67,6 +69,7 @@ export async function GET() {
       savEmail: DEFAULT_EMAIL,
       savHoraires: DEFAULT_HORAIRES,
       savFaq: DEFAULT_FAQ,
+      savReglement: null,
     });
   }
 }
@@ -80,7 +83,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { savPhone, savWhatsapp, savEmail, savHoraires, savFaq } = body;
+    const { savPhone, savWhatsapp, savEmail, savHoraires, savFaq, savReglement } = body;
 
     const updateData: Record<string, string> = {};
     if (savPhone !== undefined) updateData.savPhone = savPhone;
@@ -88,6 +91,7 @@ export async function PUT(request: NextRequest) {
     if (savEmail !== undefined) updateData.savEmail = savEmail;
     if (savHoraires !== undefined) updateData.savHoraires = JSON.stringify(savHoraires);
     if (savFaq !== undefined) updateData.savFaq = JSON.stringify(savFaq);
+    if (savReglement !== undefined) updateData.savReglement = savReglement.trim();
 
     const existing = await db.settings.findFirst();
     let settings: any;
@@ -112,6 +116,7 @@ export async function PUT(request: NextRequest) {
       savEmail: (settings.savEmail as string) || DEFAULT_EMAIL,
       savHoraires: parsedHoraires,
       savFaq: parsedFaq,
+      savReglement: settings.savReglement || null,
     });
   } catch (error) {
     console.error('Error updating SAV settings:', error);

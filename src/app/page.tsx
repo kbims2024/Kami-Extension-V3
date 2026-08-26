@@ -48,7 +48,7 @@ import { UserManagement } from '@/components/kami/UserManagement';
 import { PublicProgressSection } from '@/components/kami/PublicProgressSection';
 import { ProgressUpdatesAdmin } from '@/components/kami/ProgressUpdatesAdmin';
 import { SubscriberTrackingPanel } from '@/components/kami/SubscriberTrackingPanel';
-import { RegulationRulesScreen } from '@/components/kami/RegulationRulesScreen';
+import { getDefaultRegulationText, RegulationRulesScreen } from '@/components/kami/RegulationRulesScreen';
 import { CGLPermissionsManager } from '@/components/kami/CGLPermissionsManager';
 import { CommitteeChatView } from '@/components/kami/CommitteeChatView';
 import { DiscussionConfigAdmin } from '@/components/kami/DiscussionConfigAdmin';
@@ -1656,6 +1656,7 @@ function SavSettingsAdmin({ onBack }: { onBack?: () => void }) {
   const [savEmail, setSavEmail] = useState('');
   const [savHoraires, setSavHoraires] = useState<{ day: string; hours: string }[]>([]);
   const [savFaq, setSavFaq] = useState<{ question: string; answer: string }[]>([]);
+  const [savReglement, setSavReglement] = useState(getDefaultRegulationText);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -1668,6 +1669,7 @@ function SavSettingsAdmin({ onBack }: { onBack?: () => void }) {
         setSavEmail(data.savEmail || '');
         setSavHoraires(data.savHoraires || []);
         setSavFaq(data.savFaq || []);
+        setSavReglement(data.savReglement || getDefaultRegulationText());
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -1679,7 +1681,7 @@ function SavSettingsAdmin({ onBack }: { onBack?: () => void }) {
       const res = await fetch('/api/sav-settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'x-admin-role': 'ADMIN' },
-        body: JSON.stringify({ savPhone, savWhatsapp, savEmail, savHoraires, savFaq }),
+        body: JSON.stringify({ savPhone, savWhatsapp, savEmail, savHoraires, savFaq, savReglement }),
       });
       if (res.ok) toast.success('Paramètres SAV enregistrés !');
       else toast.error('Erreur lors de la sauvegarde');
@@ -1715,6 +1717,21 @@ function SavSettingsAdmin({ onBack }: { onBack?: () => void }) {
           <div>
             <Label className="text-xs font-bold">Email SAV</Label>
             <Input value={savEmail} onChange={e => setSavEmail(e.target.value)} placeholder="sav@kami-extension.com" className="mt-1" />
+          </div>
+
+          <Separator />
+
+          <div>
+            <Label className="text-xs font-bold">Règlement intérieur</Label>
+            <p className="text-xs text-muted-foreground mt-1 mb-2">
+              Modifiez le texte ci-dessous. Effacez tout le contenu pour revenir au règlement structuré par défaut. Séparez les paragraphes par une ligne vide.
+            </p>
+            <textarea
+              value={savReglement}
+              onChange={e => setSavReglement(e.target.value)}
+              placeholder="Saisissez ici le règlement intérieur personnalisé..."
+              className="w-full min-h-56 rounded-md border border-input bg-background px-3 py-2 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
           </div>
 
           <Separator />

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -1211,17 +1211,47 @@ const rulesData: RulesSection[] = [
   },
 ];
 
+export function getDefaultRegulationText() {
+  return rulesData
+    .flatMap((section) => section.articles.flatMap((article) => [article.title, ...article.rules]))
+    .join('\n\n');
+}
+
 export function RegulationRulesScreen({ setCurrentScreen, onHome }: RegulationRulesScreenProps) {
+  const [customRegulation, setCustomRegulation] = useState('');
+
+  useEffect(() => {
+    fetch('/api/sav-settings')
+      .then((response) => response.json())
+      .then((data) => setCustomRegulation(data.savReglement || ''))
+      .catch(() => {});
+  }, []);
+
+  const displayedRulesData: RulesSection[] = customRegulation.trim()
+    ? [{
+        id: 'custom-regulation',
+        title: 'Règlement intérieur',
+        icon: <BookOpen className="h-6 w-6" />,
+        color: 'text-brand-blue',
+        bgColor: 'bg-blue-50 dark:bg-blue-950/30',
+        borderColor: 'border-l-brand-blue',
+        articles: [{
+          title: 'Dispositions en vigueur',
+          rules: customRegulation.trim().split(/\n\s*\n/).filter(Boolean),
+        }],
+      }]
+    : rulesData;
+
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [expandedArticles, setExpandedArticles] = useState<Record<string, boolean>>({});
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Expand first section by default
-  useState(() => {
-    if (rulesData.length > 0) {
-      setExpandedSections({ [rulesData[0].id]: true });
+  // Expand the first available section, including a loaded custom document.
+  useEffect(() => {
+    if (displayedRulesData.length > 0) {
+      setExpandedSections({ [displayedRulesData[0].id]: true });
     }
-  });
+  }, [customRegulation]);
 
   const toggleSection = (sectionId: string) => {
     setExpandedSections((prev) => ({ ...prev, [sectionId]: !prev[sectionId] }));
@@ -1233,7 +1263,7 @@ export function RegulationRulesScreen({ setCurrentScreen, onHome }: RegulationRu
 
   const expandAll = () => {
     const all: Record<string, boolean> = {};
-    rulesData.forEach((s) => {
+    displayedRulesData.forEach((s) => {
       all[s.id] = true;
       s.articles.forEach((a, i) => {
         all[`${s.id}-${i}`] = true;
@@ -1250,7 +1280,7 @@ export function RegulationRulesScreen({ setCurrentScreen, onHome }: RegulationRu
 
   // Filter based on search
   const filteredData = searchQuery
-    ? rulesData.map((section) => ({
+    ? displayedRulesData.map((section) => ({
         ...section,
         articles: section.articles.map((article) => ({
           ...article,
@@ -1261,10 +1291,10 @@ export function RegulationRulesScreen({ setCurrentScreen, onHome }: RegulationRu
           ),
         })).filter((article) => article.rules.length > 0),
       })).filter((section) => section.articles.length > 0)
-    : rulesData;
+    : displayedRulesData;
 
-  const totalArticles = rulesData.reduce((sum, s) => sum + s.articles.length, 0);
-  const totalRules = rulesData.reduce(
+  const totalArticles = displayedRulesData.reduce((sum, s) => sum + s.articles.length, 0);
+  const totalRules = displayedRulesData.reduce(
     (sum, s) => sum + s.articles.reduce((aSum, a) => aSum + a.rules.length, 0),
     0
   );
