@@ -2389,7 +2389,23 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
                     type="button"
                     size="sm"
                     variant={paymentFilter === filter.key ? 'default' : 'outline'}
-                    className={paymentFilter === filter.key ? 'bg-[#10B981] hover:bg-[#059669] text-white' : ''}
+                    className={
+                      paymentFilter === filter.key
+                        ? filter.key === 'pending'
+                          ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                          : filter.key === 'validated'
+                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                          : filter.key === 'rejected'
+                          ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                          : 'bg-[#10B981] hover:bg-[#059669] text-white'
+                        : filter.key === 'pending'
+                        ? 'border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-950/30'
+                        : filter.key === 'validated'
+                        ? 'border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-300 dark:hover:bg-emerald-950/30'
+                        : filter.key === 'rejected'
+                        ? 'border-orange-300 text-orange-700 hover:bg-orange-50 dark:border-orange-700 dark:text-orange-300 dark:hover:bg-orange-950/30'
+                        : ''
+                    }
                     onClick={() => setPaymentFilter(filter.key as 'all' | 'pending' | 'validated' | 'rejected')}
                   >
                     {filter.label}
