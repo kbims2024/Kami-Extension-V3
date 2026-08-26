@@ -1222,6 +1222,14 @@ function getRuleSummary(rules: string[]) {
   return summary.length > 180 ? `${summary.slice(0, 177).trimEnd()}...` : summary;
 }
 
+function getSectionSummary(section: RulesSection) {
+  const summary = section.articles
+    .slice(0, 2)
+    .map((article) => getRuleSummary(article.rules).replace(/\.\.\.$/, ''))
+    .join(' ');
+  return summary.length > 240 ? `${summary.slice(0, 237).trimEnd()}...` : summary;
+}
+
 export function RegulationRulesScreen({ setCurrentScreen, onHome }: RegulationRulesScreenProps) {
   const [customRegulation, setCustomRegulation] = useState('');
 
@@ -1251,17 +1259,24 @@ export function RegulationRulesScreen({ setCurrentScreen, onHome }: RegulationRu
   const [expandedArticles, setExpandedArticles] = useState<Record<string, boolean>>({});
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Expand the first available section, including a loaded custom document.
   useEffect(() => {
-    if (displayedRulesData.length > 0) {
-      setExpandedSections(
-        Object.fromEntries(displayedRulesData.map((section) => [section.id, true]))
-      );
-    }
+    setExpandedSections({});
+    setExpandedArticles({});
   }, [customRegulation]);
 
   const toggleSection = (sectionId: string) => {
-    setExpandedSections((prev) => ({ ...prev, [sectionId]: !prev[sectionId] }));
+    const section = displayedRulesData.find((item) => item.id === sectionId);
+    const willExpand = !expandedSections[sectionId];
+    setExpandedSections((prev) => ({ ...prev, [sectionId]: willExpand }));
+    if (section) {
+      setExpandedArticles((prev) => {
+        const next = { ...prev };
+        section.articles.forEach((_article, index) => {
+          next[`${section.id}-${index}`] = willExpand;
+        });
+        return next;
+      });
+    }
   };
 
   const toggleArticle = (articleKey: string) => {
@@ -1394,14 +1409,18 @@ export function RegulationRulesScreen({ setCurrentScreen, onHome }: RegulationRu
                       <CardTitle className={`text-base ${section.color}`}>
                         {section.title}
                       </CardTitle>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {section.articles.length} article{section.articles.length > 1 ? 's' : ''}
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                        {getSectionSummary(section)}
                       </p>
                     </div>
                     {expandedSections[section.id] ? (
-                      <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                      <span className="flex items-center gap-1 text-xs font-semibold text-[#8B5E3C] shrink-0">
+                        Masquer <ChevronUp className="h-4 w-4" />
+                      </span>
                     ) : (
-                      <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                      <span className="flex items-center gap-1 text-xs font-semibold text-[#8B5E3C] shrink-0">
+                        En savoir plus <ChevronDown className="h-4 w-4" />
+                      </span>
                     )}
                   </div>
                 </CardHeader>
