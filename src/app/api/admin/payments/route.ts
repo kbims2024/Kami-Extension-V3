@@ -60,6 +60,28 @@ export async function PUT(request: NextRequest) {
         data: { status: 'REJECTED' },
       });
 
+      const [validatedPayments, pendingPayments, otherReservations] = await Promise.all([
+        db.payment.findMany({
+          where: { userId: payment.userId, lotId: payment.lotId, status: 'VALIDATED' },
+        }),
+        db.payment.findMany({
+          where: { userId: payment.userId, lotId: payment.lotId, status: 'PENDING' },
+        }),
+        db.reservation.findMany({
+          where: { lotId: payment.lotId },
+        }),
+      ]);
+
+      if (validatedPayments.length === 0 && pendingPayments.length === 0) {
+        await db.reservation.delete({ where: { id: reservation.id } });
+        if (otherReservations.length <= 1) {
+          await db.lot.update({
+            where: { id: payment.lotId },
+            data: { status: 'AVAILABLE' },
+          });
+        }
+      }
+
       try {
         await db.notification.create({
           data: {
