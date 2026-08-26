@@ -270,7 +270,23 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
 
   // === Étape 2 : Détails du paiement ===
   if (selectedMethod) {
-    const method = PAYMENT_METHODS.find(m => m.id === selectedMethod)!;
+    const method = PAYMENT_METHODS.find((item) => item.id === selectedMethod);
+
+    if (!method) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-background p-6">
+          <Card className="w-full max-w-md border-border">
+            <CardContent className="p-6 text-center space-y-4">
+              <AlertCircle className="h-10 w-10 mx-auto text-destructive" />
+              <p className="font-bold text-foreground">Moyen de paiement indisponible</p>
+              <Button type="button" onClick={() => setSelectedMethod(null)}>
+                Choisir un autre moyen
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
 
     if (showDevMessage) {
       return (
