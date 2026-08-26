@@ -101,6 +101,7 @@ export function FlashInfoAdmin({ onBack, onHome }: FlashInfoAdminProps) {
     bgColor: '#1e40af',
     textColor: '#ffffff'
   });
+  const [savingSettings, setSavingSettings] = useState(false);
   const [emojiInput, setEmojiInput] = useState('');
   const [colorFavorites, setColorFavorites] = useState<ColorFavorite[]>([]);
   const [showFavoriteName, setShowFavoriteName] = useState<{ type: 'text' | 'background'; value: string } | null>(null);
@@ -122,7 +123,11 @@ export function FlashInfoAdmin({ onBack, onHome }: FlashInfoAdminProps) {
         const flashData = await response.json();
         const items = [...(flashData.items || [])].sort((a, b) => a.position - b.position);
         setData({ ...flashData, items });
-        setSettingsData(flashData.settings);
+        setSettingsData({
+          scrollSpeed: Number(flashData.settings?.scrollSpeed) || 30,
+          bgColor: flashData.settings?.bgColor || '#1e40af',
+          textColor: flashData.settings?.textColor || '#ffffff'
+        });
       }
     } catch (error) {
       console.error('Erreur lors du chargement:', error);
@@ -362,21 +367,31 @@ export function FlashInfoAdmin({ onBack, onHome }: FlashInfoAdminProps) {
   const bgColorFavorites = colorFavorites.filter(f => f.type === 'background');
 
   const handleSaveSettings = async () => {
+    const scrollSpeed = Number(settingsData.scrollSpeed);
+    if (!Number.isFinite(scrollSpeed) || scrollSpeed < 10 || scrollSpeed > 120) {
+      toast.error('La vitesse doit être comprise entre 10 et 120 secondes');
+      return;
+    }
+
+    setSavingSettings(true);
     try {
       const response = await fetch('/api/flash-info/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settingsData)
+        body: JSON.stringify({ ...settingsData, scrollSpeed })
       });
 
       if (response.ok) {
         toast.success('Paramètres sauvegardés !');
         loadFlashInfo();
       } else {
-        toast.error('Erreur lors de la sauvegarde des paramètres');
+        const errorData = await response.json().catch(() => null);
+        toast.error(errorData?.error || 'Erreur lors de la sauvegarde des paramètres');
       }
     } catch (error) {
       toast.error('Erreur lors de la sauvegarde des paramètres');
+    } finally {
+      setSavingSettings(false);
     }
   };
 
@@ -745,9 +760,9 @@ export function FlashInfoAdmin({ onBack, onHome }: FlashInfoAdminProps) {
 
             {/* Boutons d'action */}
             <div className="flex gap-2 pt-2">
-              <Button onClick={handleSaveSettings} className="flex-1">
+              <Button onClick={handleSaveSettings} disabled={savingSettings} className="flex-1">
                 <Save className="h-4 w-4 mr-2" />
-                Sauvegarder les paramètres
+                {savingSettings ? 'Sauvegarde...' : 'Sauvegarder les paramètres'}
               </Button>
               <Button
                 variant="outline"

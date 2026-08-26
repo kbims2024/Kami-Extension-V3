@@ -39,6 +39,12 @@ export async function PUT(req: NextRequest) {
     const { scrollSpeed, bgColor, textColor } = body;
 
     const data = await readFlashInfoDb();
+    data.settings = {
+      scrollSpeed: 30,
+      bgColor: '#1e40af',
+      textColor: '#ffffff',
+      ...data.settings,
+    };
 
     // Update settings
     if (scrollSpeed !== undefined) {
