@@ -2036,6 +2036,8 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
       return () => clearInterval(interval);
     } else if (activeView === 'payments') {
       loadPayments();
+      const interval = setInterval(loadPayments, 10000);
+      return () => clearInterval(interval);
     }
   }, [activeView]);
 
@@ -2386,12 +2388,18 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
                         <div className="flex justify-between items-start mb-3">
                           <div>
                             <h3 className="font-bold text-foreground">Lot {payment.lot?.name || payment.lotName}</h3>
-                            <p className="text-xs text-muted-foreground">{payment.user?.name || 'Utilisateur inconnu'}</p>
+                            <p className="text-xs text-muted-foreground">{payment.userName || payment.user?.name || 'Utilisateur inconnu'}</p>
                           </div>
-                          <Badge className={isValidated ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'}>
+                          <Badge className={isValidated ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 animate-pulse'}>
                             {isValidated ? 'Validé' : 'À valider'}
                           </Badge>
                         </div>
+
+                        {!isValidated && (
+                          <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-300">
+                            Nouveau paiement soumis par l&apos;utilisateur
+                          </div>
+                        )}
 
                         <div className="mb-3">
                           <div className="flex justify-between text-sm mb-1">

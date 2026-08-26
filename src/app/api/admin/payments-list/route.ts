@@ -25,9 +25,9 @@ export async function GET(request: NextRequest) {
       return ({
       id: payment.id,
       userId: payment.userId,
-      userName: payment.user.name,
+      userName: payment.user?.name || 'Utilisateur inconnu',
       lotId: payment.lotId,
-      lotName: payment.lot.name,
+      lotName: payment.lot?.name || 'Lot inconnu',
       amount: payment.amount,
       status: payment.status,
       type: payment.type,

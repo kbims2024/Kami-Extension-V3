@@ -113,6 +113,7 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
   const [agreeRules, setAgreeRules] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
   const [paymentSent, setPaymentSent] = useState(false);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [loading, setLoading] = useState(true);
   const [existingPaid, setExistingPaid] = useState(0);
   const [showDevMessage, setShowDevMessage] = useState(false);
@@ -166,6 +167,8 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
     setSelectedMethod(methodId);
     setPaymentAmount('');
     setAgreeRules(false);
+    setPaymentSent(false);
+    setShowPaymentDialog(false);
     setShowDevMessage(false);
   };
 
@@ -203,7 +206,7 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
     }, 1800);
   };
 
-  const handleValidate = async () => {
+  const handleOpenPaymentDialog = () => {
     const amount = parseInt(paymentAmount);
     if (!amount || amount < 10000) {
       toast.error('Le montant minimum est de 10 000 F');
@@ -218,18 +221,13 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
       return;
     }
 
-    setIsValidating(true);
-    toast.info(`Ouverture de ${PAYMENT_METHODS.find((m) => m.id === selectedMethod)?.name || 'l’application'}...`);
+    setShowPaymentDialog(true);
+  };
 
-    await new Promise(resolve => setTimeout(resolve, 1200));
-
-    if (selectedMethod) {
-      openPaymentApp(selectedMethod);
-    }
-
-    setIsValidating(false);
+  const handleConfirmPaymentSent = () => {
     setPaymentSent(true);
-    toast.success('Après l’envoi, confirmez ci-dessous pour soumettre le paiement au CGL.');
+    setShowPaymentDialog(false);
+    toast.success('Paiement confirmé. Vous pouvez maintenant le soumettre au CGL.');
   };
 
   const handleSubmitToCgl = async () => {
@@ -369,26 +367,6 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
               </CardContent>
             </Card>
 
-            {/* Numéro marchand */}
-            <Card className="border-border">
-              <CardContent className="p-4 space-y-3">
-                <div>
-                  <p className="text-sm font-bold">Numéro marchand {method.name}</p>
-                  <p className="text-xs text-muted-foreground">Envoyez le montant vers ce numéro, puis validez la demande.</p>
-                </div>
-                <div className="flex gap-2">
-                  <Input readOnly value={paymentNumbers[method.id] || ''} className="text-lg font-bold tracking-wide" aria-label={`Numéro marchand ${method.name}`} />
-                  <Button type="button" variant="outline" onClick={() => copyMerchantNumber(method.id)} aria-label="Copier le numéro marchand" title="Copier le numéro marchand">
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </div>
-                <Button type="button" variant="outline" className="w-full" onClick={() => openPaymentApp(method.id)}>
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Ouvrir {method.name}
-                </Button>
-              </CardContent>
-            </Card>
-
             {/* Saisie du montant */}
             <Card className="border-border">
               <CardContent className="p-4 space-y-3">
@@ -475,7 +453,7 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
                 color: method.id === 'mtn_money' ? '#000' : '#fff',
               }}
               disabled={!agreeRules || !paymentAmount || parseInt(paymentAmount) < 10000 || isValidating}
-              onClick={paymentSent ? handleSubmitToCgl : handleValidate}
+              onClick={paymentSent ? handleSubmitToCgl : handleOpenPaymentDialog}
             >
               {isValidating ? (
                 <>
@@ -485,7 +463,7 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
               ) : (
                 <>
                   <Shield className="h-5 w-5 mr-2" />
-                  {paymentSent ? 'Soumettre le paiement au CGL' : `J’ai effectué le paiement via ${method.name}`}
+                  {paymentSent ? 'Soumettre le paiement au CGL' : `J’effectue le paiement via ${method.name}`}
                 </>
               )}
             </Button>
@@ -499,6 +477,64 @@ export function PaymentMethodScreen({ lot, user, onBack, onPaymentComplete, onHo
             </Button>
           </div>
         </div>
+
+        <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Récapitulatif du paiement</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-2">
+                <div className="flex justify-between gap-4 text-sm">
+                  <span className="text-muted-foreground">Lot</span>
+                  <span className="font-bold text-foreground">{lot.name}</span>
+                </div>
+                <div className="flex justify-between gap-4 text-sm">
+                  <span className="text-muted-foreground">Mode de paiement</span>
+                  <span className="font-bold text-foreground">{method.name}</span>
+                </div>
+                <div className="flex justify-between gap-4 text-base border-t border-border pt-2">
+                  <span className="font-bold text-foreground">Montant exact à envoyer</span>
+                  <span className="font-extrabold" style={{ color: method.color }}>
+                    {formatPrice(parseInt(paymentAmount) || 0)} F
+                  </span>
+                </div>
+                <div className="border-t border-border pt-2">
+                  <p className="text-xs text-muted-foreground mb-1">Numéro marchand</p>
+                  <div className="flex gap-2">
+                    <Input
+                      readOnly
+                      value={paymentNumbers[method.id] || ''}
+                      className="text-lg font-bold tracking-wide"
+                      aria-label={`Numéro marchand ${method.name}`}
+                    />
+                    <Button type="button" variant="outline" onClick={() => copyMerchantNumber(method.id)} aria-label="Copier le numéro marchand" title="Copier le numéro marchand">
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-sm leading-6 text-muted-foreground">
+                Effectuez le paiement du montant exact sur ce numéro marchand, puis confirmez ci-dessous pour faire apparaître la soumission au CGL.
+              </p>
+
+              <Button
+                type="button"
+                className="w-full font-bold"
+                style={{ backgroundColor: method.color, color: method.id === 'mtn_money' ? '#000' : '#fff' }}
+                onClick={() => openPaymentApp(method.id)}
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Ouvrir {method.name}
+              </Button>
+              <Button type="button" variant="outline" className="w-full font-bold" onClick={handleConfirmPaymentSent}>
+                <Check className="h-4 w-4 mr-2" />
+                J&apos;ai effectué le paiement
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
