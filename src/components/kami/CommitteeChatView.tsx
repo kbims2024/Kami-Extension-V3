@@ -693,6 +693,12 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
       message: 'Cette discussion disparaîtra de la liste active.',
       confirmLabel: 'Archiver',
       onConfirm: async () => {
+        const previousConversations = conversations;
+        setConversations((prev) => prev.filter((conversation) => conversation.user.id !== userId));
+        if (selectedConv?.user.id === userId) {
+          setSelectedConv(null);
+          setActiveView('list');
+        }
         try {
           const res = await fetch('/api/messages', {
             method: 'PATCH',
@@ -704,14 +710,11 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
             throw new Error("Erreur d'archivage");
           }
 
-          if (selectedConv?.user.id === userId) {
-            setSelectedConv(null);
-            setActiveView('list');
-          }
           await loadConversations();
           toast.success('Discussion archivée');
         } catch (e) {
           console.error('[CommitteeChatView] archiveConversation error:', e);
+          setConversations(previousConversations);
           toast.error("Erreur lors de l'archivage de la discussion");
         }
       },
@@ -726,6 +729,12 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
       message: 'Supprimer définitivement cette discussion pour le CGL ?',
       confirmLabel: 'Supprimer',
       onConfirm: async () => {
+        const previousConversations = conversations;
+        setConversations((prev) => prev.filter((conversation) => conversation.user.id !== userId));
+        if (selectedConv?.user.id === userId) {
+          setSelectedConv(null);
+          setActiveView('list');
+        }
         try {
           const res = await fetch('/api/messages', {
             method: 'PATCH',
@@ -737,14 +746,11 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
             throw new Error('Erreur de suppression');
           }
 
-          if (selectedConv?.user.id === userId) {
-            setSelectedConv(null);
-            setActiveView('list');
-          }
           await loadConversations();
           toast.success('Discussion supprimée');
         } catch (e) {
           console.error('[CommitteeChatView] deleteConversation error:', e);
+          setConversations(previousConversations);
           toast.error('Erreur lors de la suppression de la discussion');
         }
       },
@@ -946,7 +952,7 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
                     <motion.button
                       whileTap={{ scale: 0.98 }}
                       onClick={() => handleOpenConversation(conv.user.id)}
-                      className={`w-full flex items-center gap-3 px-3 py-3 text-left transition-all ${isSelected ? 'border border-blue-200 dark:border-blue-600 bg-blue-50/50 dark:bg-blue-950/30 rounded-2xl shadow-sm' : 'rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-950'} ${conv.unreadCount > 0 ? 'ring-1 ring-blue-200 dark:ring-blue-600' : ''}`}
+                      className={`w-full flex items-center gap-3 px-3 py-3 pb-12 sm:pb-3 text-left transition-all ${isSelected ? 'border border-blue-200 dark:border-blue-600 bg-blue-50/50 dark:bg-blue-950/30 rounded-2xl shadow-sm' : 'rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-950'} ${conv.unreadCount > 0 ? 'ring-1 ring-blue-200 dark:ring-blue-600' : ''}`}
                       style={{ borderColor: isDark ? '#2A3942' : WA.borderLight }}
                     >
                       <div
@@ -990,7 +996,7 @@ export function CommitteeChatView({ setCurrentScreen, onBack, onHome }: Committe
                         </div>
                       </div>
                     </motion.button>
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex gap-1.5">
+                    <div className="absolute right-3 bottom-2 translate-y-0 sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2 flex gap-1.5">
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); archiveConversation(conv.user.id); }}
