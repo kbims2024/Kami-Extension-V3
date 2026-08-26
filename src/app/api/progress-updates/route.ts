@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { notifyManagement } from '@/lib/management-notifications';
 
 // GET /api/progress-updates — Public read
 export async function GET(request: NextRequest) {
@@ -55,6 +56,17 @@ export async function POST(request: NextRequest) {
         authorId: authorId || null,
       },
     });
+
+    try {
+      await notifyManagement({
+        title: '📢 Nouvelle publication',
+        message: `${title} a été publiée dans l’avancement des travaux.`,
+        type: 'PUBLICATION',
+        data: { screen: 'progress-updates', publicationId: update.id, targetLabel: 'Ouvrir la publication' },
+      });
+    } catch (notificationError) {
+      console.warn('Notification publication non envoyée:', notificationError);
+    }
 
     return NextResponse.json(update, { status: 201 });
   } catch (error) {

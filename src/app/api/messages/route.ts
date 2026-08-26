@@ -5,6 +5,7 @@ import { Settings } from '@/lib/models/Settings';
 import { ensureAdmin } from '@/lib/admin';
 import { MAX_MESSAGE_LENGTH, stripLegacyUserHeader } from '@/lib/chat-utils';
 import { normalizeDiscussionConfig } from '@/lib/discussion-config';
+import { notifyManagement } from '@/lib/management-notifications';
 
 let cachedAdminId: string | null = null;
 
@@ -78,11 +79,11 @@ export async function POST(request: NextRequest) {
     const [sender, receiver] = await Promise.all([
       db.user.findUnique({
         where: { id: senderId },
-        select: { id: true, name: true, phone: true },
+        select: { id: true, name: true, phone: true, role: true },
       }),
       db.user.findUnique({
         where: { id: receiverId },
-        select: { id: true, name: true, phone: true },
+        select: { id: true, name: true, phone: true, role: true },
       }),
     ]);
 
@@ -109,6 +110,21 @@ export async function POST(request: NextRequest) {
         attachment: attachment || null,
       },
     });
+
+    const isManagementRecipient = receiver.phone === 'ADMIN' ||
+      receiver.role === 'ADMIN' || receiver.role === 'MANAGEMENT_COMMITTEE';
+    if (senderId !== receiverId && isManagementRecipient) {
+      try {
+        await notifyManagement({
+          title: '💬 Nouvelle discussion',
+          message: `${sender.name || 'Un utilisateur'} vous a envoyé un message.`,
+          type: 'DISCUSSION',
+          data: { screen: 'committee-chat', userId: senderId, userName: sender.name || 'Utilisateur' },
+        });
+      } catch (notificationError) {
+        console.warn('Notification discussion non envoyée:', notificationError);
+      }
+    }
 
     // ─── Réponse automatique du CGL ───
     // Si l'utilisateur écrit au CGL pour la première fois et qu'une réponse

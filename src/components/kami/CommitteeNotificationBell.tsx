@@ -27,6 +27,7 @@ import { Separator } from '@/components/ui/separator';
 interface CommitteeNotificationBellProps {
   userId: string;
   onNavigate?: () => void;
+  onTargetNavigate?: (notification: CommitteeNotification) => void;
 }
 
 interface CommitteeNotification {
@@ -36,6 +37,9 @@ interface CommitteeNotification {
   type: string; // RESERVATION | ACHAT | PAYMENT | APPROVAL | SYSTEM
   read: boolean;
   data: {
+    screen?: string;
+    applicationId?: string;
+    targetLabel?: string;
     reservationId: string;
     userId: string;
     userName: string;
@@ -93,6 +97,30 @@ const TYPE_CONFIG: Record<
     icon: Info,
     label: 'Système',
     color: 'text-amber-500',
+  },
+  INSCRIPTION: {
+    emoji: '👤',
+    icon: Package,
+    label: 'Inscription',
+    color: 'text-cyan-500',
+  },
+  DISCUSSION: {
+    emoji: '💬',
+    icon: Info,
+    label: 'Discussion',
+    color: 'text-blue-500',
+  },
+  EXPERT_APPLICATION: {
+    emoji: '🧰',
+    icon: Package,
+    label: 'Candidature expert',
+    color: 'text-orange-500',
+  },
+  PUBLICATION: {
+    emoji: '📢',
+    icon: Info,
+    label: 'Publication',
+    color: 'text-indigo-500',
   },
 };
 
@@ -335,6 +363,7 @@ export function CommitteeNotificationBell({ userId, onNavigate }: CommitteeNotif
                     notification={notification}
                     onMarkAsRead={markAsRead}
                     onDelete={deleteNotification}
+                    onTargetNavigate={onTargetNavigate}
                   />
                 ))}
               </AnimatePresence>
@@ -354,10 +383,12 @@ function NotificationItem({
   notification,
   onMarkAsRead,
   onDelete,
+  onTargetNavigate,
 }: {
   notification: CommitteeNotification;
   onMarkAsRead: (id: string) => void;
   onDelete: (id: string) => void;
+  onTargetNavigate?: (notification: CommitteeNotification) => void;
 }) {
   const config = TYPE_CONFIG[notification.type] ?? TYPE_CONFIG.SYSTEM;
   const TypeIcon = config.icon;
@@ -365,6 +396,8 @@ function NotificationItem({
   const handleClick = () => {
     if (!notification.read) onMarkAsRead(notification.id);
   };
+
+  const hasTarget = Boolean(notification.data?.screen);
 
   return (
     <motion.div
@@ -440,6 +473,19 @@ function NotificationItem({
             {formatTimeAgo(notification.createdAt)}
           </span>
         </div>
+        {hasTarget && onTargetNavigate && (
+          <button
+            type="button"
+            className="mt-2 text-xs font-semibold text-primary hover:underline"
+            onClick={(event) => {
+              event.stopPropagation();
+              handleClick();
+              onTargetNavigate(notification);
+            }}
+          >
+            {notification.data?.targetLabel || 'Voir la cible'}
+          </button>
+        )}
       </div>
     </motion.div>
   );

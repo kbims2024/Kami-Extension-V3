@@ -349,6 +349,18 @@ export function AdminChatPage({ setCurrentScreen, setIsMenuOpen, onHome }: Admin
             <CommitteeNotificationBell
               userId={adminId}
               onNavigate={() => setCurrentScreen('espace-cgl')}
+              onTargetNavigate={(notification) => {
+                if (notification.data?.screen === 'committee-chat') {
+                  localStorage.setItem('selectedChatUser', JSON.stringify({
+                    id: notification.data?.userId,
+                    name: notification.data?.userName,
+                  }));
+                  setCurrentScreen('committee-chat');
+                } else {
+                  localStorage.setItem('pendingAdminNotificationTarget', notification.data?.screen || '');
+                  setCurrentScreen('admin');
+                }
+              }}
             />
           )}
           <Button

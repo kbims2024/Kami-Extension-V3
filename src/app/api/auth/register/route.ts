@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { hashPassword } from '@/lib/password';
+import { notifyManagement } from '@/lib/management-notifications';
 
 // POST /api/auth/register - Inscription
 export async function POST(request: NextRequest) {
@@ -65,6 +66,17 @@ export async function POST(request: NextRequest) {
         password: password ? await hashPassword(password) : null,
       },
     });
+
+    try {
+      await notifyManagement({
+        title: '👤 Nouveau inscrit',
+        message: `${newUser.name} vient de créer un compte.`,
+        type: 'INSCRIPTION',
+        data: { screen: 'user-management', userId: newUser.id, userName: newUser.name },
+      });
+    } catch (notificationError) {
+      console.warn('Notification inscription non envoyée:', notificationError);
+    }
 
     return NextResponse.json(newUser);
   } catch (error) {

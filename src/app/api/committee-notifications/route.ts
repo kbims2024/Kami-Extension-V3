@@ -28,15 +28,23 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
-    const formatted = notifications.map((n: any) => ({
-      id: n.id,
-      title: n.title,
-      message: n.message,
-      type: n.type,
-      read: n.read,
-      data: n.data ? JSON.parse(n.data) : null,
-      createdAt: n.createdAt.toISOString(),
-    }));
+    const formatted = notifications.map((n: any) => {
+      let data = null;
+      try {
+        data = n.data ? JSON.parse(n.data) : null;
+      } catch {
+        data = null;
+      }
+      return {
+        id: n.id,
+        title: n.title,
+        message: n.message,
+        type: n.type,
+        read: n.read,
+        data,
+        createdAt: n.createdAt.toISOString(),
+      };
+    });
 
     return NextResponse.json({ notifications: formatted, unreadCount });
   } catch (error) {

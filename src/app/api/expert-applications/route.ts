@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { notifyManagement } from '@/lib/management-notifications';
 
 // Helper: convert a File to a base64 data URI
 async function fileToDataUri(file: File): Promise<string> {
@@ -108,6 +109,17 @@ export async function POST(req: NextRequest) {
         status: 'PENDING',
       },
     });
+
+    try {
+      await notifyManagement({
+        title: '🧰 Nouvelle candidature expert',
+        message: `${application.fullName} a envoyé une candidature d'expert.`,
+        type: 'EXPERT_APPLICATION',
+        data: { screen: 'expert-applications', applicationId: application.id, userName: application.fullName },
+      });
+    } catch (notificationError) {
+      console.warn('Notification candidature non envoyée:', notificationError);
+    }
 
     return NextResponse.json({
       success: true,

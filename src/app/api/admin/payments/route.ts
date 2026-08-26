@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { notifyManagement } from '@/lib/management-notifications';
 
 // GET /api/admin/payments - Récupérer toutes les réservations
 export async function GET() {
@@ -89,6 +90,31 @@ export async function PUT(request: NextRequest) {
         where: { id: reservation.lotId },
         data: { status: 'RESERVED' },
       });
+    }
+
+    try {
+      const [user, lot] = await Promise.all([
+        db.user.findUnique({ where: { id: reservation.userId } }),
+        db.lot.findUnique({ where: { id: reservation.lotId } }),
+      ]);
+      await notifyManagement({
+        title: '💰 Paiement mis à jour',
+        message: `${user?.name || 'Un souscripteur'} a versé ${newPaidAmount.toLocaleString('fr-FR')} F pour le lot ${lot?.name || reservation.lotId}.`,
+        type: 'PAYMENT',
+        data: {
+          screen: 'payments',
+          reservationId,
+          userId: reservation.userId,
+          userName: user?.name || 'Inconnu',
+          lotId: reservation.lotId,
+          lotName: lot?.name || '',
+          amount: newPaidAmount,
+          totalPrice: reservation.totalPrice,
+          status: newStatus,
+        },
+      });
+    } catch (notificationError) {
+      console.warn('Notification paiement non envoyée:', notificationError);
     }
 
     return NextResponse.json(updatedReservation);

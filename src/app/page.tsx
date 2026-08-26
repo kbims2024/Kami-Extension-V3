@@ -2053,6 +2053,15 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
     };
   }, [isCglMode]);
 
+  useEffect(() => {
+    if (isCglMode || typeof window === 'undefined') return;
+    const target = localStorage.getItem('pendingAdminNotificationTarget');
+    if (target) {
+      localStorage.removeItem('pendingAdminNotificationTarget');
+      setActiveView(target);
+    }
+  }, [isCglMode]);
+
   const visibleButtons = isCglMode
     ? ADMIN_FEATURE_BUTTONS.filter((button) => (cglEnabled ?? []).includes(button.view))
     : ADMIN_FEATURE_BUTTONS;
@@ -2067,6 +2076,19 @@ function AdminScreen({ adminView, setAdminView, lots, loadLots, setCurrentScreen
           <CommitteeNotificationBell
             userId={currentUser.id}
             onNavigate={() => setCurrentScreen('espace-cgl')}
+            onTargetNavigate={(notification) => {
+              const target = notification.data?.screen;
+              if (!target) return;
+              if (target === 'committee-chat') {
+                localStorage.setItem('selectedChatUser', JSON.stringify({
+                  id: notification.data?.userId,
+                  name: notification.data?.userName,
+                }));
+                setCurrentScreen('committee-chat');
+              } else {
+                setActiveView(target);
+              }
+            }}
           />
         ) : undefined}
       />

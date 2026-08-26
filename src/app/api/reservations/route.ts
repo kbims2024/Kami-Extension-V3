@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { notifyManagement } from '@/lib/management-notifications';
 
 // GET /api/reservations?userId=xxx - Récupérer les réservations d'un utilisateur
 export async function GET(request: NextRequest) {
@@ -120,41 +121,25 @@ export async function POST(request: NextRequest) {
         ? `${user?.name || 'Un souscripteur'} a acheté le lot ${lot.name} (${lot.block || ''}) pour ${amount.toLocaleString('fr-FR')} F`
         : `${user?.name || 'Un souscripteur'} a réservé le lot ${lot.name} (${lot.block || ''}) — Versement initial: ${amount.toLocaleString('fr-FR')} F / ${totalPrice.toLocaleString('fr-FR')} F`;
 
-      const extraData = JSON.stringify({
-        reservationId: reservation.id,
-        userId,
-        userName: user?.name || 'Inconnu',
-        userPhone: user?.phone || '',
-        lotId,
-        lotName: lot.name,
-        lotBlock: lot.block || '',
-        amount,
-        totalPrice,
-        status: newStatus,
-        isResident,
+      await notifyManagement({
+        title: notifTitle,
+        message: notifMessage,
+        type: notificationType,
+        data: {
+          reservationId: reservation.id,
+          userId,
+          userName: user?.name || 'Inconnu',
+          userPhone: user?.phone || '',
+          lotId,
+          lotName: lot.name,
+          lotBlock: lot.block || '',
+          amount,
+          totalPrice,
+          status: newStatus,
+          isResident,
+          screen: 'payments',
+        },
       });
-
-      // Get all committee members and admins
-      const [committeeMembers, admins] = await Promise.all([
-        db.user.findMany({ where: { role: 'MANAGEMENT_COMMITTEE', status: 'ACTIVE' } }),
-        db.user.findMany({ where: { role: 'ADMIN', status: 'ACTIVE' } }),
-      ]);
-
-      const notifyTargets = [...committeeMembers, ...admins];
-
-      // Create notification for each member
-      for (const member of notifyTargets) {
-        await db.notification.create({
-          data: {
-            userId: member.id,
-            title: notifTitle,
-            message: notifMessage,
-            type: notificationType,
-            read: false,
-            data: extraData,
-          },
-        });
-      }
 
       // Also send a chat message to the ADMIN for immediate visibility
       try {
