@@ -1657,6 +1657,7 @@ function SavSettingsAdmin({ onBack }: { onBack?: () => void }) {
   const [savHoraires, setSavHoraires] = useState<{ day: string; hours: string }[]>([]);
   const [savFaq, setSavFaq] = useState<{ question: string; answer: string }[]>([]);
   const [savReglement, setSavReglement] = useState(getDefaultRegulationText);
+  const [showReglementEditor, setShowReglementEditor] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -1692,6 +1693,10 @@ function SavSettingsAdmin({ onBack }: { onBack?: () => void }) {
     }
   };
 
+  const reglementSummary = savReglement.trim()
+    ? savReglement.trim().replace(/\s+/g, ' ').slice(0, 220)
+    : 'Aucun règlement personnalisé. Le règlement structuré par défaut sera affiché.';
+
   if (loading) {
     return (
       <div className="mt-6">
@@ -1722,16 +1727,35 @@ function SavSettingsAdmin({ onBack }: { onBack?: () => void }) {
           <Separator />
 
           <div>
-            <Label className="text-xs font-bold">Règlement intérieur</Label>
-            <p className="text-xs text-muted-foreground mt-1 mb-2">
-              Modifiez le texte ci-dessous. Effacez tout le contenu pour revenir au règlement structuré par défaut. Séparez les paragraphes par une ligne vide.
-            </p>
-            <textarea
-              value={savReglement}
-              onChange={e => setSavReglement(e.target.value)}
-              placeholder="Saisissez ici le règlement intérieur personnalisé..."
-              className="w-full min-h-56 rounded-md border border-input bg-background px-3 py-2 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
+            <button
+              type="button"
+              onClick={() => setShowReglementEditor(prev => !prev)}
+              className="w-full text-left rounded-md border border-border bg-muted/20 px-3 py-3 hover:bg-muted/40 transition-colors"
+              aria-expanded={showReglementEditor}
+            >
+              <span className="flex items-center justify-between gap-3">
+                <span className="text-xs font-bold">Règlement intérieur</span>
+                <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 shrink-0">
+                  {showReglementEditor ? 'Masquer' : 'Modifier'}
+                </span>
+              </span>
+              <span className="block text-xs text-muted-foreground mt-1 line-clamp-3">
+                {reglementSummary}{savReglement.trim().length > 220 ? '...' : ''}
+              </span>
+            </button>
+            {showReglementEditor && (
+              <div className="mt-2">
+                <p className="text-xs text-muted-foreground mb-2">
+                  Modifiez le texte complet. Séparez les paragraphes par une ligne vide.
+                </p>
+                <textarea
+                  value={savReglement}
+                  onChange={e => setSavReglement(e.target.value)}
+                  placeholder="Saisissez ici le règlement intérieur personnalisé..."
+                  className="w-full min-h-56 rounded-md border border-input bg-background px-3 py-2 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+            )}
           </div>
 
           <Separator />

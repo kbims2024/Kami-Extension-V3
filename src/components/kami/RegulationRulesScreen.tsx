@@ -1217,6 +1217,11 @@ export function getDefaultRegulationText() {
     .join('\n\n');
 }
 
+function getRuleSummary(rules: string[]) {
+  const summary = rules[0]?.trim() || 'Consultez les dispositions de cet article.';
+  return summary.length > 180 ? `${summary.slice(0, 177).trimEnd()}...` : summary;
+}
+
 export function RegulationRulesScreen({ setCurrentScreen, onHome }: RegulationRulesScreenProps) {
   const [customRegulation, setCustomRegulation] = useState('');
 
@@ -1249,7 +1254,9 @@ export function RegulationRulesScreen({ setCurrentScreen, onHome }: RegulationRu
   // Expand the first available section, including a loaded custom document.
   useEffect(() => {
     if (displayedRulesData.length > 0) {
-      setExpandedSections({ [displayedRulesData[0].id]: true });
+      setExpandedSections(
+        Object.fromEntries(displayedRulesData.map((section) => [section.id, true]))
+      );
     }
   }, [customRegulation]);
 
@@ -1406,7 +1413,7 @@ export function RegulationRulesScreen({ setCurrentScreen, onHome }: RegulationRu
                   <div className="space-y-3 mt-2">
                     {section.articles.map((article, articleIdx) => {
                       const articleKey = `${section.id}-${articleIdx}`;
-                      const isExpanded = expandedArticles[articleKey] !== false; // expanded by default
+                      const isExpanded = expandedArticles[articleKey] === true;
 
                       return (
                         <div
@@ -1422,7 +1429,12 @@ export function RegulationRulesScreen({ setCurrentScreen, onHome }: RegulationRu
                               Art. {articleIdx + 1}
                             </Badge>
                             <span className="text-sm font-semibold text-foreground flex-1">
-                              {article.title}
+                              <span className="block">{article.title}</span>
+                              {!isExpanded && (
+                                <span className="block text-xs font-normal text-muted-foreground mt-1 line-clamp-2">
+                                  {getRuleSummary(article.rules)}
+                                </span>
+                              )}
                             </span>
                             {isExpanded ? (
                               <ChevronUp className="h-4 w-4 text-muted-foreground flex-shrink-0" />
